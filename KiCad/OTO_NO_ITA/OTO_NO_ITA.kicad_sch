@@ -6,8 +6,8 @@
 	(paper "A4")
 	(lib_symbols)
 	(sheet
-		(at 167.64 111.76)
-		(size 72.39 44.45)
+		(at 210.82 91.44)
+		(size 24.13 44.45)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -22,7 +22,7 @@
 		)
 		(uuid "48251e43-7df4-4aa3-bd6f-892bea7e5ba1")
 		(property "Sheetname" "USB"
-			(at 167.64 111.0484 0)
+			(at 210.82 90.7284 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -31,12 +31,102 @@
 			)
 		)
 		(property "Sheetfile" "usb.kicad_sch"
-			(at 167.64 156.7946 0)
+			(at 210.82 136.4746 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left top)
+			)
+		)
+		(pin "UCPD_PWR_EN" input
+			(at 210.82 96.52 180)
+			(uuid "2043c6e9-3214-4917-b7f1-499e8895b85f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_CC1" bidirectional
+			(at 210.82 104.14 180)
+			(uuid "4e17d5d5-1f3e-445b-a113-c8dbe055e3e7")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_ISENSE" input
+			(at 210.82 111.76 180)
+			(uuid "239543e7-6d96-4fd8-b7a5-7b499aefa8c6")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_CC2" bidirectional
+			(at 210.82 106.68 180)
+			(uuid "41c38587-40a7-4812-a8db-97b442ad33ba")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_INT" output
+			(at 210.82 99.06 180)
+			(uuid "ad53b71e-f745-451f-90c0-8bbdac43c302")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "USB_HS_D+" bidirectional
+			(at 210.82 128.27 180)
+			(uuid "59aa32a6-e662-43ad-a5f6-bb173852f117")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "USB_HS_D-" bidirectional
+			(at 210.82 130.81 180)
+			(uuid "58e03c22-563c-4d3f-ad3d-efac1f41ac09")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_SCL" input
+			(at 210.82 120.65 180)
+			(uuid "a8447c73-c862-4842-af08-4ba5ae37d523")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "UCPD_SDA" bidirectional
+			(at 210.82 123.19 180)
+			(uuid "fdaec85d-388c-43ca-89b8-97b20cd0020e")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 			)
 		)
 		(instances
@@ -90,7 +180,7 @@
 		)
 	)
 	(sheet
-		(at 147.32 35.56)
+		(at 86.36 38.1)
 		(size 82.55 57.15)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -106,7 +196,7 @@
 		)
 		(uuid "f671a3b0-c237-47c5-a1ed-15d9ecc26d22")
 		(property "Sheetname" "MCU"
-			(at 147.32 34.8484 0)
+			(at 86.36 37.3884 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -115,7 +205,7 @@
 			)
 		)
 		(property "Sheetfile" "mcu.kicad_sch"
-			(at 147.32 93.2946 0)
+			(at 86.36 95.8346 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -132,8 +222,8 @@
 		)
 	)
 	(sheet
-		(at 26.67 29.21)
-		(size 72.39 49.53)
+		(at 210.82 39.37)
+		(size 22.86 41.91)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -148,7 +238,7 @@
 		)
 		(uuid "feba9474-412c-4f34-9ba1-43b85a64960d")
 		(property "Sheetname" "DSP"
-			(at 26.67 28.4984 0)
+			(at 210.82 38.6584 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -157,12 +247,132 @@
 			)
 		)
 		(property "Sheetfile" "dsp.kicad_sch"
-			(at 26.67 79.3246 0)
+			(at 210.82 81.8646 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left top)
+			)
+		)
+		(pin "DSP_SDATA_IN0" input
+			(at 210.82 68.58 180)
+			(uuid "11927682-76af-4d70-987e-5d7969f9cfe0")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_LRCLK_OUT0" output
+			(at 210.82 74.93 180)
+			(uuid "a36888e7-2b63-4804-bf1e-bf00e365809a")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_BCLK_OUT0" output
+			(at 210.82 72.39 180)
+			(uuid "ee52b6ce-84d8-40bb-94c0-dbd61e7aabdf")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_SDATA_OUT0" output
+			(at 210.82 77.47 180)
+			(uuid "2850730a-6899-4782-8674-d378186e94a4")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_SS" input
+			(at 210.82 48.26 180)
+			(uuid "7da6e2dd-91e1-467f-9b3c-0cba198ad589")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_SCLK" input
+			(at 210.82 50.8 180)
+			(uuid "ba0d0acb-4571-4796-83c4-3c35b8a7f0e2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_MOSI" input
+			(at 210.82 53.34 180)
+			(uuid "0b8a1921-e5f3-41d3-9d95-f03c2340fee9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_MISO" output
+			(at 210.82 55.88 180)
+			(uuid "284e7cc2-63f3-4f96-8fe4-2ea2b7efe157")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_CLKOUT" output
+			(at 210.82 60.96 180)
+			(uuid "3f41f940-dcc2-4f0c-b2ec-949c38fb2d8f")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_LRCLK_IN0" input
+			(at 210.82 66.04 180)
+			(uuid "93f0879b-dd27-42f4-89d8-e289081244f3")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_BCLK_IN0" input
+			(at 210.82 63.5 180)
+			(uuid "812891e8-95c9-4754-9064-5704633ad816")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "DSP_RESET" input
+			(at 210.82 43.18 180)
+			(uuid "4b8302d9-c241-488b-87d4-d7148c659639")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 			)
 		)
 		(instances
