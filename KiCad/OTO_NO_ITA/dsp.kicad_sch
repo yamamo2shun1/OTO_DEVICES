@@ -6006,7 +6006,7 @@
 		)
 		(uuid "fefbe22f-9fbf-42f9-88cf-ec15f1343ebd")
 	)
-	(label "SDATA_IN1"
+	(label "SDATA_OUT1"
 		(at 167.64 229.87 180)
 		(effects
 			(font
@@ -6116,7 +6116,7 @@
 		)
 		(uuid "45c7302d-2385-4e03-b0c2-c3567fb2aff4")
 	)
-	(label "SDATA_OUT1"
+	(label "SDATA_IN1"
 		(at 167.64 232.41 180)
 		(effects
 			(font
@@ -6166,7 +6166,7 @@
 		)
 		(uuid "76fae205-f676-4a27-9cd1-9e34311edd45")
 	)
-	(label "SDATA_OUT2"
+	(label "SDATA_IN2"
 		(at 185.42 232.41 0)
 		(effects
 			(font
@@ -6226,7 +6226,7 @@
 		)
 		(uuid "990fb3e9-5d26-47a1-8b79-11b6cadfc5ac")
 	)
-	(label "SDATA_IN2"
+	(label "SDATA_OUT2"
 		(at 185.42 229.87 0)
 		(effects
 			(font
