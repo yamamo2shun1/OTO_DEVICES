@@ -29578,6 +29578,18 @@
 				)
 			)
 		)
+		(property "LCSC" "C5564299"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "280ab5e7-697b-486a-bff5-fcc7a146981a")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "SOT?223*")
 		(path "/d3891a31-cd10-4fb1-a9a6-73758f166e5e/312e9691-7ca0-4707-9191-079f3d27b484")
 		(sheetname "/Power/")
@@ -35344,6 +35356,18 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "a7238b9c-e5c0-4433-a77d-46a6355bd897")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C780749"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "a79b9288-02ae-4d02-bde0-6de59db052c4")
 			(effects
 				(font
 					(size 1.27 1.27)
