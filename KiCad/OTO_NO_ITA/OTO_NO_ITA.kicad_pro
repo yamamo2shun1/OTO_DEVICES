@@ -58,7 +58,44 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "clearance|151597197|116200003|ab9f3d0a-f500-441d-b39b-4eca9453b998|68b3e8d4-cee5-4c92-8e50-2703a9af739e",
+          ""
+        ],
+        [
+          "hole_clearance|120465750|130655000|547ac97b-1100-46c0-8f9a-22fe40f30e2d|5f10edb7-c4ef-49e3-848b-09a454a06650",
+          ""
+        ],
+        [
+          "hole_clearance|126265750|130655000|5dfa14fc-2b9a-4742-8d2e-8d740836bddf|ca95ab6c-c1f0-405a-a918-948d09a25309",
+          ""
+        ],
+        [
+          "silk_edge_clearance|118895750|136600000|a24f3fa8-b942-422f-a336-cd3e776f7f07|830c4d47-2f03-4aeb-96c3-30b6e9e1eb96",
+          ""
+        ],
+        [
+          "silk_edge_clearance|127835750|136600000|a24f3fa8-b942-422f-a336-cd3e776f7f07|c5f2eae6-8403-4c5f-afbc-fbd19ec1a0e6",
+          ""
+        ],
+        [
+          "via_dangling|100850000|132600000|5c628edb-a49d-4f23-903b-c164c736040b|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "via_dangling|100850000|68600000|69201924-56bb-47f9-8f72-44cb82f15d60|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "via_dangling|165850000|132600000|8a41924b-c4c1-4129-ae80-9c79df7fed62|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "via_dangling|165850000|68600000|812f8bb9-26ef-47b5-ae8d-eba034ad1ab9|00000000-0000-0000-0000-000000000000",
+          ""
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -136,7 +173,7 @@
         "min_text_thickness": 0.15,
         "min_through_hole_diameter": 0.3,
         "min_track_width": 0.127,
-        "min_via_annular_width": 0.13,
+        "min_via_annular_width": 0.1,
         "min_via_diameter": 0.25,
         "solder_mask_to_copper_clearance": 0.005,
         "use_height_for_length_calcs": true
@@ -190,6 +227,7 @@
         0.127,
         0.15,
         0.2,
+        0.2111,
         0.25,
         0.3,
         0.4,
@@ -520,15 +558,15 @@
       },
       {
         "clearance": 0.127,
-        "diff_pair_gap": 0.1524,
-        "diff_pair_width": 0.77,
+        "diff_pair_gap": 0.127,
+        "diff_pair_width": 0.2111,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "USB Data",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.2,
+        "track_width": 0.2111,
         "via_diameter": 0.5,
         "via_drill": 0.3
       },
