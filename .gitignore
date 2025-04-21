@@ -4,3 +4,7 @@ Datasheets/
 *.zip
 
 KiCad/OTO_NO_ITA/fp-info-cache
+
+KiCad/OTO_NO_ITA/jlcpcb/production_files/
+
+KiCad/OTO_NO_ITA/jlcpcb/gerber/
