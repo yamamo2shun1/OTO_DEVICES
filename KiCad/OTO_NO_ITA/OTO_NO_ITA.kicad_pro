@@ -558,13 +558,27 @@
       },
       {
         "clearance": 0.127,
+        "diff_pair_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.3,
+        "name": "OSPI",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 0,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2243,
+        "via_diameter": 0.5,
+        "via_drill": 0.3
+      },
+      {
+        "clearance": 0.127,
         "diff_pair_gap": 0.127,
         "diff_pair_width": 0.2111,
         "microvia_diameter": 0.3,
         "microvia_drill": 0.1,
         "name": "USB Data",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 0,
+        "priority": 1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.2111,
         "via_diameter": 0.5,
@@ -580,7 +594,7 @@
         "microvia_drill": 0.1,
         "name": "vbus",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
-        "priority": 1,
+        "priority": 2,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.127,
         "via_diameter": 0.5,
@@ -596,11 +610,11 @@
     "netclass_patterns": [
       {
         "netclass": "USB Data",
-        "pattern": "/MCU/USB_HS_D+"
+        "pattern": "/MCU/USB_HS_D*"
       },
       {
-        "netclass": "USB Data",
-        "pattern": "/MCU/USB_HS_D-"
+        "netclass": "OSPI",
+        "pattern": "/MCU/OSPI*"
       }
     ]
   },
