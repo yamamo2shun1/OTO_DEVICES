@@ -6372,7 +6372,7 @@
 		(uuid "83e37202-dfb2-4a27-85a9-4827246601ac")
 	)
 	(hierarchical_label "DSP_LRCLK_IN0"
-		(shape input)
+		(shape output)
 		(at 157.48 140.97 180)
 		(effects
 			(font
@@ -6383,7 +6383,7 @@
 		(uuid "86a53b6a-ef68-42a5-af61-03f257e982d7")
 	)
 	(hierarchical_label "DSP_BCLK_IN0"
-		(shape input)
+		(shape output)
 		(at 157.48 118.11 180)
 		(effects
 			(font

@@ -17,6 +17,16 @@
 	)
 	(wire
 		(pts
+			(xy 152.4 72.39) (xy 172.72 72.39)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1cf759eb-3d9c-4b33-ac81-1702e4b1780a")
+	)
+	(wire
+		(pts
 			(xy 152.4 106.68) (xy 172.72 106.68)
 		)
 		(stroke
@@ -54,6 +64,16 @@
 			(type default)
 		)
 		(uuid "3c1dc289-25f5-4407-98a0-3f9d65cb1138")
+	)
+	(wire
+		(pts
+			(xy 152.4 86.36) (xy 172.72 86.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3d855127-6907-4dd8-9f55-d366bdd5b328")
 	)
 	(wire
 		(pts
@@ -107,13 +127,13 @@
 	)
 	(wire
 		(pts
-			(xy 152.4 77.47) (xy 172.72 77.47)
+			(xy 152.4 74.93) (xy 172.72 74.93)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "b84b42b9-666c-46fb-bbae-13c9041af45f")
+		(uuid "b8dd399b-e581-4205-b279-519faa87a1d0")
 	)
 	(wire
 		(pts
@@ -134,6 +154,16 @@
 			(type default)
 		)
 		(uuid "bc8d426f-5e28-4d54-ba91-d04b534bd3e2")
+	)
+	(wire
+		(pts
+			(xy 152.4 77.47) (xy 172.72 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ce549ef4-c415-4f27-b078-0036595365be")
 	)
 	(wire
 		(pts
@@ -184,16 +214,6 @@
 			(type default)
 		)
 		(uuid "fa945e00-3143-468f-b9d2-99e394215e1f")
-	)
-	(wire
-		(pts
-			(xy 152.4 86.36) (xy 172.72 86.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fc89959f-63ea-4a36-b697-9ae710b91795")
 	)
 	(sheet
 		(at 172.72 102.87)
@@ -403,8 +423,8 @@
 				(justify left top)
 			)
 		)
-		(pin "SAI_DATA_OUT" output
-			(at 152.4 77.47 0)
+		(pin "SAI1A_DATA_IN" input
+			(at 152.4 86.36 0)
 			(uuid "b8154fb8-3760-4917-b27a-52eaa710c774")
 			(effects
 				(font
@@ -413,7 +433,7 @@
 				(justify right)
 			)
 		)
-		(pin "SAI_SCK" input
+		(pin "SAI1A_SCK" input
 			(at 152.4 81.28 0)
 			(uuid "36e65cd5-5371-45fe-b3cd-bd4d4ccc0445")
 			(effects
@@ -453,7 +473,7 @@
 				(justify right)
 			)
 		)
-		(pin "SAI_FS" input
+		(pin "SAI1A_FS" input
 			(at 152.4 83.82 0)
 			(uuid "2e846b91-71e4-4063-8833-61a1034b45c4")
 			(effects
@@ -483,8 +503,8 @@
 				(justify right)
 			)
 		)
-		(pin "SAI_DATA_IN" input
-			(at 152.4 86.36 0)
+		(pin "SAI1B_DATA_IN" input
+			(at 152.4 88.9 0)
 			(uuid "37a79d7d-1349-4f9f-b67c-d808548d9568")
 			(effects
 				(font
@@ -586,6 +606,36 @@
 		(pin "UCPD_ISENSE" input
 			(at 152.4 121.92 0)
 			(uuid "a4fb77c2-76f7-4bc7-8ecd-c9256e079be7")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SAI2A_FS" input
+			(at 152.4 74.93 0)
+			(uuid "4c5cc365-d397-4d83-9521-443f6c58c4e2")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SAI2A_SCK" input
+			(at 152.4 72.39 0)
+			(uuid "b4e971ab-5fba-48e9-928a-e5293acd1cd9")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(pin "SAI2A_DATA_OUT" output
+			(at 152.4 77.47 0)
+			(uuid "12bc1d07-754f-4092-8159-1ed3c6c97d95")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -725,7 +775,7 @@
 				(justify left)
 			)
 		)
-		(pin "DSP_LRCLK_IN0" input
+		(pin "DSP_LRCLK_IN0" output
 			(at 172.72 74.93 180)
 			(uuid "93f0879b-dd27-42f4-89d8-e289081244f3")
 			(effects
@@ -735,7 +785,7 @@
 				(justify left)
 			)
 		)
-		(pin "DSP_BCLK_IN0" input
+		(pin "DSP_BCLK_IN0" output
 			(at 172.72 72.39 180)
 			(uuid "812891e8-95c9-4754-9064-5704633ad816")
 			(effects
