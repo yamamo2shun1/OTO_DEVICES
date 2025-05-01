@@ -13630,6 +13630,18 @@
 				)
 			)
 		)
+		(property "LCSC" "C2994781"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "f77841fe-b697-42a8-890e-3dbe601a4f84")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
 		(property ki_fp_filters "LED* LED_SMD:* LED_THT:*")
 		(path "/feba9474-412c-4f34-9ba1-43b85a64960d/b4c2208a-68a7-43ac-9256-7b3b8b115ed9")
 		(sheetname "/DSP/")
@@ -26736,6 +26748,18 @@
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "d4e369df-0da8-4088-9159-0e07f7e0ef66")
+			(effects
+				(font
+					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "LCSC" "C717001"
+			(at 0 0 0)
+			(layer "F.SilkS")
+			(hide yes)
+			(uuid "d23305a5-6d03-4c6a-bcd2-fce5fe1d629b")
 			(effects
 				(font
 					(size 1.27 1.27)
