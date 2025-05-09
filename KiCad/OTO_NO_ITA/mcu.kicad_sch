@@ -8065,6 +8065,10 @@
 		(uuid "c8058dc6-4bb2-4e3f-bb76-f39ead7e39d0")
 	)
 	(no_connect
+		(at 121.92 170.18)
+		(uuid "e57e5664-aa03-4a0b-aff0-4740c5daecc8")
+	)
+	(no_connect
 		(at 213.36 185.42)
 		(uuid "fdb84815-4313-4eef-8833-b3c392a7ac62")
 	)
@@ -9897,16 +9901,6 @@
 			(type default)
 		)
 		(uuid "6953c599-d30d-4496-b9c5-1055647387c3")
-	)
-	(wire
-		(pts
-			(xy 116.84 170.18) (xy 121.92 170.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6a32111f-126a-4a0e-a43d-604f39baf540")
 	)
 	(wire
 		(pts
@@ -14066,17 +14060,6 @@
 			(justify right)
 		)
 		(uuid "caceb350-c151-4662-b619-fda8089049da")
-	)
-	(hierarchical_label "SAI1B_DATA_OUT"
-		(shape input)
-		(at 116.84 170.18 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "db6c5a5f-85ce-4720-a2a6-6d1404958da9")
 	)
 	(hierarchical_label "UCPD_INT"
 		(shape input)

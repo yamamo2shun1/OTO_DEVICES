@@ -503,16 +503,6 @@
 				(justify right)
 			)
 		)
-		(pin "SAI1B_DATA_IN" input
-			(at 152.4 88.9 0)
-			(uuid "37a79d7d-1349-4f9f-b67c-d808548d9568")
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
 		(pin "USB_HS_D-" bidirectional
 			(at 152.4 137.16 0)
 			(uuid "e61da697-68f0-4c07-a176-006ae09f77ee")
