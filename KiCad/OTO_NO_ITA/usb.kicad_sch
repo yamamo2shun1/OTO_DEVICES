@@ -5125,7 +5125,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "5V"
+		(property "Value" "5V_UCPD"
 			(at 231.14 40.64 0)
 			(effects
 				(font
@@ -5753,7 +5753,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "5V_UCPD"
+		(property "Value" "5V"
 			(at 208.28 40.64 0)
 			(effects
 				(font
