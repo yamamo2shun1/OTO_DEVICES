@@ -1,10 +1,23 @@
-
+### Documents
 Datasheets/
 
+### Kicad
 *.zip
-
 KiCad/OTO_NO_ITA/fp-info-cache
-
 KiCad/OTO_NO_ITA/jlcpcb/production_files/
-
 KiCad/OTO_NO_ITA/jlcpcb/gerber/
+
+### STM32CubeIDE
+.metadata
+.settings
+Debug
+*.elf
+*.swp
+*.launch
+*.o
+*.su
+*.d
+*.mk
+*.list
+*.map
+*.cyclo
