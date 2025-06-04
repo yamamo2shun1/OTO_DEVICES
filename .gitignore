@@ -21,3 +21,13 @@ Debug
 *.list
 *.map
 *.cyclo
+
+STM32CubeIDE/CORTEX_MPU/
+
+STM32CubeIDE/GPIO_IOToggle/
+
+STM32CubeIDE/H7S3-test2/
+
+STM32CubeIDE/H7S3-test/
+
+STM32CubeIDE/GPIO_InfiniteLedToggling_Init/
