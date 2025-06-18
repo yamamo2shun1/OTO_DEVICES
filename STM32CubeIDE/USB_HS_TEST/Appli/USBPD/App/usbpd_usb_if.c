@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    usbpd_usb_if.c
-  * @author  MCD Application Team
-  * @brief   This file contains the usb if functions.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    usbpd_usb_if.c
+ * @author  MCD Application Team
+ * @brief   This file contains the usb if functions.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -24,7 +24,8 @@
 #include "usbpd_trace.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "usbd_def.h"
+#include "usbd_core.h"
 /* USER CODE END Includes */
 
 /* USB include files ----------------------------------------------------------*/
@@ -89,7 +90,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN USB Private typedef */
-
+/* USB Device Core handle declaration. */
+extern USBD_HandleTypeDef hUsbDeviceHS;
 /* USER CODE END USB Private typedef */
 
 /* Private define ------------------------------------------------------------*/
@@ -121,8 +123,8 @@
 int32_t USBPD_USBIF_Init(void)
 {
 /* USER CODE BEGIN USBPD_USBIF_Init */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, 0, 0, (uint8_t *) "USB_IF init", 11);
-  return 0;
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, 0, 0, (uint8_t*) "USB_IF init", 11);
+    return 0;
 /* USER CODE END USBPD_USBIF_Init */
 }
 
@@ -132,63 +134,71 @@ int32_t USBPD_USBIF_Init(void)
 void USBPD_USBIF_DeviceStart(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceStart */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF Device start", 18);
+    if (USBD_Start(&hUsbDeviceHS) != USBD_OK)
+    {
+        Error_Handler();
+    }
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF Device start", 18);
 /* USER CODE END USBPD_USBIF_DeviceStart */
 }
 
 void USBPD_USBIF_DeviceStop(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceStop */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF Device stop", 17);
+    if (USBD_Stop(&hUsbDeviceHS) != USBD_OK)
+    {
+        Error_Handler();
+    }
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF Device stop", 17);
 /* USER CODE END USBPD_USBIF_DeviceStop */
 }
 
 void USBPD_USBIF_HostStart(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_HostStart */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF host start", 16);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF host start", 16);
 /* USER CODE END USBPD_USBIF_HostStart */
 }
 
 void USBPD_USBIF_HostStop(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_HostStop */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF host stop", 15);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF host stop", 15);
 /* USER CODE END USBPD_USBIF_HostStop */
 }
 
 void USBPD_USBIF_DeviceBillboard(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceBillboard */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF device billboard", 22);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF device billboard", 22);
 /* USER CODE END USBPD_USBIF_DeviceBillboard */
 }
 
 void USBPD_USBIF_Swap2Host(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_Swap2Host */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF swap to host", 18);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF swap to host", 18);
 /* USER CODE END USBPD_USBIF_Swap2Host */
 }
 
 void USBPD_USBIF_Swap2Device(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_Swap2Device */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF swap to device", 20);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF swap to device", 20);
 /* USER CODE END USBPD_USBIF_Swap2Device */
 }
 
 void USBPD_USBIF_DeviceSetBOSInfo(uint32_t PortNum, void *DataPtr)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceSetBOSInfo */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF set BOS info", 18);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF set BOS info", 18);
 /* USER CODE END USBPD_USBIF_DeviceSetBOSInfo */
 }
 
 void USBPD_USBIF_DeviceSetVDMInfo(uint32_t PortNum, void *DataPtr)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceSetVDMInfo */
-  USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t *) "USBIF set VDM info", 18);
+    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF set VDM info", 18);
 /* USER CODE END USBPD_USBIF_DeviceSetVDMInfo */
 }
 

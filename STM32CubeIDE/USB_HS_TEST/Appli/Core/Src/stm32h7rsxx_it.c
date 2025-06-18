@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    stm32h7rsxx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    stm32h7rsxx_it.c
+ * @brief   Interrupt Service Routines.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -23,6 +23,9 @@
 #include "usbpd.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#if defined(TCPP0203_SUPPORT)
+    #include "stm32h7rsxx_mybrd_usbpd_pwr.h"
+#endif /* TCPP0203_SUPPORT */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +50,9 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
+#if defined(TCPP0203_SUPPORT)
+void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void);
+#endif /* TCPP0203_SUPPORT */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -73,9 +78,9 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
-  {
-  }
+    while (1)
+    {
+    }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
@@ -200,6 +205,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line3 interrupt.
+  */
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+  /* USER CODE END EXTI3_IRQn 1 */
+}
+
+/**
   * @brief This function handles GPDMA1 Channel 0 global interrupt.
   */
 void GPDMA1_Channel0_IRQHandler(void)
@@ -255,5 +274,23 @@ void UCPD1_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+#if defined(TCPP0203_SUPPORT)
+/**
+ * @brief  This function handles external line interrupt request.
+ *         (Associated to FLGn line in case of TCPP0203 management)
+ * @retval None
+ */
+void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void)
+{
+    /* Manage Flags */
+    if (TCPP0203_PORT0_FLG_EXTI_IS_ACTIVE_FLAG() != RESET)
+    {
+        /* Call BSP USBPD PWR callback */
+        BSP_USBPD_PWR_EventCallback(USBPD_PWR_TYPE_C_PORT_1);
 
+        /* Clear Flag */
+        TCPP0203_PORT0_FLG_EXTI_CLEAR_FLAG();
+    }
+}
+#endif /* TCPP0203_SUPPORT */
 /* USER CODE END 1 */

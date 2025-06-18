@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    usbpd_dpm_user.c
-  * @author  MCD Application Team
-  * @brief   USBPD DPM user code
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    usbpd_dpm_user.c
+ * @author  MCD Application Team
+ * @brief   USBPD DPM user code
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 #define USBPD_DPM_USER_C
@@ -138,7 +138,9 @@ void USBPD_DPM_WaitForTime(uint32_t Time)
 void USBPD_DPM_UserExecute(void const *argument)
 {
 /* USER CODE BEGIN USBPD_DPM_UserExecute */
-
+    HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 /* USER CODE END USBPD_DPM_UserExecute */
 }
 
@@ -151,7 +153,7 @@ void USBPD_DPM_UserExecute(void const *argument)
 void USBPD_DPM_UserCableDetection(uint8_t PortNum, USBPD_CAD_EVENT State)
 {
 /* USER CODE BEGIN USBPD_DPM_UserCableDetection */
-DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: update USBPD_DPM_UserCableDetection");
+    DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: update USBPD_DPM_UserCableDetection");
 /* USER CODE END USBPD_DPM_UserCableDetection */
 }
 
@@ -172,45 +174,47 @@ DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: update USBPD_DPM_UserCableDetection");
 void USBPD_DPM_Notification(uint8_t PortNum, USBPD_NotifyEventValue_TypeDef EventVal)
 {
 /* USER CODE BEGIN USBPD_DPM_Notification */
-  /* Manage event notified by the stack? */
-  switch(EventVal)
-  {
-//    case USBPD_NOTIFY_POWER_EXPLICIT_CONTRACT :
-//      break;
-//    case USBPD_NOTIFY_REQUEST_ACCEPTED:
-//      break;
-//    case USBPD_NOTIFY_REQUEST_REJECTED:
-//    case USBPD_NOTIFY_REQUEST_WAIT:
-//      break;
-//    case USBPD_NOTIFY_POWER_SWAP_TO_SNK_DONE:
-//      break;
-//    case USBPD_NOTIFY_STATE_SNK_READY:
-//      break;
-//    case USBPD_NOTIFY_HARDRESET_RX:
-//    case USBPD_NOTIFY_HARDRESET_TX:
-//      break;
-//    case USBPD_NOTIFY_STATE_SRC_DISABLED:
-//      break;
-//    case USBPD_NOTIFY_ALERT_RECEIVED :
-//      break;
-//    case USBPD_NOTIFY_CABLERESET_REQUESTED :
-//      break;
-//    case USBPD_NOTIFY_MSG_NOT_SUPPORTED :
-//      break;
-//    case USBPD_NOTIFY_PE_DISABLED :
-//      break;
-//    case USBPD_NOTIFY_USBSTACK_START:
-//      break;
-//    case USBPD_NOTIFY_USBSTACK_STOP:
-//      break;
-//    case USBPD_NOTIFY_DATAROLESWAP_DFP :
-//      break;
-//    case USBPD_NOTIFY_DATAROLESWAP_UFP :
-//      break;
+    /* Manage event notified by the stack? */
+    switch (EventVal)
+    {
+    case USBPD_NOTIFY_POWER_EXPLICIT_CONTRACT:
+        break;
+    case USBPD_NOTIFY_REQUEST_ACCEPTED:
+        break;
+    case USBPD_NOTIFY_REQUEST_REJECTED:
+    case USBPD_NOTIFY_REQUEST_WAIT:
+        break;
+    case USBPD_NOTIFY_POWER_SWAP_TO_SNK_DONE:
+        break;
+    case USBPD_NOTIFY_STATE_SNK_READY:
+        break;
+    case USBPD_NOTIFY_HARDRESET_RX:
+    case USBPD_NOTIFY_HARDRESET_TX:
+        break;
+    case USBPD_NOTIFY_STATE_SRC_DISABLED:
+        break;
+    case USBPD_NOTIFY_ALERT_RECEIVED:
+        break;
+    case USBPD_NOTIFY_CABLERESET_REQUESTED:
+        break;
+    case USBPD_NOTIFY_MSG_NOT_SUPPORTED:
+        break;
+    case USBPD_NOTIFY_PE_DISABLED:
+        break;
+    case USBPD_NOTIFY_USBSTACK_START:
+        USBPD_USBIF_DeviceStart(PortNum);
+        break;
+    case USBPD_NOTIFY_USBSTACK_STOP:
+        USBPD_USBIF_DeviceStop(PortNum);
+        break;
+    case USBPD_NOTIFY_DATAROLESWAP_DFP:
+        break;
+    case USBPD_NOTIFY_DATAROLESWAP_UFP:
+        break;
     default:
-      DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: USBPD_DPM_Notification:%d", EventVal);
-      break;
-  }
+        DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: USBPD_DPM_Notification:%d", EventVal);
+        break;
+    }
 /* USER CODE END USBPD_DPM_Notification */
 }
 
