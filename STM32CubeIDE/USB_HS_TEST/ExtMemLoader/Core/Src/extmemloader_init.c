@@ -281,6 +281,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOP_CLK_ENABLE();
   __HAL_RCC_GPIOO_CLK_ENABLE();
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
