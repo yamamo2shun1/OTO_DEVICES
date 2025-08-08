@@ -25,6 +25,15 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7rsxx_hal.h"
+#include "stm32h7rsxx_ll_ucpd.h"
+#include "stm32h7rsxx_ll_bus.h"
+#include "stm32h7rsxx_ll_cortex.h"
+#include "stm32h7rsxx_ll_rcc.h"
+#include "stm32h7rsxx_ll_system.h"
+#include "stm32h7rsxx_ll_utils.h"
+#include "stm32h7rsxx_ll_pwr.h"
+#include "stm32h7rsxx_ll_gpio.h"
+#include "stm32h7rsxx_ll_dma.h"
 
 /* Exported types ------------------------------------------------------------*/
 
@@ -59,4 +68,6 @@ void Error_Handler(void);
 
 /* USER CODE END Private defines */
 
+#define DSP_RESET_Pin GPIO_PIN_1
+#define DSP_RESET_GPIO_Port GPIOH
 #endif /* EXTMEMLOADER_INIT_H */
