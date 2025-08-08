@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "gpdma.h"
 #include "i2c.h"
+#include "sai.h"
 #include "spi.h"
 #include "ucpd.h"
 #include "usbpd.h"
@@ -108,6 +109,8 @@ int main(void)
     MX_ADC2_Init();
     MX_ADC1_Init();
     MX_SPI5_Init();
+    MX_SAI1_Init();
+    MX_SAI2_Init();
     /* USER CODE BEGIN 2 */
     uint8_t sndData[1] = {0x00};
     uint8_t rcvData[1] = {0x00};
