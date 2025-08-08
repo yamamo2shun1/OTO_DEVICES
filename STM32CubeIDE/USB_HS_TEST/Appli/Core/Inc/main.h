@@ -69,6 +69,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define DSP_RESET_Pin GPIO_PIN_1
+#define DSP_RESET_GPIO_Port GPIOH
 #define SW2_Pin GPIO_PIN_14
 #define SW2_GPIO_Port GPIOD
 #define SW1_Pin GPIO_PIN_15
