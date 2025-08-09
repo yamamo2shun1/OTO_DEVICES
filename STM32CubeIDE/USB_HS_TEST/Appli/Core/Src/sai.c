@@ -48,7 +48,7 @@ void MX_SAI1_Init(void)
   hsai_BlockA1.Init.ClockStrobing = SAI_CLOCKSTROBING_FALLINGEDGE;
   hsai_BlockA1.Init.Synchro = SAI_ASYNCHRONOUS;
   hsai_BlockA1.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
-  hsai_BlockA1.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+  hsai_BlockA1.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_HF;
   hsai_BlockA1.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
   hsai_BlockA1.Init.MonoStereoMode = SAI_STEREOMODE;
   hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
@@ -57,14 +57,14 @@ void MX_SAI1_Init(void)
   hsai_BlockA1.Init.PdmInit.MicPairsNbr = 0;
   hsai_BlockA1.Init.PdmInit.ClockEnable = SAI_PDM_CLOCK1_ENABLE;
   hsai_BlockA1.FrameInit.FrameLength = 64;
-  hsai_BlockA1.FrameInit.ActiveFrameLength = 1;
+  hsai_BlockA1.FrameInit.ActiveFrameLength = 32;
   hsai_BlockA1.FrameInit.FSDefinition = SAI_FS_STARTFRAME;
   hsai_BlockA1.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   hsai_BlockA1.FrameInit.FSOffset = SAI_FS_FIRSTBIT;
   hsai_BlockA1.SlotInit.FirstBitOffset = 0;
   hsai_BlockA1.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
   hsai_BlockA1.SlotInit.SlotNumber = 2;
-  hsai_BlockA1.SlotInit.SlotActive = 0x00000000;
+  hsai_BlockA1.SlotInit.SlotActive = 0x0000FFFF;
   if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK)
   {
     Error_Handler();
@@ -94,7 +94,7 @@ void MX_SAI2_Init(void)
   hsai_BlockA2.Init.ClockStrobing = SAI_CLOCKSTROBING_FALLINGEDGE;
   hsai_BlockA2.Init.Synchro = SAI_ASYNCHRONOUS;
   hsai_BlockA2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
-  hsai_BlockA2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+  hsai_BlockA2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_HF;
   hsai_BlockA2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
   hsai_BlockA2.Init.MonoStereoMode = SAI_STEREOMODE;
   hsai_BlockA2.Init.CompandingMode = SAI_NOCOMPANDING;
@@ -103,14 +103,14 @@ void MX_SAI2_Init(void)
   hsai_BlockA2.Init.PdmInit.MicPairsNbr = 0;
   hsai_BlockA2.Init.PdmInit.ClockEnable = SAI_PDM_CLOCK1_ENABLE;
   hsai_BlockA2.FrameInit.FrameLength = 64;
-  hsai_BlockA2.FrameInit.ActiveFrameLength = 1;
+  hsai_BlockA2.FrameInit.ActiveFrameLength = 32;
   hsai_BlockA2.FrameInit.FSDefinition = SAI_FS_STARTFRAME;
   hsai_BlockA2.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   hsai_BlockA2.FrameInit.FSOffset = SAI_FS_FIRSTBIT;
   hsai_BlockA2.SlotInit.FirstBitOffset = 0;
   hsai_BlockA2.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
   hsai_BlockA2.SlotInit.SlotNumber = 2;
-  hsai_BlockA2.SlotInit.SlotActive = 0x00000000;
+  hsai_BlockA2.SlotInit.SlotActive = 0x0000FFFF;
   if (HAL_SAI_Init(&hsai_BlockA2) != HAL_OK)
   {
     Error_Handler();
@@ -136,7 +136,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
   /** Initializes the peripherals clock
   */
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI1;
-    PeriphClkInit.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PLL1Q;
+    PeriphClkInit.Sai1ClockSelection = RCC_SAI1CLKSOURCE_PIN;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
       Error_Handler();
@@ -145,6 +145,10 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
     if (SAI1_client == 0)
     {
        __HAL_RCC_SAI1_CLK_ENABLE();
+
+    /* Peripheral interrupt init*/
+    HAL_NVIC_SetPriority(SAI1_A_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SAI1_A_IRQn);
     }
     SAI1_client ++;
 
@@ -169,7 +173,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
   /** Initializes the peripherals clock
   */
     PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_SAI2;
-    PeriphClkInit.Sai2ClockSelection = RCC_SAI2CLKSOURCE_PLL1Q;
+    PeriphClkInit.Sai2ClockSelection = RCC_SAI2CLKSOURCE_PIN;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
     {
       Error_Handler();
@@ -178,6 +182,10 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
     if (SAI2_client == 0)
     {
        __HAL_RCC_SAI2_CLK_ENABLE();
+
+    /* Peripheral interrupt init*/
+    HAL_NVIC_SetPriority(SAI2_A_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SAI2_A_IRQn);
     }
     SAI2_client ++;
 
@@ -214,6 +222,7 @@ void HAL_SAI_MspDeInit(SAI_HandleTypeDef* saiHandle)
       {
       /* Peripheral clock disable */
        __HAL_RCC_SAI1_CLK_DISABLE();
+      HAL_NVIC_DisableIRQ(SAI1_A_IRQn);
       }
 
     /**SAI1_A_Block_A GPIO Configuration
@@ -232,6 +241,7 @@ void HAL_SAI_MspDeInit(SAI_HandleTypeDef* saiHandle)
       {
       /* Peripheral clock disable */
        __HAL_RCC_SAI2_CLK_DISABLE();
+      HAL_NVIC_DisableIRQ(SAI2_A_IRQn);
       }
 
     /**SAI2_A_Block_A GPIO Configuration
