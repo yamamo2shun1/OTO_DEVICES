@@ -1,6 +1,6 @@
 /* 
- * File:	C:\Users\shun\OneDrive - 有限会社山本製作所\YamamotoShunichi\Desktop\oto_no_deiri_code\SSP_ADAU146xSchematic_1_Defines.h
- * Created:	Tuesday, 05 August 2025 17:35 PM
+ * File:	C:\Users\shun\OTO_DEVICES\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h
+ * Created:	Tuesday, 19 August 2025 14:27 PM
  * Description:	Schematic default download data definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -15,10 +15,10 @@
  * 
  * Copyright © 2025 Analog Devices, Inc. All rights reserved.
  */
-#ifndef __SSP_ADAU146XSCHEMATIC_1_DEFINES_H__
-#define __SSP_ADAU146XSCHEMATIC_1_DEFINES_H__
+#ifndef __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
+#define __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
 
-#define BufferSize_ADAU146XSCHEMATIC_1			702
+#define BufferSize_ADAU146XSCHEMATIC_1			734
 #define NumTransactions_ADAU146XSCHEMATIC_1		58
 
 #endif

@@ -31,9 +31,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "SigmaStudioFW.h"
-#include "SSP_ADAU146xSchematic_1.h"
-#include "SSP_ADAU146xSchematic_1_Defines.h"
-#include "SSP_ADAU146xSchematic_1_PARAM.h"
+#include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
+#include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
+#include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
