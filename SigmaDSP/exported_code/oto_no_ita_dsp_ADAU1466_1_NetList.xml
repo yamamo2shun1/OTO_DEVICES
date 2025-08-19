@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- * 
+ * This software is distributed in the hope that it will be useful, 
+ * but is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * 
+ * Copyright ©2025 Analog Devices, Inc. All rights reserved.
+ * 
+-->
+<!--NetList XML file-->
+<IC name="ADAU1466_1" partnumber="ADAU1466">
+  <Core name="ADAU146xCore_1">
+    <Schematic name="ADAU146xSchematic_1">
+      <Algorithm name="Safeload" friendlyname="Schematic Params" />
+      <Algorithm name="Output_2" friendlyname="Output">
+        <Link pin="Input" dir="in" link="Link_13" id="Link_13" />
+      </Algorithm>
+      <Algorithm name="Output_3" friendlyname="Output">
+        <Link pin="Input" dir="in" link="Link_14" id="Link_14" />
+      </Algorithm>
+      <Algorithm name="Input16to31_1" friendlyname="Input SDATA0">
+        <Link pin="Ch18_out" dir="out" link="Link_11" id="Link_11" />
+        <Link pin="Ch19_out" dir="out" link="Link_16" id="Link_16" />
+      </Algorithm>
+      <Algorithm name="SingleVolumeControl_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
+        <Link pin="Input0" dir="in" link="Link_11" id="Link_11" />
+        <Link pin="Output0" dir="out" link="Link_13" id="Link_13" />
+        <Link pin="Output1" dir="out" link="Link_14" id="Link_14" />
+        <Link pin="Input1" dir="in" link="Link_16" id="Link_16" />
+      </Algorithm>
+      <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
+        <Link pin="Ch0_out" dir="out" link="Link_17" id="Link_17" />
+        <Link pin="Ch1_out" dir="out" link="Link_18" id="Link_18" />
+      </Algorithm>
+      <Algorithm name="Output_4" friendlyname="Output">
+        <Link pin="Input" dir="in" link="Link_17" id="Link_17" />
+      </Algorithm>
+      <Algorithm name="Output_5" friendlyname="Output">
+        <Link pin="Input" dir="in" link="Link_18" id="Link_18" />
+      </Algorithm>
+    </Schematic>
+  </Core>
+</IC>

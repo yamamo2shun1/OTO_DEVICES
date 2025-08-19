@@ -1,0 +1,878 @@
+{
+  "Processor": {
+    "Name": "ADAU1466_1",
+    "Label": "ADAU1466_1",
+    "PartNumber": "ADAU1466",
+    "Core": [
+      {
+        "Name": "ADAU146xCore_1",
+        "Label": "ADAU146xCore_1",
+        "CoreID": 0,
+        "Schematic": [
+          {
+            "Name": "ADAU146xSchematic_1",
+            "Label": "ADAU146xSchematic_1",
+            "InstanceID": 0,
+            "Meta": [],
+            "Register": [
+              {
+                "Name": "__SafeLoad_Module__data_SafeLoad",
+                "Size": 20,
+                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "__SafeLoad_Module__address_SafeLoad",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "__SafeLoad_Module__num_SafeLoad_lower",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "__SafeLoad_Module__num_SafeLoad_upper",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "SPI Toggle",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "SPI Toggle Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "SPI Toggle",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "SPI Toggle Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "SPI Toggle",
+                "Size": 4,
+                "Data": "0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "SPI Toggle Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "SECOND_PAGE_ENABLE",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "SECOND_PAGE_ENABLE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "SOFT_RESET",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "SOFT_RESET",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "Reset Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "HIBERNATE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "HIBERNATE",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "Hibernate Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "KILL_CORE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "KILL_CORE",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "PLL_ENABLE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "PLL_CTRL1 Register",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "PLL_CLK_SRC Register",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "MCLK_OUT Register",
+                "Size": 2,
+                "Data": "0x00, 0x05"
+              },
+              {
+                "Name": "PLL_ENABLE Register",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "PLL Lock Delay",
+                "Size": 2,
+                "Data": "0x00, 0xFF"
+              },
+              {
+                "Name": "POWER_ENABLE0 Register",
+                "Size": 2,
+                "Data": "0x1F, 0xFF"
+              },
+              {
+                "Name": "POWER_ENABLE1 Register",
+                "Size": 2,
+                "Data": "0x00, 0x1F"
+              },
+              {
+                "Name": "SOUT_SOURCE0",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE1",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE2",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE3",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE4",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE5",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE6",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE7",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE8",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE9",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE10",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE11",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE12",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE13",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE14",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE15",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE16",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE17",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE18",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE19",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE20",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE21",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE22",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SOUT_SOURCE23",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "SERIAL_BYTE_0_0",
+                "Size": 2,
+                "Data": "0x90, 0x40"
+              },
+              {
+                "Name": "SERIAL_BYTE_1_0",
+                "Size": 2,
+                "Data": "0x90, 0x41"
+              },
+              {
+                "Name": "SERIAL_BYTE_2_0",
+                "Size": 2,
+                "Data": "0x90, 0x41"
+              },
+              {
+                "Name": "SERIAL_BYTE_3_0",
+                "Size": 2,
+                "Data": "0x90, 0x00"
+              },
+              {
+                "Name": "SERIAL_BYTE_4_0",
+                "Size": 2,
+                "Data": "0x90, 0x40"
+              },
+              {
+                "Name": "SERIAL_BYTE_5_0",
+                "Size": 2,
+                "Data": "0x90, 0x41"
+              },
+              {
+                "Name": "SERIAL_BYTE_6_0",
+                "Size": 2,
+                "Data": "0x90, 0x41"
+              },
+              {
+                "Name": "SERIAL_BYTE_7_0",
+                "Size": 2,
+                "Data": "0x90, 0x00"
+              },
+              {
+                "Name": "DM0 Data",
+                "Size": 100,
+                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "DM1 Data",
+                "Size": 80,
+                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+              },
+              {
+                "Name": "KILL_CORE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "START_ADDRESS",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "START_PULSE",
+                "Size": 2,
+                "Data": "0x00, 0x02"
+              },
+              {
+                "Name": "START_CORE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              },
+              {
+                "Name": "START_CORE",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "Start Delay",
+                "Size": 2,
+                "Data": "0x00, 0x01"
+              },
+              {
+                "Name": "HIBERNATE",
+                "Size": 2,
+                "Data": "0x00, 0x00"
+              }
+            ],
+            "Program": [
+              {
+                "Name": "Program Data",
+                "Size": 444,
+                "Data": "0x00, 0x00, 0x00, 0x02, 0x0C, 0x00, 0xDC, 0xDC, 0x0D, 0x00, 0xFF, 0xD2, 0x0D, 0x00, 0xFF, 0xD0, 0x0D, 0x00, 0xF4, 0x50, 0x0D, 0x00, 0xF4, 0x00, 0xC0, 0x00, 0x23, 0x80, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0x00, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0xC0, 0x80, 0x00, 0x00, 0x10, 0xC0, 0x00, 0x22, 0x00, 0x80, 0x00, 0x00, 0x00, 0x08, 0x80, 0xDC, 0xE0, 0x0C, 0x00, 0xDC, 0xDC, 0x0A, 0x21, 0x00, 0x12, 0x08, 0x00, 0x00, 0x10, 0x01, 0x00, 0x00, 0x14, 0x06, 0x40, 0x50, 0x10, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x27, 0x0D, 0x00, 0xFF, 0xC1, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x01, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x02, 0x0D, 0x00, 0xFF, 0xD1, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x00, 0xFF, 0xD2, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x9E, 0xDC, 0xE0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x4F, 0x00, 0x00, 0x08, 0x8A, 0xDC, 0xE0, 0x0A, 0x23, 0x00, 0x06, 0x0A, 0x2B, 0x00, 0x07, 0x00, 0x88, 0x20, 0x00, 0x0A, 0xA7, 0x00, 0x05, 0x00, 0x00, 0x00, 0x22, 0xC0, 0x00, 0x2D, 0x30, 0x80, 0x00, 0x50, 0x00, 0x30, 0x00, 0xB4, 0x6A, 0x00, 0x88, 0x20, 0x00, 0xC0, 0x00, 0x28, 0x70, 0x80, 0x00, 0x60, 0x00, 0x02, 0x09, 0x00, 0x47, 0x00, 0x8C, 0x11, 0x91, 0x00, 0x00, 0x00, 0x24, 0x00, 0x8C, 0x2A, 0x02, 0x30, 0x00, 0xBC, 0xE9, 0x00, 0x84, 0x0D, 0x9C, 0x00, 0x20, 0x0B, 0x2D, 0x00, 0x00, 0xC2, 0xF1, 0x01, 0x00, 0x00, 0x45, 0x06, 0x00, 0x50, 0x14, 0x36, 0x40, 0x50, 0x15, 0x26, 0x40, 0x40, 0x15, 0x09, 0x2B, 0x00, 0x06, 0x09, 0x2B, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0xFC, 0x40, 0x06, 0x40, 0x10, 0x1E, 0x0C, 0x00, 0xFC, 0x41, 0x06, 0x40, 0x10, 0x0E, 0x0C, 0x00, 0xFC, 0x50, 0x06, 0x40, 0x10, 0x6E, 0x0C, 0x00, 0xFC, 0x51, 0x06, 0x40, 0x10, 0x7E, 0x0C, 0x00, 0xFC, 0x52, 0x06, 0x40, 0x10, 0x2E, 0x0C, 0x00, 0xFC, 0x53, 0x06, 0x40, 0x10, 0x3E, 0x06, 0x00, 0x10, 0x0E, 0x0D, 0x00, 0xFC, 0xD1, 0x06, 0x00, 0x10, 0x1E, 0x0D, 0x00, 0xFC, 0xD0, 0x0C, 0x40, 0x00, 0x14, 0x06, 0x00, 0x10, 0x2E, 0x06, 0x00, 0x90, 0x3E, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x10, 0x5E, 0x05, 0x6C, 0x10, 0x4E, 0x06, 0x00, 0x10, 0x4E, 0x0D, 0x00, 0xFC, 0xC1, 0x06, 0x00, 0x10, 0x5E, 0x0D, 0x00, 0xFC, 0xC0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x00, 0x09, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x02, 0x0C, 0x10, 0xF4, 0x60, 0x02, 0xC2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+              }
+            ],
+            "Parameter": [],
+            "ModuleList": [
+              {
+                "AlgoName": "Safeload",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "",
+                "CoreID": 0,
+                "Description": "Schematic Params",
+                "Address": 0,
+                "Caption": "Schematic Params",
+                "ModuleParameter": [
+                  {
+                    "Name": "Data_SafeLoad0",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24576,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Data_SafeLoad1",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24577,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Data_SafeLoad2",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24578,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Data_SafeLoad3",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24579,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Data_SafeLoad4",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24580,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Addr_SafeLoad",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24581,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Num_SafeLoad_Lower",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24582,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Num_SafeLoad_Upper",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24583,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_2",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_3",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Input16to31_1",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.IO.Sigma300.Sample.Input16to31_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Input SDATA0",
+                "Address": 0,
+                "Caption": "Input 16-31",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "SingleVolumeControl_1",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "All inputs volumes are governed by one single volume slider. \nOptimum for simultaneous control of various channels within a single DSP",
+                "Address": 0,
+                "Caption": "Single Volume Control",
+                "ModuleParameter": [
+                  {
+                    "Name": "Gain",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 20,
+                    "AddrIncr": 4,
+                    "Value": 1.0,
+                    "Size": 4,
+                    "Data": "0x01, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FS",
+                    "Tunable": false,
+                    "Value": "48000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IsDBChosen",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType",
+                    "Tunable": false,
+                    "Value": "No Slew",
+                    "Type": "List"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "Input0to15_0",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.IO.Sigma300.Sample.Input0to15_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Input SDATA0",
+                "Address": 0,
+                "Caption": "Input 0-15",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_4",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_5",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              }
+            ],
+            "AddressMap": {
+              "SingleVolumeControl_1Gain": {
+                "Address": 20,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Data_SafeLoad0": {
+                "Address": 24576,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Data_SafeLoad1": {
+                "Address": 24577,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Data_SafeLoad2": {
+                "Address": 24578,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Data_SafeLoad3": {
+                "Address": 24579,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Data_SafeLoad4": {
+                "Address": 24580,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Addr_SafeLoad": {
+                "Address": 24581,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Num_SafeLoad_Lower": {
+                "Address": 24582,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Num_SafeLoad_Upper": {
+                "Address": 24583,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              }
+            },
+            "IsSchematicTCI": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,99 @@
+Module Name			= Safeload
+Parameter Name		= Data_SafeLoad0
+Parameter Address	= 24576
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Data_SafeLoad1
+Parameter Address	= 24577
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Data_SafeLoad2
+Parameter Address	= 24578
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Data_SafeLoad3
+Parameter Address	= 24579
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Data_SafeLoad4
+Parameter Address	= 24580
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Addr_SafeLoad
+Parameter Address	= 24581
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Num_SafeLoad_Lower
+Parameter Address	= 24582
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= Safeload
+Parameter Name		= Num_SafeLoad_Upper
+Parameter Address	= 24583
+Parameter Value		= 0
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleVolumeControl_1
+Parameter Name		= Gain
+Parameter Address	= 20
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+

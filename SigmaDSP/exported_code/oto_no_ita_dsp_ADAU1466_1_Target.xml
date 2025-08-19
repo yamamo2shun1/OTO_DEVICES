@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- * 
+ * This software is distributed in the hope that it will be useful, 
+ * but is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * 
+ * This software may only be used to program products purchased from 
+ * Analog Devices for incorporation by you into audio products that 
+ * are intended for resale to audio product end users.This software 
+ * may not be distributed whole or in any part to third parties.
+ * 
+ * Copyright ©2025 Analog Devices, Inc. All rights reserved.
+ * 
+-->
+<!--SigmaStudio export XML file-->
+<IC>
+  <Name>ADAU1466_1</Name>
+  <PartNumber>ADAU1466</PartNumber>
+  <Core>
+    <Name>ADAU146xCore_1</Name>
+    <Schematic>
+      <Name>ADAU146xSchematic_1</Name>
+      <InstanceID>0</InstanceID>
+      <Register>
+        <Name>__SafeLoad_Module__data_SafeLoad</Name>
+        <Address>24576</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>20</Size>
+        <Data>0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>__SafeLoad_Module__address_SafeLoad</Name>
+        <Address>24581</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>__SafeLoad_Module__num_SafeLoad_lower</Name>
+        <Address>24582</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>__SafeLoad_Module__num_SafeLoad_upper</Name>
+        <Address>24583</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle</Name>
+        <Address>20479</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle</Name>
+        <Address>20479</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle</Name>
+        <Address>20479</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>4</Size>
+        <Data>0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SPI Toggle Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>SECOND_PAGE_ENABLE</Name>
+        <Address>63641</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>SECOND_PAGE_ENABLE</Name>
+        <Address>63641</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SOFT_RESET</Name>
+        <Address>63632</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SOFT_RESET</Name>
+        <Address>63632</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>Reset Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>HIBERNATE</Name>
+        <Address>62464</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>HIBERNATE</Name>
+        <Address>62464</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>Hibernate Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>KILL_CORE</Name>
+        <Address>62467</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>KILL_CORE</Name>
+        <Address>62467</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>PLL_ENABLE</Name>
+        <Address>61443</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>PLL_CTRL1 Register</Name>
+        <Address>61441</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>PLL_CLK_SRC Register</Name>
+        <Address>61442</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>MCLK_OUT Register</Name>
+        <Address>61445</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x05</Data>
+      </Register>
+      <Register>
+        <Name>PLL_ENABLE Register</Name>
+        <Address>61443</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>PLL Lock Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>POWER_ENABLE0 Register</Name>
+        <Address>61520</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x1F, 0xFF</Data>
+      </Register>
+      <Register>
+        <Name>POWER_ENABLE1 Register</Name>
+        <Address>61521</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x1F</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE0</Name>
+        <Address>61824</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE1</Name>
+        <Address>61825</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE2</Name>
+        <Address>61826</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE3</Name>
+        <Address>61827</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE4</Name>
+        <Address>61828</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE5</Name>
+        <Address>61829</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE6</Name>
+        <Address>61830</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE7</Name>
+        <Address>61831</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE8</Name>
+        <Address>61832</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE9</Name>
+        <Address>61833</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE10</Name>
+        <Address>61834</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE11</Name>
+        <Address>61835</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE12</Name>
+        <Address>61836</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE13</Name>
+        <Address>61837</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE14</Name>
+        <Address>61838</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE15</Name>
+        <Address>61839</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE16</Name>
+        <Address>61840</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE17</Name>
+        <Address>61841</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE18</Name>
+        <Address>61842</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE19</Name>
+        <Address>61843</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE20</Name>
+        <Address>61844</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE21</Name>
+        <Address>61845</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE22</Name>
+        <Address>61846</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SOUT_SOURCE23</Name>
+        <Address>61847</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_0_0</Name>
+        <Address>61952</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x40</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_1_0</Name>
+        <Address>61956</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x41</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_2_0</Name>
+        <Address>61960</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x41</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_3_0</Name>
+        <Address>61964</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_4_0</Name>
+        <Address>61968</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x40</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_5_0</Name>
+        <Address>61972</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x41</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_6_0</Name>
+        <Address>61976</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x41</Data>
+      </Register>
+      <Register>
+        <Name>SERIAL_BYTE_7_0</Name>
+        <Address>61980</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x90, 0x00</Data>
+      </Register>
+      <Program>
+        <Name>Program Data</Name>
+        <Address>49152</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>444</Size>
+        <Data>0x00, 0x00, 0x00, 0x02, 0x0C, 0x00, 0xDC, 0xDC, 0x0D, 0x00, 0xFF, 0xD2, 0x0D, 0x00, 0xFF, 0xD0, 0x0D, 0x00, 0xF4, 0x50, 0x0D, 0x00, 0xF4, 0x00, 0xC0, 0x00, 0x23, 0x80, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0x00, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0xC0, 0x80, 0x00, 0x00, 0x10, 0xC0, 0x00, 0x22, 0x00, 0x80, 0x00, 0x00, 0x00, 0x08, 0x80, 0xDC, 0xE0, 0x0C, 0x00, 0xDC, 0xDC, 0x0A, 0x21, 0x00, 0x12, 0x08, 0x00, 0x00, 0x10, 0x01, 0x00, 0x00, 0x14, 0x06, 0x40, 0x50, 0x10, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x27, 0x0D, 0x00, 0xFF, 0xC1, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x01, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x02, 0x0D, 0x00, 0xFF, 0xD1, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x00, 0xFF, 0xD2, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x9E, 0xDC, 0xE0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x4F, 0x00, 0x00, 0x08, 0x8A, 0xDC, 0xE0, 0x0A, 0x23, 0x00, 0x06, 0x0A, 0x2B, 0x00, 0x07, 0x00, 0x88, 0x20, 0x00, 0x0A, 0xA7, 0x00, 0x05, 0x00, 0x00, 0x00, 0x22, 0xC0, 0x00, 0x2D, 0x30, 0x80, 0x00, 0x50, 0x00, 0x30, 0x00, 0xB4, 0x6A, 0x00, 0x88, 0x20, 0x00, 0xC0, 0x00, 0x28, 0x70, 0x80, 0x00, 0x60, 0x00, 0x02, 0x09, 0x00, 0x47, 0x00, 0x8C, 0x11, 0x91, 0x00, 0x00, 0x00, 0x24, 0x00, 0x8C, 0x2A, 0x02, 0x30, 0x00, 0xBC, 0xE9, 0x00, 0x84, 0x0D, 0x9C, 0x00, 0x20, 0x0B, 0x2D, 0x00, 0x00, 0xC2, 0xF1, 0x01, 0x00, 0x00, 0x45, 0x06, 0x00, 0x50, 0x14, 0x36, 0x40, 0x50, 0x15, 0x26, 0x40, 0x40, 0x15, 0x09, 0x2B, 0x00, 0x06, 0x09, 0x2B, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0xFC, 0x40, 0x06, 0x40, 0x10, 0x1E, 0x0C, 0x00, 0xFC, 0x41, 0x06, 0x40, 0x10, 0x0E, 0x0C, 0x00, 0xFC, 0x50, 0x06, 0x40, 0x10, 0x6E, 0x0C, 0x00, 0xFC, 0x51, 0x06, 0x40, 0x10, 0x7E, 0x0C, 0x00, 0xFC, 0x52, 0x06, 0x40, 0x10, 0x2E, 0x0C, 0x00, 0xFC, 0x53, 0x06, 0x40, 0x10, 0x3E, 0x06, 0x00, 0x10, 0x0E, 0x0D, 0x00, 0xFC, 0xD1, 0x06, 0x00, 0x10, 0x1E, 0x0D, 0x00, 0xFC, 0xD0, 0x0C, 0x40, 0x00, 0x14, 0x06, 0x00, 0x10, 0x2E, 0x06, 0x00, 0x90, 0x3E, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x10, 0x5E, 0x05, 0x6C, 0x10, 0x4E, 0x06, 0x00, 0x10, 0x4E, 0x0D, 0x00, 0xFC, 0xC1, 0x06, 0x00, 0x10, 0x5E, 0x0D, 0x00, 0xFC, 0xC0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x00, 0x09, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x02, 0x0C, 0x10, 0xF4, 0x60, 0x02, 0xC2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00</Data>
+      </Program>
+      <Register>
+        <Name>DM0 Data</Name>
+        <Address>0</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>100</Size>
+        <Data>0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>DM1 Data</Name>
+        <Address>24576</Address>
+        <AddrIncr>4</AddrIncr>
+        <Size>80</Size>
+        <Data>0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>KILL_CORE</Name>
+        <Address>62467</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>START_ADDRESS</Name>
+        <Address>62468</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>START_PULSE</Name>
+        <Address>62465</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x02</Data>
+      </Register>
+      <Register>
+        <Name>START_CORE</Name>
+        <Address>62466</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Register>
+        <Name>START_CORE</Name>
+        <Address>62466</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>Start Delay</Name>
+        <Address>0</Address>
+        <AddrIncr>0</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x01</Data>
+      </Register>
+      <Register>
+        <Name>HIBERNATE</Name>
+        <Address>62464</Address>
+        <AddrIncr>2</AddrIncr>
+        <Size>2</Size>
+        <Data>0x00, 0x00</Data>
+      </Register>
+      <Module>
+        <Algorithm>
+          <AlgoName>Safeload</AlgoName>
+          <Description>Schematic Params</Description>
+          <ModuleParameter>
+            <Name>Data_SafeLoad0</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24576</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Data_SafeLoad1</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24577</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Data_SafeLoad2</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24578</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Data_SafeLoad3</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24579</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Data_SafeLoad4</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24580</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Addr_SafeLoad</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24581</Address>
+            <SafeloadGroup />
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Num_SafeLoad_Lower</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24582</Address>
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+          <ModuleParameter>
+            <Name>Num_SafeLoad_Upper</Name>
+            <Type>Numeric</Type>
+            <DataType>Integer32</DataType>
+            <Address>24583</Address>
+            <Value>0</Value>
+            <Size>4</Size>
+            <Data>0x00, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+        </Algorithm>
+      </Module>
+      <Module>
+        <Algorithm>
+          <AlgoName>SingleVolumeControl_1</AlgoName>
+          <DetailedName>AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0</DetailedName>
+          <Description>All inputs volumes are governed by one single volume slider. 
+Optimum for simultaneous control of various channels within a single DSP</Description>
+          <AbstractParameter>
+            <Name>Gain</Name>
+            <Type>Numeric</Type>
+            <Value>0</Value>
+          </AbstractParameter>
+          <AbstractParameter>
+            <Name>FS</Name>
+            <Type>Numeric</Type>
+            <Value>48000</Value>
+          </AbstractParameter>
+          <AbstractParameter>
+            <Name>IsDBChosen</Name>
+            <Type>Boolean</Type>
+            <Value>True</Value>
+          </AbstractParameter>
+          <AbstractParameter>
+            <Name>SlewType</Name>
+            <Type>List</Type>
+            <Value>No Slew</Value>
+          </AbstractParameter>
+          <ModuleParameter>
+            <Name>Gain</Name>
+            <Type>Numeric</Type>
+            <DataType>FixPoint8d24</DataType>
+            <Address>20</Address>
+            <Value>1</Value>
+            <Size>4</Size>
+            <Data>0x01, 0x00, 0x00, 0x00</Data>
+          </ModuleParameter>
+        </Algorithm>
+      </Module>
+    </Schematic>
+  </Core>
+</IC>
