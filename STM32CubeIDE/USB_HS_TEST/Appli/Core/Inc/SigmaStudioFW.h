@@ -57,7 +57,7 @@ void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_
  * Writes delay (in ms)
  */
 // #define SIGMA_WRITE_DELAY(devAddress, length, pData) { /*TODO: implement macro or define as function*/ }
-void SIGMA_WRITE_DELAY(devAddress, length, pData);
+void SIGMA_WRITE_DELAY(uint8_t devAddress, uint16_t dataAddress, uint16_t length, uint8_t* pData);
 
 /*
  * Read device registers
