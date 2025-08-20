@@ -53,7 +53,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define SAI_BUF_SIZE 4096
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

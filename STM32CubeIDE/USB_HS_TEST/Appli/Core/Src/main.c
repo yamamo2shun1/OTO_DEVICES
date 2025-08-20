@@ -54,7 +54,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+__attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 4];
+__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 4];
+int16_t update_rx_pointer = 0;
+int16_t update_tx_pointer = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,7 +66,59 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
+{
+    // SEGGER_RTT_printf(0, "rx cplt\n");
+    update_rx_pointer = SAI_BUF_SIZE / 2;
 
+    if (hsai == &hsai_BlockA1)
+    {
+        memcpy(sai_tx_buf, sai_buf, sizeof(sai_buf));
+    }
+}
+
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
+{
+    // SEGGER_RTT_printf(0, "rx half cplt\n");
+    update_rx_pointer = 0;
+}
+
+void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
+{
+    // SEGGER_RTT_printf(0, "tx cplt\n");
+    update_tx_pointer = SAI_BUF_SIZE / 2;
+
+    if (hsai == &hsai_BlockA2)
+    {
+    }
+}
+
+void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
+{
+    // SEGGER_RTT_printf(0, "tx half cplt\n");
+    update_tx_pointer = 0;
+}
+
+void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
+{
+    volatile uint32_t saiErr = hsai->ErrorCode;                                 // HAL_SAI_ERROR_*
+    volatile uint32_t dmaErr = hsai->hdmarx ? hsai->hdmarx->ErrorCode : 0;      // HAL_DMA_ERROR_*
+    volatile uint32_t csr    = hsai->hdmarx ? hsai->hdmarx->Instance->CSR : 0;  // DTEF/ULEF/USEF/TOF 等
+
+    (void) saiErr;
+    (void) dmaErr;
+    (void) csr;  // ブレークして値を見る
+}
+
+extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
+extern DMA_QListTypeDef List_GPDMA1_Channel3;
+
+static inline void clean_ll_cache(void* p, size_t sz)
+{
+    uintptr_t a = (uintptr_t) p & ~31u;
+    size_t n    = (sz + 31u) & ~31u;
+    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+}
 /* USER CODE END 0 */
 
 /**
@@ -113,7 +168,6 @@ int main(void)
     MX_SAI2_Init();
     /* USER CODE BEGIN 2 */
     uint8_t sndData[1] = {0x00};
-    uint8_t rcvData[1] = {0x00};
 
     default_download_ADAU146XSCHEMATIC_1();
 
@@ -139,13 +193,30 @@ int main(void)
 
     // DAC Input Select Setting
     // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
-    sndData[0] = 0x00;  // 00 00 11 10 (SDIN1 -> DAC1, SDIN2 -> DAC2)
+    sndData[0] = 0x00;  // 00 00 00 00 (SDIN1 -> DAC1, SDIN2 -> DAC2)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x12, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // Power Management
     sndData[0] = 0x37;  // 00 11 0 11 1
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
     // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
+
+    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
+    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
+
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    {
+        /* SAI receive start error */
+        Error_Handler();
+    }
+#if 1
+    HAL_Delay(1000);
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    {
+        /* SAI transmit start error */
+        Error_Handler();
+    }
+#endif
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/
