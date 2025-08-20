@@ -24,9 +24,9 @@
 #include "usbpd_core.h"
 #include "usbpd_dpm_user.h"
 #if defined(_TRACE)
-    #include "usbpd_trace.h"
-    #include "string.h"
-    #include "stdio.h"
+#include "usbpd_trace.h"
+#include "string.h"
+#include "stdio.h"
 #endif /* _TRACE */
 /* USER CODE BEGIN Includes */
 #include "sai.h"
@@ -34,12 +34,12 @@
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
- * @{
- */
+  * @{
+  */
 
 /** @addtogroup STM32_USBPD_APPLICATION_DPM_USER
- * @{
- */
+  * @{
+  */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN Private_Typedef */
@@ -48,65 +48,68 @@
 
 /* Private define ------------------------------------------------------------*/
 /** @defgroup USBPD_USER_PRIVATE_DEFINES USBPD USER Private Defines
- * @{
- */
+  * @{
+  */
 /* USER CODE BEGIN Private_Define */
-#define SAI_BUF_SIZE 8
+#if 0
+    #define SAI_BUF_SIZE 8
+#endif
 /* USER CODE END Private_Define */
 
 /**
- * @}
- */
+  * @}
+  */
 
 /* Private macro -------------------------------------------------------------*/
 /** @defgroup USBPD_USER_PRIVATE_MACROS USBPD USER Private Macros
- * @{
- */
+  * @{
+  */
 #if defined(_TRACE)
-    #define DPM_USER_DEBUG_TRACE_SIZE 50u
-    #define DPM_USER_DEBUG_TRACE(_PORT_, ...)                                                                          \
-        do                                                                                                             \
-        {                                                                                                              \
-            char _str[DPM_USER_DEBUG_TRACE_SIZE];                                                                      \
-            uint8_t _size = snprintf(_str, DPM_USER_DEBUG_TRACE_SIZE, __VA_ARGS__);                                    \
-            if (_size < DPM_USER_DEBUG_TRACE_SIZE)                                                                     \
-                USBPD_TRACE_Add(USBPD_TRACE_DEBUG, (uint8_t) (_PORT_), 0, (uint8_t*) _str, strlen(_str));              \
-            else                                                                                                       \
-                USBPD_TRACE_Add(USBPD_TRACE_DEBUG, (uint8_t) (_PORT_), 0, (uint8_t*) _str, DPM_USER_DEBUG_TRACE_SIZE); \
-        } while (0)
+#define DPM_USER_DEBUG_TRACE_SIZE       50u
+#define DPM_USER_DEBUG_TRACE(_PORT_, ...)  do {                                                                \
+      char _str[DPM_USER_DEBUG_TRACE_SIZE];                                                                    \
+      uint8_t _size = snprintf(_str, DPM_USER_DEBUG_TRACE_SIZE, __VA_ARGS__);                                  \
+      if (_size < DPM_USER_DEBUG_TRACE_SIZE)                                                                   \
+        USBPD_TRACE_Add(USBPD_TRACE_DEBUG, (uint8_t)(_PORT_), 0, (uint8_t*)_str, strlen(_str));                \
+      else                                                                                                     \
+        USBPD_TRACE_Add(USBPD_TRACE_DEBUG, (uint8_t)(_PORT_), 0, (uint8_t*)_str, DPM_USER_DEBUG_TRACE_SIZE);   \
+  } while(0)
 
 #else
-    #define DPM_USER_DEBUG_TRACE(_PORT_, ...)
+#define DPM_USER_DEBUG_TRACE(_PORT_, ...)
 #endif /* _TRACE */
 /* USER CODE BEGIN Private_Macro */
 
 /* USER CODE END Private_Macro */
 /**
- * @}
- */
+  * @}
+  */
 
 /* Private variables ---------------------------------------------------------*/
 /** @defgroup USBPD_USER_PRIVATE_VARIABLES USBPD USER Private Variables
- * @{
- */
+  * @{
+  */
 
 /* USER CODE BEGIN Private_Variables */
+#if 0
 uint32_t sai_buf[SAI_BUF_SIZE * 4];
 uint32_t sai_tx_buf[SAI_BUF_SIZE * 4];
 int16_t update_rx_pointer = 0;
 int16_t update_tx_pointer = 0;
 
 bool is_first_receive = true;
+#endif
 /* USER CODE END Private_Variables */
 /**
- * @}
- */
+  * @}
+  */
 
 /* Private function prototypes -----------------------------------------------*/
 /** @defgroup USBPD_USER_PRIVATE_FUNCTIONS USBPD USER Private Functions
- * @{
- */
+  * @{
+  */
 /* USER CODE BEGIN USBPD_USER_PRIVATE_FUNCTIONS_Prototypes */
+#if 0
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     // SEGGER_RTT_printf(0, "rx cplt\n");
@@ -114,14 +117,14 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 
     if (hsai == &hsai_BlockA1)
     {
-#if 0
+    #if 0
     	for (int i = 0; i < SAI_BUF_SIZE; i++)
         {
             sai_tx_buf[i] = sai_buf[i];
         }
-#else
+    #else
         memcpy(sai_tx_buf, sai_buf, sizeof(sai_buf));
-#endif
+    #endif
         if (HAL_SAI_Transmit_IT(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
         {
             Error_Handler();
@@ -154,48 +157,50 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     // SEGGER_RTT_printf(0, "tx half cplt\n");
     update_tx_pointer = 0;
 }
+#endif
 /* USER CODE END USBPD_USER_PRIVATE_FUNCTIONS_Prototypes */
 /**
- * @}
- */
+  * @}
+  */
 
 /* Exported functions ------- ------------------------------------------------*/
 /** @defgroup USBPD_USER_EXPORTED_FUNCTIONS USBPD USER Exported Functions
- * @{
- */
+  * @{
+  */
 /* USER CODE BEGIN USBPD_USER_EXPORTED_FUNCTIONS */
 
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS */
 
 /** @defgroup USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 USBPD USER Exported Functions called by DPM CORE
- * @{
- */
+  * @{
+  */
 /* USER CODE BEGIN USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
- * @brief  User delay implementation which is OS dependent
- * @param  Time time in ms
- * @retval None
- */
+  * @brief  User delay implementation which is OS dependent
+  * @param  Time time in ms
+  * @retval None
+  */
 void USBPD_DPM_WaitForTime(uint32_t Time)
 {
-    HAL_Delay(Time);
+  HAL_Delay(Time);
 }
 
 /**
- * @brief  User processing time, it is recommended to avoid blocking task for long time
- * @param  argument  DPM User event
- * @retval None
- */
-void USBPD_DPM_UserExecute(void const* argument)
+  * @brief  User processing time, it is recommended to avoid blocking task for long time
+  * @param  argument  DPM User event
+  * @retval None
+  */
+void USBPD_DPM_UserExecute(void const *argument)
 {
-    /* USER CODE BEGIN USBPD_DPM_UserExecute */
+/* USER CODE BEGIN USBPD_DPM_UserExecute */
     HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
+#if 0
     if (is_first_receive)
     {
         if (HAL_SAI_Receive_IT(&hsai_BlockA1, (uint8_t*) sai_buf, SAI_BUF_SIZE) == HAL_OK)
@@ -203,44 +208,45 @@ void USBPD_DPM_UserExecute(void const* argument)
             is_first_receive = false;
         }
     }
+#endif
 
 #if 0
     uint8_t* message = "hello world from USB.\n\r";
     CDC_Transmit_HS(message, 23);
 #endif
-    /* USER CODE END USBPD_DPM_UserExecute */
+/* USER CODE END USBPD_DPM_UserExecute */
 }
 
 /**
- * @brief  UserCableDetection reporting events on a specified port from CAD layer.
- * @param  PortNum The handle of the port
- * @param  State CAD state
- * @retval None
- */
+  * @brief  UserCableDetection reporting events on a specified port from CAD layer.
+  * @param  PortNum The handle of the port
+  * @param  State CAD state
+  * @retval None
+  */
 void USBPD_DPM_UserCableDetection(uint8_t PortNum, USBPD_CAD_EVENT State)
 {
-    /* USER CODE BEGIN USBPD_DPM_UserCableDetection */
+/* USER CODE BEGIN USBPD_DPM_UserCableDetection */
     DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: update USBPD_DPM_UserCableDetection");
-    /* USER CODE END USBPD_DPM_UserCableDetection */
+/* USER CODE END USBPD_DPM_UserCableDetection */
 }
 
 /**
- * @}
- */
+  * @}
+  */
 
 /** @defgroup USBPD_USER_EXPORTED_FUNCTIONS_GROUP2 USBPD USER Exported Callbacks functions called by PE
- * @{
- */
+  * @{
+  */
 
 /**
- * @brief  Callback function called by PE to inform DPM about PE event.
- * @param  PortNum The current port number
- * @param  EventVal @ref USBPD_NotifyEventValue_TypeDef
- * @retval None
- */
+  * @brief  Callback function called by PE to inform DPM about PE event.
+  * @param  PortNum The current port number
+  * @param  EventVal @ref USBPD_NotifyEventValue_TypeDef
+  * @retval None
+  */
 void USBPD_DPM_Notification(uint8_t PortNum, USBPD_NotifyEventValue_TypeDef EventVal)
 {
-    /* USER CODE BEGIN USBPD_DPM_Notification */
+/* USER CODE BEGIN USBPD_DPM_Notification */
     /* Manage event notified by the stack? */
     switch (EventVal)
     {
@@ -282,28 +288,28 @@ void USBPD_DPM_Notification(uint8_t PortNum, USBPD_NotifyEventValue_TypeDef Even
         DPM_USER_DEBUG_TRACE(PortNum, "ADVICE: USBPD_DPM_Notification:%d", EventVal);
         break;
     }
-    /* USER CODE END USBPD_DPM_Notification */
+/* USER CODE END USBPD_DPM_Notification */
 }
 
 /** @addtogroup USBPD_USER_PRIVATE_FUNCTIONS
- * @{
- */
+  * @{
+  */
 
 /* USER CODE BEGIN USBPD_USER_PRIVATE_FUNCTIONS */
 /* USER CODE END USBPD_USER_PRIVATE_FUNCTIONS */
 
 /**
- * @}
- */
+  * @}
+  */
 
 /**
- * @}
- */
+  * @}
+  */
 
 /**
- * @}
- */
+  * @}
+  */
 
 /**
- * @}
- */
+  * @}
+  */
