@@ -35,3 +35,5 @@ STM32CubeIDE/GPIO_InfiniteLedToggling_Init/
 STM32CubeIDE/USB_TEST/
 
 KiCad/OTO_NO_DEIRI/jlcpcb/
+
+*.log
