@@ -308,13 +308,20 @@ void SAI2_A_IRQHandler(void)
     /* USER CODE END SAI2_A_IRQn 1 */
 }
 
+static inline USB_OTG_DeviceTypeDef* USB_DEV(PCD_HandleTypeDef* hpcd)
+{
+    return (USB_OTG_DeviceTypeDef*) ((uint32_t) hpcd->Instance + USB_OTG_DEVICE_BASE);
+}
+
 /**
  * @brief This function handles USB OTG HS interrupt.
  */
 void OTG_HS_IRQHandler(void)
 {
     /* USER CODE BEGIN OTG_HS_IRQn 0 */
-
+    volatile uint32_t gint = USB_OTG_HS->GINTSTS;
+    volatile uint32_t gahb = USB_OTG_HS->GAHBCFG;
+    volatile uint32_t dcfg = USB_DEV(&hpcd_USB_OTG_HS)->DCFG;
     /* USER CODE END OTG_HS_IRQn 0 */
     HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
     /* USER CODE BEGIN OTG_HS_IRQn 1 */

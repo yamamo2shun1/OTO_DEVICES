@@ -28,11 +28,11 @@ extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 
 SAI_HandleTypeDef hsai_BlockA1;
 SAI_HandleTypeDef hsai_BlockA2;
-DMA_NodeTypeDef __attribute__((aligned(32))) Node_GPDMA1_Channel3;
-DMA_QListTypeDef __attribute__((aligned(32))) List_GPDMA1_Channel3;
+DMA_NodeTypeDef Node_GPDMA1_Channel3;
+DMA_QListTypeDef List_GPDMA1_Channel3;
 DMA_HandleTypeDef handle_GPDMA1_Channel3;
-DMA_NodeTypeDef __attribute__((aligned(32))) Node_GPDMA1_Channel2;
-DMA_QListTypeDef __attribute__((aligned(32))) List_GPDMA1_Channel2;
+DMA_NodeTypeDef Node_GPDMA1_Channel2;
+DMA_QListTypeDef List_GPDMA1_Channel2;
 DMA_HandleTypeDef handle_GPDMA1_Channel2;
 
 /* SAI1 init function */
@@ -71,7 +71,7 @@ void MX_SAI1_Init(void)
     hsai_BlockA1.SlotInit.FirstBitOffset     = 0;
     hsai_BlockA1.SlotInit.SlotSize           = SAI_SLOTSIZE_DATASIZE;
     hsai_BlockA1.SlotInit.SlotNumber         = 2;
-    hsai_BlockA1.SlotInit.SlotActive         = 0x00000003;  // 0x0000FFFF;
+    hsai_BlockA1.SlotInit.SlotActive         = 0x0000FFFF;
     if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK)
     {
         Error_Handler();
@@ -116,7 +116,7 @@ void MX_SAI2_Init(void)
     hsai_BlockA2.SlotInit.FirstBitOffset     = 0;
     hsai_BlockA2.SlotInit.SlotSize           = SAI_SLOTSIZE_DATASIZE;
     hsai_BlockA2.SlotInit.SlotNumber         = 2;
-    hsai_BlockA2.SlotInit.SlotActive         = 0x00000003;  // 0x0000FFFF;
+    hsai_BlockA2.SlotInit.SlotActive         = 0x0000FFFF;
     if (HAL_SAI_Init(&hsai_BlockA2) != HAL_OK)
     {
         Error_Handler();
@@ -153,7 +153,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
             __HAL_RCC_SAI1_CLK_ENABLE();
 
             /* Peripheral interrupt init*/
-            HAL_NVIC_SetPriority(SAI1_A_IRQn, 0, 0);
+            HAL_NVIC_SetPriority(SAI1_A_IRQn, 3, 0);
             HAL_NVIC_EnableIRQ(SAI1_A_IRQn);
         }
         SAI1_client++;
@@ -191,6 +191,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         NodeConfig.SrcAddress                       = (uint32_t) &SAI1_Block_A->DR;  // SAI1_A のデータレジスタ
         NodeConfig.DstAddress                       = (uint32_t) sai_buf;            // 受信先バッファ
         NodeConfig.DataSize                         = SAI_BUF_SIZE * 2;              // 転送アイテム数（32bitワード数）
+
         if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel3) != HAL_OK)
         {
             Error_Handler();
@@ -223,12 +224,11 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         }
 
         __HAL_LINKDMA(saiHandle, hdmarx, handle_GPDMA1_Channel3);
-#if 0
+
         if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel3, DMA_CHANNEL_NPRIV) != HAL_OK)
         {
             Error_Handler();
         }
-#endif
     }
     /* SAI2 */
     if (saiHandle->Instance == SAI2_Block_A)
@@ -249,7 +249,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
             __HAL_RCC_SAI2_CLK_ENABLE();
 
             /* Peripheral interrupt init*/
-            HAL_NVIC_SetPriority(SAI2_A_IRQn, 0, 0);
+            HAL_NVIC_SetPriority(SAI2_A_IRQn, 3, 0);
             HAL_NVIC_EnableIRQ(SAI2_A_IRQn);
         }
         SAI2_client++;
@@ -294,6 +294,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         NodeConfig.SrcAddress                       = (uint32_t) sai_tx_buf;         // 送信元バッファ
         NodeConfig.DstAddress                       = (uint32_t) &SAI2_Block_A->DR;  // SAI2_A のデータレジスタ
         NodeConfig.DataSize                         = SAI_BUF_SIZE * 2;              // 転送アイテム数（32bitワード数）
+
         if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel2) != HAL_OK)
         {
             Error_Handler();
@@ -326,12 +327,11 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         }
 
         __HAL_LINKDMA(saiHandle, hdmatx, handle_GPDMA1_Channel2);
-#if 0
+
         if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel2, DMA_CHANNEL_NPRIV) != HAL_OK)
         {
             Error_Handler();
         }
-#endif
     }
 }
 

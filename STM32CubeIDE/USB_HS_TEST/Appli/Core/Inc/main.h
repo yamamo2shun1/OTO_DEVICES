@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -23,7 +23,8 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -69,21 +70,26 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DSP_RESET_Pin GPIO_PIN_1
+#define DSP_RESET_Pin       GPIO_PIN_1
 #define DSP_RESET_GPIO_Port GPIOH
-#define SW2_Pin GPIO_PIN_14
-#define SW2_GPIO_Port GPIOD
-#define SW1_Pin GPIO_PIN_15
-#define SW1_GPIO_Port GPIOD
-#define LED2_Pin GPIO_PIN_0
-#define LED2_GPIO_Port GPIOD
-#define LED1_Pin GPIO_PIN_1
-#define LED1_GPIO_Port GPIOD
-#define LED0_Pin GPIO_PIN_2
-#define LED0_GPIO_Port GPIOD
+#define SW2_Pin             GPIO_PIN_14
+#define SW2_GPIO_Port       GPIOD
+#define SW1_Pin             GPIO_PIN_15
+#define SW1_GPIO_Port       GPIOD
+#define LED2_Pin            GPIO_PIN_0
+#define LED2_GPIO_Port      GPIOD
+#define LED1_Pin            GPIO_PIN_1
+#define LED1_GPIO_Port      GPIOD
+#define LED0_Pin            GPIO_PIN_2
+#define LED0_GPIO_Port      GPIOD
 
 /* USER CODE BEGIN Private defines */
-
+#define FRAMES             (SAI_BUF_SIZE)
+#define RX_SIZE_WORDS      (FRAMES * 2)
+#define HALF_WORDS         (RX_SIZE_WORDS / 2)
+#define HALF_BYTES         (HALF_WORDS * sizeof(uint32_t))
+#define CACHE_ALIGN_UP(n)  (((n) + 31u) & ~31u)
+#define CACHE_ALIGN_PTR(p) ((uint32_t*) (((uintptr_t) (p)) & ~31u))
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
