@@ -23,8 +23,8 @@
 #include "usb_device.h"
 #include "usbd_core.h"
 #include "usbd_desc.h"
-#include "usbd_cdc.h"
-#include "usbd_cdc_if.h"
+#include "usbd_audio.h"
+#include "usbd_audio_if.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -68,15 +68,15 @@ void MX_USB_DEVICE_Init(void)
   /* USER CODE END USB_DEVICE_Init_PreTreatment */
 
   /* Init Device Library, add supported class and start the library. */
-  if (USBD_Init(&hUsbDeviceHS, &CDC_Desc, DEVICE_HS) != USBD_OK)
+  if (USBD_Init(&hUsbDeviceHS, &AUDIO_Desc, DEVICE_HS) != USBD_OK)
   {
     Error_Handler();
   }
-  if (USBD_RegisterClass(&hUsbDeviceHS, &USBD_CDC) != USBD_OK)
+  if (USBD_RegisterClass(&hUsbDeviceHS, &USBD_AUDIO) != USBD_OK)
   {
     Error_Handler();
   }
-  if (USBD_CDC_RegisterInterface(&hUsbDeviceHS, &USBD_Interface_fops_HS) != USBD_OK)
+  if (USBD_AUDIO_RegisterInterface(&hUsbDeviceHS, &USBD_AUDIO_fops_HS) != USBD_OK)
   {
     Error_Handler();
   }

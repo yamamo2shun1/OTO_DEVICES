@@ -66,9 +66,9 @@
 #define USBD_LANGID_STRING     1033
 #define USBD_MANUFACTURER_STRING     "Yamamoto Works Ltd."
 #define USBD_PID     0x0010
-#define USBD_PRODUCT_STRING     "C4NDY::02"
-#define USBD_CONFIGURATION_STRING     "CDC Config"
-#define USBD_INTERFACE_STRING     "CDC Interface"
+#define USBD_PRODUCT_STRING     "C4NDY::2(Mixer)"
+#define USBD_CONFIGURATION_STRING     "AUDIO Config"
+#define USBD_INTERFACE_STRING     "AUDIO Interface"
 
 #define USB_SIZ_BOS_DESC            0x0C
 
@@ -114,16 +114,16 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len);
   * @{
   */
 
-uint8_t * USBD_CDC_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
-uint8_t * USBD_CDC_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
 
 #if (USBD_LPM_ENABLED == 1)
-uint8_t * USBD_CDC_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
+uint8_t * USBD_AUDIO_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
 #endif /* (USBD_LPM_ENABLED == 1) */
 
 /**
@@ -135,30 +135,30 @@ uint8_t * USBD_CDC_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length);
   * @{
   */
 
-USBD_DescriptorsTypeDef CDC_Desc =
+USBD_DescriptorsTypeDef AUDIO_Desc =
 {
-  USBD_CDC_DeviceDescriptor,
-  USBD_CDC_LangIDStrDescriptor,
-  USBD_CDC_ManufacturerStrDescriptor,
-  USBD_CDC_ProductStrDescriptor,
-  USBD_CDC_SerialStrDescriptor,
-  USBD_CDC_ConfigStrDescriptor,
-  USBD_CDC_InterfaceStrDescriptor
+  USBD_AUDIO_DeviceDescriptor,
+  USBD_AUDIO_LangIDStrDescriptor,
+  USBD_AUDIO_ManufacturerStrDescriptor,
+  USBD_AUDIO_ProductStrDescriptor,
+  USBD_AUDIO_SerialStrDescriptor,
+  USBD_AUDIO_ConfigStrDescriptor,
+  USBD_AUDIO_InterfaceStrDescriptor
 };
 
 #if defined ( __ICCARM__ ) /* IAR Compiler */
   #pragma data_alignment=4
 #endif /* defined ( __ICCARM__ ) */
 /** USB standard device descriptor. */
-__ALIGN_BEGIN uint8_t USBD_CDC_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
+__ALIGN_BEGIN uint8_t USBD_AUDIO_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
 {
   0x12,                       /*bLength */
   USB_DESC_TYPE_DEVICE,       /*bDescriptorType*/
   0x00,                       /*bcdUSB */
 
   0x02,
-  0x02,                       /*bDeviceClass*/
-  0x02,                       /*bDeviceSubClass*/
+  0x00,                       /*bDeviceClass*/
+  0x00,                       /*bDeviceSubClass*/
   0x00,                       /*bDeviceProtocol*/
   USB_MAX_EP0_SIZE,           /*bMaxPacketSize*/
   LOBYTE(USBD_VID),           /*idVendor*/
@@ -178,7 +178,7 @@ __ALIGN_BEGIN uint8_t USBD_CDC_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END =
 #if defined ( __ICCARM__ ) /* IAR Compiler */
   #pragma data_alignment=4
 #endif /* defined ( __ICCARM__ ) */
-__ALIGN_BEGIN uint8_t USBD_CDC_BOSDesc[USB_SIZ_BOS_DESC] __ALIGN_END =
+__ALIGN_BEGIN uint8_t USBD_AUDIO_BOSDesc[USB_SIZ_BOS_DESC] __ALIGN_END =
 {
   0x5,
   USB_DESC_TYPE_BOS,
@@ -247,11 +247,11 @@ __ALIGN_BEGIN uint8_t USBD_StringSerial[USB_SIZ_STRING_SERIAL] __ALIGN_END = {
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   UNUSED(speed);
-  *length = sizeof(USBD_CDC_DeviceDesc);
-  return USBD_CDC_DeviceDesc;
+  *length = sizeof(USBD_AUDIO_DeviceDesc);
+  return USBD_AUDIO_DeviceDesc;
 }
 
 /**
@@ -260,7 +260,7 @@ uint8_t * USBD_CDC_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   UNUSED(speed);
   *length = sizeof(USBD_LangIDDesc);
@@ -273,7 +273,7 @@ uint8_t * USBD_CDC_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   USBD_GetString((uint8_t *)USBD_PRODUCT_STRING, USBD_StrDesc, length);
   return USBD_StrDesc;
@@ -285,7 +285,7 @@ uint8_t * USBD_CDC_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *lengt
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   UNUSED(speed);
   USBD_GetString((uint8_t *)USBD_MANUFACTURER_STRING, USBD_StrDesc, length);
@@ -298,7 +298,7 @@ uint8_t * USBD_CDC_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   UNUSED(speed);
   *length = USB_SIZ_STRING_SERIAL;
@@ -306,9 +306,9 @@ uint8_t * USBD_CDC_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length
   /* Update the serial number string descriptor with the data from the unique
    * ID */
   Get_SerialNum();
-  /* USER CODE BEGIN USBD_CDC_SerialStrDescriptor */
+  /* USER CODE BEGIN USBD_AUDIO_SerialStrDescriptor */
 
-  /* USER CODE END USBD_CDC_SerialStrDescriptor */
+  /* USER CODE END USBD_AUDIO_SerialStrDescriptor */
 
   return (uint8_t *) USBD_StringSerial;
 }
@@ -319,7 +319,7 @@ uint8_t * USBD_CDC_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING, USBD_StrDesc, length);
   return USBD_StrDesc;
@@ -331,7 +331,7 @@ uint8_t * USBD_CDC_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   USBD_GetString((uint8_t *)USBD_INTERFACE_STRING, USBD_StrDesc, length);
   return USBD_StrDesc;
@@ -344,11 +344,11 @@ uint8_t * USBD_CDC_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *len
   * @param  length : Pointer to data length variable
   * @retval Pointer to descriptor buffer
   */
-uint8_t * USBD_CDC_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
+uint8_t * USBD_AUDIO_USR_BOSDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
 {
   UNUSED(speed);
-  *length = sizeof(USBD_CDC_BOSDesc);
-  return (uint8_t*)USBD_CDC_BOSDesc;
+  *length = sizeof(USBD_AUDIO_BOSDesc);
+  return (uint8_t*)USBD_AUDIO_BOSDesc;
 }
 #endif /* (USBD_LPM_ENABLED == 1) */
 

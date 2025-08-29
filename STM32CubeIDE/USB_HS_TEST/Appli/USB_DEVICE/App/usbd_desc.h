@@ -34,7 +34,7 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
-extern USBD_DescriptorsTypeDef CDC_Desc;
+extern USBD_DescriptorsTypeDef AUDIO_Desc;
 
 #endif /* __USBD_DESC_H */
 
