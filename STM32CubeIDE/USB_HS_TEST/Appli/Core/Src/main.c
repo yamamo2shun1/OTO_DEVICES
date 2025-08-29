@@ -60,6 +60,9 @@
 extern DMA_NodeTypeDef Node_GPDMA1_Channel2;   // TXノード
 extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 
+extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
+extern DMA_QListTypeDef List_GPDMA1_Channel3;
+
 __attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 4];
 __attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 4];
 
@@ -121,9 +124,6 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
     (void) dmaErr;
     (void) csr;  // ブレークして値を見る
 }
-
-extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
-extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -224,7 +224,6 @@ int main(void)
 
     /* Enable D-Cache---------------------------------------------------------*/
     SCB_EnableDCache();
-    // EnableDCache_Safe();
 
     /* MCU Configuration--------------------------------------------------------*/
 
