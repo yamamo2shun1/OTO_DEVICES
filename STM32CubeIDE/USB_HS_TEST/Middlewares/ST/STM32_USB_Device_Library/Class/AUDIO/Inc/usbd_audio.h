@@ -119,6 +119,27 @@ extern "C"
     /* Total size of the audio transfer buffer */
     #define AUDIO_TOTAL_BUF_SIZE ((uint16_t) (AUDIO_OUT_PACKET * AUDIO_OUT_PACKET_NUM))
 
+    // 1msパケット（48k * 2ch * 16bit = 192B）
+    #ifndef AUDIO_PACKET_SZ
+        #define AUDIO_PACKET_SZ 192U
+    #endif
+
+    // ループバック用の小さなリング（8msぶん）
+    #define LB_Q_DEPTH 8U
+
+    typedef struct
+    {
+        uint8_t buf[LB_Q_DEPTH][AUDIO_PACKET_SZ];
+        uint16_t len[LB_Q_DEPTH];
+        volatile uint8_t wr, rd, count;
+        volatile uint8_t in_alt1;     // IF#(AS IN) が Alt1 か
+        volatile uint8_t out_alt1;    // IF#(AS OUT) が Alt1 か
+        volatile uint8_t in_busy;     // IN転送中フラグ
+        volatile uint8_t busy_ticks;  // ★ 追加：ハング検知用
+    } USBD_AUDIO_LB_CTX;
+
+    extern USBD_AUDIO_LB_CTX g_audio_lb;
+
     /* Audio Commands enumeration */
     typedef enum
     {
