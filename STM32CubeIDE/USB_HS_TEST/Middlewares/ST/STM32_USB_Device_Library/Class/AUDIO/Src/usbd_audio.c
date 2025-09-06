@@ -93,7 +93,7 @@ EndBSPDependencies */
     (uint8_t) (frq), (uint8_t) ((frq >> 8)), (uint8_t) ((frq >> 16))
 
 #define AUDIO_PACKET_SZE(frq) \
-    (uint8_t) (((frq * 2U * 2U) / 1000U) & 0xFFU), (uint8_t) ((((frq * 2U * 2U) / 1000U) >> 8) & 0xFFU)
+    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
     #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * 2U * 2U) / 1000U))
@@ -132,8 +132,8 @@ static void* USBD_AUDIO_GetAudioHeaderDesc(uint8_t* pConfDesc);
 static volatile uint8_t alt_as_out = 0;  // IF#1 の Alt
 static volatile uint8_t alt_as_in  = 0;  // IF#2 の Alt
 
-/* === USB loopback: OUT(1ms=192B) -> IN(次の1msで返す) === */
-__attribute__((aligned(32))) __ALIGN_BEGIN static uint8_t s_last_out[AUDIO_IN_PACKET] __ALIGN_END; /* 192B */
+/* === USB loopback: OUT(1ms=288B) -> IN(次の1msで返す) === */
+__attribute__((aligned(32))) __ALIGN_BEGIN static uint8_t s_last_out[AUDIO_IN_PACKET] __ALIGN_END; /* 288B */
 __attribute__((aligned(32))) __ALIGN_BEGIN static uint8_t s_silence[AUDIO_IN_PACKET] __ALIGN_END;
 static volatile uint8_t s_have_frame = 0; /* 直前OUTを保持しているか */
 static volatile uint8_t in_busy      = 0; /* IN送信中か（完了はDataInで解除） */
@@ -150,26 +150,34 @@ static volatile uint32_t dbg_out_sum = 0;  // 直近OUT 1msのバイト合計
 static volatile uint32_t dbg_out_nz  = 0;  // 連続“非ゼロ”観測フレーム数
 static volatile uint32_t dbg_out_z   = 0;  // 連続“ゼロ”観測フレーム数
 
-// テストトーン（1kHz相当の矩形：16bit/LR/48kHz → 1msで48サンプル）
+// テストトーン（1kHz相当の矩形：24bit/LR/48kHz → 1msで48サンプル）
 __attribute__((aligned(32))) __ALIGN_BEGIN static uint8_t s_beep[AUDIO_IN_PACKET] __ALIGN_END;
+// 1msぶんのビープを S24_3LE (3バイト詰め/LE) で作る
+// s_beep のサイズは 48サンプル × 2ch × 3B = 288 バイト 必要
 static void fill_beep_1ms(void)
 {
-    // 簡単な矩形波（左右同じ）。16-bit little-endian
-    static uint8_t phase = 0;  // 0..47
-    int16_t hi = 12000, lo = -12000;
-    int16_t v  = (phase < 24) ? hi : lo;
-    uint8_t* p = s_beep;
-    for (int i = 0; i < 48; ++i)
-    {                                    // 48サンプル/1ms @48kHz
-        int16_t s = (i < 24) ? hi : lo;  // 1kHz矩形（おおよそ）
-        // L
+    // ±12000（24bitレンジの中の小さい値でOK）
+    const int32_t hi = 12000;   // << 8 しない！
+    const int32_t lo = -12000;  // << 8 しない！
+    uint8_t* p       = s_beep;
+
+    for (int i = 0; i < 48; ++i)  // 48 kHz → 1ms = 48 サンプル
+    {
+        int32_t s = (i < 24) ? hi : lo;  // 1kHz相当の矩形波 (0.5ms + 0.5ms)
+
+        // L (S24_3LE) : LSB → MSB の3バイト
         *p++ = (uint8_t) (s & 0xFF);
         *p++ = (uint8_t) ((s >> 8) & 0xFF);
-        // R
+        *p++ = (uint8_t) ((s >> 16) & 0xFF);
+
+        // R (同じ)
         *p++ = (uint8_t) (s & 0xFF);
         *p++ = (uint8_t) ((s >> 8) & 0xFF);
+        *p++ = (uint8_t) ((s >> 16) & 0xFF);
     }
-    phase = (phase + 1) % 48;
+
+    // D-Cache 有効なら、IN転送に使う前にクリーン（アラインに注意）
+    // usb_dc_clean_by_addr(s_beep, 48*2*3); // プロジェクトの関数に合わせて
 }
 
 #define DCACHE_LINE 32U
@@ -374,24 +382,24 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x00,
         /* 07 byte(115)*/
 
-        /* USB Speaker Audio Type III Format Interface Descriptor */
+        /* USB Speaker Audio Type I Format Interface Descriptor */
         0x0B,                               /* bLength */
         AUDIO_INTERFACE_DESCRIPTOR_TYPE,    /* bDescriptorType */
         AUDIO_STREAMING_FORMAT_TYPE,        /* bDescriptorSubtype */
         AUDIO_FORMAT_TYPE_I,                /* bFormatType */
-        0x02,                               /* bNrChannels */
-        0x02,                               /* bSubFrameSize :  2 Bytes per frame (16bits) */
-        16,                                 /* bBitResolution (16-bits per sample) */
+        USBD_AUDIO_CHANNELS,                /* bNrChannels */
+        USBD_AUDIO_SUBFRAME_BYTES,          /* bSubFrameSize :  3 Bytes per frame (24bits) */
+        USBD_AUDIO_RES_BITS,                /* bBitResolution (24-bits per sample) */
         0x01,                               /* bSamFreqType only one frequency supported */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
-        /* 11 byte(126)*/
+                                            /* 11 byte(126)*/
 
         /* Endpoint 1 - Standard Descriptor */
         AUDIO_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
         USB_DESC_TYPE_ENDPOINT,            /* bDescriptorType */
         AUDIO_OUT_EP,                      /* bEndpointAddress 1 out endpoint */
         USBD_EP_TYPE_ISOC,                 /* bmAttributes */
-        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
+        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(Word)) */
         AUDIO_HS_BINTERVAL,                /* bInterval */
         0x00,                              /* bRefresh */
         0x00,                              /* bSynchAddress */
@@ -433,21 +441,21 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x01, 0x00,       /* wFormatTag = PCM */
         /* 07 byte(167)*/
 
-        /* Type I Format (2ch, 16bit, 48kHz) */
+        /* Type I Format (2ch, 24bit, 48kHz) */
         0x0B, 0x24, 0x02,                   /* bLength=11, CS_INTERFACE, FORMAT_TYPE */
         0x01,                               /* FORMAT_TYPE_I */
-        0x02,                               /* 2ch */
-        0x02,                               /* 16-bit (2 bytes) */
-        0x10,                               /* 16 bits */
+        USBD_AUDIO_CHANNELS,                /* 2ch */
+        USBD_AUDIO_SUBFRAME_BYTES,          /* 24-bit (3 bytes) */
+        USBD_AUDIO_RES_BITS,                /* 24 bits */
         0x01,                               /* 1 discrete freq */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
         /* 11 byte(178)*/
 
-        /* Std ISO Endpoint (IN) 0x81, Async (0x05), 1ms, 192B */
+        /* Std ISO Endpoint (IN) 0x81, Async (0x05), 1ms, 384B */
         0x09, 0x05,                        /* ENDPOINT */
         0x81,                              /* bEndpointAddress = 0x81 (IN) */
-        0x05,                              /* bmAttributes = Isochronous | Asynchronous | Data */
-        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
+        0x01,                              /* bmAttributes = Isochronous | Asynchronous | Data */
+        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(HalfWord)) */
         AUDIO_HS_BINTERVAL,                /* bInterval */
         0x00,                              /* bRefresh */
         0x00,                              /* bSynchAddress */
@@ -966,9 +974,13 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  * @param  pdev: device instance
  * @retval status
  */
+int sof_count = 0;
+int last_sof_count = 0;
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
     // UNUSED(pdev);
+
+    sof_count++;
 
     if (in_alt1)
     {
@@ -1119,6 +1131,14 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
     uint16_t PacketSize;
     USBD_AUDIO_HandleTypeDef* haudio;
 
+    int now = sof_count;
+    int d = now - last_sof_count;
+    last_sof_count = now;
+    if (d > 1)
+    {
+    	return (uint8_t)USBD_FAIL;
+    }
+
 #ifdef USE_USBD_COMPOSITE
     /* Get the Endpoints addresses allocated for this class instance */
     AUDIOOutEpAdd = USBD_CoreGetEPAdd(pdev, USBD_EP_OUT, USBD_EP_TYPE_ISOC, (uint8_t) pdev->classId);
@@ -1189,7 +1209,7 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
     if (epnum == (AUDIOOutEpAdd & 0x0F))
     {
         uint32_t rxlen = USBD_LL_GetRxDataSize(pdev, AUDIOOutEpAdd);
-        if (rxlen > AUDIO_OUT_PACKET)
+        if (rxlen != AUDIO_OUT_PACKET)
             rxlen = AUDIO_OUT_PACKET;
 
         dcache_invalidate(s_out_frame, AUDIO_OUT_PACKET);  // ★USBが書いた最新内容をメモリから読む
