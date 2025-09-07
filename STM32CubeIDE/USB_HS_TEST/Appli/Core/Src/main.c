@@ -136,80 +136,6 @@ static inline void clean_ll_cache(void* p, size_t sz)
     size_t n    = (sz + 31u) & ~31u;
     SCB_CleanDCache_by_Addr((uint32_t*) a, n);
 }
-
-// 置き換え: SCB_EnableDCache() の代わりに呼ぶ
-static void EnableDCache_Safe(void)
-{
-    if (SCB->CCR & SCB_CCR_DC_Msk)
-        return;  // すでに有効なら何もしない
-
-    SCB->CSSELR = 0U;  // Level1 Data cache を選択
-    __DSB();
-    __ISB();
-
-    uint32_t ccsidr = SCB->CCSIDR;
-    uint32_t sets   = (ccsidr & SCB_CCSIDR_NUMSETS_Msk) >> SCB_CCSIDR_NUMSETS_Pos;
-    uint32_t ways   = (ccsidr & SCB_CCSIDR_ASSOCIATIVITY_Msk) >> SCB_CCSIDR_ASSOCIATIVITY_Pos;
-
-    // Sanity ガード（不合理な値なら諦めて戻る＝ハング回避）
-    if (sets > 8191U || ways > 1023U)
-        return;
-
-    do
-    {
-        uint32_t w = ways;
-        do
-        {
-            SCB->DCISW =
-                ((sets << SCB_DCISW_SET_Pos) & SCB_DCISW_SET_Msk) |
-                ((w << SCB_DCISW_WAY_Pos) & SCB_DCISW_WAY_Msk);
-        } while (w-- != 0U);
-    } while (sets-- != 0U);
-
-    __DSB();
-    SCB->CCR |= SCB_CCR_DC_Msk;  // D-Cache enable
-    __DSB();
-    __ISB();
-}
-
-static inline USB_OTG_DeviceTypeDef* USB_DEV(PCD_HandleTypeDef* hpcd)
-{
-    return (USB_OTG_DeviceTypeDef*) ((uint32_t) hpcd->Instance + USB_OTG_DEVICE_BASE);
-}
-
-// 期待値：この関数で “1〜3 行” が true になると正常に IRQ が出る準備完了
-static void USB_SanityCheck_And_Enable(void)
-{
-    extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
-    USB_OTG_GlobalTypeDef* USBx = USB_OTG_HS;
-    USB_OTG_DeviceTypeDef* USBd = USB_DEV(&hpcd_USB_OTG_HS);
-
-    // 0) NVIC 有効化（念のためここでも）
-    HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-    HAL_NVIC_SetPriority(OTG_HS_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
-
-    // 1) グローバル割り込み許可（GAHBCFG.GINT）
-    if ((USBx->GAHBCFG & USB_OTG_GAHBCFG_GINT) == 0)
-    {
-        USBx->GAHBCFG |= USB_OTG_GAHBCFG_GINT;
-    }
-
-    // 2) ソフトディスコネクトが解除されているか（DCTL.SDIS=0）
-    if (USBd->DCTL & USB_OTG_DCTL_SDIS)
-    {
-        USBd->DCTL &= ~USB_OTG_DCTL_SDIS;  // pull-up 有効化
-    }
-
-    // 3) 速度設定が想定どおりか（DCFG.DSPD）
-    //    PCD_SPEED_FULL なら FULL（01）、PCD_SPEED_HIGH なら HIGH（00）になる
-    volatile uint32_t dcfg = USBd->DCFG;
-    (void) dcfg;  // デバッガで確認用
-
-    // 4) 48MHz クロック（FS運用時）またはHS PHYの条件を満たすかを簡易チェック
-    //    → ここでは“割込み入口が全く来ない”時だけ、RCCの設定を疑う
-    //    FSで使う場合は、アプリ側で RCC_PeriphClockSelection |= RCC_PERIPHCLK_USB; を設定しておく
-}
 /* USER CODE END 0 */
 
 /**
@@ -250,7 +176,6 @@ int main(void)
     MX_GPIO_Init();
     MX_GPDMA1_Init();
     MX_USB_DEVICE_Init();
-    USB_SanityCheck_And_Enable();
     MX_UCPD1_Init();
     MX_I2C3_Init();
     MX_ADC2_Init();
@@ -259,6 +184,9 @@ int main(void)
     MX_SAI1_Init();
     MX_SAI2_Init();
     /* USER CODE BEGIN 2 */
+    USB_EnableGlobalInt(USB_OTG_HS);
+    USB_DevConnect(USB_OTG_HS);
+
     uint8_t sndData[1] = {0x00};
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
