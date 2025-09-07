@@ -78,6 +78,11 @@ volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書�
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int __io_putchar(uint8_t ch)
+{
+    return ITM_SendChar(ch);
+}
+
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
@@ -328,6 +333,8 @@ int main(void)
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+
+    printf("hello.\n");
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/
