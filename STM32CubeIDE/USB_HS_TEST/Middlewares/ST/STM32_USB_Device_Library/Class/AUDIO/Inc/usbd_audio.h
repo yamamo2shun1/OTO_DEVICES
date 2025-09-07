@@ -51,7 +51,7 @@ extern "C"
     #endif /* USBD_AUDIO_FREQ */
 
     #ifndef AUDIO_HS_BINTERVAL
-        #define AUDIO_HS_BINTERVAL 0x01U
+        #define AUDIO_HS_BINTERVAL 0x04U
     #endif /* AUDIO_HS_BINTERVAL */
 
     #ifndef AUDIO_FS_BINTERVAL
@@ -179,6 +179,7 @@ extern "C"
         uint16_t rd_ptr;
         uint16_t wr_ptr;
         USBD_AUDIO_ControlTypeDef control;
+        uint8_t mic_prime;
     } USBD_AUDIO_HandleTypeDef;
 
     typedef struct

@@ -170,6 +170,9 @@ void USBPD_DPM_UserExecute(void const* argument)
             HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
             HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
             HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+
+            // printf("beep on\n");
+            AUDIO_StartBeep(1000, 500, 80);
         }
         led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
     }
