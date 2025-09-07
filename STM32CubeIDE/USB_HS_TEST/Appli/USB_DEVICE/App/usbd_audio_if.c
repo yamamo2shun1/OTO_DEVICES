@@ -280,24 +280,32 @@ void HalfTransfer_CallBack_HS(void)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
-/* 1msぶん(48フレーム×2ch×16bit=192バイト)を埋める */
+/* 1msぶん(48フレーム×2ch×24bit=288バイト)を埋める（S24LE, 3byte/サンプル） */
 int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
 {
-    /* 48kHz/16bit/stereo → 1ms = 48 frames, 1frame=4bytes */
-    const uint32_t frames_per_ms = 48000U / 1000U;      // 48
-    const uint32_t need_bytes    = frames_per_ms * 4U;  // 192
-    if (len < need_bytes)
+    /* S24LE: 1frame = 2ch × (3byte) = 6byte */
+    const uint32_t bytes_per_frame = USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME;
+    const uint32_t frames_in_pkt   = len / bytes_per_frame; /* 例: 288/6 = 48 */
+    uint8_t* p                     = dst;
+    if (frames_in_pkt == 0U)
         return (int8_t) USBD_FAIL;
 
-    int16_t* pcm = (int16_t*) dst;
+    /* ヘルパ: int32（-8388608..8388607）→ 下位3バイト (S24LE) を格納 */
+    auto inline void put_s24le(uint8_t* q, int32_t s)
+    {
+        q[0] = (uint8_t) (s);
+        q[1] = (uint8_t) (s >> 8);
+        q[2] = (uint8_t) (s >> 16);
+    }
 
     if (!g_beep.active)
     {
-        /* サイレントを埋める（常にストリーミングを維持） */
-        for (uint32_t i = 0; i < frames_per_ms; ++i)
+        /* サイレント（ゼロ詰め） */
+        for (uint32_t i = 0; i < frames_in_pkt; ++i)
         {
-            *pcm++ = 0;
-            *pcm++ = 0;
+            put_s24le(p + 0, 0);                   /* L */
+            put_s24le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+            p += bytes_per_frame;
         }
         return (int8_t) USBD_OK;
     }
@@ -305,23 +313,26 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
     /* 2π/サンプル を前計算 */
     const float two_pi = 6.283185307179586f;
 
-    for (uint32_t i = 0; i < frames_per_ms; ++i)
+    for (uint32_t i = 0; i < frames_in_pkt; ++i)
     {
         /* 位相回してサイン波生成（FPUあり前提。必要ならLUTに置換可能） */
-        float s   = sinf(g_beep.phase * two_pi);
-        int16_t v = (int16_t) (s * g_beep.amp);
+        float s = sinf(g_beep.phase * two_pi);
 
-        *pcm++ = v; /* L */
-        *pcm++ = v; /* R */
+        /* 24bitフルスケール：±8388607（0x7FFFFF） */
+        int32_t v = (int32_t) (s * g_beep.amp);
+        /* L/R に同値を出す例（必要なら左右で別処理） */
+        put_s24le(p + 0, v);                   /* L */
+        put_s24le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+        p += bytes_per_frame;
 
         g_beep.phase += g_beep.phase_inc;
         if (g_beep.phase >= 1.0f)
             g_beep.phase -= 1.0f;
     }
 
-    if (g_beep.frames_left > frames_per_ms)
+    if (g_beep.frames_left > frames_in_pkt)
     {
-        g_beep.frames_left -= frames_per_ms;
+        g_beep.frames_left -= frames_in_pkt;
     }
     else
     {
@@ -338,9 +349,9 @@ void AUDIO_StartBeep(uint32_t freq_hz, uint32_t duration_ms, uint8_t volume_pct)
     const float sr     = 48000.0f;  // USBD_AUDIO_FREQに合わせる
     float vol          = (volume_pct > 100 ? 100 : volume_pct) / 100.0f;
     g_beep.phase_inc   = ((float) freq_hz) / sr;  // 位相[0..1)で1サンプル進む量
-    g_beep.amp         = vol * 32767.0f;
+    g_beep.amp         = vol * 8388607.0f;        // 24bitの最大値に合わせる
     g_beep.phase       = 0.0f;
-    g_beep.frames_left = (uint32_t) ((duration_ms * 48U));  // 1ms=48frames
+    g_beep.frames_left = (uint32_t) ((duration_ms * 48U));  // 1ms=48frames（48kHz想定）
     g_beep.active      = (g_beep.frames_left > 0) ? 1 : 0;
 }
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */

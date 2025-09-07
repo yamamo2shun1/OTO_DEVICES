@@ -57,8 +57,8 @@ extern "C"
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 #define USBD_AUDIO_CHANNELS 2U
-#define USBD_AUDIO_RES_BITS 16U
-#define USBD_AUDIO_SUBFRAME 2U
+#define USBD_AUDIO_RES_BITS 24U
+#define USBD_AUDIO_SUBFRAME 3U
 /* USER CODE END PV */
 
 /**

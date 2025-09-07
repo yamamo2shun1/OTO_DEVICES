@@ -93,10 +93,10 @@ EndBSPDependencies */
     (uint8_t) (frq), (uint8_t) ((frq >> 8)), (uint8_t) ((frq >> 16))
 
 #define AUDIO_PACKET_SZE(frq) \
-    (uint8_t) (((frq * 2U * 2U) / 1000U) & 0xFFU), (uint8_t) ((((frq * 2U * 2U) / 1000U) >> 8) & 0xFFU)
+    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
-    #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * 2U * 2U) / 1000U))
+    #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
 #endif /* USE_USBD_COMPOSITE  */
 /**
  * @}
