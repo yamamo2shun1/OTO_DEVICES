@@ -51,11 +51,11 @@ extern "C"
     #endif /* USBD_AUDIO_FREQ */
 
     #ifndef AUDIO_HS_BINTERVAL
-        #define AUDIO_HS_BINTERVAL 0x04U
+        #define AUDIO_HS_BINTERVAL 0x01U
     #endif /* AUDIO_HS_BINTERVAL */
 
     #ifndef AUDIO_FS_BINTERVAL
-        #define AUDIO_FS_BINTERVAL 0x04U
+        #define AUDIO_FS_BINTERVAL 0x01U
     #endif /* AUDIO_FS_BINTERVAL */
 
     #ifndef AUDIO_OUT_EP
