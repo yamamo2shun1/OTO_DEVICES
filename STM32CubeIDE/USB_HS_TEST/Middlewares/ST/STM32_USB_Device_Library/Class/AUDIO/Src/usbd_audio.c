@@ -248,15 +248,15 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
 
         /* ---- Record path: IT (LineIn 2ch) -> FU -> OT (USB Streaming) ---- */
         /* Input Terminal (LINE IN 2ch) [ID = 0x11] */
-        0x0C, 0x24, 0x02, /* bLength=12, CS_INTERFACE, INPUT_TERMINAL */
-        0x11,             /* bTerminalID */
-        0x02, 0x06,       /* wTerminalType = 0x0602 (Line Connector). MICなら 0x01,0x02 */
-        0x00,             /* bAssocTerminal */
-        0x02,             /* bNrChannels = 2 */
-        0x03, 0x00,       /* wChannelConfig = L|R */
-        0x00,             /* iChannelNames */
-        0x00,             /* iTerminal */
-                          /* 12 byte(71)*/
+        0x0C, 0x24, 0x02,    /* bLength=12, CS_INTERFACE, INPUT_TERMINAL */
+        0x11,                /* bTerminalID */
+        0x02, 0x06,          /* wTerminalType = 0x0602 (Line Connector). MICなら 0x01,0x02 */
+        0x00,                /* bAssocTerminal */
+        USBD_AUDIO_CHANNELS, /* bNrChannels = 2 */
+        0x03, 0x00,          /* wChannelConfig = L|R */
+        0x00,                /* iChannelNames */
+        0x00,                /* iTerminal */
+                             /* 12 byte(71)*/
 
         /* Feature Unit (Record) [ID = 0x12, Source = IT(0x11)] */
         0x0A, 0x24, 0x06, /* bLength=10, CS_INTERFACE, FEATURE_UNIT */
@@ -319,9 +319,9 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         AUDIO_INTERFACE_DESCRIPTOR_TYPE,    /* bDescriptorType */
         AUDIO_STREAMING_FORMAT_TYPE,        /* bDescriptorSubtype */
         AUDIO_FORMAT_TYPE_I,                /* bFormatType */
-        0x02,                               /* bNrChannels */
-        0x02,                               /* bSubFrameSize :  2 Bytes per frame (16bits) */
-        16,                                 /* bBitResolution (16-bits per sample) */
+        USBD_AUDIO_CHANNELS,                /* bNrChannels */
+        USBD_AUDIO_SUBFRAME,                /* bSubFrameSize :  2 Bytes per frame (16bits) */
+        USBD_AUDIO_RES_BITS,                /* bBitResolution (16-bits per sample) */
         0x01,                               /* bSamFreqType only one frequency supported */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
         /* 11 byte(126)*/
@@ -376,9 +376,9 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         /* Type I Format (2ch, 16bit, 48kHz) */
         0x0B, 0x24, 0x02,                   /* bLength=11, CS_INTERFACE, FORMAT_TYPE */
         0x01,                               /* FORMAT_TYPE_I */
-        0x02,                               /* 2ch */
-        0x02,                               /* 16-bit (2 bytes) */
-        0x10,                               /* 16 bits */
+        USBD_AUDIO_CHANNELS,                /* 2ch */
+        USBD_AUDIO_SUBFRAME,                /* 16-bit (2 bytes) */
+        USBD_AUDIO_RES_BITS,                /* 16 bits */
         0x01,                               /* 1 discrete freq */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
         /* 11 byte(178)*/
