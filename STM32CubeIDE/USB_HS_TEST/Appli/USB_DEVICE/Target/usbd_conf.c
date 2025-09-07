@@ -509,10 +509,6 @@ USBD_StatusTypeDef USBD_LL_OpenEP(USBD_HandleTypeDef* pdev, uint8_t ep_addr, uin
     USBD_StatusTypeDef usb_status = USBD_OK;
 
     hal_status = HAL_PCD_EP_Open(pdev->pData, ep_addr, ep_mps, ep_type);
-    if (hal_status != HAL_OK)
-    {
-        __BKPT(0);
-    }
 
     usb_status = USBD_Get_USB_Status(hal_status);
 
