@@ -37,3 +37,5 @@ STM32CubeIDE/USB_TEST/
 KiCad/OTO_NO_DEIRI/jlcpcb/
 
 *.log
+
+*.step
