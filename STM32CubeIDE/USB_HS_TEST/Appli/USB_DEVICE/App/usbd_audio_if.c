@@ -23,6 +23,8 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include <math.h>
+
+#include "sai.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +33,11 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+extern SAI_HandleTypeDef hsai_BlockA2;
+extern uint32_t sai_tx_buf[];  // main.c 側で定義済み
+extern volatile uint8_t g_tx_safe;
 
+static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bitワード単位）
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -239,9 +245,120 @@ static int8_t AUDIO_MuteCtl_HS(uint8_t cmd)
 static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
 {
     /* USER CODE BEGIN 14 */
-    UNUSED(pbuf);
-    UNUSED(size);
-    UNUSED(cmd);
+    /* ホスト→デバイス(OUT) の 1ms パケットだけ処理 */
+    if (cmd != AUDIO_OUT_TC || pbuf == NULL || size == 0U)
+    {
+        return (int8_t) USBD_OK;
+    }
+
+    /* 1フレーム(LR)のバイト数とフレーム数を算出 */
+    const uint32_t sub             = USBD_AUDIO_SUBFRAME;     // 2 or 3 (16bit/24bit)
+    const uint32_t ch              = USBD_AUDIO_CHANNELS;     // 2 を想定
+    const uint32_t bytes_per_frame = sub * ch;                // 1frame=LR
+    const uint32_t frames          = size / bytes_per_frame;  // 例: 48kHzなら 1msで48
+
+    if (frames == 0U)
+        return (int8_t) USBD_OK;
+
+    /* 片側ハーフのワード数と全体サイズ（32bitワード単位） */
+    const uint32_t half_words  = SAI_BUF_SIZE;       // 片側（L+Rで half_words ワード） :contentReference[oaicite:4]{index=4}
+    const uint32_t total_words = SAI_BUF_SIZE * 2U;  // 全体（2ハーフ）
+
+    /* いま「安全に書ける半分」をスナップショットして、その中だけを使う */
+    __DMB();
+    uint8_t safe   = g_tx_safe;  // 1:前半, 2:後半  :contentReference[oaicite:5]{index=5}
+    uint32_t base  = (safe == 1U) ? 0U : half_words;
+    uint32_t limit = base + half_words;
+
+    uint32_t wr = g_tx_wr_words;
+
+    /* もしポインタが安全領域外にいたら、そのハーフの先頭へ寄せる */
+    if (wr < base || wr >= limit)
+    {
+        wr = base;
+    }
+
+    uint8_t* q = pbuf;
+
+    /* 受信フレームを安全ハーフ内にリング書き込み（32bitワード L→R） */
+    for (uint32_t i = 0; i < frames; ++i)
+    {
+        uint32_t outL = 0, outR = 0;
+
+        if (sub == 2U)
+        {
+            /* 16-bit little-endian → 32bit 左詰め（MSB側へ） */
+            int16_t l = (int16_t) ((uint16_t) q[0] | ((uint16_t) q[1] << 8));
+            int16_t r = (int16_t) ((uint16_t) q[2] | ((uint16_t) q[3] << 8));
+            outL      = ((int32_t) l) << 16;  // ★ 16bitを上位へ
+            outR      = ((int32_t) r) << 16;
+        }
+        else if (sub == 3U)
+        {
+            /* 24-bit little-endian → 32bit に符号拡張し左詰め */
+            int32_t l24 = (int32_t) ((uint32_t) q[0] | ((uint32_t) q[1] << 8) | ((uint32_t) q[2] << 16));
+            int32_t r24 = (int32_t) ((uint32_t) q[3] | ((uint32_t) q[4] << 8) | ((uint32_t) q[5] << 16));
+            l24         = (l24 << 8) >> 8;  // 24bit 符号拡張
+            r24         = (r24 << 8) >> 8;
+            outL        = ((uint32_t) l24) << 8;  // ★ 24bitを上位へ（bits31..8）
+            outR        = ((uint32_t) r24) << 8;
+        }
+        else
+        {
+            return (int8_t) USBD_FAIL;
+        }
+
+        /* L */
+        sai_tx_buf[wr] = outL;
+        if (++wr >= limit)
+            wr = base;
+        /* R */
+        sai_tx_buf[wr] = outR;
+        if (++wr >= limit)
+            wr = base;
+
+        q += bytes_per_frame;
+    }
+
+    /* 書いた領域だけ D-Cache Clean（DMAは32bit右詰めゼロパディングで読む） */
+    /* 1ハーフ内なので [first, limit) と [base, last) の最大2領域 */
+    {
+        const uint32_t first = g_tx_wr_words; /* 旧書き込み位置（安全域へ整列済み） */
+        const uint32_t last  = wr;            /* 新しい書き込み位置 */
+        if (last != first)
+        {
+            if (last > first)
+            {
+                uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
+                uint32_t len  = (last - first) * 4U;
+                uintptr_t a   = ((uintptr_t) addr) & ~31u;
+                uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
+                SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+            }
+            else
+            {
+                /* wrap: [first, limit) */
+                {
+                    uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
+                    uint32_t len  = (limit - first) * 4U;
+                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
+                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
+                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+                }
+                /* wrap: [base, last) */
+                {
+                    uint8_t* addr = (uint8_t*) &sai_tx_buf[base];
+                    uint32_t len  = (last - base) * 4U;
+                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
+                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
+                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+                }
+            }
+        }
+    }
+
+    g_tx_wr_words = wr; /* 次回の書き込み開始点を更新 */
+
     return (USBD_OK);
     /* USER CODE END 14 */
 }

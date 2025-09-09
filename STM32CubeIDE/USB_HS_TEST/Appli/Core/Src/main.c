@@ -63,8 +63,8 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 4];
-__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 4];
+__attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
+__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK

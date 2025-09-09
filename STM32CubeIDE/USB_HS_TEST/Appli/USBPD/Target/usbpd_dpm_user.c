@@ -125,6 +125,7 @@ uint32_t led_toggle_counter1 = 0;
  * @{
  */
 /* USER CODE BEGIN USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
+#if 0
 static void process_audio_half(int half_index)
 {
     // 1) 読み出すRX半分を決定
@@ -143,6 +144,7 @@ static void process_audio_half(int half_index)
 
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(dst), ib);
 }
+#endif
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
@@ -178,6 +180,7 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
     led_toggle_counter0 = (led_toggle_counter0 + 1) % 65536;
 
+#if 0
     // クリティカル区間でフラグを取り出してクリア（競合回避）
     uint8_t pend;
     uint32_t prim = __get_PRIMASK();
@@ -195,10 +198,6 @@ void USBPD_DPM_UserExecute(void const* argument)
     {
         process_audio_half(1);
     }
-
-#if 0
-    uint8_t* message = "hello world from USB.\n\r";
-    CDC_Transmit_HS(message, 23);
 #endif
     /* USER CODE END USBPD_DPM_UserExecute */
 }
