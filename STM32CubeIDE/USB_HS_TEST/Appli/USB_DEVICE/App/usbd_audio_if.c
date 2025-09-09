@@ -303,6 +303,16 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
             outL        = ((uint32_t) l24) << 8;  // ★ 24bitを上位へ（bits31..8）
             outR        = ((uint32_t) r24) << 8;
         }
+        else if (sub == 4U)
+        {
+            /* 32-bit little-endian → 32bit パススルー（左詰め=そのまま） */
+            int32_t l32 = (int32_t) ((uint32_t) q[0] | ((uint32_t) q[1] << 8) |
+                                     ((uint32_t) q[2] << 16) | ((uint32_t) q[3] << 24));
+            int32_t r32 = (int32_t) ((uint32_t) q[4] | ((uint32_t) q[5] << 8) |
+                                     ((uint32_t) q[6] << 16) | ((uint32_t) q[7] << 24));
+            outL        = (uint32_t) l32;
+            outR        = (uint32_t) r32;
+        }
         else
         {
             return (int8_t) USBD_FAIL;
@@ -408,11 +418,19 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
         return (int8_t) USBD_FAIL;
 
     /* ヘルパ: int32（-8388608..8388607）→ 下位3バイト (S24LE) を格納 */
+    /* ヘルパ: 24/32bit PCM をLEで格納 */
     auto inline void put_s24le(uint8_t* q, int32_t s)
     {
         q[0] = (uint8_t) (s);
         q[1] = (uint8_t) (s >> 8);
         q[2] = (uint8_t) (s >> 16);
+    }
+    auto inline void put_s32le(uint8_t* q, int32_t s)
+    {
+        q[0] = (uint8_t) (s);
+        q[1] = (uint8_t) (s >> 8);
+        q[2] = (uint8_t) (s >> 16);
+        q[3] = (uint8_t) (s >> 24);
     }
 
     if (!g_beep.active)
@@ -420,8 +438,16 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
         /* サイレント（ゼロ詰め） */
         for (uint32_t i = 0; i < frames_in_pkt; ++i)
         {
-            put_s24le(p + 0, 0);                   /* L */
-            put_s24le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+            if (USBD_AUDIO_SUBFRAME == 4U)
+            {
+                put_s32le(p + 0, 0);                   /* L */
+                put_s32le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+            }
+            else
+            {
+                put_s24le(p + 0, 0);                   /* L */
+                put_s24le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+            }
             p += bytes_per_frame;
         }
         return (int8_t) USBD_OK;
@@ -435,11 +461,18 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
         /* 位相回してサイン波生成（FPUあり前提。必要ならLUTに置換可能） */
         float s = sinf(g_beep.phase * two_pi);
 
-        /* 24bitフルスケール：±8388607（0x7FFFFF） */
+        /* 解像度に応じて格納（g_beep.amp はフルスケールに合わせて後述で設定） */
         int32_t v = (int32_t) (s * g_beep.amp);
-        /* L/R に同値を出す例（必要なら左右で別処理） */
-        put_s24le(p + 0, v);                   /* L */
-        put_s24le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+        if (USBD_AUDIO_SUBFRAME == 4U)
+        {
+            put_s32le(p + 0, v);                   /* L */
+            put_s32le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+        }
+        else
+        {
+            put_s24le(p + 0, v);                   /* L */
+            put_s24le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+        }
         p += bytes_per_frame;
 
         g_beep.phase += g_beep.phase_inc;
@@ -463,10 +496,16 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
 /* 例: AUDIO_StartBeep(1000, 200, 80) → 1kHzを200ms、80%音量 */
 void AUDIO_StartBeep(uint32_t freq_hz, uint32_t duration_ms, uint8_t volume_pct)
 {
-    const float sr     = 48000.0f;  // USBD_AUDIO_FREQに合わせる
-    float vol          = (volume_pct > 100 ? 100 : volume_pct) / 100.0f;
-    g_beep.phase_inc   = ((float) freq_hz) / sr;  // 位相[0..1)で1サンプル進む量
-    g_beep.amp         = vol * 8388607.0f;        // 24bitの最大値に合わせる
+    const float sr   = 48000.0f;  // USBD_AUDIO_FREQに合わせる
+    float vol        = (volume_pct > 100 ? 100 : volume_pct) / 100.0f;
+    g_beep.phase_inc = ((float) freq_hz) / sr;  // 位相[0..1)で1サンプル進む量
+#if (USBD_AUDIO_RES_BITS == 32U)
+    g_beep.amp = vol * 2147483647.0f;  // 32bitの最大値
+#elif (USBD_AUDIO_RES_BITS == 24U)
+    g_beep.amp = vol * 8388607.0f;  // 24bitの最大値
+#else
+    g_beep.amp = vol * 32767.0f;  // 16bitの最大値
+#endif
     g_beep.phase       = 0.0f;
     g_beep.frames_left = (uint32_t) ((duration_ms * 48U));  // 1ms=48frames（48kHz想定）
     g_beep.active      = (g_beep.frames_left > 0) ? 1 : 0;
