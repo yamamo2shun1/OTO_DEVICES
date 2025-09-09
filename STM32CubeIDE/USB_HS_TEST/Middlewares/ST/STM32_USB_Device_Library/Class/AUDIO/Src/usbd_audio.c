@@ -320,8 +320,8 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         AUDIO_STREAMING_FORMAT_TYPE,        /* bDescriptorSubtype */
         AUDIO_FORMAT_TYPE_I,                /* bFormatType */
         USBD_AUDIO_CHANNELS,                /* bNrChannels */
-        USBD_AUDIO_SUBFRAME,                /* bSubFrameSize :  2 Bytes per frame (16bits) */
-        USBD_AUDIO_RES_BITS,                /* bBitResolution (16-bits per sample) */
+        USBD_AUDIO_SUBFRAME,                /* bSubFrameSize :  4 Bytes per frame (32bits) */
+        USBD_AUDIO_RES_BITS,                /* bBitResolution (32-bits per sample) */
         0x01,                               /* bSamFreqType only one frequency supported */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
         /* 11 byte(126)*/
@@ -377,17 +377,17 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x0B, 0x24, 0x02,                   /* bLength=11, CS_INTERFACE, FORMAT_TYPE */
         0x01,                               /* FORMAT_TYPE_I */
         USBD_AUDIO_CHANNELS,                /* 2ch */
-        USBD_AUDIO_SUBFRAME,                /* 16-bit (2 bytes) */
-        USBD_AUDIO_RES_BITS,                /* 16 bits */
+        USBD_AUDIO_SUBFRAME,                /* 32-bit (4 bytes) */
+        USBD_AUDIO_RES_BITS,                /* 32 bits */
         0x01,                               /* 1 discrete freq */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
         /* 11 byte(178)*/
 
-        /* Std ISO Endpoint (IN) 0x81, Async (0x05), 1ms, 192B */
+        /* Std ISO Endpoint (IN) 0x81, Async (0x05), 1ms, 384B */
         0x09, 0x05,                        /* ENDPOINT */
         AUDIO_IN_EP,                       /* bEndpointAddress = 0x81 (IN) */
         0x05,                              /* bmAttributes = Isochronous | Asynchronous | Data */
-        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*2(HalfWord)) */
+        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*4(Word)) */
         AUDIO_HS_BINTERVAL,                /* bInterval */
         0x00,                              /* bRefresh */
         0x00,                              /* bSynchAddress */
