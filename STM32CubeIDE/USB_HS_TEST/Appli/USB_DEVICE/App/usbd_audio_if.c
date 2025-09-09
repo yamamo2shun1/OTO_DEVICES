@@ -34,7 +34,7 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 extern SAI_HandleTypeDef hsai_BlockA2;
-extern uint32_t sai_tx_buf[];  // main.c 側で定義済み
+extern uint_fast32_t sai_tx_buf[];  // main.c 側で定義済み
 extern volatile uint8_t g_tx_safe;
 
 static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bitワード単位）

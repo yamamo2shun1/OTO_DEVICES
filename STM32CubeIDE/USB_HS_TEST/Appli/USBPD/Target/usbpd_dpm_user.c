@@ -90,10 +90,10 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern uint8_t g_rx_pending;        // bit0: 前半, bit1: 後半 が溜まっている
+extern uint8_t g_tx_safe;           // 1: 前半に書いてOK, 2: 後半に書いてOK
+extern uint_fast32_t sai_buf[];     // RX バッファ（main.c）
+extern uint_fast32_t sai_tx_buf[];  // TX バッファ（main.c）
 
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;

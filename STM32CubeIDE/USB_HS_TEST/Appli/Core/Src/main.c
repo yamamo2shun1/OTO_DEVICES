@@ -63,8 +63,8 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
-__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
+__attribute__((aligned(32))) uint_fast32_t sai_buf[SAI_BUF_SIZE * 2];
+__attribute__((aligned(32))) uint_fast32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
@@ -107,6 +107,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     {
         g_tx_safe = 1;
         __DMB();
+        // HalfTransfer_CallBack_HS();
     }
 }
 
@@ -116,6 +117,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
     {
         g_tx_safe = 2;
         __DMB();
+        // TransferComplete_CallBack_HS();
     }
 }
 
