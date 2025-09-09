@@ -90,10 +90,10 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern uint8_t g_rx_pending;        // bit0: 前半, bit1: 後半 が溜まっている
+extern uint8_t g_tx_safe;           // 1: 前半に書いてOK, 2: 後半に書いてOK
+extern uint_fast32_t sai_buf[];     // RX バッファ（main.c）
+extern uint_fast32_t sai_tx_buf[];  // TX バッファ（main.c）
 
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
@@ -125,6 +125,7 @@ uint32_t led_toggle_counter1 = 0;
  * @{
  */
 /* USER CODE BEGIN USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
+#if 0
 static void process_audio_half(int half_index)
 {
     // 1) 読み出すRX半分を決定
@@ -143,6 +144,7 @@ static void process_audio_half(int half_index)
 
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(dst), ib);
 }
+#endif
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
@@ -170,11 +172,15 @@ void USBPD_DPM_UserExecute(void const* argument)
             HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
             HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
             HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+
+            // printf("beep on\n");
+            AUDIO_StartBeep(1000, 500, 80);
         }
         led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
     }
     led_toggle_counter0 = (led_toggle_counter0 + 1) % 65536;
 
+#if 0
     // クリティカル区間でフラグを取り出してクリア（競合回避）
     uint8_t pend;
     uint32_t prim = __get_PRIMASK();
@@ -192,10 +198,6 @@ void USBPD_DPM_UserExecute(void const* argument)
     {
         process_audio_half(1);
     }
-
-#if 0
-    uint8_t* message = "hello world from USB.\n\r";
-    CDC_Transmit_HS(message, 23);
 #endif
     /* USER CODE END USBPD_DPM_UserExecute */
 }
