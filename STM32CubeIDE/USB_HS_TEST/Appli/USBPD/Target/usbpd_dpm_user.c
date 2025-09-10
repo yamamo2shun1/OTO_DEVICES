@@ -31,6 +31,9 @@
 /* USER CODE BEGIN Includes */
 #include "sai.h"
 #include "stdbool.h"
+#include "string.h"
+#include "usbd_audio_if.h" /* リングAPIを使用（①） */
+#include "core_cm7.h"      /* DWT->CYCCNT */
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
@@ -162,9 +165,81 @@ void USBPD_DPM_WaitForTime(uint32_t Time)
  * @param  argument  DPM User event
  * @retval None
  */
+extern uint32_t g_audio_last_cycles;
+extern uint32_t g_audio_max_cycles;
+extern uint32_t g_audio_overruns;
+
+/* DWT now & D-Cache Clean（32B整列）ヘルパ */
+static inline uint32_t dwt_now(void)
+{
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0)
+    {
+        DWT->CYCCNT = 0;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    }
+    return DWT->CYCCNT;
+}
+static inline void clean_ll_cache(void* p, size_t sz)
+{
+    uintptr_t a = (uintptr_t) p & ~31u;
+    size_t n    = (sz + 31u) & ~31u;
+    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+}
+
 void USBPD_DPM_UserExecute(void const* argument)
 {
     /* USER CODE BEGIN USBPD_DPM_UserExecute */
+    /* === ①: safe half切替をトリガに、一括コピー＋プリロール =============== */
+    static uint8_t s_prev_safe = 0;
+    static uint8_t s_started   = 0; /* プリロール完了後に1 */
+    // const size_t HALF_WORDS    = (SAI_BUF_SIZE);      /* 1 half の32bitワード数 */
+    const size_t HALF_FRAMES = (SAI_BUF_SIZE / 2u); /* 1 half のLRフレーム数 */
+
+    /* safe halfの変化を検出（TxHalf/TxCpltで更新される） */
+    uint8_t safe = g_tx_safe;
+    if (safe != s_prev_safe && (safe == 1u || safe == 2u))
+    {
+        s_prev_safe = safe;
+
+        /* 書き込み先 half（32bit words） */
+        uint32_t* dst_words = (safe == 1u) ? (uint32_t*) &sai_tx_buf[0] : (uint32_t*) &sai_tx_buf[SAI_BUF_SIZE];
+
+        /* プリロール：リングに half 以上溜まるまでゼロで埋めて待つ（無音で温める） */
+        if (!s_started)
+        {
+            if (AUDIO_RxQ_LevelFrames() >= HALF_FRAMES)
+            {
+                s_started = 1;
+            }
+            else
+            {
+                memset(dst_words, 0, HALF_WORDS * sizeof(uint32_t));
+                clean_ll_cache(dst_words, HALF_WORDS * sizeof(uint32_t));
+                /* slack計測：このhalfの書き終え時刻を記録 */
+                extern volatile uint32_t g_tx_last_write_cycles[2];
+                g_tx_last_write_cycles[(safe == 1u) ? 0 : 1] = dwt_now();
+                goto AFTER_COPY;
+            }
+        }
+
+        /* 一括pop→一括copy（不足はゼロ埋め） */
+        size_t got = AUDIO_RxQ_PopTo(dst_words, HALF_FRAMES);
+        if (got < HALF_FRAMES)
+        {
+            /* 足りない分は無音で埋める */
+            size_t off_words = got * 2u;
+            size_t rem_words = (HALF_FRAMES - got) * 2u;
+            memset(dst_words + off_words, 0, rem_words * sizeof(uint32_t));
+        }
+        clean_ll_cache(dst_words, HALF_WORDS * sizeof(uint32_t));
+        /* slack計測：このhalfの書き終え時刻を記録 */
+        extern volatile uint32_t g_tx_last_write_cycles[2];
+        g_tx_last_write_cycles[(safe == 1u) ? 0 : 1] = dwt_now();
+AFTER_COPY:
+        __DMB();
+    }
+
     if (led_toggle_counter0 == 0)
     {
         if (led_toggle_counter1 == 0)
@@ -175,10 +250,51 @@ void USBPD_DPM_UserExecute(void const* argument)
 
             // printf("beep on\n");
             AUDIO_StartBeep(1000, 500, 80);
+#if 0
+            printf("last_cycles = %d\n", g_audio_last_cycles);
+            printf("max_cycles = %d\n", g_audio_max_cycles);
+            printf("overruns = %d\n", g_audio_overruns);
+#endif
         }
         led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
     }
     led_toggle_counter0 = (led_toggle_counter0 + 1) % 65536;
+
+    extern volatile uint32_t g_deadline_slack_min, g_deadline_slack_max;
+    /* === 1秒ペースの安定ログ: DWT基準 =============================== */
+    static uint32_t s_last_log_cyc = 0;
+    uint32_t now_cyc               = dwt_now();
+    if ((uint32_t) (now_cyc - s_last_log_cyc) >= SystemCoreClock)
+    { /* ≒1秒 */
+        s_last_log_cyc     = now_cyc;
+        const uint32_t sck = SystemCoreClock;
+        uint32_t last_us   = (g_audio_last_cycles * 1000000UL) / sck;
+        uint32_t max_us    = (g_audio_max_cycles * 1000000UL) / sck;
+        printf("[AUDIO] PeriodicTC: last=%lu us, max=%lu us, overruns=%lu\r\n", last_us, max_us, g_audio_overruns);
+
+        uint32_t dead_min_us = (g_deadline_slack_min == 0xFFFFFFFFu) ? 0 : (g_deadline_slack_min * 1000000u) / SystemCoreClock;
+        uint32_t dead_max_us = (g_deadline_slack_max * 1000000u) / SystemCoreClock;
+        printf("[AUDIO] deadline slack: min=%lu us, max=%lu us\r\n", dead_min_us, dead_max_us);
+        g_audio_max_cycles = 0; /* 次の1秒のワーストを取り直す */
+    }
+
+    /* --- HAL Tick基準でやる場合（環境により有効化）--------------------
+    static uint32_t last_print = 0;
+    uint32_t ticks_per_sec = 1000U;           // 既定=1kHz
+    #if defined(HAL_GetTickFreq)
+      ticks_per_sec = (uint32_t)HAL_GetTickFreq(); // 10/100/1000 など
+    #endif
+    uint32_t now = HAL_GetTick();
+    if ((uint32_t)(now - last_print) >= ticks_per_sec) {
+      last_print = now;
+      const uint32_t sck = SystemCoreClock;
+      uint32_t last_us = (g_audio_last_cycles * 1000000UL) / sck;
+      uint32_t max_us  = (g_audio_max_cycles  * 1000000UL) / sck;
+      printf("[AUDIO] PeriodicTC: last=%lu us, max=%lu us, overruns=%lu\r\n",
+             last_us, max_us, g_audio_overruns);
+      g_audio_max_cycles = 0;
+    }
+    ------------------------------------------------------------------- */
 
 #if 0
     // クリティカル区間でフラグを取り出してクリア（競合回避）

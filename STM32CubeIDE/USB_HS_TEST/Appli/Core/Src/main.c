@@ -66,9 +66,26 @@ extern DMA_QListTypeDef List_GPDMA1_Channel3;
 __attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
 __attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
+volatile uint32_t g_sai_ovrudr_count = 0;
+
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
 // === USER CODE END 0 ===
+
+extern volatile uint32_t g_tx_last_write_cycles[2];
+volatile uint32_t g_deadline_slack_min = 0xFFFFFFFFu;
+volatile uint32_t g_deadline_slack_max = 0;
+
+static inline uint32_t dwt_now(void)
+{
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0)
+    {
+        DWT->CYCCNT = 0;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    }
+    return DWT->CYCCNT;
+}
 
 /* USER CODE END PV */
 
@@ -106,6 +123,15 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         g_tx_safe = 1;
+
+        /* ★この瞬間に再生を開始するのは“後半”(index=1) */
+        uint32_t slack = dwt_now() - g_tx_last_write_cycles[1];
+
+        if (slack < g_deadline_slack_min)
+            g_deadline_slack_min = slack;
+        if (slack > g_deadline_slack_max)
+            g_deadline_slack_max = slack;
+
         __DMB();
     }
 }
@@ -115,6 +141,15 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         g_tx_safe = 2;
+
+        /* ★この瞬間に再生を開始するのは“前半”(index=0) */
+        uint32_t slack = dwt_now() - g_tx_last_write_cycles[0];
+
+        if (slack < g_deadline_slack_min)
+            g_deadline_slack_min = slack;
+        if (slack > g_deadline_slack_max)
+            g_deadline_slack_max = slack;
+
         __DMB();
     }
 }
@@ -124,6 +159,15 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
     volatile uint32_t saiErr = hsai->ErrorCode;                                 // HAL_SAI_ERROR_*
     volatile uint32_t dmaErr = hsai->hdmarx ? hsai->hdmarx->ErrorCode : 0;      // HAL_DMA_ERROR_*
     volatile uint32_t csr    = hsai->hdmarx ? hsai->hdmarx->Instance->CSR : 0;  // DTEF/ULEF/USEF/TOF 等
+
+    if (hsai == &hsai_BlockA2)
+    { /* 実体名に合わせて */
+        if (__HAL_SAI_GET_FLAG(hsai, SAI_FLAG_OVRUDR))
+        {
+            g_sai_ovrudr_count++;
+            __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
+        }
+    }
 
     (void) saiErr;
     (void) dmaErr;

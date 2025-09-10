@@ -25,6 +25,8 @@
 #include <math.h>
 
 #include "sai.h"
+
+#include "core_cm7.h" /* DWT->CYCCNT 用 */
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +39,96 @@ extern SAI_HandleTypeDef hsai_BlockA2;
 extern uint_fast32_t sai_tx_buf[];  // main.c 側で定義済み
 extern volatile uint8_t g_tx_safe;
 
-static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bitワード単位）
+/* ===== 軽量プロファイラ（AUDIO_PeriodicTC_HS 用） ===== */
+#ifndef AUDIO_PERF_PROFILING
+    #define AUDIO_PERF_PROFILING 1
+#endif
+#if AUDIO_PERF_PROFILING
+volatile uint32_t g_audio_last_cycles = 0;
+volatile uint32_t g_audio_max_cycles  = 0;
+volatile uint32_t g_audio_overruns    = 0; /* 1ms超過回数 */
+static inline void perf_init(void)
+{
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CYCCNT = 0;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+    #define PERF_T0() uint32_t __t0 = DWT->CYCCNT
+    #define PERF_T1()                                 \
+        do                                            \
+        {                                             \
+            uint32_t __dt       = DWT->CYCCNT - __t0; \
+            g_audio_last_cycles = __dt;               \
+            if (__dt > g_audio_max_cycles)            \
+                g_audio_max_cycles = __dt;            \
+            if (__dt > (SystemCoreClock / 1000U))     \
+                g_audio_overruns++;                   \
+        } while (0)
+#else
+    #define perf_init()
+    #define PERF_T0()
+    #define PERF_T1()
+#endif
+
+/* DPM側での一括書き込み後に更新される（slack計測用） */
+volatile uint32_t g_tx_last_write_cycles[2] = {0, 0};  // [0]=前半, [1]=後半
+
+/* === ①: USB→オーディオ受信用リング ===================================== */
+#ifndef RXQ_MS
+    #define RXQ_MS 128u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+#endif
+#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
+/* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
+__attribute__((aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
+static volatile uint32_t g_rxq_wr    = 0; /* 書込み位置（frame単位） */
+static volatile uint32_t g_rxq_rd    = 0; /* 読み出し位置（frame単位） */
+static volatile uint32_t g_rxq_cnt   = 0; /* 溜まっているframe数 */
+static volatile uint32_t g_rxq_drops = 0; /* 取りこぼしframe数（統計用） */
+
+static inline uint32_t rxq_space_frames(void)
+{
+    return RXQ_FRAMES - g_rxq_cnt;
+}
+size_t AUDIO_RxQ_LevelFrames(void)
+{
+    return g_rxq_cnt;
+}
+void AUDIO_RxQ_Flush(void)
+{
+    __DMB();
+    g_rxq_rd = g_rxq_wr = g_rxq_cnt = 0;
+    __DMB();
+}
+/* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
+size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
+{
+    size_t avail = g_rxq_cnt;
+    size_t take  = (frames < avail) ? frames : avail;
+    if (take == 0)
+        return 0;
+
+    /* 1st chunk */
+    size_t f1   = take;
+    size_t room = RXQ_FRAMES - g_rxq_rd;
+    if (f1 > room)
+        f1 = room;
+    size_t w1 = f1 * 2u;
+    memcpy(dst_words, &g_rxq_buf[g_rxq_rd * 2u], w1 * sizeof(uint32_t));
+    /* 2nd chunk (wrap) */
+    size_t f2 = take - f1;
+    if (f2)
+    {
+        size_t w2 = f2 * 2u;
+        memcpy(dst_words + w1, &g_rxq_buf[0], w2 * sizeof(uint32_t));
+    }
+    /* commit */
+    __DMB();
+    g_rxq_rd  = (g_rxq_rd + take) % RXQ_FRAMES;
+    g_rxq_cnt = g_rxq_cnt - take;
+    __DMB();
+    return take;
+}
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -81,8 +172,7 @@ static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bit�
  */
 
 /* USER CODE BEGIN PRIVATE_MACRO */
-
-/* USER CODE END PRIVATE_MACRO */
+ /* USER CODE END PRIVATE_MACRO */
 
 /**
  * @}
@@ -169,6 +259,9 @@ static int8_t AUDIO_Init_HS(uint32_t AudioFreq, uint32_t Volume, uint32_t option
     UNUSED(AudioFreq);
     UNUSED(Volume);
     UNUSED(options);
+
+    perf_init(); /* DWT 初期化 */
+
     return (USBD_OK);
     /* USER CODE END 9 */
 }
@@ -245,43 +338,36 @@ static int8_t AUDIO_MuteCtl_HS(uint8_t cmd)
 static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
 {
     /* USER CODE BEGIN 14 */
+    PERF_T0(); /* ★入口 */
     /* ホスト→デバイス(OUT) の 1ms パケットだけ処理 */
     if (cmd != AUDIO_OUT_TC || pbuf == NULL || size == 0U)
     {
+        PERF_T1();
         return (int8_t) USBD_OK;
     }
 
     /* 1フレーム(LR)のバイト数とフレーム数を算出 */
-    const uint32_t sub             = USBD_AUDIO_SUBFRAME;     // 2 or 3 (16bit/24bit)
+    const uint32_t sub             = USBD_AUDIO_SUBFRAME;     // 2,3 or 4 (16/24/32bit)
     const uint32_t ch              = USBD_AUDIO_CHANNELS;     // 2 を想定
     const uint32_t bytes_per_frame = sub * ch;                // 1frame=LR
     const uint32_t frames          = size / bytes_per_frame;  // 例: 48kHzなら 1msで48
 
     if (frames == 0U)
-        return (int8_t) USBD_OK;
-
-    /* 片側ハーフのワード数と全体サイズ（32bitワード単位） */
-    const uint32_t half_words  = SAI_BUF_SIZE;       // 片側（L+Rで half_words ワード） :contentReference[oaicite:4]{index=4}
-    const uint32_t total_words = SAI_BUF_SIZE * 2U;  // 全体（2ハーフ）
-
-    /* いま「安全に書ける半分」をスナップショットして、その中だけを使う */
-    __DMB();
-    uint8_t safe   = g_tx_safe;  // 1:前半, 2:後半  :contentReference[oaicite:5]{index=5}
-    uint32_t base  = (safe == 1U) ? 0U : half_words;
-    uint32_t limit = base + half_words;
-
-    uint32_t wr = g_tx_wr_words;
-
-    /* もしポインタが安全領域外にいたら、そのハーフの先頭へ寄せる */
-    if (wr < base || wr >= limit)
     {
-        wr = base;
+        PERF_T1();
+        return (int8_t) USBD_OK;
     }
 
-    uint8_t* q = pbuf;
+    /* === ①: USB→リングへpush（32bit左詰めLR） ============================ */
+    uint8_t* q   = pbuf;
+    uint32_t can = rxq_space_frames();
+    uint32_t n   = (frames <= can) ? frames : can; /* 入らない分は捨てる（統計 g_rxq_drops） */
+    if (n < frames)
+    {
+        g_rxq_drops += (frames - n);
+    }
 
-    /* 受信フレームを安全ハーフ内にリング書き込み（32bitワード L→R） */
-    for (uint32_t i = 0; i < frames; ++i)
+    for (uint32_t i = 0; i < n; ++i)
     {
         uint32_t outL = 0, outR = 0;
 
@@ -318,57 +404,18 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
             return (int8_t) USBD_FAIL;
         }
 
-        /* L */
-        sai_tx_buf[wr] = outL;
-        if (++wr >= limit)
-            wr = base;
-        /* R */
-        sai_tx_buf[wr] = outR;
-        if (++wr >= limit)
-            wr = base;
+        /* リングへ [L,R] の順で格納 */
+        uint32_t wr            = g_rxq_wr;
+        g_rxq_buf[wr * 2u]     = outL;
+        g_rxq_buf[wr * 2u + 1] = outR;
+        wr                     = (wr + 1u) % RXQ_FRAMES;
+        g_rxq_wr               = wr;
+        g_rxq_cnt++;
 
         q += bytes_per_frame;
     }
 
-    /* 書いた領域だけ D-Cache Clean（DMAは32bit右詰めゼロパディングで読む） */
-    /* 1ハーフ内なので [first, limit) と [base, last) の最大2領域 */
-    {
-        const uint32_t first = g_tx_wr_words; /* 旧書き込み位置（安全域へ整列済み） */
-        const uint32_t last  = wr;            /* 新しい書き込み位置 */
-        if (last != first)
-        {
-            if (last > first)
-            {
-                uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
-                uint32_t len  = (last - first) * 4U;
-                uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-            }
-            else
-            {
-                /* wrap: [first, limit) */
-                {
-                    uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
-                    uint32_t len  = (limit - first) * 4U;
-                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-                }
-                /* wrap: [base, last) */
-                {
-                    uint8_t* addr = (uint8_t*) &sai_tx_buf[base];
-                    uint32_t len  = (last - base) * 4U;
-                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-                }
-            }
-        }
-    }
-
-    g_tx_wr_words = wr; /* 次回の書き込み開始点を更新 */
-
+    PERF_T1();
     return (USBD_OK);
     /* USER CODE END 14 */
 }
