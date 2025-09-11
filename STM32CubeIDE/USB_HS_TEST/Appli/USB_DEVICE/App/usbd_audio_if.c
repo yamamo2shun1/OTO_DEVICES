@@ -53,12 +53,14 @@ static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
 size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 {
-    if (g_rxq_rd + frames > g_rxq_wr)
+    if (g_rxq_rd + (frames * 2) > g_rxq_wr)
     {
-        if (g_rxq_rd != 0 && g_rxq_wr != 0)
+#if 0
+    	if (g_rxq_rd != 0 && g_rxq_wr != 0)
         {
-            printf("rxq_rd = %d, rxq_wr = %d\n", g_rxq_rd, g_rxq_wr);
+            printf("rxq_rd = %lu, rxq_wr = %lu\n", g_rxq_rd, g_rxq_wr);
         }
+#endif
         return 0;
     }
 
@@ -67,7 +69,7 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 
     /* commit */
     __DMB();
-    g_rxq_rd = (g_rxq_rd + frames);
+    g_rxq_rd += frames;
     __DMB();
 
     return frames;
@@ -236,6 +238,9 @@ static int8_t AUDIO_AudioCmd_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         break;
 
     case AUDIO_CMD_PLAY:
+        break;
+
+    case AUDIO_CMD_STOP:
         break;
     }
     UNUSED(pbuf);

@@ -222,20 +222,18 @@ void USBPD_DPM_UserExecute(void const* argument)
             if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
             {
                 tx_safe_prev = g_tx_safe;
+                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
             }
-
-            clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
         }
         else if (g_tx_safe == 2)
         {
             /* ★ 後半 half を丸ごとリングからコピー（不足はゼロ埋め） */
             uint32_t* dst = &sai_tx_buf[HALF_WORDS];
-            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES))
+            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
             {
                 tx_safe_prev = g_tx_safe;
+                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
             }
-
-            clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
         }
     }
     /* USER CODE END USBPD_DPM_UserExecute */
