@@ -53,10 +53,10 @@ MEMORY
 {
   RAM       (xrw) : ORIGIN = __RAM_BEGIN,    LENGTH = __RAM_SIZE
 
-  ITCM      (xrw) : ORIGIN = 0x00000000,    LENGTH = 0x00010000
-  DTCM       (rw) : ORIGIN = 0x20000000,    LENGTH = 0x00010000
-  SRAMAHB   (rw)  : ORIGIN = 0x30000000,  LENGTH = 0x00008000
-  BKPSRAM   (rw)  : ORIGIN = 0x38800000,  LENGTH = 0x00001000
+  ITCM      (xrw) : ORIGIN = 0x00000000,  LENGTH = 0x00010000
+  DTCM       (rw) : ORIGIN = 0x20000000,  LENGTH = 0x00010000
+  SRAMAHB    (rw) : ORIGIN = 0x30000000,  LENGTH = 0x00008000
+  BKPSRAM    (rw) : ORIGIN = 0x38800000,  LENGTH = 0x00001000
 
   FLASH     (xrw) : ORIGIN = __FLASH_BEGIN, LENGTH = __FLASH_SIZE
 }
@@ -170,8 +170,11 @@ SECTIONS
     *(.bss)
     *(.bss*)
     *(COMMON)
-
-    . = ALIGN(4);
+    *(.RAM_D1)
+    *(.RAM_D1.*)
+    *(.RAM)
+    *(.RAM.*)
+    . = ALIGN(32);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
@@ -186,6 +189,12 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >DTCM
+
+  .RAM_D1 (NOLOAD) :
+  {
+    *(.RAM_D1)
+    *(.RAM_D1.*)
+  } >RAM AT>RAM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
