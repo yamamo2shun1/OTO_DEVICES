@@ -93,7 +93,7 @@ EndBSPDependencies */
     (uint8_t) (frq), (uint8_t) ((frq >> 8)), (uint8_t) ((frq >> 16))
 
 #define AUDIO_PACKET_SZE(frq) \
-    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U) >> 8) & 0xFFU)
+    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
     #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
@@ -320,7 +320,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         AUDIO_STREAMING_FORMAT_TYPE,        /* bDescriptorSubtype */
         AUDIO_FORMAT_TYPE_I,                /* bFormatType */
         USBD_AUDIO_CHANNELS,                /* bNrChannels */
-        USBD_AUDIO_SUBFRAME,                /* bSubFrameSize :  4 Bytes per frame (32bits) */
+        USBD_AUDIO_SUBFRAME_BYTES,          /* bSubFrameSize :  4 Bytes per frame (32bits) */
         USBD_AUDIO_RES_BITS,                /* bBitResolution (32-bits per sample) */
         0x01,                               /* bSamFreqType only one frequency supported */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
@@ -330,7 +330,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         AUDIO_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
         USB_DESC_TYPE_ENDPOINT,            /* bDescriptorType */
         AUDIO_OUT_EP,                      /* bEndpointAddress 1 out endpoint */
-        USBD_EP_TYPE_ISOC,                 /* bmAttributes */
+        0x09,                              /* bmAttributes */
         AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*4(HalfWord)) */
         AUDIO_HS_BINTERVAL,                /* bInterval */
         0x00,                              /* bRefresh */
@@ -377,7 +377,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x0B, 0x24, 0x02,                   /* bLength=11, CS_INTERFACE, FORMAT_TYPE */
         0x01,                               /* FORMAT_TYPE_I */
         USBD_AUDIO_CHANNELS,                /* 2ch */
-        USBD_AUDIO_SUBFRAME,                /* 32-bit (4 bytes) */
+        USBD_AUDIO_SUBFRAME_BYTES,          /* 32-bit (4 bytes) */
         USBD_AUDIO_RES_BITS,                /* 32 bits */
         0x01,                               /* 1 discrete freq */
         AUDIO_SAMPLE_FREQ(USBD_AUDIO_FREQ), /* Audio sampling frequency coded on 3 bytes */
@@ -647,6 +647,27 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
             uint8_t alt   = (uint8_t) (req->wValue & 0xFF);
 
             haudio->alt_setting = alt;  // 既存の動作を踏襲
+
+            /* ---- Speaker: Interface #1 (OUT) ---- */
+            if (ifnum == 0x01)
+            {
+                if (alt == 1)
+                {
+                    /* 再生開始に備えてリングを初期化し、受信をプライム */
+                    haudio->wr_ptr    = 0U;
+                    haudio->rd_ptr    = 0U;
+                    haudio->rd_enable = 0U;
+                    haudio->offset    = AUDIO_OFFSET_UNKNOWN;
+                    /* 受信EPをフラッシュしてから最初の受信を投入 */
+                    USBD_LL_FlushEP(pdev, AUDIOOutEpAdd);
+                    (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], AUDIO_OUT_PACKET);
+                }
+                else
+                {
+                    /* Alt=0 に戻る場合はEPをフラッシュ */
+                    USBD_LL_FlushEP(pdev, AUDIOOutEpAdd);
+                }
+            }
 
             /* ---- Mic: Interface #2 ---- */
             if (ifnum == 0x02)
