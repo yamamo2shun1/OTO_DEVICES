@@ -76,7 +76,6 @@ static inline void clean_ll_cache(void* p, size_t sz)
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
 
-static uint8_t s_started = 0;  // プリロール完了フラグ
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -146,7 +145,6 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
  */
 int main(void)
 {
-
     /* USER CODE BEGIN 1 */
     /* USER CODE END 1 */
 
