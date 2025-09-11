@@ -59,6 +59,9 @@ extern "C"
 #define USBD_AUDIO_CHANNELS       2U
 #define USBD_AUDIO_RES_BITS       24
 #define USBD_AUDIO_SUBFRAME_BYTES 3U
+
+/* デバイスがサポートする最大周波数（Alt2=96kHz） */
+#define USBD_AUDIO_MAX_FREQ 96000U
 /* USER CODE END PV */
 
 /**

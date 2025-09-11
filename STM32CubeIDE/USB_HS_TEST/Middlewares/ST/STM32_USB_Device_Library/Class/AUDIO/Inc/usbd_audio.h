@@ -46,6 +46,10 @@ extern "C"
         #define USBD_AUDIO_FREQ 48000U
     #endif /* USBD_AUDIO_FREQ */
 
+    #ifndef USBD_AUDIO_MAX_FREQ
+        #define USBD_AUDIO_MAX_FREQ USBD_AUDIO_FREQ
+    #endif
+
     #ifndef USBD_AUDIO_CHANNELS
         #define USBD_AUDIO_CHANNELS 2U
     #endif
@@ -73,7 +77,7 @@ extern "C"
         #define AUDIO_IN_EP 0x81U
     #endif /* AUDIO_IN_EP */
 
-    #define USB_AUDIO_CONFIG_DESC_SIZ          0xC2U
+    #define USB_AUDIO_CONFIG_DESC_SIZ          0x118U
     #define AUDIO_INTERFACE_DESC_SIZE          0x09U
     #define USB_AUDIO_DESC_SIZ                 0x0AU
     #define AUDIO_STANDARD_ENDPOINT_DESC_SIZE  0x09U
@@ -116,15 +120,19 @@ extern "C"
     #define AUDIO_OUT_TC 0x01U
     #define AUDIO_IN_TC  0x02U
 
-    #define AUDIO_OUT_PACKET     (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
-    #define AUDIO_IN_PACKET      (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
+    #define AUDIO_OUT_PACKET (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
+    #define AUDIO_IN_PACKET  AUDIO_OUT_PACKET
+
+    #define AUDIO_OUT_PACKET_MAX (uint16_t) (((USBD_AUDIO_MAX_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
+    #define AUDIO_IN_PACKET_MAX  AUDIO_OUT_PACKET_MAX
+
     #define AUDIO_DEFAULT_VOLUME 70U
 
     /* Number of sub-packets in the audio transfer buffer. You can modify this value but always make sure
       that it is an even number and higher than 3 */
     #define AUDIO_OUT_PACKET_NUM 80U
     /* Total size of the audio transfer buffer */
-    #define AUDIO_TOTAL_BUF_SIZE ((uint16_t) (AUDIO_OUT_PACKET * AUDIO_OUT_PACKET_NUM))
+    #define AUDIO_TOTAL_BUF_SIZE ((uint16_t) (AUDIO_OUT_PACKET_MAX * AUDIO_OUT_PACKET_NUM))
 
     // 1msパケット（48k * 2ch * 24bit = 384B）
     #ifndef AUDIO_PACKET_SZ
@@ -139,8 +147,11 @@ extern "C"
         uint8_t buf[LB_Q_DEPTH][AUDIO_PACKET_SZ];
         uint16_t len[LB_Q_DEPTH];
         volatile uint8_t wr, rd, count;
-        volatile uint8_t in_alt1;     // IF#(AS IN) が Alt1 か
-        volatile uint8_t out_alt1;    // IF#(AS OUT) が Alt1 か
+        volatile uint8_t in_alt1;   // IF#(AS IN) が Alt1 か
+        volatile uint8_t out_alt1;  // IF#(AS OUT) が Alt1 か
+        /* 追加: 実際の Alt 値を保持（0/1/2） */
+        volatile uint8_t in_alt;
+        volatile uint8_t out_alt;
         volatile uint8_t in_busy;     // IN転送中フラグ
         volatile uint8_t busy_ticks;  // ★ 追加：ハング検知用
     } USBD_AUDIO_LB_CTX;
@@ -187,6 +198,10 @@ extern "C"
         uint16_t wr_ptr;
         USBD_AUDIO_ControlTypeDef control;
         uint8_t mic_prime;
+        uint16_t pkt_out_sz; /* 48k:288B / 96k:576B */
+        uint16_t pkt_in_sz;  /* 48k:288B / 96k:576B */
+        uint32_t out_srate;  /* 48000 or 96000 */
+        uint32_t in_srate;   /* 48000 or 96000 */
     } USBD_AUDIO_HandleTypeDef;
 
     typedef struct

@@ -41,12 +41,12 @@ extern volatile uint8_t g_tx_safe;
 
 /* === ①: USB→オーディオ受信用リング ===================================== */
 #ifndef RXQ_MS
-    #define RXQ_MS 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+    #define RXQ_MS 384u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
-#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
+#define FRAMES_PER_MS (USBD_AUDIO_MAX_FREQ / 1000u) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)      /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
-__attribute__((aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
 static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
 static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 
@@ -478,7 +478,7 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
 /* 例: AUDIO_StartBeep(1000, 200, 80) → 1kHzを200ms、80%音量 */
 void AUDIO_StartBeep(uint32_t freq_hz, uint32_t duration_ms, uint8_t volume_pct)
 {
-    const float sr   = 48000.0f;  // USBD_AUDIO_FREQに合わせる
+    const float sr   = (g_audio_lb.in_alt == 2 ? 96000.0f : 48000.0f);
     float vol        = (volume_pct > 100 ? 100 : volume_pct) / 100.0f;
     g_beep.phase_inc = ((float) freq_hz) / sr;  // 位相[0..1)で1サンプル進む量
 #if (USBD_AUDIO_RES_BITS == 32U)
@@ -489,7 +489,7 @@ void AUDIO_StartBeep(uint32_t freq_hz, uint32_t duration_ms, uint8_t volume_pct)
     g_beep.amp = vol * 32767.0f;  // 16bitの最大値
 #endif
     g_beep.phase       = 0.0f;
-    g_beep.frames_left = (uint32_t) ((duration_ms * 48U));  // 1ms=48frames（48kHz想定）
+    g_beep.frames_left = (uint32_t) ((duration_ms * (uint32_t) (sr / 1000.0f)));
     g_beep.active      = (g_beep.frames_left > 0) ? 1 : 0;
 }
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
