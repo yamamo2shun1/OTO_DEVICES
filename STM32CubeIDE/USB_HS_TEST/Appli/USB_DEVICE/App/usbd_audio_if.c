@@ -25,6 +25,8 @@
 #include <math.h>
 
 #include "sai.h"
+
+#include "core_cm7.h" /* DWT->CYCCNT 用 */
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,10 +36,44 @@
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 extern SAI_HandleTypeDef hsai_BlockA2;
-extern uint_fast32_t sai_tx_buf[];  // main.c 側で定義済み
+extern uint32_t sai_tx_buf[];  // main.c 側で定義済み
 extern volatile uint8_t g_tx_safe;
 
-static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bitワード単位）
+/* === ①: USB→オーディオ受信用リング ===================================== */
+#ifndef RXQ_MS
+    #define RXQ_MS 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+#endif
+#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
+/* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
+__attribute__((aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
+static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
+static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
+
+/* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
+size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
+{
+    if (g_rxq_rd + (frames * 2) > g_rxq_wr)
+    {
+#if 0
+    	if (g_rxq_rd != 0 && g_rxq_wr != 0)
+        {
+            printf("rxq_rd = %lu, rxq_wr = %lu\n", g_rxq_rd, g_rxq_wr);
+        }
+#endif
+        return 0;
+    }
+
+    size_t w1 = frames * 2u;
+    memcpy(dst_words, &g_rxq_buf[(g_rxq_rd % RXQ_FRAMES) * 2u], w1 * sizeof(uint32_t));
+
+    /* commit */
+    __DMB();
+    g_rxq_rd += frames;
+    __DMB();
+
+    return frames;
+}
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -81,7 +117,6 @@ static uint32_t g_tx_wr_words = 0;  // sai_tx_buf への書込み位置（32bit�
  */
 
 /* USER CODE BEGIN PRIVATE_MACRO */
-
 /* USER CODE END PRIVATE_MACRO */
 
 /**
@@ -169,6 +204,7 @@ static int8_t AUDIO_Init_HS(uint32_t AudioFreq, uint32_t Volume, uint32_t option
     UNUSED(AudioFreq);
     UNUSED(Volume);
     UNUSED(options);
+
     return (USBD_OK);
     /* USER CODE END 9 */
 }
@@ -202,6 +238,9 @@ static int8_t AUDIO_AudioCmd_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         break;
 
     case AUDIO_CMD_PLAY:
+        break;
+
+    case AUDIO_CMD_STOP:
         break;
     }
     UNUSED(pbuf);
@@ -252,38 +291,22 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
     }
 
     /* 1フレーム(LR)のバイト数とフレーム数を算出 */
-    const uint32_t sub             = USBD_AUDIO_SUBFRAME;     // 2 or 3 (16bit/24bit)
-    const uint32_t ch              = USBD_AUDIO_CHANNELS;     // 2 を想定
-    const uint32_t bytes_per_frame = sub * ch;                // 1frame=LR
-    const uint32_t frames          = size / bytes_per_frame;  // 例: 48kHzなら 1msで48
+    const uint32_t sub             = USBD_AUDIO_SUBFRAME_BYTES;  // 2,3 or 4 (16/24/32bit)
+    const uint32_t ch              = USBD_AUDIO_CHANNELS;        // 2 を想定
+    const uint32_t bytes_per_frame = sub * ch;                   // 1frame=LR
+    const uint32_t frames          = size / bytes_per_frame;     // 例: 48kHzなら 1msで48
 
     if (frames == 0U)
-        return (int8_t) USBD_OK;
-
-    /* 片側ハーフのワード数と全体サイズ（32bitワード単位） */
-    const uint32_t half_words  = SAI_BUF_SIZE;       // 片側（L+Rで half_words ワード） :contentReference[oaicite:4]{index=4}
-    const uint32_t total_words = SAI_BUF_SIZE * 2U;  // 全体（2ハーフ）
-
-    /* いま「安全に書ける半分」をスナップショットして、その中だけを使う */
-    __DMB();
-    uint8_t safe   = g_tx_safe;  // 1:前半, 2:後半  :contentReference[oaicite:5]{index=5}
-    uint32_t base  = (safe == 1U) ? 0U : half_words;
-    uint32_t limit = base + half_words;
-
-    uint32_t wr = g_tx_wr_words;
-
-    /* もしポインタが安全領域外にいたら、そのハーフの先頭へ寄せる */
-    if (wr < base || wr >= limit)
     {
-        wr = base;
+        return (int8_t) USBD_OK;
     }
 
+    /* === ①: USB→リングへpush（32bit左詰めLR） ============================ */
     uint8_t* q = pbuf;
-
-    /* 受信フレームを安全ハーフ内にリング書き込み（32bitワード L→R） */
     for (uint32_t i = 0; i < frames; ++i)
     {
-        uint32_t outL = 0, outR = 0;
+        uint32_t outL = 0;
+        uint32_t outR = 0;
 
         if (sub == 2U)
         {
@@ -318,56 +341,15 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
             return (int8_t) USBD_FAIL;
         }
 
-        /* L */
-        sai_tx_buf[wr] = outL;
-        if (++wr >= limit)
-            wr = base;
-        /* R */
-        sai_tx_buf[wr] = outR;
-        if (++wr >= limit)
-            wr = base;
+        /* リングへ [L,R] の順で格納 */
+        uint64_t wr                                        = g_rxq_wr;
+        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u)]     = outL;
+        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u + 1)] = outR;
+        wr                                                 = (wr + 1u);
+        g_rxq_wr                                           = wr;
 
         q += bytes_per_frame;
     }
-
-    /* 書いた領域だけ D-Cache Clean（DMAは32bit右詰めゼロパディングで読む） */
-    /* 1ハーフ内なので [first, limit) と [base, last) の最大2領域 */
-    {
-        const uint32_t first = g_tx_wr_words; /* 旧書き込み位置（安全域へ整列済み） */
-        const uint32_t last  = wr;            /* 新しい書き込み位置 */
-        if (last != first)
-        {
-            if (last > first)
-            {
-                uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
-                uint32_t len  = (last - first) * 4U;
-                uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-            }
-            else
-            {
-                /* wrap: [first, limit) */
-                {
-                    uint8_t* addr = (uint8_t*) &sai_tx_buf[first];
-                    uint32_t len  = (limit - first) * 4U;
-                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-                }
-                /* wrap: [base, last) */
-                {
-                    uint8_t* addr = (uint8_t*) &sai_tx_buf[base];
-                    uint32_t len  = (last - base) * 4U;
-                    uintptr_t a   = ((uintptr_t) addr) & ~31u;
-                    uint32_t n    = (uint32_t) ((((uintptr_t) addr + len) - a + 31u) & ~31u);
-                    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-                }
-            }
-        }
-    }
-
-    g_tx_wr_words = wr; /* 次回の書き込み開始点を更新 */
 
     return (USBD_OK);
     /* USER CODE END 14 */
@@ -411,7 +393,7 @@ void HalfTransfer_CallBack_HS(void)
 int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
 {
     /* S24LE: 1frame = 2ch × (3byte) = 6byte */
-    const uint32_t bytes_per_frame = USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME;
+    const uint32_t bytes_per_frame = USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES;
     const uint32_t frames_in_pkt   = len / bytes_per_frame; /* 例: 288/6 = 48 */
     uint8_t* p                     = dst;
     if (frames_in_pkt == 0U)
@@ -438,15 +420,15 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
         /* サイレント（ゼロ詰め） */
         for (uint32_t i = 0; i < frames_in_pkt; ++i)
         {
-            if (USBD_AUDIO_SUBFRAME == 4U)
+            if (USBD_AUDIO_SUBFRAME_BYTES == 4U)
             {
-                put_s32le(p + 0, 0);                   /* L */
-                put_s32le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+                put_s32le(p + 0, 0);                         /* L */
+                put_s32le(p + USBD_AUDIO_SUBFRAME_BYTES, 0); /* R */
             }
             else
             {
-                put_s24le(p + 0, 0);                   /* L */
-                put_s24le(p + USBD_AUDIO_SUBFRAME, 0); /* R */
+                put_s24le(p + 0, 0);                         /* L */
+                put_s24le(p + USBD_AUDIO_SUBFRAME_BYTES, 0); /* R */
             }
             p += bytes_per_frame;
         }
@@ -463,15 +445,15 @@ int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len)
 
         /* 解像度に応じて格納（g_beep.amp はフルスケールに合わせて後述で設定） */
         int32_t v = (int32_t) (s * g_beep.amp);
-        if (USBD_AUDIO_SUBFRAME == 4U)
+        if (USBD_AUDIO_SUBFRAME_BYTES == 4U)
         {
-            put_s32le(p + 0, v);                   /* L */
-            put_s32le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+            put_s32le(p + 0, v);                         /* L */
+            put_s32le(p + USBD_AUDIO_SUBFRAME_BYTES, v); /* R */
         }
         else
         {
-            put_s24le(p + 0, v);                   /* L */
-            put_s24le(p + USBD_AUDIO_SUBFRAME, v); /* R */
+            put_s24le(p + 0, v);                         /* L */
+            put_s24le(p + USBD_AUDIO_SUBFRAME_BYTES, v); /* R */
         }
         p += bytes_per_frame;
 

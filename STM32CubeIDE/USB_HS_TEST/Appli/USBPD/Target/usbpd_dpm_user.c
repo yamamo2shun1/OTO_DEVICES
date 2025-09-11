@@ -31,6 +31,8 @@
 /* USER CODE BEGIN Includes */
 #include "sai.h"
 #include "stdbool.h"
+#include "string.h"
+#include "usbd_audio_if.h" /* リングAPIを使用（①） */
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
@@ -78,7 +80,8 @@
     #define DPM_USER_DEBUG_TRACE(_PORT_, ...)
 #endif /* _TRACE */
 /* USER CODE BEGIN Private_Macro */
-
+/* halfの定義：1 half = SAI_BUF_SIZE words（L/R=2 words/1frame） */
+#define HALF_FRAMES (SAI_BUF_SIZE / 2u)
 /* USER CODE END Private_Macro */
 /**
  * @}
@@ -90,10 +93,10 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;        // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;           // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint_fast32_t sai_buf[];     // RX バッファ（main.c）
-extern uint_fast32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
+extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
+extern uint32_t sai_buf[];     // RX バッファ（main.c）
+extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
@@ -145,6 +148,14 @@ static void process_audio_half(int half_index)
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(dst), ib);
 }
 #endif
+
+static inline void clean_ll_cache(void* p, size_t sz)
+{
+    uintptr_t a = (uintptr_t) p & ~31u;
+    size_t n    = (sz + 31u) & ~31u;
+    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+}
+
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
@@ -165,6 +176,8 @@ void USBPD_DPM_WaitForTime(uint32_t Time)
 void USBPD_DPM_UserExecute(void const* argument)
 {
     /* USER CODE BEGIN USBPD_DPM_UserExecute */
+    static uint8_t tx_safe_prev = 0;
+
     if (led_toggle_counter0 == 0)
     {
         if (led_toggle_counter1 == 0)
@@ -199,6 +212,30 @@ void USBPD_DPM_UserExecute(void const* argument)
         process_audio_half(1);
     }
 #endif
+
+    if (g_tx_safe != tx_safe_prev)
+    {
+        if (g_tx_safe == 1)
+        {
+            /* ★ 前半 half を丸ごとリングからコピー（不足はゼロ埋め） */
+            uint32_t* dst = &sai_tx_buf[0];
+            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
+            {
+                tx_safe_prev = g_tx_safe;
+                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
+            }
+        }
+        else if (g_tx_safe == 2)
+        {
+            /* ★ 後半 half を丸ごとリングからコピー（不足はゼロ埋め） */
+            uint32_t* dst = &sai_tx_buf[HALF_WORDS];
+            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
+            {
+                tx_safe_prev = g_tx_safe;
+                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
+            }
+        }
+    }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 

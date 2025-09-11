@@ -50,7 +50,7 @@ extern "C"
         #define USBD_AUDIO_CHANNELS 2U
     #endif
     #ifndef USBD_AUDIO_SUBFRAME_BYTES
-        #define USBD_AUDIO_SUBFRAME_BYTES 3U
+        #define USBD_AUDIO_SUBFRAME_BYTES 4U
     #endif
 
     #ifndef USBD_MAX_NUM_INTERFACES
@@ -116,8 +116,8 @@ extern "C"
     #define AUDIO_OUT_TC 0x01U
     #define AUDIO_IN_TC  0x02U
 
-    #define AUDIO_OUT_PACKET     (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
-    #define AUDIO_IN_PACKET      (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
+    #define AUDIO_OUT_PACKET     (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
+    #define AUDIO_IN_PACKET      (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
     #define AUDIO_DEFAULT_VOLUME 70U
 
     /* Number of sub-packets in the audio transfer buffer. You can modify this value but always make sure
@@ -128,7 +128,7 @@ extern "C"
 
     // 1msパケット（48k * 2ch * 24bit = 384B）
     #ifndef AUDIO_PACKET_SZ
-        #define AUDIO_PACKET_SZ 192U
+        #define AUDIO_PACKET_SZ (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
     #endif
 
     // ループバック用の小さなリング（8msぶん）

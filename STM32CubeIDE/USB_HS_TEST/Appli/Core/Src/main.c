@@ -66,8 +66,17 @@ extern DMA_QListTypeDef List_GPDMA1_Channel3;
 __attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
 __attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
+static inline void clean_ll_cache(void* p, size_t sz)
+{
+    uintptr_t a = (uintptr_t) p & ~31u;
+    size_t n    = (sz + 31u) & ~31u;
+    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
+}
+
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
+
+static uint8_t s_started = 0;  // プリロール完了フラグ
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -105,7 +114,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        g_tx_safe = 1;
+        g_tx_safe = 1; /* 前半が“安全に書ける側”へ */
         __DMB();
     }
 }
@@ -114,7 +123,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        g_tx_safe = 2;
+        g_tx_safe = 2; /* 後半が“安全に書ける側”へ */
         __DMB();
     }
 }
@@ -128,13 +137,6 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
     (void) saiErr;
     (void) dmaErr;
     (void) csr;  // ブレークして値を見る
-}
-
-static inline void clean_ll_cache(void* p, size_t sz)
-{
-    uintptr_t a = (uintptr_t) p & ~31u;
-    size_t n    = (sz + 31u) & ~31u;
-    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
 }
 /* USER CODE END 0 */
 
