@@ -613,6 +613,8 @@ static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef* pdev, uint8_t cfgidx)
     /* Prepare Out endpoint to receive 1st packet */
     (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[0], haudio->pkt_out_sz);
 
+    AUDIO_RxQ_Flush();
+
     return (uint8_t) USBD_OK;
 }
 
@@ -653,6 +655,8 @@ static uint8_t USBD_AUDIO_DeInit(USBD_HandleTypeDef* pdev, uint8_t cfgidx)
     (void) USBD_LL_CloseEP(pdev, AUDIOInEpAdd);
     pdev->ep_in[AUDIOInEpAdd & 0xFU].is_used   = 0U;
     pdev->ep_in[AUDIOInEpAdd & 0xFU].bInterval = 0U;
+
+    AUDIO_RxQ_Flush();
 
     return (uint8_t) USBD_OK;
 }
@@ -786,6 +790,9 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     g_audio_lb.out_alt1 = (alt == 1U);
                     haudio->pkt_out_sz  = mps;
                     haudio->out_srate   = (alt == 2U) ? 96000u : 48000u;
+
+                    AUDIO_RxQ_Flush();
+
                     /* リング初期化 → EPをMPSで再オープン → 受信投入 */
                     haudio->wr_ptr    = 0U;
                     haudio->rd_ptr    = 0U;
@@ -801,6 +808,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                 {
                     /* Alt=0 は停止（Flush のみ） */
                     USBD_LL_FlushEP(pdev, AUDIOOutEpAdd);
+                    AUDIO_RxQ_Flush();
                 }
             }
 

@@ -156,6 +156,13 @@ static inline void clean_ll_cache(void* p, size_t sz)
     SCB_CleanDCache_by_Addr((uint32_t*) a, n);
 }
 
+static inline void cache_clean_range(void* addr, size_t bytes)
+{
+    uintptr_t start = (uintptr_t) addr & ~(uintptr_t) 31;
+    uintptr_t end   = ((uintptr_t) addr + bytes + 31u) & ~(uintptr_t) 31;
+    SCB_CleanDCache_by_Addr((uint32_t*) start, (int32_t) (end - start));
+}
+
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
@@ -215,26 +222,30 @@ void USBPD_DPM_UserExecute(void const* argument)
 
     if (g_tx_safe != tx_safe_prev)
     {
-        if (g_tx_safe == 1)
+        const uint32_t need_words  = HALF_WORDS;      /* この half に必要な 32bit words */
+        const uint32_t need_frames = need_words / 2u; /* 1frame=LR=2words */
+
+        uint32_t* dst = (g_tx_safe == 1)
+                            ? &sai_tx_buf[0]
+                            : &sai_tx_buf[HALF_WORDS];
+
+        /* 可能なだけ取り出し、足りない分はゼロで埋める（PopTo は不足時 0 を返す設計） */
+        size_t got_frames = AUDIO_RxQ_PopTo(dst, need_frames);
+        if (got_frames < need_frames)
         {
-            /* ★ 前半 half を丸ごとリングからコピー（不足はゼロ埋め） */
-            uint32_t* dst = &sai_tx_buf[0];
-            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
-            {
-                tx_safe_prev = g_tx_safe;
-                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
-            }
+            /* 残りを無音で埋める（frames→words×2） */
+            uint32_t* zero_from = dst + (got_frames * 2u);
+            uint32_t zero_words = (need_frames - got_frames) * 2u;
+            memset(zero_from, 0, zero_words * sizeof(uint32_t));
         }
-        else if (g_tx_safe == 2)
-        {
-            /* ★ 後半 half を丸ごとリングからコピー（不足はゼロ埋め） */
-            uint32_t* dst = &sai_tx_buf[HALF_WORDS];
-            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
-            {
-                tx_safe_prev = g_tx_safe;
-                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
-            }
-        }
+
+        /* 書いた half 全体を Cache Clean */
+        cache_clean_range(dst, (size_t) need_words * sizeof(uint32_t));
+
+        AUDIO_RxQ_StatsTick();
+
+        /* 次の half へ */
+        tx_safe_prev = g_tx_safe;
     }
     /* USER CODE END USBPD_DPM_UserExecute */
 }

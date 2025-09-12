@@ -23,6 +23,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include <math.h>
+#include <stdbool.h>
 
 #include "sai.h"
 
@@ -41,14 +42,69 @@ extern volatile uint8_t g_tx_safe;
 
 /* === ①: USB→オーディオ受信用リング ===================================== */
 #ifndef RXQ_MS
-    #define RXQ_MS 192u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+    #define RXQ_MS 192u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS_MAX (USBD_AUDIO_MAX_FREQ / 1000u) /* 48kHz→48 */
+#define FRAMES_PER_MS_MAX (USBD_AUDIO_MAX_FREQ / 1000u) /* 96kHz→96 */
 #define RXQ_FRAMES_MAX    (FRAMES_PER_MS_MAX * RXQ_MS)  /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
 __attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES_MAX * 2];
-static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
-static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
+static volatile uint32_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
+static volatile uint32_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
+/* ★ 統計はキャッシュ干渉を避けるため独立配置＆32B境界に */
+typedef struct
+{
+    uint32_t underruns;
+    uint32_t overruns;
+} rxq_stats_t;
+__attribute__((aligned(32))) static rxq_stats_t g_rxq_stats;
+/* ★ RT経路ではインクリメントせず、フラグだけ立てる */
+static volatile uint8_t g_rxq_underrun_seen = 0;
+static volatile uint8_t g_rxq_overrun_seen  = 0;
+
+void AUDIO_RxQ_GetStats(uint32_t* underruns, uint32_t* overruns)
+{
+    /* ★ 取り出し時点で未回収のフラグを畳み込む */
+    if (g_rxq_underrun_seen)
+    {
+        g_rxq_stats.underruns++;
+        g_rxq_underrun_seen = 0;
+    }
+    if (g_rxq_overrun_seen)
+    {
+        g_rxq_stats.overruns++;
+        g_rxq_overrun_seen = 0;
+    }
+    if (underruns)
+        *underruns = g_rxq_stats.underruns;
+    if (overruns)
+        *overruns = g_rxq_stats.overruns;
+    g_rxq_stats.underruns = 0;
+    g_rxq_stats.overruns  = 0;
+}
+
+void AUDIO_RxQ_StatsTick(void)
+{
+    /* ★ 低優先度側で時々呼ばれ、フラグ→カウンタへ（超軽量） */
+    if (g_rxq_underrun_seen)
+    {
+        g_rxq_stats.underruns++;
+        g_rxq_underrun_seen = 0;
+    }
+    if (g_rxq_overrun_seen)
+    {
+        g_rxq_stats.overruns++;
+        g_rxq_overrun_seen = 0;
+    }
+}
+
+/* 現在の1msあたりフレーム数（48 または 96） */
+uint32_t AUDIO_CurrentFramesPerMs(void)
+{
+    /* out_alt: Alt1=48kHz, Alt2=96kHz（実装に合わせて調整） */
+    return (g_audio_lb.out_alt == 2U)
+               ? (USBD_AUDIO_MAX_FREQ / 1000u) /* 96kHz -> 96 */
+               : (USBD_AUDIO_FREQ / 1000u);    /* 48kHz -> 48 */
+}
 
 static inline uint32_t AUDIO_CurrentFrames(void)
 {
@@ -61,26 +117,49 @@ static inline uint32_t AUDIO_CurrentFrames(void)
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
 size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 {
-    if (g_rxq_rd + frames > g_rxq_wr)
+    uint32_t rd = g_rxq_rd, wr = g_rxq_wr;
+    if ((uint32_t) (wr - rd) < (uint32_t) frames)
     {
-#if 0
-    	if (g_rxq_rd != 0 && g_rxq_wr != 0)
-        {
-            printf("rxq_rd = %lu, rxq_wr = %lu\n", g_rxq_rd, g_rxq_wr);
-        }
-#endif
-        return 0;
+        g_rxq_underrun_seen = 1;
+        return 0; /* 可読不足 */
     }
 
-    size_t w1 = frames * 2u;
-    memcpy(dst_words, &g_rxq_buf[(g_rxq_rd % AUDIO_CurrentFrames()) * 2u], w1 * sizeof(uint32_t));
+    size_t idx_frames = (size_t) (rd % RXQ_FRAMES_MAX);
+    size_t first      = frames;
+    size_t tail       = RXQ_FRAMES_MAX - idx_frames; /* 終端までの残り */
+    if (first > tail)
+        first = tail;
+
+    /* 1段目 */
+    memcpy(dst_words, &g_rxq_buf[idx_frames * 2u], first * 2u * sizeof(uint32_t));
+    /* 2段目（必要なら折り返し） */
+    size_t remain = frames - first;
+    if (remain)
+    {
+        memcpy(dst_words + first * 2u, &g_rxq_buf[0], remain * 2u * sizeof(uint32_t));
+    }
 
     /* commit */
     __DMB();
-    g_rxq_rd += frames;
+    g_rxq_rd = rd + (uint32_t) frames;
     __DMB();
 
     return frames;
+}
+
+/* 現在リングに溜まっているフレーム数 */
+size_t AUDIO_RxQ_LevelFrames(void)
+{
+    uint32_t rd = g_rxq_rd, wr = g_rxq_wr;
+    return (size_t) (wr - rd);
+}
+
+/* リング内容を破棄（アンダーラン/レート切替復帰用） */
+void AUDIO_RxQ_Flush(void)
+{
+    __DMB();
+    g_rxq_rd = g_rxq_wr;
+    __DMB();
 }
 /* USER CODE END PV */
 
@@ -364,11 +443,26 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         }
 
         /* リングへ [L,R] の順で格納 */
-        uint64_t wr                                                   = g_rxq_wr;
-        g_rxq_buf[(uint32_t) ((wr % AUDIO_CurrentFrames()) * 2u)]     = outL;
-        g_rxq_buf[(uint32_t) ((wr % AUDIO_CurrentFrames()) * 2u + 1)] = outR;
-        wr                                                            = (wr + 1u);
-        g_rxq_wr                                                      = wr;
+        uint32_t wr = g_rxq_wr;
+        uint32_t rd = g_rxq_rd;
+        /* ★オーバーラン保護：満杯なら“古い方”を捨てる（フラグだけ） */
+        bool overrun_now = false;
+        if ((uint32_t) (wr - rd) >= RXQ_FRAMES_MAX)
+        {
+            g_rxq_rd    = wr - (RXQ_FRAMES_MAX - 1u);
+            overrun_now = true;
+        }
+        size_t pos         = (size_t) (wr % RXQ_FRAMES_MAX) * 2u;
+        g_rxq_buf[pos + 0] = outL;
+        g_rxq_buf[pos + 1] = outR;
+        __DMB();            /* 発行前の可視化 */
+        g_rxq_wr = wr + 1u; /* publish */
+        __DMB();
+
+        if (overrun_now)
+        {
+            g_rxq_overrun_seen = 1;
+        }
 
         q += bytes_per_frame;
     }

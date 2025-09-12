@@ -120,6 +120,8 @@ extern "C"
     /* 例: 1kHz/200ms/音量80% -> AUDIO_StartBeep(1000, 200, 80); */
     void AUDIO_StartBeep(uint32_t freq_hz, uint32_t duration_ms, uint8_t volume_pct);
 
+    uint32_t AUDIO_CurrentFramesPerMs(void);
+
     /* === USB→オーディオ受信用リング（①で使用） === */
     /* 現在リングに溜まっているフレーム数（1frame=LR=2ワード, 32bit）を返す */
     size_t AUDIO_RxQ_LevelFrames(void);
@@ -127,6 +129,9 @@ extern "C"
     size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames);
     /* リングをクリア（必要なら） */
     void AUDIO_RxQ_Flush(void);
+
+    void AUDIO_RxQ_GetStats(uint32_t* underruns, uint32_t* overruns);
+    void AUDIO_RxQ_StatsTick(void);
     /* USER CODE END EXPORTED_FUNCTIONS */
 
     /**
