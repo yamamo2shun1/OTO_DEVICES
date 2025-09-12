@@ -170,11 +170,8 @@ SECTIONS
     *(.bss)
     *(.bss*)
     *(COMMON)
-    *(.RAM_D1)
-    *(.RAM_D1.*)
-    *(.RAM)
-    *(.RAM.*)
-    . = ALIGN(32);
+    
+    . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
