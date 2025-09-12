@@ -41,19 +41,27 @@ extern volatile uint8_t g_tx_safe;
 
 /* === ①: USB→オーディオ受信用リング ===================================== */
 #ifndef RXQ_MS
-    #define RXQ_MS 384u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+    #define RXQ_MS 192u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS (USBD_AUDIO_MAX_FREQ / 1000u) /* 48kHz→48 */
-#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)      /* リング内の総フレーム数 */
+#define FRAMES_PER_MS_MAX (USBD_AUDIO_MAX_FREQ / 1000u) /* 48kHz→48 */
+#define RXQ_FRAMES_MAX    (FRAMES_PER_MS_MAX * RXQ_MS)  /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
-__attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES_MAX * 2];
 static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
 static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
+
+static inline uint32_t AUDIO_CurrentFrames(void)
+{
+    /* out_alt: Alt1=48kHz, Alt2=96kHz（あなたの実装に合わせて読み替え） */
+    return (g_audio_lb.out_alt == 2U)
+               ? (RXQ_MS * USBD_AUDIO_MAX_FREQ / 1000u) /* 96 */
+               : (RXQ_MS * USBD_AUDIO_FREQ / 1000u);    /* 48 */
+}
 
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
 size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 {
-    if (g_rxq_rd + (frames * 2) > g_rxq_wr)
+    if (g_rxq_rd + frames > g_rxq_wr)
     {
 #if 0
     	if (g_rxq_rd != 0 && g_rxq_wr != 0)
@@ -65,7 +73,7 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
     }
 
     size_t w1 = frames * 2u;
-    memcpy(dst_words, &g_rxq_buf[(g_rxq_rd % RXQ_FRAMES) * 2u], w1 * sizeof(uint32_t));
+    memcpy(dst_words, &g_rxq_buf[(g_rxq_rd % AUDIO_CurrentFrames()) * 2u], w1 * sizeof(uint32_t));
 
     /* commit */
     __DMB();
@@ -205,6 +213,20 @@ static int8_t AUDIO_Init_HS(uint32_t AudioFreq, uint32_t Volume, uint32_t option
     UNUSED(Volume);
     UNUSED(options);
 
+#if 1
+    printf("g_rxq_buf  %p .. %p  (%u bytes)\n", (void*) g_rxq_buf, (void*) ((uint8_t*) g_rxq_buf + sizeof(g_rxq_buf) - 1), (unsigned) sizeof(g_rxq_buf));
+    memset(g_rxq_buf, 0, sizeof(g_rxq_buf));
+#endif
+#if 0
+    for (uint32_t i = 0; i < sizeof(g_rxq_buf); i++)
+    {
+        printf("index = %lu\n", i);
+        // printf("g_rxq_buf  %p\n", (void*) ((uint8_t*) g_rxq_buf + i));
+        g_rxq_buf[i] = 0;
+        __DSB();
+    }
+#endif
+
     return (USBD_OK);
     /* USER CODE END 9 */
 }
@@ -342,11 +364,11 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         }
 
         /* リングへ [L,R] の順で格納 */
-        uint64_t wr                                        = g_rxq_wr;
-        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u)]     = outL;
-        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u + 1)] = outR;
-        wr                                                 = (wr + 1u);
-        g_rxq_wr                                           = wr;
+        uint64_t wr                                                   = g_rxq_wr;
+        g_rxq_buf[(uint32_t) ((wr % AUDIO_CurrentFrames()) * 2u)]     = outL;
+        g_rxq_buf[(uint32_t) ((wr % AUDIO_CurrentFrames()) * 2u + 1)] = outR;
+        wr                                                            = (wr + 1u);
+        g_rxq_wr                                                      = wr;
 
         q += bytes_per_frame;
     }

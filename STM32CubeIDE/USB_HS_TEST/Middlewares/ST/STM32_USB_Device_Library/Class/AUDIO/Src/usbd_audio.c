@@ -745,7 +745,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
         case USB_REQ_SET_INTERFACE:
 #if 0
-        	if (pdev->dev_state == USBD_STATE_CONFIGURED)
+            if (pdev->dev_state == USBD_STATE_CONFIGURED)
             {
                 if ((uint8_t) (req->wValue) <= USBD_MAX_NUM_INTERFACES)
                 {
@@ -784,6 +784,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     /* Alt1=48kHz / Alt2=96kHz */
                     const uint16_t mps  = (alt == 2U) ? (AUDIO_OUT_PACKET * 2U) : AUDIO_OUT_PACKET;
                     g_audio_lb.out_alt1 = (alt == 1U);
+                    haudio->pkt_out_sz  = mps;
+                    haudio->out_srate   = (alt == 2U) ? 96000u : 48000u;
                     /* リング初期化 → EPをMPSで再オープン → 受信投入 */
                     haudio->wr_ptr    = 0U;
                     haudio->rd_ptr    = 0U;
@@ -814,6 +816,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     /* Alt1=48kHz / Alt2=96kHz（MPS=288/576B） */
                     const uint16_t mps = (alt == 2U) ? (AUDIO_IN_PACKET * 2U) : AUDIO_IN_PACKET;
                     g_audio_lb.in_alt1 = (alt == 1U);
+                    haudio->pkt_in_sz  = mps;
+                    haudio->in_srate   = (alt == 2U) ? 96000u : 48000u;
                     if (pdev->dev_speed == USBD_SPEED_HIGH)
                     {
                         pdev->ep_in[AUDIOInEpAdd & 0xFU].bInterval = AUDIO_HS_BINTERVAL;
@@ -1135,8 +1139,8 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
             }
         }
 
-        /* Prepare Out endpoint to receive next audio packet */
-        (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], ((USBD_AUDIO_HandleTypeDef*) pdev->pClassData)->pkt_out_sz);
+        /* Prepare Out endpoint to receive next audio packet (always use current pkt_out_sz) */
+        (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], haudio->pkt_out_sz);
     }
 
     return (uint8_t) USBD_OK;
