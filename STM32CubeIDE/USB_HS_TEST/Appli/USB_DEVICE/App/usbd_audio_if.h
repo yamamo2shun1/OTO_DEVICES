@@ -130,6 +130,9 @@ extern "C"
     /* リングをクリア（必要なら） */
     void AUDIO_RxQ_Flush(void);
 
+    uint32_t AUDIO_GetFeedback_16_16(void);
+    void AUDIO_Feedback_Reset(void);
+
     void AUDIO_RxQ_GetStats(uint32_t* underruns, uint32_t* overruns);
     void AUDIO_RxQ_StatsTick(void);
     /* USER CODE END EXPORTED_FUNCTIONS */

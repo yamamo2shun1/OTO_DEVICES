@@ -93,10 +93,11 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern uint8_t g_rx_pending;           // bit0: 前半, bit1: 後半 が溜まっている
+extern uint8_t g_tx_safe;              // 1: 前半に書いてOK, 2: 後半に書いてOK
+extern volatile uint8_t g_tx_pending;  // bit0: 前半, bit1: 後半
+extern uint32_t sai_buf[];             // RX バッファ（main.c）
+extern uint32_t sai_tx_buf[];          // TX バッファ（main.c）
 
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
@@ -220,32 +221,32 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 #endif
 
-    if (g_tx_safe != tx_safe_prev)
+    /* 取りこぼし防止：前半・後半の両方をビットで処理 */
+    uint8_t pend;
+    uint32_t prim = __get_PRIMASK();
+    __disable_irq();
+    pend         = g_tx_pending;
+    g_tx_pending = 0;
+    __set_PRIMASK(prim);
+
+    const uint32_t need_frames = HALF_FRAMES; /* 1 half のフレーム数 */
+    for (int i = 0; i < 2; ++i)
     {
-        const uint32_t need_words  = HALF_WORDS;      /* この half に必要な 32bit words */
-        const uint32_t need_frames = need_words / 2u; /* 1frame=LR=2words */
-
-        uint32_t* dst = (g_tx_safe == 1)
-                            ? &sai_tx_buf[0]
-                            : &sai_tx_buf[HALF_WORDS];
-
-        /* 可能なだけ取り出し、足りない分はゼロで埋める（PopTo は不足時 0 を返す設計） */
-        size_t got_frames = AUDIO_RxQ_PopTo(dst, need_frames);
-        if (got_frames < need_frames)
+        if ((i == 0 && (pend & 0x01)) || (i == 1 && (pend & 0x02)))
         {
-            /* 残りを無音で埋める（frames→words×2） */
-            uint32_t* zero_from = dst + (got_frames * 2u);
-            uint32_t zero_words = (need_frames - got_frames) * 2u;
-            memset(zero_from, 0, zero_words * sizeof(uint32_t));
+            uint32_t* dst = (i == 0) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_FRAMES * 2u];
+            size_t got    = AUDIO_RxQ_PopTo(dst, need_frames);
+            if (got < need_frames)
+            {
+                uint32_t* zfrom = dst + (got * 2u);
+                memset(zfrom, 0, (need_frames - got) * 2u * sizeof(uint32_t));
+            }
+            cache_clean_range(dst, (size_t) (need_frames * 2u * sizeof(uint32_t)));
         }
-
-        /* 書いた half 全体を Cache Clean */
-        cache_clean_range(dst, (size_t) need_words * sizeof(uint32_t));
-
+    }
+    if (pend)
+    {
         AUDIO_RxQ_StatsTick();
-
-        /* 次の half へ */
-        tx_safe_prev = g_tx_safe;
     }
     /* USER CODE END USBPD_DPM_UserExecute */
 }

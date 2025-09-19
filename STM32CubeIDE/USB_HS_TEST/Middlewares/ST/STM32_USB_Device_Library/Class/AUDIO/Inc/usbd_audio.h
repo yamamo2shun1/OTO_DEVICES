@@ -74,14 +74,19 @@ extern "C"
     #endif /* AUDIO_OUT_EP */
 
     #ifndef AUDIO_IN_EP
-        #define AUDIO_IN_EP 0x81U
+        #define AUDIO_IN_EP 0x82U
     #endif /* AUDIO_IN_EP */
 
-    #define USB_AUDIO_CONFIG_DESC_SIZ          0x118U
+    #ifndef AUDIO_FB_EP
+        #define AUDIO_FB_EP 0x81U
+    #endif
+
+    #define USB_AUDIO_CONFIG_DESC_SIZ          0x12AU
     #define AUDIO_INTERFACE_DESC_SIZE          0x09U
     #define USB_AUDIO_DESC_SIZ                 0x0AU
     #define AUDIO_STANDARD_ENDPOINT_DESC_SIZE  0x09U
     #define AUDIO_STREAMING_ENDPOINT_DESC_SIZE 0x07U
+    #define AUDIO_FEEDBACK_ENDPOINT_DESC_SIZE  0x09U
 
     #define AUDIO_DESCRIPTOR_TYPE         0x21U
     #define USB_DEVICE_CLASS_AUDIO        0x01U
@@ -90,6 +95,7 @@ extern "C"
     #define AUDIO_PROTOCOL_UNDEFINED      0x00U
     #define AUDIO_STREAMING_GENERAL       0x01U
     #define AUDIO_STREAMING_FORMAT_TYPE   0x02U
+    #define AUDIO_FEEDBACK_DESC_TYPE      0x05U
 
     /* Audio Descriptor Types */
     #define AUDIO_INTERFACE_DESCRIPTOR_TYPE 0x24U

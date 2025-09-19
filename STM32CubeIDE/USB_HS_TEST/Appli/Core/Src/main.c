@@ -64,7 +64,7 @@ extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
 __attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
-__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -75,6 +75,7 @@ static inline void clean_ll_cache(void* p, size_t sz)
 
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
+volatile uint8_t g_tx_pending = 0;  // bit0: 前半空き, bit1: 後半空き（取りこぼし防止）
 
 // === USER CODE END 0 ===
 
@@ -114,7 +115,9 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         g_tx_safe = 1; /* 前半が“安全に書ける側”へ */
+        g_tx_pending |= 0x01;
         __DMB();
+        HalfTransfer_CallBack_HS();
     }
 }
 
@@ -123,7 +126,9 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         g_tx_safe = 2; /* 後半が“安全に書ける側”へ */
+        g_tx_pending |= 0x02;
         __DMB();
+        TransferComplete_CallBack_HS();
     }
 }
 
@@ -206,7 +211,8 @@ int main(void)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // System Clock Setting
-    sndData[0] = 0x00;  // 00000 000
+    sndData[0] = 0x00;  // 00000 000(48kHz)
+    // sndData[0] = 0x01;  // 00000 001(96kHz)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // ADC Input Setting

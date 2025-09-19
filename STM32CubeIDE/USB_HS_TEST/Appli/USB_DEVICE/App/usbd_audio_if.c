@@ -161,6 +161,55 @@ void AUDIO_RxQ_Flush(void)
     g_rxq_rd = g_rxq_wr;
     __DMB();
 }
+
+static int32_t s_fb_i     = 0; /* 積分項(16.16のfraction中心) */
+static uint8_t s_alt_last = 0;
+
+/* 1msあたりのフレーム数(48 or 96) → /µframe は /8 で整数 */
+static inline uint32_t frames_per_ms(void)
+{
+    return (g_audio_lb.out_alt == 2U) ? (USBD_AUDIO_MAX_FREQ / 1000U) : (USBD_AUDIO_FREQ / 1000U);
+}
+static inline uint32_t base_16_16_per_uF(void) /* 6.0 or 12.0 in 16.16 */
+{
+    uint32_t fpm = frames_per_ms();
+    return ((fpm / 2U) << 16);
+}
+
+void AUDIO_Feedback_Reset(void)
+{
+    s_fb_i     = 0;
+    s_alt_last = g_audio_lb.out_alt;
+}
+
+uint32_t AUDIO_GetFeedback_16_16(void)
+{
+    /* ALTが変わった直後は積分をリセット */
+    if (s_alt_last != g_audio_lb.out_alt)
+        AUDIO_Feedback_Reset();
+
+    const uint32_t cap    = RXQ_FRAMES_MAX;     /* 物理容量(フレーム) */
+    const uint32_t target = (cap * 60U) / 100U; /* 60%を目標水位 */
+    const int32_t err     = (int32_t) AUDIO_RxQ_LevelFrames() - (int32_t) target;
+
+    /* I項：水位誤差をゆっくり吸収（ゲインは安全側にかなり小さく） */
+    /* 例：cap全体ぶんの誤差で ±(1<<12) 程度のfraction変化 */
+    const int32_t di = (err << 12) / (int32_t) cap; /* ~±4096 */
+    s_fb_i += di;
+    /* 積分の飽和（±1/64 ≒ 0.015625） */
+    const int32_t I_MAX = (1 << 16) / 64;
+    if (s_fb_i > I_MAX)
+        s_fb_i = I_MAX;
+    if (s_fb_i < -I_MAX)
+        s_fb_i = -I_MAX;
+
+    uint32_t ff = base_16_16_per_uF();
+    if (s_fb_i >= 0)
+        ff += (uint32_t) s_fb_i;
+    else
+        ff -= (uint32_t) (-s_fb_i);
+    return ff;
+}
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
