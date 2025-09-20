@@ -54,7 +54,7 @@ extern "C"
         #define USBD_AUDIO_CHANNELS 2U
     #endif
     #ifndef USBD_AUDIO_SUBFRAME_BYTES
-        #define USBD_AUDIO_SUBFRAME_BYTES 4U
+        #define USBD_AUDIO_SUBFRAME_BYTES 3U
     #endif
 
     #ifndef USBD_MAX_NUM_INTERFACES

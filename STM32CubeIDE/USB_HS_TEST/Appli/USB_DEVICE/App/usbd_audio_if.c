@@ -173,13 +173,29 @@ static inline uint32_t frames_per_ms(void)
 static inline uint32_t base_16_16_per_uF(void) /* 6.0 or 12.0 in 16.16 */
 {
     uint32_t fpm = frames_per_ms();
-    return ((fpm / 2U) << 16);
+    /* HS: 1 microframe(125us) あたりのサンプル数 = (frames_per_ms / 8) */
+    return ((fpm / 8U) << 16); /* 48kHz→6<<16, 96kHz→12<<16 */
 }
 
 void AUDIO_Feedback_Reset(void)
 {
     s_fb_i     = 0;
     s_alt_last = g_audio_lb.out_alt;
+}
+
+/* === UAC1 準拠: 10.14（1ms あたりサンプル数）を返す === */
+uint32_t AUDIO_GetFeedback_10_14(void)
+{
+    /* ベース：frames_per_ms << 14  （48kHz→48<<14、96kHz→96<<14）*/
+    uint32_t ff10 = (frames_per_ms() << 14);
+
+    /* I項は既存 s_fb_i を 16.16 と仮定して 10.14 にスケール変換（>>2） */
+    int32_t i_10 = s_fb_i >> 2; /* 安全側に少し小さめ */
+    if (i_10 >= 0)
+        ff10 += (uint32_t) i_10;
+    else
+        ff10 -= (uint32_t) (-i_10);
+    return ff10;
 }
 
 uint32_t AUDIO_GetFeedback_16_16(void)

@@ -57,6 +57,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+extern USBD_HandleTypeDef hUsbDeviceHS;
+
 extern DMA_NodeTypeDef Node_GPDMA1_Channel2;   // TXノード
 extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 
@@ -269,6 +271,7 @@ int main(void)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 
     printf("hello.\n");
+    printf("speed=%d (0:HS,1:FS)\n", hUsbDeviceHS.dev_speed);
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/

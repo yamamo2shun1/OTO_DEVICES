@@ -131,6 +131,54 @@ static void* USBD_AUDIO_GetAudioHeaderDesc(uint8_t* pConfDesc);
 extern int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len);
 
 static uint8_t mic_packet[AUDIO_IN_PACKET_MAX];
+
+#ifndef AUDIO_DEBUG
+    #define AUDIO_DEBUG 1
+#endif
+#if AUDIO_DEBUG
+    #define AUDDBG(...) printf(__VA_ARGS__)
+#else
+    #define AUDDBG(...)
+#endif
+
+/* 1秒ウィンドウでの統計用 */
+static uint32_t g_dbg_win_start_ms = 0;
+static uint32_t g_dbg_do_calls_1s  = 0; /* DataOut 呼び出し回数/秒 */
+static uint32_t g_dbg_do_bytes_1s  = 0; /* 受信総バイト数/秒 */
+static uint32_t g_dbg_do_badlen_1s = 0; /* 期待長と不一致の回数/秒 */
+static uint32_t g_dbg_fb_done_1s   = 0; /* FB IN 完了回数/秒（=ホストが受理した回数） */
+
+/* 呼び出し間隔（ms）の観測 */
+static uint32_t g_dbg_do_last_ms    = 0;
+static uint32_t g_dbg_do_int_min_ms = 0xFFFFFFFFu;
+static uint32_t g_dbg_do_int_max_ms = 0;
+
+/* 期待パケット長（Alt切替で更新）と現在のAltを覚えて出力に含める */
+static uint16_t g_dbg_pkt_out_sz = 0;
+static uint8_t g_dbg_cur_alt     = 0;
+
+/* 追加: FB 送出試行 & Incomplete カウント */
+static uint32_t g_dbg_fb_try_1s             = 0;
+static uint32_t g_dbg_fb_inc_1s             = 0;
+static uint32_t g_dbg_fb_rc_busy_1s         = 0;
+static uint32_t g_dbg_fb_rc_fail_1s         = 0;
+static uint32_t g_dbg_sof_1s                = 0;
+static uint32_t g_dbg_fb_gate_1s            = 0;
+static uint32_t g_dbg_fb_gate_block_alt_1s  = 0;
+static uint32_t g_dbg_fb_gate_block_busy_1s = 0;
+static uint32_t g_dbg_fb_gate_block_used_1s = 0;
+/* busy張り付き監視 */
+static uint32_t g_dbg_fb_busy_age_ms     = 0; /* 現在の張り付き継続ms */
+static uint32_t g_dbg_fb_busy_kick_1s    = 0; /* セーフティ解除回数/秒 */
+static uint32_t g_dbg_fb_busy_age_max_1s = 0; /* 1秒内の最大張り付きms */
+/* ============================ DEBUG METRICS END ============================ */
+
+/* HSのSOF(125us)で毎回送っていたFBを、1ms(=8 microframes)に絞るためのカウンタ */
+static uint8_t s_fb_sof_mod8 = 0;
+/* HS: FB送出の“早出し位相”。1=125usリード、2=250us… 最大3くらいまでが現実的 */
+static uint8_t s_fb_phase_uf = 1; /* 1..3 を想定。0は当フレーム同発で間に合わないことが多い */
+/* 初回プライム失敗時に SOF で再挑戦するためのフラグ */
+static uint8_t s_fb_need_prime = 0;
 /**
  * @}
  */
@@ -362,10 +410,10 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
 
         /* Feedback IN Endpoint (Standard, 9B) */
         AUDIO_FEEDBACK_ENDPOINT_DESC_SIZE, /* bLength */
-        AUDIO_FEEDBACK_DESC_TYPE,          /* bDescriptorType: ENDPOINT */
+        USB_DESC_TYPE_ENDPOINT,            /* bDescriptorType: ENDPOINT */
         AUDIO_FB_EP,                       /* bEndpointAddress: IN */
         0x11,                              /* bmAttributes: Isoch | Usage=Feedback */
-        0x04,
+        0x03,
         0x00,               /* wMaxPacketSize = 4 bytes (HS:16.16) */
         AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
         0x00,               /* bRefresh (未使用) */
@@ -423,10 +471,10 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
 
         /* Feedback IN Endpoint (Standard, 9B) */
         AUDIO_FEEDBACK_ENDPOINT_DESC_SIZE, /* bLength */
-        AUDIO_FEEDBACK_DESC_TYPE,          /* bDescriptorType: ENDPOINT */
+        USB_DESC_TYPE_ENDPOINT,            /* bDescriptorType: ENDPOINT */
         AUDIO_FB_EP,                       /* bEndpointAddress: IN */
         0x11,                              /* bmAttributes: Isoch | Usage=Feedback */
-        0x04,
+        0x03,
         0x00,               /* wMaxPacketSize = 4 bytes (HS:16.16) */
         AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
         0x00,               /* bRefresh (未使用) */
@@ -643,6 +691,21 @@ static uint8_t USBD_AUDIO_Init(USBD_HandleTypeDef* pdev, uint8_t cfgidx)
 
     AUDIO_RxQ_Flush();
 
+#if AUDIO_DEBUG
+    /* 計測の初期化 */
+    g_dbg_win_start_ms  = HAL_GetTick();
+    g_dbg_do_calls_1s   = 0;
+    g_dbg_do_bytes_1s   = 0;
+    g_dbg_do_badlen_1s  = 0;
+    g_dbg_fb_done_1s    = 0;
+    g_dbg_do_last_ms    = 0;
+    g_dbg_do_int_min_ms = 0xFFFFFFFFu;
+    g_dbg_do_int_max_ms = 0;
+    g_dbg_pkt_out_sz    = 0;
+    g_dbg_cur_alt       = 0;
+    AUDDBG("[AUDIO] Init: dev_speed=%d (0:HS,1:FS)\n", pdev->dev_speed);
+#endif
+
     return (uint8_t) USBD_OK;
 }
 
@@ -806,6 +869,11 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
             uint8_t ifnum = (uint8_t) (req->wIndex & 0xFF);
             uint8_t alt   = (uint8_t) (req->wValue & 0xFF);
 
+    /* デバッグ用に現在のAltを記録（1=48k, 2=96k, 0=停止）*/
+    #if AUDIO_DEBUG
+            g_dbg_cur_alt = alt;
+    #endif
+
             haudio->alt_setting = alt;  // 既存の動作を踏襲
 
             /* ---- Speaker: Interface #1 (OUT) ---- */
@@ -820,24 +888,51 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     haudio->pkt_out_sz  = mps;
                     haudio->out_srate   = (alt == 2U) ? 96000u : 48000u;
 
+                    /* 計測：期待パケット長を更新＆ログ */
+    #if AUDIO_DEBUG
+                    g_dbg_pkt_out_sz = mps;
+                    AUDDBG("[AUDIO] SET_INTERFACE if=%u OUT alt=%u pkt_out_sz=%u\n", (unsigned) ifnum, (unsigned) alt, (unsigned) g_dbg_pkt_out_sz);
+    #endif
+
                     AUDIO_RxQ_Flush();
 
-                    /* リング初期化 → EPをMPSで再オープン → 受信投入 */
+                    /* リング初期化 */
                     haudio->wr_ptr    = 0U;
                     haudio->rd_ptr    = 0U;
                     haudio->rd_enable = 0U;
                     haudio->offset    = AUDIO_OFFSET_UNKNOWN;
+
+                    /* 1) 先に FB EP を確実に Open（ホストが先にFBを取りにきても対応できるように） */
+                    (void) USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 4);
+                    pdev->ep_in[AUDIOFbEpAdd & 0x0FU].bInterval =
+                        (pdev->dev_speed == USBD_SPEED_HIGH) ? AUDIO_HS_BINTERVAL : AUDIO_FS_BINTERVAL;
+                    pdev->ep_in[AUDIOFbEpAdd & 0xFU].is_used = 1U;
+                    /* ---- FB 初回プライム ---- */
+                    {
+                        uint32_t ff10_14 = AUDIO_GetFeedback_10_14(); /* 10.14 / 1ms */
+                        uint8_t fb[3]    = {(uint8_t) ff10_14, (uint8_t) (ff10_14 >> 8), (uint8_t) (ff10_14 >> 16)};
+                        if (USBD_LL_Transmit(pdev, AUDIOFbEpAdd, fb, 3) == USBD_OK)
+                        {
+                            s_fb_busy = 1;
+    #if AUDIO_DEBUG
+                            g_dbg_fb_try_1s++;
+    #endif
+                        }
+                        else
+                        {
+                            /* 失敗したら SOF で再挑戦する */
+                            s_fb_busy       = 0;
+                            s_fb_need_prime = 1;
+                        }
+                        s_fb_sof_mod8 = 0; /* 位相初期化 */
+                    }
+
+                    /* 2) 次に OUT EP を Open→受信開始 */
                     USBD_LL_FlushEP(pdev, AUDIOOutEpAdd);
                     (void) USBD_LL_CloseEP(pdev, AUDIOOutEpAdd);
                     (void) USBD_LL_OpenEP(pdev, AUDIOOutEpAdd, USBD_EP_TYPE_ISOC, mps);
                     pdev->ep_out[AUDIOOutEpAdd & 0xFU].is_used = 1U;
                     (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[0], mps);
-
-                    (void) USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 4);
-                    pdev->ep_in[AUDIOFbEpAdd & 0x0FU].bInterval =
-                        (pdev->dev_speed == USBD_SPEED_HIGH) ? AUDIO_HS_BINTERVAL : AUDIO_FS_BINTERVAL;
-                    pdev->ep_in[AUDIOFbEpAdd & 0xFU].is_used = 1U;
-                    s_fb_busy                                = 0;
                 }
                 else
                 {
@@ -951,7 +1046,25 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
 
     if ((epnum & 0x0F) == (AUDIOFbEpAdd & 0x0F))
     {
-        s_fb_busy = 0; /* FB-IN 送信完了 */
+        /* ---- FB 完了：すぐ次の1発をキュー（先行キューでIncompleteを根絶） ---- */
+        s_fb_busy = 0;
+#if AUDIO_DEBUG
+        g_dbg_fb_done_1s++; /* 1msごとに増えるのが理想 */
+#endif
+        /* 直ちに次の値を送る（常に1個先行） */
+        uint32_t ff10_14 = AUDIO_GetFeedback_10_14();
+        uint8_t fb[3]    = {(uint8_t) ff10_14, (uint8_t) (ff10_14 >> 8), (uint8_t) (ff10_14 >> 16)};
+        if (USBD_LL_Transmit(pdev, AUDIOFbEpAdd, fb, 3) == USBD_OK)
+        {
+            s_fb_busy = 1;
+#if AUDIO_DEBUG
+            g_dbg_fb_try_1s++;
+#endif
+        }
+        else
+        {
+            /* BUSY/FAILなら、次のSOF 1msで再挑戦（SOF側でguard） */
+        }
     }
 
     /* Only OUT data are processed */
@@ -1016,29 +1129,9 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
         return (uint8_t) USBD_OK;
     }
 
-    /* Speaker OUT が動作中のみフィードバック送信 */
-    if (g_audio_lb.out_alt == 1U || g_audio_lb.out_alt == 2U)
-    {
-        if (!s_fb_busy)
-        {
-#if 1
-            uint32_t ff16_16 = AUDIO_GetFeedback_16_16(); /* samples/ms in 16.16 */
-            uint8_t fb[4]    = {(uint8_t) (ff16_16), (uint8_t) (ff16_16 >> 8), (uint8_t) (ff16_16 >> 16), (uint8_t) (ff16_16 >> 24)};
-#else
-            /* HS: 16.16 で 125usあたりのサンプル数を返す */
-            uint32_t ff16_16 = (pdev->dev_speed == USBD_SPEED_HIGH)
-                                   ? ((haudio->out_srate == 96000U) ? (12U << 16) : (6U << 16))
-                                   : ((haudio->out_srate == 96000U) ? (96U << 14) : (48U << 14)); /* FS fallback: 10.14 */
-            uint8_t fb[4]    = {(uint8_t) ff16_16, (uint8_t) (ff16_16 >> 8), (uint8_t) (ff16_16 >> 16), (uint8_t) (ff16_16 >> 24)};
+#if AUDIO_DEBUG
+    g_dbg_sof_1s++;
 #endif
-            USBD_StatusTypeDef rc = USBD_LL_Transmit(pdev, AUDIOFbEpAdd, fb, 4);
-            if (rc == USBD_OK)
-            {
-                s_fb_busy = 1;
-            }
-            // printf("FB xmit rc=%d, ep=%02X, busy=%d\n", rc, AUDIOFbEpAdd, s_fb_busy);
-        }
-    }
 
     /* alt=1 が選択され、まだ初回送信していない？ */
     if (haudio->mic_prime)
@@ -1050,6 +1143,65 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
         haudio->mic_prime = 0;
 
         printf("first transmit.\n");
+    }
+
+    /* ---- FB フォールバック送出：初回プライム失敗や DataIn 駆動が止まったときに 1ms ごとに1回だけ試す ---- */
+    if ((g_audio_lb.out_alt == 1U || g_audio_lb.out_alt == 2U) &&
+        (pdev->ep_in[AUDIOFbEpAdd & 0x0FU].is_used != 0U))
+    {
+        if (pdev->dev_speed == USBD_SPEED_HIGH)
+        {
+            s_fb_sof_mod8 = (uint8_t) ((s_fb_sof_mod8 + 1) & 0x07); /* 0..7 */
+            if (s_fb_sof_mod8 != 0)
+            {
+                return (uint8_t) USBD_OK; /* 8回に1回(=1ms)だけ試す */
+            }
+        }
+
+        /* === busy張り付きウォッチドッグ（1msごとに評価）=== */
+        if (s_fb_busy)
+        {
+            g_dbg_fb_busy_age_ms++;
+            if (g_dbg_fb_busy_age_ms > g_dbg_fb_busy_age_max_1s)
+            {
+                g_dbg_fb_busy_age_max_1s = g_dbg_fb_busy_age_ms;
+            }
+            if (g_dbg_fb_busy_age_ms >= 4U)
+            {
+                /* 4ms以上完了割り込みが来ない＝固着と見なし解除して再プライム */
+                s_fb_busy       = 0;
+                s_fb_need_prime = 1;
+#if AUDIO_DEBUG
+                g_dbg_fb_busy_kick_1s++;
+#endif
+            }
+        }
+        else
+        {
+            g_dbg_fb_busy_age_ms = 0;
+        }
+
+        /* まだキューに無い、または初回プライムに失敗しているなら 1 発だけ投げる */
+        if (s_fb_need_prime || !s_fb_busy)
+        {
+            /* 1msゲートを通過 */
+#if AUDIO_DEBUG
+            g_dbg_fb_gate_1s++;
+#endif
+
+            uint32_t ff10_14      = AUDIO_GetFeedback_10_14();
+            uint8_t fb[3]         = {(uint8_t) ff10_14, (uint8_t) (ff10_14 >> 8), (uint8_t) (ff10_14 >> 16)};
+            USBD_StatusTypeDef rc = USBD_LL_Transmit(pdev, AUDIOFbEpAdd, fb, 3);
+            if (rc == USBD_OK)
+            {
+                s_fb_busy       = 1;
+                s_fb_need_prime = 0;
+#if AUDIO_DEBUG
+                g_dbg_fb_try_1s++; /* 実送信成功のみ try を加算 */
+#endif
+            }
+            /* BUSY/FAIL の場合は次の1msでもう一度ここに来る（s_fb_need_primeは維持） */
+        }
     }
 
     return (uint8_t) USBD_OK;
@@ -1153,11 +1305,18 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     }
     else if ((epnum & 0x0F) == (AUDIOFbEpAdd & 0x0F))
     {
-        /* ホストがこの(マイクロ)フレームでFBを取りに来なかった。
-           いったん破棄して、次のSOFで新しい値を投げ直す。 */
-        USBD_LL_FlushEP(pdev, AUDIOFbEpAdd);
-        s_fb_busy = 0; /* ← これが肝心 */
+        /* FB の Iso IN Incomplete:
+           ★重要★ 何もしない（Flushしない／busyも位相も変えない）。
+           送信要求をキューに残し、次のINトークンで完了（DataIn）させる。 */
+        /* no-op */
     }
+
+#if AUDIO_DEBUG
+    if ((0x80U | epnum) == AUDIOFbEpAdd)
+    {
+        g_dbg_fb_inc_1s++;
+    }
+#endif
 
     return (uint8_t) USBD_OK;
 }
@@ -1212,7 +1371,76 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
     {
         /* Get received data packet length */
         PacketSize = (uint16_t) USBD_LL_GetRxDataSize(pdev, epnum);
-        // printf("packet size = %d\n", PacketSize);
+
+        /* ----------------------------- DEBUG START ------------------------------ */
+#if AUDIO_DEBUG
+        uint32_t now_ms = HAL_GetTick();
+        /* 呼び出し間隔の min/max(ms) を更新 */
+        if (g_dbg_do_last_ms != 0)
+        {
+            uint32_t dt = now_ms - g_dbg_do_last_ms;
+            if (dt < g_dbg_do_int_min_ms)
+                g_dbg_do_int_min_ms = dt;
+            if (dt > g_dbg_do_int_max_ms)
+                g_dbg_do_int_max_ms = dt;
+        }
+        g_dbg_do_last_ms = now_ms;
+
+        /* 受信統計の更新 */
+        g_dbg_do_calls_1s++;
+        g_dbg_do_bytes_1s += PacketSize;
+
+        /* 期待長（haudio->pkt_out_sz）と不一致なら記録＆即時ログ */
+        if (haudio->pkt_out_sz != 0 && PacketSize != haudio->pkt_out_sz)
+        {
+            g_dbg_do_badlen_1s++;
+            AUDDBG("[AUDIO][DataOut] len=%u (exp=%u) alt=%u\n", (unsigned) PacketSize, (unsigned) haudio->pkt_out_sz, (unsigned) g_dbg_cur_alt);
+        }
+
+        /* 1秒ごとにサマリを出力 */
+        if ((now_ms - g_dbg_win_start_ms) >= 1000U)
+        {
+            /* 期待長は直近の haudio->pkt_out_sz（Alt変更に追従） */
+            g_dbg_pkt_out_sz = haudio->pkt_out_sz;
+            AUDDBG("[AUDIO][1s] DataOut calls=%lu bytes=%lu pkt=%u int[min/max]=%lums/%lums "
+                   "badlen=%lu SOF=%lu FBgate=%lu FBtry=%lu FBinc=%lu FBdone=%lu rcBUSY=%lu rcFAIL=%lu "
+                   "blk_alt=%lu blk_busy=%lu blk_used=%lu FBbusyKick=%lu FBbusyAgeMax=%lu alt=%u\n",
+                   (unsigned long) g_dbg_do_calls_1s, (unsigned long) g_dbg_do_bytes_1s, (unsigned) g_dbg_pkt_out_sz, (unsigned long) (g_dbg_do_int_min_ms == 0xFFFFFFFFu ? 0 : g_dbg_do_int_min_ms), (unsigned long) g_dbg_do_int_max_ms, (unsigned long) g_dbg_do_badlen_1s, (unsigned long) g_dbg_sof_1s, (unsigned long) g_dbg_fb_gate_1s, (unsigned long) g_dbg_fb_try_1s, (unsigned long) g_dbg_fb_inc_1s, (unsigned long) g_dbg_fb_done_1s, (unsigned long) g_dbg_fb_rc_busy_1s, (unsigned long) g_dbg_fb_rc_fail_1s, (unsigned long) g_dbg_fb_gate_block_alt_1s, (unsigned long) g_dbg_fb_gate_block_busy_1s, (unsigned long) g_dbg_fb_gate_block_used_1s, (unsigned long) g_dbg_fb_busy_kick_1s, (unsigned long) g_dbg_fb_busy_age_max_1s, (unsigned) g_dbg_cur_alt);
+
+            /* リセット */
+            g_dbg_win_start_ms          = now_ms;
+            g_dbg_do_calls_1s           = 0;
+            g_dbg_do_bytes_1s           = 0;
+            g_dbg_do_badlen_1s          = 0;
+            g_dbg_sof_1s                = 0;
+            g_dbg_fb_gate_1s            = 0;
+            g_dbg_fb_try_1s             = 0;
+            g_dbg_fb_inc_1s             = 0;
+            g_dbg_fb_done_1s            = 0;
+            g_dbg_fb_rc_busy_1s         = 0;
+            g_dbg_fb_rc_fail_1s         = 0;
+            g_dbg_fb_gate_block_alt_1s  = 0;
+            g_dbg_fb_gate_block_busy_1s = 0;
+            g_dbg_fb_gate_block_used_1s = 0;
+            g_dbg_fb_busy_kick_1s       = 0;
+            g_dbg_fb_busy_age_max_1s    = 0;
+            g_dbg_do_int_min_ms         = 0xFFFFFFFFu;
+            g_dbg_do_int_max_ms         = 0;
+
+            /* ---- 自動位相調整（HSのみ） ----
+               1秒内に FBinc が非常に多く、FBdone が 0 の場合は “さらに早出し” する。
+               例：位相ズレで常時遅延しているときに有効。上限は 3（=375usリード） */
+            if (pdev->dev_speed == USBD_SPEED_HIGH)
+            {
+                if ((g_dbg_fb_inc_1s > 800U) && (g_dbg_fb_done_1s == 0U) && (s_fb_phase_uf < 3U))
+                {
+                    s_fb_phase_uf++;
+                    AUDDBG("[AUDIO][fb] shift phase earlier: %u uSOF lead\n", s_fb_phase_uf);
+                }
+            }
+        }
+#endif
+        /* ------------------------------ DEBUG END ------------------------------- */
 
         /* Packet received Callback */
         ((USBD_AUDIO_ItfTypeDef*) pdev->pUserData[pdev->classId])->PeriodicTC(&haudio->buffer[haudio->wr_ptr], PacketSize, AUDIO_OUT_TC);
