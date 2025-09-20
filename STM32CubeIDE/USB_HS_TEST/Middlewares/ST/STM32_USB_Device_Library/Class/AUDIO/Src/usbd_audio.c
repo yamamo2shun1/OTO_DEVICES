@@ -1151,13 +1151,14 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
     }
 
     /* ---- FB フォールバック送出 ----
-       ・「要プライム(s_fb_need_prime)」の間のみ、HSでは uSOF 毎(=125us毎)に再試行して、最初の1回を確実に当てに行く
+       ・「要プライム(s_fb_need_prime)」の間のみ送る
+       ・HSは uSOF(125us) を mod8 カウントし、1msあたり厳密に 1 回だけ位相一致で送る
        ・平常時（DataInが回っている間）は完全に沈黙
     */
     if ((g_audio_lb.out_alt == 1U || g_audio_lb.out_alt == 2U) &&
         (pdev->ep_in[AUDIOFbEpAdd & 0x0FU].is_used != 0U))
     {
-        /* ★HSでもFSでも、要プライム時以外は SOF 側は何もしない */
+        /* ★要プライム時以外は SOF 側は何もしない */
         if (!(s_fb_need_prime && !s_fb_busy))
         {
             /* 平常時は完全に沈黙。busyは一切いじらない（保持） */
@@ -1165,17 +1166,17 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
             return (uint8_t) USBD_OK;
         }
 
-#if 0
-        /* ★要プライム時：HSは mod8 で“1msに1回だけ”評価 */
+        /* ★HS: 1msに1回だけ（mod8一致時のみ）送る。phaseは“早出しuSOF数” */
         if (pdev->dev_speed == USBD_SPEED_HIGH)
         {
-            s_fb_sof_mod8 = (uint8_t) ((s_fb_sof_mod8 + 1) & 0x07);
-            if (s_fb_sof_mod8 != 0)
+            s_fb_sof_mod8 = (uint8_t) ((s_fb_sof_mod8 + 1) & 0x07); /* 0..7 */
+            /* 例: s_fb_phase_uf=2(=250usリード) → 一致条件は (s_fb_sof_mod8 == (8 - s_fb_phase_uf) & 7) */
+            uint8_t gate_uf = (uint8_t) ((8u - s_fb_phase_uf) & 0x07u);
+            if (s_fb_sof_mod8 != gate_uf)
             {
-                return (uint8_t) USBD_OK;
+                return (uint8_t) USBD_OK; /* このuSOFでは送らない */
             }
         }
-#endif
 
         if (!s_fb_busy)
         {
@@ -1195,7 +1196,7 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
                 g_dbg_fb_try_1s++; /* 実送信成功のみ try を加算 */
 #endif
             }
-            /* BUSY/FAIL の場合は次の1msで再試行（s_fb_need_prime維持） */
+            /* BUSY/FAIL の場合は次の1ms（次の位相uSOF）で再試行（s_fb_need_prime維持） */
         }
     }
 
