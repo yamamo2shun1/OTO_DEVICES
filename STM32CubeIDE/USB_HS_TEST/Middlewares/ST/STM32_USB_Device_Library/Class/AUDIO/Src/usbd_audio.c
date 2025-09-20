@@ -171,6 +171,8 @@ static uint32_t g_dbg_fb_gate_block_used_1s = 0;
 static uint32_t g_dbg_fb_busy_age_ms     = 0; /* 現在の張り付き継続ms */
 static uint32_t g_dbg_fb_busy_kick_1s    = 0; /* セーフティ解除回数/秒 */
 static uint32_t g_dbg_fb_busy_age_max_1s = 0; /* 1秒内の最大張り付きms */
+/* 直近のFB完了(DataIn)時刻(ms)。平常時はこれが毎ms更新される */
+static uint32_t g_fb_last_done_ms = 0;
 /* ============================ DEBUG METRICS END ============================ */
 
 /* HSのSOF(125us)で毎回送っていたFBを、1ms(=8 microframes)に絞るためのカウンタ */
@@ -903,7 +905,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     haudio->offset    = AUDIO_OFFSET_UNKNOWN;
 
                     /* 1) 先に FB EP を確実に Open（ホストが先にFBを取りにきても対応できるように） */
-                    (void) USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 4);
+                    (void) USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 3);
                     pdev->ep_in[AUDIOFbEpAdd & 0x0FU].bInterval =
                         (pdev->dev_speed == USBD_SPEED_HIGH) ? AUDIO_HS_BINTERVAL : AUDIO_FS_BINTERVAL;
                     pdev->ep_in[AUDIOFbEpAdd & 0xFU].is_used = 1U;
@@ -1051,6 +1053,9 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
 #if AUDIO_DEBUG
         g_dbg_fb_done_1s++; /* 1msごとに増えるのが理想 */
 #endif
+        g_fb_last_done_ms = HAL_GetTick(); /* ★ 直近完了時刻を記録 */
+        s_fb_need_prime   = 0;             /* ★ 復帰済みフラグを下ろす */
+
         /* 直ちに次の値を送る（常に1個先行） */
         uint32_t ff10_14 = AUDIO_GetFeedback_10_14();
         uint8_t fb[3]    = {(uint8_t) ff10_14, (uint8_t) (ff10_14 >> 8), (uint8_t) (ff10_14 >> 16)};
@@ -1145,44 +1150,34 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
         printf("first transmit.\n");
     }
 
-    /* ---- FB フォールバック送出：初回プライム失敗や DataIn 駆動が止まったときに 1ms ごとに1回だけ試す ---- */
+    /* ---- FB フォールバック送出 ----
+       ・「要プライム(s_fb_need_prime)」の間のみ、HSでは uSOF 毎(=125us毎)に再試行して、最初の1回を確実に当てに行く
+       ・平常時（DataInが回っている間）は完全に沈黙
+    */
     if ((g_audio_lb.out_alt == 1U || g_audio_lb.out_alt == 2U) &&
         (pdev->ep_in[AUDIOFbEpAdd & 0x0FU].is_used != 0U))
     {
+        /* ★HSでもFSでも、要プライム時以外は SOF 側は何もしない */
+        if (!(s_fb_need_prime && !s_fb_busy))
+        {
+            /* 平常時は完全に沈黙。busyは一切いじらない（保持） */
+            g_dbg_fb_busy_age_ms = 0;
+            return (uint8_t) USBD_OK;
+        }
+
+#if 0
+        /* ★要プライム時：HSは mod8 で“1msに1回だけ”評価 */
         if (pdev->dev_speed == USBD_SPEED_HIGH)
         {
-            s_fb_sof_mod8 = (uint8_t) ((s_fb_sof_mod8 + 1) & 0x07); /* 0..7 */
+            s_fb_sof_mod8 = (uint8_t) ((s_fb_sof_mod8 + 1) & 0x07);
             if (s_fb_sof_mod8 != 0)
             {
-                return (uint8_t) USBD_OK; /* 8回に1回(=1ms)だけ試す */
+                return (uint8_t) USBD_OK;
             }
         }
-
-        /* === busy張り付きウォッチドッグ（1msごとに評価）=== */
-        if (s_fb_busy)
-        {
-            g_dbg_fb_busy_age_ms++;
-            if (g_dbg_fb_busy_age_ms > g_dbg_fb_busy_age_max_1s)
-            {
-                g_dbg_fb_busy_age_max_1s = g_dbg_fb_busy_age_ms;
-            }
-            if (g_dbg_fb_busy_age_ms >= 4U)
-            {
-                /* 4ms以上完了割り込みが来ない＝固着と見なし解除して再プライム */
-                s_fb_busy       = 0;
-                s_fb_need_prime = 1;
-#if AUDIO_DEBUG
-                g_dbg_fb_busy_kick_1s++;
 #endif
-            }
-        }
-        else
-        {
-            g_dbg_fb_busy_age_ms = 0;
-        }
 
-        /* まだキューに無い、または初回プライムに失敗しているなら 1 発だけ投げる */
-        if (s_fb_need_prime || !s_fb_busy)
+        if (!s_fb_busy)
         {
             /* 1msゲートを通過 */
 #if AUDIO_DEBUG
@@ -1200,7 +1195,7 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
                 g_dbg_fb_try_1s++; /* 実送信成功のみ try を加算 */
 #endif
             }
-            /* BUSY/FAIL の場合は次の1msでもう一度ここに来る（s_fb_need_primeは維持） */
+            /* BUSY/FAIL の場合は次の1msで再試行（s_fb_need_prime維持） */
         }
     }
 
@@ -1305,10 +1300,10 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     }
     else if ((epnum & 0x0F) == (AUDIOFbEpAdd & 0x0F))
     {
-        /* FB の Iso IN Incomplete:
-           ★重要★ 何もしない（Flushしない／busyも位相も変えない）。
-           送信要求をキューに残し、次のINトークンで完了（DataIn）させる。 */
-        /* no-op */
+        /* FB Iso IN Incomplete:
+           ★直ちに“要プライム”に遷移（SOF/uSOF側が125usおきに再試行） */
+        s_fb_busy       = 0;
+        s_fb_need_prime = 1;
     }
 
 #if AUDIO_DEBUG
