@@ -46,7 +46,7 @@ extern volatile uint8_t g_tx_safe;
 #define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
 #define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
-__attribute__((aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
 static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
 static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 

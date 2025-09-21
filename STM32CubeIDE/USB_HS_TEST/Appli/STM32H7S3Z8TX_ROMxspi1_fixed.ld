@@ -187,6 +187,12 @@ SECTIONS
     . = ALIGN(8);
   } >DTCM
 
+  .RAM_D1 (NOLOAD) :
+  {
+    *(.RAM_D1)
+    *(.RAM_D1.*)
+  } >RAM AT>RAM
+
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {
