@@ -87,11 +87,6 @@ static uint8_t s_started = 0;  // プリロール完了フラグ
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int __io_putchar(uint8_t ch)
-{
-    return ITM_SendChar(ch);
-}
-
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
@@ -264,7 +259,7 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 
-    printf("hello.\n");
+    SEGGER_RTT_printf(0, "hello.\n");
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/
