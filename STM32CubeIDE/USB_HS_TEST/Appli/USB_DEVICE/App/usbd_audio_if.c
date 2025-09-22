@@ -120,7 +120,6 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
     g_rxq_rd += frames;
     __DMB();
     return frames;
-#endif
 }
 /* USER CODE END PV */
 

@@ -63,8 +63,8 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((section(".RAM_D1"), aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
-__attribute__((section(".RAM_D1"), aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".dma_nocache"), aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".dma_nocache"), aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -76,7 +76,6 @@ static inline void clean_ll_cache(void* p, size_t sz)
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
 
-static uint8_t s_started = 0;  // プリロール完了フラグ
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -236,9 +235,6 @@ int main(void)
     // 1) LLI(ノード/キュー) を Clean（DMAが構造体を読む）
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
-
-    // 2) 送信バッファを Clean（DMAが読むデータ本体）
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(sai_tx_buf), CACHE_ALIGN_UP(sizeof(sai_tx_buf)));
 
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE * 2) != HAL_OK)
     {

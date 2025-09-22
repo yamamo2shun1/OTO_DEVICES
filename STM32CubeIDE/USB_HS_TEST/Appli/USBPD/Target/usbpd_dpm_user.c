@@ -149,13 +149,6 @@ static void process_audio_half(int half_index)
 }
 #endif
 
-static inline void clean_ll_cache(void* p, size_t sz)
-{
-    uintptr_t a = (uintptr_t) p & ~31u;
-    size_t n    = (sz + 31u) & ~31u;
-    SCB_CleanDCache_by_Addr((uint32_t*) a, n);
-}
-
 /* USER CODE END USBPD_USER_EXPORTED_FUNCTIONS_GROUP1 */
 
 /**
@@ -216,8 +209,7 @@ void USBPD_DPM_UserExecute(void const* argument)
     if (g_tx_safe != tx_safe_prev)
     {
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
-        (void) AUDIO_RxQ_PopTo(dst, HALF_FRAMES);                          /* ← 内部でプリロール＆不足ミュート済み */
-        clean_ll_cache(dst, (size_t) HALF_FRAMES * 2u * sizeof(uint32_t)); /* LR=2words/frm */
+        (void) AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
         tx_safe_prev = g_tx_safe;
     }
     /* USER CODE END USBPD_DPM_UserExecute */
