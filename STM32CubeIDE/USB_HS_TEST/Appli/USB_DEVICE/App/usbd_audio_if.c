@@ -50,29 +50,77 @@ __attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_F
 static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
 static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 
+static volatile int s_rxq_started           = 0;                          // 再生開始済み
+static volatile size_t s_rxq_preroll_frames = (RXQ_FRAMES * 80u) / 100u;  // 既定=80%
+
+size_t AUDIO_RxQ_LevelFrames(void)
+{
+    return (size_t) (g_rxq_wr - g_rxq_rd);
+}
+size_t AUDIO_RxQ_CapacityFrames(void)
+{
+    return (size_t) RXQ_FRAMES;
+}
+void AUDIO_RxQ_ResetStart(void)
+{
+    s_rxq_started = 0;
+}
+void AUDIO_RxQ_SetPrerollPercent(uint32_t p)
+{
+    if (p > 100)
+        p = 100;
+    s_rxq_preroll_frames = (RXQ_FRAMES * p) / 100u;
+}
+
+/* クリック低減用：最後のサンプル複製（任意。簡易にゼロでもOK） */
+static inline void fill_silence(uint32_t* dst_words, size_t frames)
+{
+    /* 32bit LR（2 words/frm）をゼロで埋める簡易実装 */
+    memset(dst_words, 0, frames * 2u * sizeof(uint32_t));
+}
+
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
 size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 {
-    if (g_rxq_rd + (frames * 2) > g_rxq_wr)
+    /* 水位と容量を取得（フレーム単位） */
+    const size_t cap   = (size_t) RXQ_FRAMES;
+    const size_t level = (size_t) (g_rxq_wr - g_rxq_rd);
+
+    /* === プリロール：8割未満ならミュートで埋める（ポップしない） === */
+    if (!s_rxq_started)
     {
-#if 0
-    	if (g_rxq_rd != 0 && g_rxq_wr != 0)
+        if (level < s_rxq_preroll_frames)
         {
-            printf("rxq_rd = %lu, rxq_wr = %lu\n", g_rxq_rd, g_rxq_wr);
+            fill_silence(dst_words, frames);
+            return frames; /* ミュートで供給：上位は常に安全 */
         }
-#endif
-        return 0;
+        s_rxq_started = 1;
     }
 
-    size_t w1 = frames * 2u;
-    memcpy(dst_words, &g_rxq_buf[(g_rxq_rd % RXQ_FRAMES) * 2u], w1 * sizeof(uint32_t));
+    /* === 通常：足りなければミュート === */
+    if (level < frames)
+    {
+        fill_silence(dst_words, frames);
+        return frames;
+    }
 
-    /* commit */
+    /* === ラップ対応コピー（フレーム→words換算は *2） === */
+    const size_t rd_idx  = (size_t) (g_rxq_rd % cap);
+    const size_t first_f = (frames <= (cap - rd_idx)) ? frames : (cap - rd_idx);
+
+    memcpy(dst_words, &g_rxq_buf[rd_idx * 2u], first_f * 2u * sizeof(uint32_t));
+    if (first_f < frames)
+    {
+        const size_t remain = frames - first_f;
+        memcpy(dst_words + first_f * 2u, &g_rxq_buf[0], remain * 2u * sizeof(uint32_t));
+    }
+
+    /* コミット（rdをframes分進める） */
     __DMB();
     g_rxq_rd += frames;
     __DMB();
-
     return frames;
+#endif
 }
 /* USER CODE END PV */
 

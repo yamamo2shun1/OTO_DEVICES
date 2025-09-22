@@ -63,8 +63,8 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
-__attribute__((aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".RAM_D1"), aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -264,7 +264,7 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 
-    printf("hello.\n");
+    printf("Hello from SWO.\n");
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/

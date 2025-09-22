@@ -215,26 +215,10 @@ void USBPD_DPM_UserExecute(void const* argument)
 
     if (g_tx_safe != tx_safe_prev)
     {
-        if (g_tx_safe == 1)
-        {
-            /* ★ 前半 half を丸ごとリングからコピー（不足はゼロ埋め） */
-            uint32_t* dst = &sai_tx_buf[0];
-            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
-            {
-                tx_safe_prev = g_tx_safe;
-                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
-            }
-        }
-        else if (g_tx_safe == 2)
-        {
-            /* ★ 後半 half を丸ごとリングからコピー（不足はゼロ埋め） */
-            uint32_t* dst = &sai_tx_buf[HALF_WORDS];
-            if (AUDIO_RxQ_PopTo(dst, HALF_FRAMES) > 0)
-            {
-                tx_safe_prev = g_tx_safe;
-                clean_ll_cache(dst, HALF_WORDS * sizeof(uint32_t));
-            }
-        }
+        uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
+        (void) AUDIO_RxQ_PopTo(dst, HALF_FRAMES);                          /* ← 内部でプリロール＆不足ミュート済み */
+        clean_ll_cache(dst, (size_t) HALF_FRAMES * 2u * sizeof(uint32_t)); /* LR=2words/frm */
+        tx_safe_prev = g_tx_safe;
     }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
