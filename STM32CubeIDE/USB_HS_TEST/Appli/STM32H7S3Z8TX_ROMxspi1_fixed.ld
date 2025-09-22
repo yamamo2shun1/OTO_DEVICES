@@ -51,7 +51,8 @@ __RAM_SIZE     = 0x71C00;
 /* Memories definition */
 MEMORY
 {
-  RAM       (xrw) : ORIGIN = __RAM_BEGIN,    LENGTH = __RAM_SIZE
+  RAM_D1   (xrw) : ORIGIN = 0x24000000, LENGTH = 0x40000
+  NC_SRAM3 (xrw) : ORIGIN = 0x24040000, LENGTH = 0x20000
 
   ITCM      (xrw) : ORIGIN = 0x00000000,    LENGTH = 0x00010000
   DTCM       (rw) : ORIGIN = 0x20000000,    LENGTH = 0x00010000
@@ -158,7 +159,7 @@ SECTIONS
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
 
-  } >RAM AT> FLASH
+  } >RAM_D1 AT> FLASH
 
   /* Uninitialized data section into "RAM" Ram type memory */
   . = ALIGN(4);
@@ -174,7 +175,7 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
-  } >RAM
+  } >RAM_D1
 
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack :
@@ -189,9 +190,20 @@ SECTIONS
 
   .RAM_D1 (NOLOAD) :
   {
+    . = ALIGN(32);
     *(.RAM_D1)
     *(.RAM_D1.*)
-  } >RAM AT>RAM
+    . = ALIGN(32);
+  } >RAM_D1 AT>RAM_D1
+
+  .dma_nocache (NOLOAD) :
+  {
+    . = ALIGN(32);
+    __dma_nocache_start__ = .;
+    *(.dma_nocache) *(.dma_nocache.*)
+    . = ALIGN(32);
+    __dma_nocache_end__ = .;
+  } > NC_SRAM3
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
