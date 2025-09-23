@@ -103,6 +103,8 @@ static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
 static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
 static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
 
+__attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+
 /* Q14定義（10.14固定小数） */
 #define Q14 16384
 /* 目標水位（中央付近）：必要なら60%などにしても可 */
@@ -113,7 +115,7 @@ static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
 #define KI_NUM 1
 #define KI_DEN 32768 /* ≈ 0.00003/frame·ms */
 /* 変化量の上限（ppmガード）。例: ±0.5% = ±5000ppm なら以下を調整 */
-#define FB_PPM_LIMIT 3000 /* ±3000ppm */
+#define FB_PPM_LIMIT 2000 /* ±3000ppm */
 
 static int32_t s_fb_i         = 0; /* I項 */
 static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
@@ -168,11 +170,10 @@ void AUDIO_FB_Task_1ms(void)
     uint32_t fb_q14 = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14));
 
     /* 10.14 を 3バイトLEで送る */
-    uint8_t fb[3];
-    fb[0] = (uint8_t) (fb_q14 & 0xFF);
-    fb[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
-    fb[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-    (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, fb, 3);
+    s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
+    s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
+    s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
+    (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
 }
 
 static inline void stats_update_level(uint32_t level)
