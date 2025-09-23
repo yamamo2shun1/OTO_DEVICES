@@ -95,14 +95,110 @@ void NMI_Handler(void)
 /**
  * @brief This function handles Hard fault interrupt.
  */
-void HardFault_Handler(void)
+/* 共通：FP文脈が積まれていたら SP を標準フレーム先頭へ進める */
+static inline uint32_t* normalize_sp_for_fp(uint32_t* sp, uint32_t exc_return)
 {
+    /* EXC_RETURN bit4=0 の場合は FPコンテキスト (S0..S15, FPSCR, reserved) が先に積まれている */
+    if ((exc_return & (1u << 4)) == 0u)
+    {
+        sp = (uint32_t*) ((uint32_t) sp + (18u * 4u)); /* 18ワード = 72バイト */
+    }
+    return sp;
+}
+
+/* ===== HardFault ===== */
+static void hard_fault_c(uint32_t* sp_raw, uint32_t exc_return)
+{
+    __disable_irq();
+
+    uint32_t* sp = normalize_sp_for_fp(sp_raw, exc_return);
+
+    volatile uint32_t r0  = sp[0];
+    volatile uint32_t r1  = sp[1];
+    volatile uint32_t r2  = sp[2];
+    volatile uint32_t r3  = sp[3];
+    volatile uint32_t r12 = sp[4];
+    volatile uint32_t lr  = sp[5];
+    volatile uint32_t pc  = sp[6];
+    volatile uint32_t psr = sp[7];
+
+    volatile uint32_t cfsr  = SCB->CFSR; /* MMFSR|BFSR|UFSR */
+    volatile uint32_t hfsr  = SCB->HFSR;
+    volatile uint32_t dfsr  = SCB->DFSR;
+    volatile uint32_t afsr  = SCB->AFSR;
+    volatile uint32_t mmfar = SCB->MMFAR;
+    volatile uint32_t bfar  = SCB->BFAR;
+
+    uint8_t mmfsr = (uint8_t) (cfsr & 0xFFu);
+    uint8_t bfsr  = (uint8_t) ((cfsr >> 8) & 0xFFu);
+    uint16_t ufsr = (uint16_t) ((cfsr >> 16) & 0xFFFFu);
+
+    const char* stk_name = (exc_return & 0x4u) ? "PSP" : "MSP";
+
+    printf("\n=== HardFault ===\n");
+    printf("EXC_RETURN=0x%08lX (%s)\n", (unsigned long) exc_return, stk_name);
+    printf("SP(raw)=%p  SP(norm)=%p\n", (void*) sp_raw, (void*) sp);
+    printf("Stacked { R0=%08lX R1=%08lX R2=%08lX R3=%08lX R12=%08lX LR=%08lX PC=%08lX xPSR=%08lX }\n", (unsigned long) r0, (unsigned long) r1, (unsigned long) r2, (unsigned long) r3, (unsigned long) r12, (unsigned long) lr, (unsigned long) pc, (unsigned long) psr);
+
+    printf("CFSR=0x%08lX (MMFSR=%02X BFSR=%02X UFSR=%04X)\n", (unsigned long) cfsr, mmfsr, bfsr, ufsr);
+    printf("HFSR=0x%08lX  DFSR=0x%08lX  AFSR=0x%08lX\n", (unsigned long) hfsr, (unsigned long) dfsr, (unsigned long) afsr);
+
+    /* 有効ならアドレスも出す */
+    if (mmfsr & (1u << 7))
+        printf("MMFAR=0x%08lX (valid)\n", (unsigned long) mmfar);
+    else
+        printf("MMFAR=invalid\n");
+    if (bfsr & (1u << 7))
+        printf("BFAR =0x%08lX (valid)\n", (unsigned long) bfar);
+    else
+        printf("BFAR =invalid\n");
+
+    /* HardFaultの内訳（よく見るビット） */
+    if (hfsr & (1u << 30))
+    {
+        printf(" -> HFSR.FORCED set (下位の CFSR に根本原因あり)\n");
+    }
+    if (hfsr & (1u << 1))
+    {
+        printf(" -> HFSR.VECTTBL set (ベクタ取得中のBusFault)\n");
+    }
+
+    /* 代表的な UFSR の表示（UsageFaultがHardへエスカレートした場合の手掛かり） */
+    if (ufsr & (1u << 9))
+        printf(" -> UFSR.DIVBYZERO\n");
+    if (ufsr & (1u << 8))
+        printf(" -> UFSR.UNALIGNED\n");
+    if (ufsr & (1u << 3))
+        printf(" -> UFSR.NOCP\n");
+    if (ufsr & (1u << 2))
+        printf(" -> UFSR.INVPC\n");
+    if (ufsr & (1u << 1))
+        printf(" -> UFSR.INVSTATE\n");
+    if (ufsr & (1u << 0))
+        printf(" -> UFSR.UNDEFINSTR\n");
+
+    __BKPT(0); /* デバッガ接続時はここで止める（量産時はコメントアウト） */
+    while (1)
+    {} /* 運用によっては NVIC_SystemReset(); に置き換え */
+}
+
+void __attribute__((naked)) HardFault_Handler(void)
+{
+    __asm volatile(
+        "tst lr, #4        \n" /* EXC_RETURN bit2: 0=MSP, 1=PSP */
+        "ite eq            \n"
+        "mrseq r0, msp     \n" /* r0 = SP at fault entry */
+        "mrsne r0, psp     \n"
+        "mov   r1, lr      \n" /* r1 = EXC_RETURN */
+        "b     hard_fault_c\n");
+#if 0
     /* USER CODE BEGIN HardFault_IRQn 0 */
     volatile uint32_t cfsr  = SCB->CFSR;  // [7:0] MMFSR
     volatile uint32_t hfsr  = SCB->HFSR;
     volatile uint32_t bfar  = SCB->BFAR;
     volatile uint32_t mmfar = SCB->MMFAR;  // アドレス有効時のみ
     printf("\n[MMF] CFSR=0x%08lX HFSR=0x%08lX BFAR=0x%08lX MMFAR=0x%08lX\n", cfsr, hfsr, bfar, mmfar);
+#endif
     /* USER CODE END HardFault_IRQn 0 */
     while (1)
     {
@@ -149,10 +245,84 @@ void BusFault_Handler(void)
 /**
  * @brief This function handles Undefined instruction or illegal state.
  */
-void UsageFault_Handler(void)
+/* usage fault のスタックフレームを C 側で可視化するラッパ */
+static void usage_fault_c(uint32_t* sp, uint32_t exc_return);
+
+static void usage_fault_c(uint32_t* sp, uint32_t exc_return)
+{
+    __disable_irq(); /* 追突防止 */
+
+    /* スタックされたレジスタ（ARMv7-M の自動プッシュ順） */
+    volatile uint32_t r0  = sp[0];
+    volatile uint32_t r1  = sp[1];
+    volatile uint32_t r2  = sp[2];
+    volatile uint32_t r3  = sp[3];
+    volatile uint32_t r12 = sp[4];
+    volatile uint32_t lr  = sp[5]; /* return address in normal code */
+    volatile uint32_t pc  = sp[6]; /* 例外発生時に実行していたPC */
+    volatile uint32_t psr = sp[7];
+
+    /* フォルト関連レジスタ */
+    volatile uint32_t cfsr  = SCB->CFSR; /* [7:0]MMFSR, [15:8]BFSR, [31:16]UFSR */
+    volatile uint32_t hfsr  = SCB->HFSR;
+    volatile uint32_t dfsr  = SCB->DFSR;
+    volatile uint32_t mmfar = SCB->MMFAR; /* MMFSR.MMARVALID=1 のとき有効 */
+    volatile uint32_t bfar  = SCB->BFAR;  /* BFSR.BFARVALID=1 のとき有効 */
+    volatile uint32_t afsr  = SCB->AFSR;
+
+    /* サブフィールド（読みやすさ用） */
+    uint8_t mmfsr = (uint8_t) (cfsr & 0xFF);
+    uint8_t bfsr  = (uint8_t) ((cfsr >> 8) & 0xFF);
+    uint16_t ufsr = (uint16_t) ((cfsr >> 16) & 0xFFFF);
+
+    /* ざっくり解釈フラグ（必要に応じて追加してください） */
+    uint8_t mmfar_valid = (mmfsr & (1u << 7)) ? 1u : 0u; /* MMARVALID */
+    uint8_t bfar_valid  = (bfsr & (1u << 7)) ? 1u : 0u;  /* BFARVALID */
+
+    /* どのスタックを使っていたか（EXC_RETURN bit2） */
+    const char* stk_name = (exc_return & 0x4) ? "PSP" : "MSP";
+
+    /* ==== ログ出力 ==== */
+    printf("\n=== UsageFault ===\n");
+    printf("EXC_RETURN=0x%08lX (%s)\n", exc_return, stk_name);
+    printf("SP=%p  stacked { R0=%08lX R1=%08lX R2=%08lX R3=%08lX R12=%08lX LR=%08lX PC=%08lX xPSR=%08lX }\n", (void*) sp, r0, r1, r2, r3, r12, lr, pc, psr);
+
+    printf("CFSR=0x%08lX  (MMFSR=%02X BFSR=%02X UFSR=%04X)\n", cfsr, mmfsr, bfsr, ufsr);
+    printf("HFSR=0x%08lX  DFSR=0x%08lX  AFSR=0x%08lX\n", hfsr, dfsr, afsr);
+    printf("MMFAR=%s0x%08lX  BFAR=%s0x%08lX\n", mmfar_valid ? "" : "(invalid) ", mmfar, bfar_valid ? "" : "(invalid) ", bfar);
+
+    /* 代表的なUFSRビットの簡易表示（必要なら詳細に） */
+    if (ufsr & (1u << 9))
+        printf(" -> DIVBYZERO set\n");
+    if (ufsr & (1u << 8))
+        printf(" -> UNALIGNED set\n");
+    if (ufsr & (1u << 3))
+        printf(" -> NOCP (Coprocessor access) set\n");
+    if (ufsr & (1u << 2))
+        printf(" -> INVPC set\n");
+    if (ufsr & (1u << 1))
+        printf(" -> INVSTATE set\n");
+    if (ufsr & (1u << 0))
+        printf(" -> UNDEFINSTR set\n");
+
+    /* ここでブレークして map と突き合わせるのが定番 */
+    __BKPT(0);
+
+    /* 連続実行を止める。運用に応じて NVIC_SystemReset() 等に置換可 */
+    while (1)
+    { /* hang */
+    }
+}
+void __attribute__((naked)) UsageFault_Handler(void)
 {
     /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+    __asm volatile(
+        "tst lr, #4        \n" /* EXC_RETURN bit2: 0=MSP, 1=PSP */
+        "ite eq            \n"
+        "mrseq r0, msp     \n"
+        "mrsne r0, psp     \n"
+        "mov   r1, lr      \n" /* r1 = EXC_RETURN */
+        "b     usage_fault_c\n");
     /* USER CODE END UsageFault_IRQn 0 */
     while (1)
     {
