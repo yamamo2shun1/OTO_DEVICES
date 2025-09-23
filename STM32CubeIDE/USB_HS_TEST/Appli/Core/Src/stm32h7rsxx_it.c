@@ -113,7 +113,12 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
     /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+    volatile uint32_t cfsr  = SCB->CFSR;  // [7:0] MMFSR
+    volatile uint32_t hfsr  = SCB->HFSR;
+    volatile uint32_t mmfar = SCB->MMFAR;  // アドレス有効時のみ
+    printf("\n[MMF] CFSR=0x%08lX HFSR=0x%08lX MMFAR=0x%08lX\n", cfsr, hfsr, mmfar);
+    /* ビット例: IACCVIOL=1 命令取得違反, DACCVIOL=2 データアクセス違反,
+                 MUNSTKERR=0x08, MSTKERR=0x10, MLSPERR=0x20, MMARVALID=0x80 */
     /* USER CODE END MemoryManagement_IRQn 0 */
     while (1)
     {

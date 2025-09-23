@@ -76,6 +76,7 @@ static inline void clean_ll_cache(void* p, size_t sz)
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
 
+volatile uint32_t g_sai_ovrudr_count = 0;
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -136,6 +137,12 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
     (void) saiErr;
     (void) dmaErr;
     (void) csr;  // ブレークして値を見る
+
+    if (__HAL_SAI_GET_FLAG(hsai, SAI_FLAG_OVRUDR) != RESET)
+    {
+        g_sai_ovrudr_count++;
+        __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
+    }
 }
 /* USER CODE END 0 */
 

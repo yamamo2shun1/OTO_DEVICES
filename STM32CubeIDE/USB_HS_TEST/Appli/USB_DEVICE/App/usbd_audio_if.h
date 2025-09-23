@@ -123,6 +123,31 @@ extern "C"
     /* === USB→オーディオ受信用リング（①で使用） === */
     /* リングから最大framesぶんを取り出して dst（32bit LR連続）へ書き出す。返り値=実際に取り出したフレーム数 */
     size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames);
+
+    /* === 統計: 取得・リセット ====================================== */
+    typedef struct
+    {
+        uint32_t rxq_capacity_frames; /* リング容量（frame） */
+        uint32_t rxq_level_min;       /* 観測最小水位（frame） */
+        uint32_t rxq_level_max;       /* 観測最大水位（frame） */
+        uint32_t underrun_events;     /* アンダーラン発生回数（イベント） */
+        uint32_t underrun_frames;     /* ミュート供給した累計frame数 */
+        uint32_t overrun_events;      /* オーバーラン発生回数（イベント） */
+        uint32_t overrun_frames;      /* 破棄/上書きした累計frame数 */
+        uint32_t copy_us_last;        /* 直近のPopToコピー時間[us] */
+        uint32_t copy_us_max;         /* 観測最大コピー時間[us] */
+        uint32_t rxq_level_now;       /* 現在の水位（frame） */
+        uint32_t in_fps;              /* 直近1秒の供給フレーム/秒（USB→Ring） */
+        uint32_t out_fps;             /* 直近1秒の消費フレーム/秒（Ring→SAI） */
+        int32_t dlevel_per_s;         /* 水位の傾き（+は貯まる、-は枯れる） */
+    } AUDIO_Stats;
+
+    void AUDIO_GetStats(AUDIO_Stats* out);
+    void AUDIO_ResetStats(void);
+    /* 供給/消費カウンタの加算と1秒境界処理 */
+    void AUDIO_AddInFrames(uint32_t frames);
+    void AUDIO_AddOutFrames(uint32_t frames);
+    void AUDIO_Stats_On1sTick(void);
     /* USER CODE END EXPORTED_FUNCTIONS */
 
     /**

@@ -98,6 +98,8 @@ extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いて
 extern uint32_t sai_buf[];     // RX バッファ（main.c）
 extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 
+extern uint32_t g_sai_ovrudr_count;
+
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
 /* USER CODE END Private_Variables */
@@ -209,8 +211,24 @@ void USBPD_DPM_UserExecute(void const* argument)
     if (g_tx_safe != tx_safe_prev)
     {
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
-        (void) AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
+        size_t done   = AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
+        AUDIO_AddOutFrames((uint32_t) done);
         tx_safe_prev = g_tx_safe;
+    }
+
+    /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
+    static uint32_t s_last_log = 0;
+    uint32_t now               = HAL_GetTick();
+    if ((now - s_last_log) >= 1000u)
+    {
+        AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
+        AUDIO_Stats st;
+        AUDIO_GetStats(&st);
+        printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
+               "fps[in/out]=%u/%u, dLevel/s=%ld, "
+               "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
+               st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+        s_last_log = now;
     }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
