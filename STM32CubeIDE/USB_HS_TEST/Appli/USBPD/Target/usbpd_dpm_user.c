@@ -183,7 +183,7 @@ void USBPD_DPM_UserExecute(void const* argument)
             HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
             // printf("beep on\n");
-            AUDIO_StartBeep(1000, 500, 80);
+            // AUDIO_StartBeep(1000, 500, 80);
         }
         led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
     }
@@ -221,10 +221,10 @@ void USBPD_DPM_UserExecute(void const* argument)
     static uint32_t s_last_log = 0;
     uint32_t now               = HAL_GetTick();
 
-    /* 初期化（1回だけ）：FB EP=0x81, 1ms基準=1000, bRefresh=0(毎ms送信) */
+    /* 初期化（1回だけ）：FB EP=0x81, 1ms基準=8000, bRefresh=0(毎ms送信) */
     if (!fb_inited)
     {
-        AUDIO_FB_Config(0x81, 1000, 0); /* ← ディスクリプタのFB EPに合わせる */
+        AUDIO_FB_Config(AUDIO_FB_EP, 8000, 3); /* ← ディスクリプタのFB EPに合わせる */
         fb_inited = 1;
     }
     /* 1msごとにFBを更新（bRefreshに応じて内部で間引き） */

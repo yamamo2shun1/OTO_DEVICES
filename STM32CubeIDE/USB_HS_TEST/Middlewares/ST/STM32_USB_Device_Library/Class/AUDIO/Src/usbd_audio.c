@@ -127,6 +127,8 @@ static void* USBD_AUDIO_GetAudioHeaderDesc(uint8_t* pConfDesc);
 
 extern int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len);
 
+extern uint8_t s_fb_ep;
+
 static uint8_t mic_packet[AUDIO_IN_PACKET];
 /**
  * @}
@@ -355,7 +357,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x03,
         0x00,               /* wMaxPacketSize = 3 bytes (HS:10.14) */
         AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
-        0x00,               /* bRefresh (未使用) */
+        0x03,               /* bRefresh (未使用) */
         0x00,               /* bSynchAddress=0 */
                             /* 09 byte(151) */
 
@@ -771,6 +773,13 @@ static uint8_t* USBD_AUDIO_GetCfgDesc(uint16_t* length)
  */
 static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
 {
+    extern USBD_HandleTypeDef hUsbDeviceHS;
+    USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
+    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
+        return (uint8_t) USBD_FAIL;
+    if (!ep->is_used || ep->maxpacket == 0)
+        return (uint8_t) USBD_FAIL;
+
     if ((epnum & 0x0F) == (AUDIOInEpAdd & 0x0F))
     {
         (void) AUDIO_Mic_GetPacket(mic_packet, AUDIO_IN_PACKET);
@@ -834,6 +843,13 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  */
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
+    extern USBD_HandleTypeDef hUsbDeviceHS;
+    USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
+    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
+        return (uint8_t) USBD_FAIL;
+    if (!ep->is_used || ep->maxpacket == 0)
+        return (uint8_t) USBD_FAIL;
+
     // UNUSED(pdev);
     USBD_AUDIO_HandleTypeDef* haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
     if (!haudio)
