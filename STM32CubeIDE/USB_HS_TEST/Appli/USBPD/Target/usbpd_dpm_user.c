@@ -172,6 +172,7 @@ void USBPD_DPM_UserExecute(void const* argument)
 {
     /* USER CODE BEGIN USBPD_DPM_UserExecute */
     static uint8_t tx_safe_prev = 0;
+    static uint8_t fb_inited    = 0;
 
     if (led_toggle_counter0 == 0)
     {
@@ -219,6 +220,21 @@ void USBPD_DPM_UserExecute(void const* argument)
     /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
     static uint32_t s_last_log = 0;
     uint32_t now               = HAL_GetTick();
+
+    /* 初期化（1回だけ）：FB EP=0x81, 1ms基準=1000, bRefresh=0(毎ms送信) */
+    if (!fb_inited)
+    {
+        AUDIO_FB_Config(0x81, 1000, 0); /* ← ディスクリプタのFB EPに合わせる */
+        fb_inited = 1;
+    }
+    /* 1msごとにFBを更新（bRefreshに応じて内部で間引き） */
+    static uint32_t last_ms = 0;
+    if (now != last_ms)
+    {
+        AUDIO_FB_Task_1ms();
+        last_ms = now;
+    }
+
     if ((now - s_last_log) >= 1000u)
     {
         AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */

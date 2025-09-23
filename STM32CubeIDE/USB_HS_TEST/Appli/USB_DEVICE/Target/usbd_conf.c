@@ -438,6 +438,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef* pdev)
         /* USER CODE BEGIN USB_HS_FIFO_Configuration */
         HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_HS, 0x200);
         HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, 0, 0x80);
+        HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, (AUDIO_FB_EP & 0x0F), 0x40);
         HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_HS, (AUDIO_IN_EP & 0x0F), 0x200);
         /* USER CODE END USB_HS_FIFO_Configuration */
     }
@@ -508,11 +509,11 @@ USBD_StatusTypeDef USBD_LL_OpenEP(USBD_HandleTypeDef* pdev, uint8_t ep_addr, uin
     HAL_StatusTypeDef hal_status  = HAL_OK;
     USBD_StatusTypeDef usb_status = USBD_OK;
 
-  hal_status = HAL_PCD_EP_Open(pdev->pData, ep_addr, ep_mps, ep_type);
-  if(hal_status!=HAL_OK)
-  {
-	  __BKPT(0);
-  }
+    hal_status = HAL_PCD_EP_Open(pdev->pData, ep_addr, ep_mps, ep_type);
+    if (hal_status != HAL_OK)
+    {
+        __BKPT(0);
+    }
 
     usb_status = USBD_Get_USB_Status(hal_status);
 

@@ -35,6 +35,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+extern USBD_HandleTypeDef hUsbDeviceHS;
 extern SAI_HandleTypeDef hsai_BlockA2;
 extern uint32_t sai_tx_buf[];  // main.c 側で定義済み
 extern volatile uint8_t g_tx_safe;
@@ -95,6 +96,84 @@ static volatile uint32_t s_in_fps = 0, s_out_fps = 0;
 static volatile uint32_t s_level_now  = 0;
 static volatile int32_t s_dlevel_ps   = 0;
 static volatile uint32_t s_prev_level = 0;
+
+/* === 10.14 Feedback servo ================================================= */
+static uint8_t s_fb_ep         = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
+static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
+static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
+static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
+
+/* Q14定義（10.14固定小数） */
+#define Q14 16384
+/* 目標水位（中央付近）：必要なら60%などにしても可 */
+#define RXQ_TARGET_FRAMES (RXQ_FRAMES / 2u)
+/* P/I ゲイン（保守的）：誤差1frameあたりの微調整をごく小さく */
+#define KP_NUM 1
+#define KP_DEN 2048 /* ≈ 0.00049 */
+#define KI_NUM 1
+#define KI_DEN 32768 /* ≈ 0.00003/frame·ms */
+/* 変化量の上限（ppmガード）。例: ±0.5% = ±5000ppm なら以下を調整 */
+#define FB_PPM_LIMIT 3000 /* ±3000ppm */
+
+static int32_t s_fb_i         = 0; /* I項 */
+static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
+
+static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
+{
+    return (v < lo) ? lo : (v > hi ? hi : v);
+}
+static inline int32_t clamp_s32(int32_t v, int32_t lo, int32_t hi)
+{
+    return (v < lo) ? lo : (v > hi ? hi : v);
+}
+
+void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefresh_pow2)
+{
+    s_fb_ep        = fb_ep_addr;
+    s_fb_units_sec = (units_per_sec == 0) ? 1000 : units_per_sec;
+    s_fb_bref_pow2 = brefresh_pow2;
+    /* 基準（10.14）: “1単位あたりのフレーム数”<<14 */
+    /* 例：48kHz×1ms→48, 48kHz×125us→6 */
+    uint32_t base_units = USBD_AUDIO_FREQ / s_fb_units_sec;
+    s_fb_base_q14       = base_units << 14;
+    s_fb_i              = 0;
+}
+
+void AUDIO_FB_Task_1ms(void)
+{
+    extern USBD_HandleTypeDef hUsbDeviceHS;
+    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
+        return;
+    if (!hUsbDeviceHS.ep_in[s_fb_ep & 0xF].is_used)
+        return;
+
+    /* bRefreshに合わせて送出周期を間引く（1ms基準） */
+    if ((s_fb_ticker++ & ((1u << s_fb_bref_pow2) - 1u)) != 0u)
+        return;
+
+    /* 再生未開始（プリロール中）は“基準値”のまま静かに出す */
+    const uint32_t level = s_level_now;                                   /* 直近の水位（Stats側で更新済み） */
+    int32_t e            = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level; /* +:貯めたい, -:減らしたい */
+
+    /* PIサーボ（非常に弱めのゲイン） */
+    s_fb_i += e;
+    int64_t p_q14     = ((int64_t) e * KP_NUM * Q14) / (KP_DEN * (int64_t) s_fb_units_sec);
+    int64_t i_q14     = ((int64_t) s_fb_i * KI_NUM * Q14) / (KI_DEN * (int64_t) s_fb_units_sec);
+    int32_t delta_q14 = (int32_t) (p_q14 + i_q14); /* “単位あたり”の増減 in 10.14 */
+
+    /* ±ppm制限：48kHzで±3000ppm ≈ ±144frames/s → 1ms基準で ±0.144frame/ms → 10.14で約 ±2362 */
+    int32_t ppm_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * FB_PPM_LIMIT / 1000000) * Q14 / (int64_t) s_fb_units_sec);
+    delta_q14       = clamp_s32(delta_q14, -ppm_q14, ppm_q14);
+
+    uint32_t fb_q14 = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14));
+
+    /* 10.14 を 3バイトLEで送る */
+    uint8_t fb[3];
+    fb[0] = (uint8_t) (fb_q14 & 0xFF);
+    fb[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
+    fb[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
+    (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, fb, 3);
+}
 
 static inline void stats_update_level(uint32_t level)
 {
