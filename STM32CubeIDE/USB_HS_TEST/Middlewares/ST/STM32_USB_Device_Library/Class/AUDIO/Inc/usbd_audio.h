@@ -122,8 +122,8 @@ extern "C"
     #define AUDIO_OUT_TC 0x01U
     #define AUDIO_IN_TC  0x02U
 
-    #define AUDIO_OUT_PACKET     (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
-    #define AUDIO_IN_PACKET      (uint16_t) (((USBD_AUDIO_FREQ * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U))
+    #define AUDIO_OUT_PACKET     (uint16_t) ((USBD_AUDIO_FREQ / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
+    #define AUDIO_IN_PACKET      (uint16_t) ((USBD_AUDIO_FREQ / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
     #define AUDIO_DEFAULT_VOLUME 70U
 
     /* Number of sub-packets in the audio transfer buffer. You can modify this value but always make sure

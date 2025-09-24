@@ -92,8 +92,12 @@ EndBSPDependencies */
 #define AUDIO_SAMPLE_FREQ(frq) \
     (uint8_t) (frq), (uint8_t) ((frq >> 8)), (uint8_t) ((frq >> 16))
 
-#define AUDIO_PACKET_SZE(frq) \
+#define AUDIO_PACKET_SIZE(frq) \
     (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) >> 8) & 0xFFU)
+
+#define AUDIO_PACKET_SIZE_MAX(frq)                                                             \
+    (uint8_t) (((frq / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) & 0xFFU), \
+        (uint8_t) ((((frq / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
     #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
@@ -331,14 +335,14 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
                                             /* 11 byte(126)*/
 
         /* Endpoint 1 - Standard Descriptor */
-        AUDIO_STANDARD_ENDPOINT_DESC_SIZE, /* bLength */
-        USB_DESC_TYPE_ENDPOINT,            /* bDescriptorType */
-        AUDIO_OUT_EP,                      /* bEndpointAddress 1 out endpoint */
-        0x05,                              /* bmAttributes */
-        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(HalfWord)) */
-        AUDIO_HS_BINTERVAL,                /* bInterval */
-        0x00,                              /* bRefresh */
-        AUDIO_FB_EP,                       /* bSynchAddress */
+        AUDIO_STANDARD_ENDPOINT_DESC_SIZE,      /* bLength */
+        USB_DESC_TYPE_ENDPOINT,                 /* bDescriptorType */
+        AUDIO_OUT_EP,                           /* bEndpointAddress 1 out endpoint */
+        0x05,                                   /* bmAttributes */
+        AUDIO_PACKET_SIZE_MAX(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(HalfWord)) */
+        AUDIO_HS_BINTERVAL,                     /* bInterval */
+        0x00,                                   /* bRefresh */
+        AUDIO_FB_EP,                            /* bSynchAddress */
         /* 09 byte(135)*/
 
         /* Endpoint - Audio Streaming Descriptor */
@@ -400,13 +404,13 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         /* 11 byte(187)*/
 
         /* Std ISO Endpoint (IN) 0x81, Async (0x05), 1ms, 288B */
-        0x09, 0x05,                        /* ENDPOINT */
-        AUDIO_IN_EP,                       /* bEndpointAddress = 0x81 (IN) */
-        0x05,                              /* bmAttributes = Isochronous | Asynchronous | Data */
-        AUDIO_PACKET_SZE(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(Word)) */
-        AUDIO_HS_BINTERVAL,                /* bInterval */
-        0x00,                              /* bRefresh */
-        0x00,                              /* bSynchAddress */
+        0x09, 0x05,                             /* ENDPOINT */
+        AUDIO_IN_EP,                            /* bEndpointAddress = 0x81 (IN) */
+        0x05,                                   /* bmAttributes = Isochronous | Asynchronous | Data */
+        AUDIO_PACKET_SIZE_MAX(USBD_AUDIO_FREQ), /* wMaxPacketSize in Bytes (Freq(Samples)*2(Stereo)*3(Word)) */
+        AUDIO_HS_BINTERVAL,                     /* bInterval */
+        0x00,                                   /* bRefresh */
+        0x00,                                   /* bSynchAddress */
         /* 09 byte(196)*/
 
         /* CS ISO Endpoint (IN) */
@@ -875,11 +879,7 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 
     /* === ここから追加：Feedback(10.14) を毎ms送る ===
            まずは “一定48k” でホストの追従が効くことを確認する */
-    uint32_t fb_q14 = (uint32_t) (((uint64_t) USBD_AUDIO_FREQ << 14) / 1000u);  // 1ms単位
-    s_fb_pkt[0]     = (uint8_t) (fb_q14 & 0xFF);
-    s_fb_pkt[1]     = (uint8_t) ((fb_q14 >> 8) & 0xFF);
-    s_fb_pkt[2]     = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-    (void) USBD_LL_Transmit(pdev, AUDIOFbEpAdd, s_fb_pkt, 3);
+    AUDIO_FB_Task_1ms();
 
     return (uint8_t) USBD_OK;
 }
