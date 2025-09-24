@@ -129,6 +129,8 @@ extern int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len);
 
 extern uint8_t s_fb_ep;
 
+__attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+
 static uint8_t mic_packet[AUDIO_IN_PACKET];
 /**
  * @}
@@ -357,7 +359,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x03,
         0x00,               /* wMaxPacketSize = 3 bytes (HS:10.14) */
         AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
-        0x03,               /* bRefresh (未使用) */
+        0x00,               /* bRefresh (未使用) */
         0x00,               /* bSynchAddress=0 */
                             /* 09 byte(151) */
 
@@ -684,6 +686,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
                     USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 3);  // 3 bytes
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used = 1U;
+
+                    AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
                 }
                 else
                 {
@@ -868,6 +872,14 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 
         printf("first transmit.\n");
     }
+
+    /* === ここから追加：Feedback(10.14) を毎ms送る ===
+           まずは “一定48k” でホストの追従が効くことを確認する */
+    uint32_t fb_q14 = (uint32_t) (((uint64_t) USBD_AUDIO_FREQ << 14) / 1000u);  // 1ms単位
+    s_fb_pkt[0]     = (uint8_t) (fb_q14 & 0xFF);
+    s_fb_pkt[1]     = (uint8_t) ((fb_q14 >> 8) & 0xFF);
+    s_fb_pkt[2]     = (uint8_t) ((fb_q14 >> 16) & 0xFF);
+    (void) USBD_LL_Transmit(pdev, AUDIOFbEpAdd, s_fb_pkt, 3);
 
     return (uint8_t) USBD_OK;
 }
