@@ -117,8 +117,19 @@ __attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4
 /* 変化量の上限（ppmガード）。例: ±0.5% = ±5000ppm なら以下を調整 */
 #define FB_PPM_LIMIT 1000 /* ±3000ppm */
 
-static int32_t s_fb_i         = 0; /* I項 */
+#define DEADBAND_FRAMES   24                        /* 誤差この範囲は0扱い（ノイズ無視） */
+#define LOW_WATER_FRAMES  (RXQ_FRAMES * 20u / 100u) /* 20% 未満で増量モードON */
+#define HIGH_WATER_FRAMES (RXQ_FRAMES * 35u / 100u) /* 35% 超でOFF（ヒステリシス） */
+#define BOOST_PPM         600                       /* 低水位ブーストの下限 +0.06% */
+#define SLEW_DOWN_DIV     8                         /* 減速側のスルー制限：ppm/8/ms 相当 */
+
+static int32_t s_fb_i              = 0; /* I項 */
+static int32_t s_fb_delta_q14_prev = 0; /* ← 追加：前回の増減（10.14） */
+static uint8_t s_low_water_mode    = 0; /* ← 追加：低水位ブースト中フラグ */
+
 static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
+
+static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
 
 static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
 {
@@ -155,7 +166,7 @@ void AUDIO_FB_Task_1ms(void)
         return;
 
     /* 再生未開始（プリロール中）は“基準値”のまま静かに出す */
-    const uint32_t level = s_level_now;
+    const uint32_t level = AUDIO_RxQ_LevelFrames();
     if (!s_rxq_started)
     {
         s_fb_i = 0;
@@ -167,14 +178,21 @@ void AUDIO_FB_Task_1ms(void)
         (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
         return;
     }
-    int32_t e = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level; /* +:貯めたい, -:減らしたい */
 
+    /* --- 誤差計算（デッドバンド付き） --- */
+    int32_t e = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level;
+    if (e > -DEADBAND_FRAMES && e < DEADBAND_FRAMES)
+    {
+        e = 0;
+    }
+
+#if 0
     /* PIサーボ（非常に弱めのゲイン） */
     s_fb_i += e;
     /* ---- Zero-div guards ---- */
-#if (KP_DEN == 0) || (KI_DEN == 0)
-    #error "KP_DEN / KI_DEN must be non-zero"
-#endif
+    #if (KP_DEN == 0) || (KI_DEN == 0)
+        #error "KP_DEN / KI_DEN must be non-zero"
+    #endif
     if (s_fb_units_sec == 0)
         return; /* mis-config guard */
     int64_t p_q14     = ((int64_t) e * KP_NUM * Q14) / (KP_DEN * (int64_t) s_fb_units_sec);
@@ -195,6 +213,61 @@ void AUDIO_FB_Task_1ms(void)
     {
         /* skip: 次回に最新値を送る */
     }
+#else
+    /*-- -I項の更新＋アンチワインドアップ-- - */
+    s_fb_i += e;
+    /* I項の上限：ppm上限に対応する∑eの範囲に丸める */
+    int32_t ppm_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * FB_PPM_LIMIT / 1000000) * (int64_t) Q14 / (int64_t) s_fb_units_sec);
+    /* ∑e の許容幅 ≈ (ppm_q14 * KI_DEN * units) / (KI_NUM * Q14) */
+    int32_t i_cap = (int32_t) (((int64_t) ppm_q14 * (int64_t) KI_DEN * (int64_t) s_fb_units_sec) / ((int64_t) KI_NUM * (int64_t) Q14));
+    if (s_fb_i > i_cap)
+        s_fb_i = i_cap;
+    if (s_fb_i < -i_cap)
+        s_fb_i = -i_cap;
+
+    /* --- P/I 計算（10.14, 1ms基準） --- */
+    int64_t p_q14     = ((int64_t) e * KP_NUM * Q14) / ((int64_t) KP_DEN * (int64_t) s_fb_units_sec);
+    int64_t i_q14     = ((int64_t) s_fb_i * KI_NUM * Q14) / ((int64_t) KI_DEN * (int64_t) s_fb_units_sec);
+    int32_t delta_q14 = (int32_t) (p_q14 + i_q14);
+
+    /* --- 低水位ブースト（ヒステリシス） --- */
+    if (!s_low_water_mode && level <= LOW_WATER_FRAMES)
+        s_low_water_mode = 1;
+    else if (s_low_water_mode && level >= HIGH_WATER_FRAMES)
+        s_low_water_mode = 0;
+
+    if (s_low_water_mode)
+    {
+        /* 下限ブースト（常に+BOOST_PPM 以上に） */
+        int32_t boost_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * BOOST_PPM / 1000000) * (int64_t) Q14 / (int64_t) s_fb_units_sec);
+        if (delta_q14 < boost_q14)
+            delta_q14 = boost_q14;
+    }
+
+    /* --- 片側スルー制限（上げ＝迅速／下げ＝ゆっくり） --- */
+    int32_t slew_up   = ppm_q14;                 /* 上げは上限までOK */
+    int32_t slew_down = ppm_q14 / SLEW_DOWN_DIV; /* 下げはゆっくり */
+    int32_t up_limit  = s_fb_delta_q14_prev + slew_up;
+    int32_t dn_limit  = s_fb_delta_q14_prev - slew_down;
+    if (delta_q14 > up_limit)
+        delta_q14 = up_limit;
+    if (delta_q14 < dn_limit)
+        delta_q14 = dn_limit;
+
+    /* --- ±ppm クランプ＆FB作成 --- */
+    if (delta_q14 > ppm_q14)
+        delta_q14 = ppm_q14;
+    if (delta_q14 < -ppm_q14)
+        delta_q14 = -ppm_q14;
+
+    uint32_t fb_q14     = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14 + 1000));
+    s_fb_delta_q14_prev = delta_q14;
+
+    s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
+    s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
+    s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
+    (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+#endif
 }
 
 static inline void stats_update_level(uint32_t level)
@@ -259,6 +332,9 @@ void AUDIO_Stats_On1sTick(void)
     s_in_accum  = 0;
     s_out_fps   = s_out_accum;
     s_out_accum = 0;
+
+    // printf("[AUDIO] pkt_hist(fr/ms): 47=%lu 48=%lu 49=%lu\n", (unsigned long) s_hist47, (unsigned long) s_hist48, (unsigned long) s_hist49);
+    // s_hist47 = s_hist48 = s_hist49 = 0;
 }
 
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
@@ -628,6 +704,14 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
     /* 供給フレーム数を記録（1回の呼び出しで 'frames' 供給） */
     AUDIO_AddInFrames(frames);
 
+#if 0
+    if (frames == 47)
+        ++s_hist47;
+    else if (frames == 48)
+        ++s_hist48;
+    else if (frames == 49)
+        ++s_hist49;
+#endif
     return (USBD_OK);
     /* USER CODE END 14 */
 }
