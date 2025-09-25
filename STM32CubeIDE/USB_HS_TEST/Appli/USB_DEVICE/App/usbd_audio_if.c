@@ -235,18 +235,6 @@ void AUDIO_FB_Task_1ms(void)
     s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
     s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
     //(void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
-    g_fb_tx_req++;
-    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
-    {
-        s_fb_busy = 1; /* ★ 送出中に立てる（ACKで必ず落とす） */
-        g_fb_tx_ok++;
-    }
-    else
-    {
-        /* BUSYなど。次SOFに回す */
-        g_fb_tx_busy++;
-        return;
-    }
 
 #if 1
     static uint32_t last_ms;
@@ -276,6 +264,19 @@ void AUDIO_FB_Task_1ms(void)
         return;
     }
 #endif
+
+    g_fb_tx_req++;
+    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    {
+        s_fb_busy = 1; /* ★ 送出中に立てる（ACKで必ず落とす） */
+        g_fb_tx_ok++;
+    }
+    else
+    {
+        /* BUSYなど。次SOFに回す */
+        g_fb_tx_busy++;
+        return;
+    }
 }
 
 static inline void stats_update_level(uint32_t level)
