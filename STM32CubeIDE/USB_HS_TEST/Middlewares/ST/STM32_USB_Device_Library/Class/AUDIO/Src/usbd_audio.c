@@ -63,6 +63,8 @@ EndBSPDependencies */
 #include "usbd_audio.h"
 #include "usbd_ctlreq.h"
 
+#include "usbd_audio_if.h"
+
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
  * @{
  */
@@ -691,6 +693,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 3);  // 3 bytes
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used = 1U;
 
+                    printf("[FB:Open] is_used=%d, maxpacket=%d\n", pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used, pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket);
+
                     AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
                 }
                 else
@@ -854,9 +858,13 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
     extern USBD_HandleTypeDef hUsbDeviceHS;
     USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
     if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
-        return (uint8_t) USBD_FAIL;
+    {
+        return (uint8_t) USBD_OK;
+    }
     if (!ep->is_used || ep->maxpacket == 0)
-        return (uint8_t) USBD_FAIL;
+    {
+        return (uint8_t) USBD_OK;
+    }
 
     // UNUSED(pdev);
     USBD_AUDIO_HandleTypeDef* haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
