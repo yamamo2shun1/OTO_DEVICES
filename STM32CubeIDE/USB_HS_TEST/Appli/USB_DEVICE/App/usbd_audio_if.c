@@ -132,7 +132,7 @@ static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→
 // static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
 
 static uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_ack, g_fb_tx_busy, g_fb_ms_last;
-uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
+volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
 
 static inline uint8_t FB_EP_IDX(void)
 {
@@ -162,6 +162,23 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(void)
 {
+    /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
+    static uint8_t s_fb_first = 1;
+    if (s_fb_first)
+    {
+        s_fb_busy  = 0;
+        s_fb_first = 0;
+    }
+
+    /* ★ マイクロフレーム 8回に1回だけ送る（bInterval=4 = 1ms） */
+    static uint8_t uf_mod8;
+    uf_mod8 = (uint8_t) ((uf_mod8 + 1) & 0x07);
+    if (uf_mod8 != 0)
+    {
+        /* ここでは計測用にスキップを数えない（busy_skipは busy の時だけ増やす） */
+        return;
+    }
+
     extern USBD_HandleTypeDef hUsbDeviceHS;
     USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
     if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)

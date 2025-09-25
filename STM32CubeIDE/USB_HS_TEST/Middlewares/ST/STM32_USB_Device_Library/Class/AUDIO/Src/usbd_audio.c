@@ -706,6 +706,9 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     printf("[FB:Open] is_used=%d, maxpacket=%d\n", pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used, pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket);
 
                     AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
+
+                    s_fb_busy = 0;                             /* ★ busy解除 */
+                    (void) USBD_LL_FlushEP(pdev, AUDIO_FB_EP); /* ★ 残データ掃除 */
                 }
                 else
                 {
@@ -715,6 +718,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     USBD_LL_CloseEP(pdev, AUDIOFbEpAdd);
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used   = 0U;
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket = 0U;
+
+                    s_fb_busy = 0; /* ★ busy解除 */
                 }
             }
 
