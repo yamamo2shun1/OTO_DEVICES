@@ -129,7 +129,15 @@ static uint8_t s_low_water_mode    = 0; /* ← 追加：低水位ブースト中
 
 static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
 
-static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
+// static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
+
+static uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_ack, g_fb_tx_busy, g_fb_ms_last;
+uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
+
+static inline uint8_t FB_EP_IDX(void)
+{
+    return (uint8_t) (s_fb_ep & 0x0F);
+}
 
 static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
 {
@@ -226,7 +234,19 @@ void AUDIO_FB_Task_1ms(void)
     s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
     s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
     s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-    (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+    //(void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+    g_fb_tx_req++;
+    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    {
+        s_fb_busy = 1; /* ★ 送出中に立てる（ACKで必ず落とす） */
+        g_fb_tx_ok++;
+    }
+    else
+    {
+        /* BUSYなど。次SOFに回す */
+        g_fb_tx_busy++;
+        return;
+    }
 
 #if 1
     static uint32_t last_ms;
@@ -234,7 +254,8 @@ void AUDIO_FB_Task_1ms(void)
     if (now - last_ms >= 1000)
     {
         last_ms = now;
-        // printf("[FB] 10.14=0x%06lX (bytes=%02X %02X %02X)\n", (unsigned long) fb_q14, s_fb_pkt[0], s_fb_pkt[1], s_fb_pkt[2]);
+    #if 0
+        printf("[FB] 10.14=0x%06lX (bytes=%02X %02X %02X)\n", (unsigned long) fb_q14, s_fb_pkt[0], s_fb_pkt[1], s_fb_pkt[2]);
 
         AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
         AUDIO_Stats st;
@@ -243,6 +264,16 @@ void AUDIO_FB_Task_1ms(void)
                "fps[in/out]=%u/%u, dLevel/s=%ld, "
                "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
                st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+    #endif
+        printf("[FB:rate] req=%lu ok=%lu ack=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
+        g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_tx_busy = 0;
+    }
+
+    /* busy中は送らない（BUSY連打で間引かれるのを防ぐ） */
+    if (s_fb_busy)
+    {
+        g_fb_tx_busy++;
+        return;
     }
 #endif
 }
