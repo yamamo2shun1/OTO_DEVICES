@@ -691,7 +691,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                         pdev->ep_in[AUDIOFbEpAdd & 0xF].bInterval = AUDIO_FS_BINTERVAL;
 
                     USBD_LL_OpenEP(pdev, AUDIOFbEpAdd, USBD_EP_TYPE_ISOC, 3);  // 3 bytes
-                    pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used = 1U;
+                    pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used   = 1U;
+                    pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket = 3U;
 
                     printf("[FB:Open] is_used=%d, maxpacket=%d\n", pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used, pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket);
 
@@ -703,7 +704,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     USBD_LL_FlushEP(pdev, AUDIOOutEpAdd);
 
                     USBD_LL_CloseEP(pdev, AUDIOFbEpAdd);
-                    pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used = 0U;
+                    pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used   = 0U;
+                    pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket = 0U;
                 }
             }
 
