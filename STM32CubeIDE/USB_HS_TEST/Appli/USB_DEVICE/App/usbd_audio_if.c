@@ -161,7 +161,7 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
     s_fb_i              = 0;
 }
 
-void AUDIO_FB_Task_1ms(void)
+void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
     /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
     static uint8_t s_fb_first = 1;
@@ -180,11 +180,10 @@ void AUDIO_FB_Task_1ms(void)
         return;
     }
 
-    extern USBD_HandleTypeDef hUsbDeviceHS;
-    USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
-    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
+    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
+    if (pdev->dev_state != USBD_STATE_CONFIGURED)
         return;
-    if (!ep->is_used || ep->maxpacket == 0)
+    if (!ep.is_used || ep.maxpacket == 0)
         return;
 
     /* bRefreshに合わせて送出周期を間引く（1ms基準） */
@@ -284,7 +283,7 @@ void AUDIO_FB_Task_1ms(void)
 #endif
 
     g_fb_tx_req++;
-    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
     {
         s_fb_busy = 1; /* ★ 送出中に立てる（ACKで必ず落とす） */
         g_fb_tx_ok++;

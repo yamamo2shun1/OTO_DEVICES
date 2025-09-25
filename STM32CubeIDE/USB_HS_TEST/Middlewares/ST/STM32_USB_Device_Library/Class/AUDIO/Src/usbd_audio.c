@@ -880,13 +880,12 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  */
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
-    extern USBD_HandleTypeDef hUsbDeviceHS;
-    USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
-    if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
+    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
+    if (pdev->dev_state != USBD_STATE_CONFIGURED)
     {
         return (uint8_t) USBD_OK;
     }
-    if (!ep->is_used || ep->maxpacket == 0)
+    if (!ep.is_used || ep.maxpacket == 0)
     {
         return (uint8_t) USBD_OK;
     }
@@ -912,7 +911,7 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 
     /* === ここから追加：Feedback(10.14) を毎ms送る ===
            まずは “一定48k” でホストの追従が効くことを確認する */
-    AUDIO_FB_Task_1ms();
+    AUDIO_FB_Task_1ms(pdev);
 
     return (uint8_t) USBD_OK;
 }
@@ -1004,12 +1003,12 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
         // printf("incomplete...\n");
     }
 
-    if ((epnum & 0x0F) == FB_EP_IDX_)
+    if ((epnum & 0x0F) == (AUDIOFbEpAdd & 0x0F))
     {
         s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
         g_fb_incomp++;
         /* 必要なら一度だけフラッシュ（頻発させないこと） */
-        /* USBD_LL_FlushEP(pdev, AUDIO_FB_EP); */
+        /* USBD_LL_FlushEP(pdev, AUDIOFbEpAdd); */
     }
 
     return (uint8_t) USBD_OK;
