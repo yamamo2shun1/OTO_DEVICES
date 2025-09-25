@@ -138,6 +138,7 @@ extern uint8_t s_fb_ep;
 /* FB送信 ACK カウンタ（if側から参照） */
 volatile uint32_t g_fb_ack;
 extern uint8_t s_fb_busy; /* if側のフラグを参照 */
+extern uint32_t g_fb_incomp;
 #ifdef AUDIO_FB_EP
     #define FB_EP_IDX_ (AUDIO_FB_EP & 0x0F)
 #else
@@ -1001,6 +1002,14 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
         (void) USBD_LL_Transmit(pdev, AUDIOInEpAdd, mic_packet, AUDIO_IN_PACKET);
 
         // printf("incomplete...\n");
+    }
+
+    if ((epnum & 0x0F) == FB_EP_IDX_)
+    {
+        s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
+        g_fb_incomp++;
+        /* 必要なら一度だけフラッシュ（頻発させないこと） */
+        /* USBD_LL_FlushEP(pdev, AUDIO_FB_EP); */
     }
 
     return (uint8_t) USBD_OK;
