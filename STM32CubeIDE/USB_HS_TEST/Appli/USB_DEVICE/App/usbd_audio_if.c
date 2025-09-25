@@ -165,55 +165,14 @@ void AUDIO_FB_Task_1ms(void)
     if ((s_fb_ticker++ & ((1u << s_fb_bref_pow2) - 1u)) != 0u)
         return;
 
-    /* 再生未開始（プリロール中）は“基準値”のまま静かに出す */
-    const uint32_t level = AUDIO_RxQ_LevelFrames();
-    if (!s_rxq_started)
-    {
-        s_fb_i = 0;
-        /* 48k → 基準は 6.0000 (10.14) */
-        uint32_t fb_q14 = s_fb_base_q14;
-        s_fb_pkt[0]     = (uint8_t) (fb_q14 & 0xFF);
-        s_fb_pkt[1]     = (uint8_t) ((fb_q14 >> 8) & 0xFF);
-        s_fb_pkt[2]     = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-        (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
-        return;
-    }
-
     /* --- 誤差計算（デッドバンド付き） --- */
-    int32_t e = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level;
+    const uint32_t level = AUDIO_RxQ_LevelFrames();
+    int32_t e            = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level;
     if (e > -DEADBAND_FRAMES && e < DEADBAND_FRAMES)
     {
         e = 0;
     }
 
-#if 0
-    /* PIサーボ（非常に弱めのゲイン） */
-    s_fb_i += e;
-    /* ---- Zero-div guards ---- */
-    #if (KP_DEN == 0) || (KI_DEN == 0)
-        #error "KP_DEN / KI_DEN must be non-zero"
-    #endif
-    if (s_fb_units_sec == 0)
-        return; /* mis-config guard */
-    int64_t p_q14     = ((int64_t) e * KP_NUM * Q14) / (KP_DEN * (int64_t) s_fb_units_sec);
-    int64_t i_q14     = ((int64_t) s_fb_i * KI_NUM * Q14) / (KI_DEN * (int64_t) s_fb_units_sec);
-    int32_t delta_q14 = (int32_t) (p_q14 + i_q14); /* “単位あたり”の増減 in 10.14 */
-
-    /* ±ppm制限：48kHzで±3000ppm ≈ ±144frames/s → 1ms基準で ±0.144frame/ms → 10.14で約 ±2362 */
-    int32_t ppm_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * FB_PPM_LIMIT / 1000000) * (int64_t) Q14 / (int64_t) s_fb_units_sec);
-    delta_q14       = clamp_s32(delta_q14, -ppm_q14, ppm_q14);
-
-    uint32_t fb_q14 = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14));
-
-    /* 10.14 を 3バイトLEで送る */
-    s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
-    s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
-    s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_BUSY)
-    {
-        /* skip: 次回に最新値を送る */
-    }
-#else
     /*-- -I項の更新＋アンチワインドアップ-- - */
     s_fb_i += e;
     /* I項の上限：ppm上限に対応する∑eの範囲に丸める */
@@ -260,13 +219,31 @@ void AUDIO_FB_Task_1ms(void)
     if (delta_q14 < -ppm_q14)
         delta_q14 = -ppm_q14;
 
-    uint32_t fb_q14     = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14 + 1000));
+    uint32_t fb_q14 = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14 + 1000));
+    // uint32_t fb_q14     = s_fb_base_q14;
     s_fb_delta_q14_prev = delta_q14;
 
     s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
     s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
     s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
     (void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+
+#if 1
+    static uint32_t last_ms;
+    const uint32_t now = HAL_GetTick();
+    if (now - last_ms >= 1000)
+    {
+        last_ms = now;
+        // printf("[FB] 10.14=0x%06lX (bytes=%02X %02X %02X)\n", (unsigned long) fb_q14, s_fb_pkt[0], s_fb_pkt[1], s_fb_pkt[2]);
+
+        AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
+        AUDIO_Stats st;
+        AUDIO_GetStats(&st);
+        printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
+               "fps[in/out]=%u/%u, dLevel/s=%ld, "
+               "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
+               st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+    }
 #endif
 }
 

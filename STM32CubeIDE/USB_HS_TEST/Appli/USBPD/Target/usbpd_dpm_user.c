@@ -217,6 +217,7 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 
     /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
+#if 0
     static uint32_t s_last_log = 0;
     uint32_t now               = HAL_GetTick();
 
@@ -231,6 +232,7 @@ void USBPD_DPM_UserExecute(void const* argument)
                st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
         s_last_log = now;
     }
+#endif
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 
