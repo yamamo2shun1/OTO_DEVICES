@@ -99,7 +99,7 @@ static volatile uint32_t s_prev_level = 0;
 
 /* === 10.14 Feedback servo ================================================= */
 uint8_t s_fb_ep                = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
-static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
+static uint32_t s_fb_units_sec = 8000; /* 1ms基準=1000, microframe=8000 */
 static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
 static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
 
@@ -201,15 +201,6 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     {
         s_fb_busy  = 0;
         s_fb_first = 0;
-    }
-
-    /* ★ マイクロフレーム 8回に1回だけ送る（bInterval=4 = 1ms） */
-    static uint8_t uf_mod8;
-    uf_mod8 = (uint8_t) ((uf_mod8 + 1) & 0x07);
-    if (uf_mod8 != 0)
-    {
-        /* ここでは計測用にスキップを数えない（busy_skipは busy の時だけ増やす） */
-        return;
     }
 
     USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];

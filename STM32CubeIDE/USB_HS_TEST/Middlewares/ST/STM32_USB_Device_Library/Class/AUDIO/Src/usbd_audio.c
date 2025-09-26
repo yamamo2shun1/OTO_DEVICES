@@ -368,11 +368,11 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         AUDIO_FB_EP,                       /* bEndpointAddress: IN */
         0x11,                              /* bmAttributes: Isoch | Usage=Feedback */
         0x03,
-        0x00,               /* wMaxPacketSize = 3 bytes (HS:10.14) */
-        AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
-        0x00,               /* bRefresh (未使用) */
-        0x00,               /* bSynchAddress=0 */
-                            /* 09 byte(151) */
+        0x00, /* wMaxPacketSize = 3 bytes (HS:10.14) */
+        0x01, /* bInterval: 125us (=2^(1-1) µframes) */
+        0x00, /* bRefresh (未使用) */
+        0x00, /* bSynchAddress=0 */
+              /* 09 byte(151) */
 
         /* ---------------- AS(IN) Interface #2 ---------------- */
         /* Std AS Interface, alt 0 */
@@ -701,7 +701,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
                     printf("[FB:Open] is_used=%d, maxpacket=%d\n", pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used, pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket);
 
-                    AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
+                    AUDIO_FB_Config(AUDIO_FB_EP, 8000, 0);
 
                     s_fb_busy = 0;                             /* ★ busy解除 */
                     (void) USBD_LL_FlushEP(pdev, AUDIO_FB_EP); /* ★ 残データ掃除 */
