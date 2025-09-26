@@ -875,17 +875,12 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  */
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
-    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
-    if (pdev->dev_state != USBD_STATE_CONFIGURED)
-    {
-        return (uint8_t) USBD_OK;
-    }
-    if (!ep.is_used || ep.maxpacket == 0)
-    {
-        return (uint8_t) USBD_OK;
-    }
-
     // UNUSED(pdev);
+
+    /* === ここから追加：Feedback(10.14) を毎ms送る ===
+               まずは “一定48k” でホストの追従が効くことを確認する */
+    AUDIO_FB_Task_1ms(pdev);
+
     USBD_AUDIO_HandleTypeDef* haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
     if (!haudio)
     {
@@ -903,10 +898,6 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 
         printf("first transmit.\n");
     }
-
-    /* === ここから追加：Feedback(10.14) を毎ms送る ===
-           まずは “一定48k” でホストの追従が効くことを確認する */
-    AUDIO_FB_Task_1ms(pdev);
 
     return (uint8_t) USBD_OK;
 }
