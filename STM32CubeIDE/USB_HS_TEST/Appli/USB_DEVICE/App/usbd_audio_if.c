@@ -233,8 +233,8 @@ void AUDIO_FB_ArmTx_if_ready(void)
 
     s_last_arm_uf = USBD_GetMicroframeHS();
 
-    // USBD_FB_ProgramNextMs(s_fb_ep);
     /* 値は直近の AUDIO_FB_Task_1ms() で準備済み（s_fb_pkt） */
+    USBD_FB_ProgramNextMs(s_fb_ep);
     if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
     {
         s_fb_busy = 1;
