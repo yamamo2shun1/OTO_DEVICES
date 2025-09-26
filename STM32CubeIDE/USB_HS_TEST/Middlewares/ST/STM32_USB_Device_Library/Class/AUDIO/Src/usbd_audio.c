@@ -706,7 +706,10 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
                     s_fb_busy   = 0; /* ★ busy解除 */
                     s_fb_opened = 1;
-                    (void) USBD_LL_FlushEP(pdev, AUDIO_FB_EP); /* ★ 残データ掃除 */
+
+                    /* ★ 初回プライム：直近の値を用意して1発アーム */
+                    AUDIO_FB_Task_1ms();       /* 値だけ用意 */
+                    AUDIO_FB_ArmTx_if_ready(); /* 次フレームに向けて即アーム */
                 }
                 else
                 {
@@ -820,6 +823,8 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     {
         s_fb_busy = 0; /* ★ 完了で busy を確実に落とす */
         g_fb_ack++;    /* ★ ACK をカウント */
+        /* ★ ACKが来たら、その場で次回分をアーム */
+        AUDIO_FB_ArmTx_if_ready();
         return (uint8_t) USBD_OK;
     }
 
@@ -996,8 +1001,8 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     {
         s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
         g_fb_incomp++;
-        /* 必要なら一度だけフラッシュ（頻発させないこと） */
-        /* USBD_LL_FlushEP(pdev, AUDIOFbEpAdd); */
+        /* ★ 未成立でも“すぐ次回分”をアーム（次のmsで間に合うよう先行） */
+        AUDIO_FB_ArmTx_if_ready();
 
         /* 1秒に1回だけ詳細 */
         static uint32_t s_inc_last = 0;

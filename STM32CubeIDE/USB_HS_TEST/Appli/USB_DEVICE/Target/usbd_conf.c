@@ -26,7 +26,7 @@
 #include "usbd_audio.h"
 
 /* USER CODE BEGIN Includes */
-#include "usbd_audio_if.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -184,7 +184,6 @@ void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef* hpcd, uint8_t epnum)
  * @param  hpcd: PCD handle
  * @retval None
  */
-extern volatile uint8_t s_fb_opened;
 #if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
 static void PCD_SOFCallback(PCD_HandleTypeDef* hpcd)
 #else
@@ -192,15 +191,6 @@ void HAL_PCD_SOFCallback(PCD_HandleTypeDef* hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
     /* USER CODE BEGIN HAL_PCD_SofCallback_PreTreatment */
-    /* ★ SOF直後の最初の地点でFB送信。重い処理の前に呼ぶ */
-    if (hpcd->Instance == USB_OTG_HS)
-    {
-        USBD_HandleTypeDef* pdev = (USBD_HandleTypeDef*) hpcd->pData;
-        if (s_fb_opened)
-        {
-            AUDIO_FB_Task_1ms(pdev); /* ← ここで最初に実行（最短遅延） */
-        }
-    }
 
     /* USER CODE END HAL_PCD_SofCallback_PreTreatment */
     USBD_LL_SOF((USBD_HandleTypeDef*) hpcd->pData);
