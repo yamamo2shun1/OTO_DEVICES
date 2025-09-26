@@ -136,16 +136,11 @@ extern int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len);
 extern uint8_t s_fb_ep;
 
 /* FB送信 ACK カウンタ（if側から参照） */
-volatile uint32_t g_fb_ack;
 extern uint8_t s_fb_busy; /* if側のフラグを参照 */
+extern uint32_t g_fb_ack;
 extern uint32_t g_fb_incomp;
-#ifdef AUDIO_FB_EP
-    #define FB_EP_IDX_ (AUDIO_FB_EP & 0x0F)
-#else
-    #define FB_EP_IDX_ (s_fb_ep & 0x0F)
-#endif
 
-__attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+__attribute__((section(".dma_nocache"), aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
 static uint8_t mic_packet[AUDIO_IN_PACKET];
 /**
@@ -818,7 +813,7 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     }
 
     /* epnum は EP番号(0..15)。アドレスではない点に注意 */
-    if ((epnum & 0x0F) == FB_EP_IDX_)
+    if ((epnum & 0x0F) == (AUDIOFbEpAdd & 0x0F))
     {
         s_fb_busy = 0; /* ★ 完了で busy を確実に落とす */
         g_fb_ack++;    /* ★ ACK をカウント */

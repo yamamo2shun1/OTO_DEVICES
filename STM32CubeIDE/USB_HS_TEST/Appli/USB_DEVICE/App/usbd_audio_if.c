@@ -131,8 +131,9 @@ static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→
 
 // static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
 
-static uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_ack, g_fb_tx_busy, g_fb_ms_last;
-volatile uint8_t s_fb_busy;    /* 既存のbusyフラグを利用 */
+static uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
+volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
+volatile uint32_t g_fb_ack;
 volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 
 static inline uint8_t FB_EP_IDX(void)
@@ -271,7 +272,7 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
                st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
     #endif
         printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, +(unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
-        g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_tx_busy = 0;
+        g_fb_tx_req = g_fb_tx_ok = g_fb_tx_busy = 0;
     }
 
     /* busy中は送らない（BUSY連打で間引かれるのを防ぐ） */
