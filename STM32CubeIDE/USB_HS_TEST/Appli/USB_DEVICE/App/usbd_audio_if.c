@@ -152,6 +152,9 @@ static uint8_t s_phase_uf      = 0;
 static uint8_t s_phase_locked  = 0; /* ACKが出たらロック */
 static uint32_t s_last_sync_ms = 0;
 
+/* ★ 1msに“ちょうど1回だけ”送るためのラッチ */
+static uint32_t s_last_tx_ms = 0;
+
 uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
 static inline uint8_t FB_EP_IDX(void)
@@ -182,154 +185,20 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
-#if 0
-    /* --- 1msごと：ACKの有無で位相ロック/解除を管理 --- */
-    if (g_fb_ack_raw != s_prev_ack_raw)
-    { /* ACKが増えた → 位相が合っている */
-        s_prev_ack_raw     = g_fb_ack_raw;
-        s_noack_ms         = 0;
-        s_fb_parity_locked = 1; /* ★ このパリティをロック */
-    }
-    else
-    {
-        if (s_noack_ms < 1000)
-            s_noack_ms++; /* 上限で飽和 */
-        /* ロック前（初期）なら短めに探索、ロック後に失う時は長めに粘る */
-        const uint16_t threshold = s_fb_parity_locked ? 250 : 32; /* ms */
-        if (s_noack_ms > threshold)
-        {
-            s_fb_parity_even ^= 1; /* ★ 一度だけ反転して再探索 */
-            s_noack_ms         = 0;
-            s_fb_parity_locked = 0; /* ロック解除（再ロック待ち） */
-        }
-    }
-
-    /* ★ マイクロフレーム 8回に1回だけ送る（bInterval=4 = 1ms） */
-    static uint8_t uf_mod8;
-    uf_mod8 = (uint8_t) ((uf_mod8 + 1) & 0x07);
-    if (uf_mod8 != 0)
-    {
-        /* ここでは計測用にスキップを数えない（busy_skipは busy の時だけ増やす） */
-        return;
-    }
-
-    /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
-    static uint8_t s_fb_first = 1;
-    if (s_fb_first)
-    {
-        s_fb_busy  = 0;
-        s_fb_first = 0;
-    }
-
-    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
-    if (pdev->dev_state != USBD_STATE_CONFIGURED)
-        return;
-    if (!ep.is_used || ep.maxpacket == 0)
-        return;
-
-    /* bRefreshに合わせて送出周期を間引く（1ms基準） */
-    if ((s_fb_ticker++ & ((1u << s_fb_bref_pow2) - 1u)) != 0u)
-        return;
-
-    /* --- 誤差計算（デッドバンド付き） --- */
-    const uint32_t level = AUDIO_RxQ_LevelFrames();
-    int32_t e            = (int32_t) RXQ_TARGET_FRAMES - (int32_t) level;
-    if (e > -DEADBAND_FRAMES && e < DEADBAND_FRAMES)
-    {
-        e = 0;
-    }
-
-    /*-- -I項の更新＋アンチワインドアップ-- - */
-    s_fb_i += e;
-    /* I項の上限：ppm上限に対応する∑eの範囲に丸める */
-    int32_t ppm_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * FB_PPM_LIMIT / 1000000) * (int64_t) Q14 / (int64_t) s_fb_units_sec);
-    /* ∑e の許容幅 ≈ (ppm_q14 * KI_DEN * units) / (KI_NUM * Q14) */
-    int32_t i_cap = (int32_t) (((int64_t) ppm_q14 * (int64_t) KI_DEN * (int64_t) s_fb_units_sec) / ((int64_t) KI_NUM * (int64_t) Q14));
-    if (s_fb_i > i_cap)
-        s_fb_i = i_cap;
-    if (s_fb_i < -i_cap)
-        s_fb_i = -i_cap;
-
-    /* --- P/I 計算（10.14, 1ms基準） --- */
-    int64_t p_q14     = ((int64_t) e * KP_NUM * Q14) / ((int64_t) KP_DEN * (int64_t) s_fb_units_sec);
-    int64_t i_q14     = ((int64_t) s_fb_i * KI_NUM * Q14) / ((int64_t) KI_DEN * (int64_t) s_fb_units_sec);
-    int32_t delta_q14 = (int32_t) (p_q14 + i_q14);
-
-    /* --- 低水位ブースト（ヒステリシス） --- */
-    if (!s_low_water_mode && level <= LOW_WATER_FRAMES)
-        s_low_water_mode = 1;
-    else if (s_low_water_mode && level >= HIGH_WATER_FRAMES)
-        s_low_water_mode = 0;
-
-    if (s_low_water_mode)
-    {
-        /* 下限ブースト（常に+BOOST_PPM 以上に） */
-        int32_t boost_q14 = (int32_t) (((int64_t) USBD_AUDIO_FREQ * BOOST_PPM / 1000000) * (int64_t) Q14 / (int64_t) s_fb_units_sec);
-        if (delta_q14 < boost_q14)
-            delta_q14 = boost_q14;
-    }
-
-    /* --- 片側スルー制限（上げ＝迅速／下げ＝ゆっくり） --- */
-    int32_t slew_up   = ppm_q14;                 /* 上げは上限までOK */
-    int32_t slew_down = ppm_q14 / SLEW_DOWN_DIV; /* 下げはゆっくり */
-    int32_t up_limit  = s_fb_delta_q14_prev + slew_up;
-    int32_t dn_limit  = s_fb_delta_q14_prev - slew_down;
-    if (delta_q14 > up_limit)
-        delta_q14 = up_limit;
-    if (delta_q14 < dn_limit)
-        delta_q14 = dn_limit;
-
-    /* --- ±ppm クランプ＆FB作成 --- */
-    if (delta_q14 > ppm_q14)
-        delta_q14 = ppm_q14;
-    if (delta_q14 < -ppm_q14)
-        delta_q14 = -ppm_q14;
-
-    uint32_t fb_q14 = (uint32_t) clamp_s32((int32_t) s_fb_base_q14 + delta_q14, (int32_t) (s_fb_base_q14 - ppm_q14), (int32_t) (s_fb_base_q14 + ppm_q14 + 1000));
-    // uint32_t fb_q14     = s_fb_base_q14;
-    s_fb_delta_q14_prev = delta_q14;
-
-    s_fb_pkt[0] = (uint8_t) (fb_q14 & 0xFF);
-    s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
-    s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
-    //(void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
-#else
-    /* ★ SOFはHSで8kHz。内部カウンタで 1/8 に間引き、同じ偶数uFrameだけで送る */
-    s_uf_mod8 = (uint8_t) ((s_uf_mod8 + 1) & 0x07);
-    if (s_uf_mod8 != s_phase_uf)
-    {
-        return; /* このSOFでは送らない（1msに1回だけ送る） */
-    }
-
-    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
-    if (pdev->dev_state != USBD_STATE_CONFIGURED)
-        return;
-    if (!ep.is_used || ep.maxpacket == 0)
-        return;
-
-    /* --- ACKで位相を自己同期（0↔4 の自動切替） --- */
+    /* ★ 先頭で1msラッチ：同じmsに2回は絶対に送らない */
     const uint32_t now = HAL_GetTick();
-    if (g_fb_ack_raw != s_prev_ack_raw)
+    if (now == s_last_tx_ms)
     {
-        s_prev_ack_raw = g_fb_ack_raw; /* ACKが増えた → 今の位相で合っている */
-        s_phase_locked = 1;
-        s_last_sync_ms = now;
+        return;
     }
-    else
-    {
-        /* 初期探索は速く（32ms）、ロック後に崩れたら粘って（250ms）再探索 */
-        const uint32_t th_ms = s_phase_locked ? 250u : 32u;
-        if ((now - s_last_sync_ms) > th_ms)
-        {
-            s_phase_uf ^= 4u; /* ★ 0 ↔ 4 を一度だけ切替 */
-            s_phase_locked = 0;
-            s_last_sync_ms = now;
-            /* すぐには送らず、次の1msの先頭で再トライ（以降ここは素通り） */
-            return;
-        }
-    }
+    s_last_tx_ms = now;
 
-    /* ここから下は“いつも通り”の送信（できるだけ軽く） */
+    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
+    if (pdev->dev_state != USBD_STATE_CONFIGURED)
+        return;
+    if (!ep.is_used || ep.maxpacket == 0)
+        return;
+
     if (s_fb_busy)
     {
         g_fb_tx_busy++;
@@ -343,19 +212,20 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
 
     /* 1ms運用では even 固定で十分（uFrame 0/4 とも even 側） */
-    USBD_FB_ForceEvenOdd(s_fb_ep, 1);
+    USBD_FB_ForceEvenOdd(s_fb_ep, 0);
 
-    g_fb_tx_req++;
-    if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    /* 実送信OKのときだけカウント＆busy=1 */
+    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
     {
         s_fb_busy = 1;
+        g_fb_tx_req++;
         g_fb_tx_ok++;
     }
     else
     {
         g_fb_tx_busy++;
     }
-#endif
+
 #if 1
     static uint32_t last_ms;
     // const uint32_t now = HAL_GetTick();
@@ -377,44 +247,6 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
         g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
     }
 #endif
-
-    /* 1msでは even 固定でOK（0/4 どちらも even）。呼ぶならここ */
-    // USBD_FB_ForceEvenOdd(s_fb_ep, 1);
-
-    /* ★ 送信は "次のms" に確実に乗せる（奇偶=現在と同じを指定） */
-    extern void USBD_FB_ProgramNextMs(uint8_t ep_addr);
-    USBD_FB_ProgramNextMs(s_fb_ep);
-
-    g_fb_tx_req++;
-    if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
-    {
-        s_fb_busy = 1; /* ★ 送出中に立てる（ACKで必ず落とす） */
-        g_fb_tx_ok++;
-    }
-    else
-    {
-        /* BUSYなど。次SOFに回す */
-        g_fb_tx_busy++;
-        return;
-    }
-
-    /* 簡易自己同期：ACKが全く来ない状態が続くなら 0 と 4 を切り替えて探索 */
-    static uint32_t prev_ack = 0;
-    if (g_fb_ack_raw == prev_ack)
-    {
-        if (s_noack_ms < 1000)
-            s_noack_ms++;
-    }
-    else
-    {
-        prev_ack   = g_fb_ack_raw;
-        s_noack_ms = 0;
-    }
-    if (s_noack_ms > 32)
-    { /* 32ms 連続で ACK 0 なら位相を 0↔4 で切替 */
-        s_target_uf ^= 4;
-        s_noack_ms = 0;
-    }
 }
 
 static inline void stats_update_level(uint32_t level)
