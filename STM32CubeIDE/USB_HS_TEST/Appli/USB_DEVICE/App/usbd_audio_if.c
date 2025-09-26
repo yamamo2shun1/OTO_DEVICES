@@ -211,8 +211,8 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
 
-    /* 1ms運用では even 固定で十分（uFrame 0/4 とも even 側） */
-    USBD_FB_ForceEvenOdd(s_fb_ep, 0);
+    /* ★ “次のms”に確実に乗るよう予約してから送信 */
+    USBD_FB_ProgramNextMs(s_fb_ep);
 
     /* 実送信OKのときだけカウント＆busy=1 */
     if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
