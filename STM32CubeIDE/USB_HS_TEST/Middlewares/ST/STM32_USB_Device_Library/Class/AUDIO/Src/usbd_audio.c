@@ -140,6 +140,8 @@ extern uint8_t s_fb_busy; /* if側のフラグを参照 */
 extern uint32_t g_fb_ack;
 extern uint32_t g_fb_incomp;
 
+extern volatile uint8_t s_last_arm_uf;
+
 __attribute__((section(".dma_nocache"), aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
 static uint8_t mic_packet[AUDIO_IN_PACKET];
@@ -823,6 +825,20 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     {
         s_fb_busy = 0; /* ★ 完了で busy を確実に落とす */
         g_fb_ack++;    /* ★ ACK をカウント */
+
+        uint8_t uf_now       = USBD_GetMicroframeHS();
+        uint8_t duf          = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
+        static uint32_t last = 0;
+        uint32_t now         = HAL_GetTick();
+        if ((now - last) >= 1000)
+        {
+            USB_OTG_INEndpointTypeDef* in =
+                (USB_OTG_INEndpointTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_IN_ENDPOINT_BASE);
+            uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
+            printf("[FB:ackUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
+            last = now;
+        }
+
         /* ★ ACKが来たら、その場で次回分をアーム */
         AUDIO_FB_ArmTx_if_ready();
         return (uint8_t) USBD_OK;
@@ -1001,9 +1017,27 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     {
         s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
         g_fb_incomp++;
+
+        uint8_t uf_now = USBD_GetMicroframeHS();
+        /* 差分（0..7）: uf_now が “アーム時”からどれだけ進んで失敗したか */
+        uint8_t duf = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
+        /* 1秒1回だけでOKなら抑制して */
+        static uint32_t last = 0;
+        uint32_t now         = HAL_GetTick();
+        if ((now - last) >= 1000)
+        {
+            /* DIEPCTL/SIZも参考ダンプ（hexで可） */
+            USB_OTG_INEndpointTypeDef* in =
+                (USB_OTG_INEndpointTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_IN_ENDPOINT_BASE);
+            uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
+            printf("[FB:incUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
+            last = now;
+        }
+
         /* ★ 未成立でも“すぐ次回分”をアーム（次のmsで間に合うよう先行） */
         AUDIO_FB_ArmTx_if_ready();
 
+#if 0
         /* 1秒に1回だけ詳細 */
         static uint32_t s_inc_last = 0;
         uint32_t now               = HAL_GetTick();
@@ -1015,6 +1049,7 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
             printf("[FB:inc] idx=%u mps=%lu xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
             s_inc_last = now;
         }
+#endif
     }
 
     return (uint8_t) USBD_OK;

@@ -153,6 +153,7 @@ extern "C"
     /* units_per_sec: 1ms基準なら 1000、HS 125us 基準なら 8000 */
     void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefresh_pow2);
     /* 1msごとに呼ぶ（brefresh_pow2=0なら毎ms、=3なら8msごと等） */
+    uint8_t USBD_GetMicroframeHS(void);
     // void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev);
     void AUDIO_FB_Task_1ms(void);
     void AUDIO_FB_ArmTx_if_ready(void);

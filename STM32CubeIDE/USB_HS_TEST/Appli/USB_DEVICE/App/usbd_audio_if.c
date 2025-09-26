@@ -145,12 +145,9 @@ volatile uint8_t s_fb_opened  = 0;
 static uint32_t s_dbg_last_ms = 0; /* 1秒に1回だけ詳細を出す用 */
 static uint32_t s_dbg_rate    = 0;
 
-uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
+volatile uint8_t s_last_arm_uf = 0;
 
-static inline uint8_t FB_EP_IDX(void)
-{
-    return (uint8_t) (s_fb_ep & 0x0F);
-}
+uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
 static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
 {
@@ -171,6 +168,31 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
     uint32_t base_units = USBD_AUDIO_FREQ / s_fb_units_sec;
     s_fb_base_q14       = base_units << 14;
     s_fb_i              = 0;
+}
+
+/* 現在のフレーム奇偶を読み、"同じ奇偶"を指定して次のmsへ確実にスケジュール */
+static inline uint8_t USBHS_GetFrameParity(void)
+{
+    USB_OTG_DeviceTypeDef* dev =
+        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
+    /* DSTS.FNSOF[0] が奇偶（0=even, 1=odd） */
+    return (uint8_t) ((dev->DSTS >> 8) & 0x1U);
+}
+
+void USBD_FB_ProgramNextMs(uint8_t ep_addr)
+{
+    uint8_t idx     = ep_addr & 0x0F;
+    uint8_t cur_par = USBHS_GetFrameParity(); /* 今の奇偶 */
+    /* ★ "同じ奇偶" を指定 ⇒ 次のms（8uFrame後）に乗る */
+    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = cur_par ? 1U : 0U;
+}
+
+uint8_t USBD_GetMicroframeHS(void)
+{
+    USB_OTG_DeviceTypeDef* dev =
+        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
+    /* FNSOF[14:8] の下位3bitが uframe(0..7) */
+    return (uint8_t) ((dev->DSTS >> 8) & 0x7U);
 }
 
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
@@ -209,13 +231,16 @@ void AUDIO_FB_ArmTx_if_ready(void)
         return;
     }
 
+    s_last_arm_uf = USBD_GetMicroframeHS();
+
+    // USBD_FB_ProgramNextMs(s_fb_ep);
     /* 値は直近の AUDIO_FB_Task_1ms() で準備済み（s_fb_pkt） */
     if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
     {
         s_fb_busy = 1;
         g_fb_tx_req++;
         g_fb_tx_ok++;
-
+#if 0
         const uint32_t now = HAL_GetTick();
         if ((now - s_dbg_last_ms) >= 1000)
         {
@@ -228,6 +253,7 @@ void AUDIO_FB_ArmTx_if_ready(void)
 
             s_dbg_last_ms = now;
         }
+#endif
     }
     else
     {
