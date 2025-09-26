@@ -147,6 +147,11 @@ static uint16_t s_noack_ms        = 0; /* ACKが来ない連続ms数 */
 static uint32_t g_fb_ack_raw;          /* usbd_conf.c で数えている“生ACK” */
 static uint32_t s_prev_ack_raw = 0;
 
+static uint8_t s_uf_mod8       = 0; /* 0..7 をSOFごとに進める */
+static uint8_t s_phase_uf      = 0;
+static uint8_t s_phase_locked  = 0; /* ACKが出たらロック */
+static uint32_t s_last_sync_ms = 0;
+
 uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
 static inline uint8_t FB_EP_IDX(void)
@@ -289,6 +294,42 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
     //(void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
 #else
+    /* ★ SOFはHSで8kHz。内部カウンタで 1/8 に間引き、同じ偶数uFrameだけで送る */
+    s_uf_mod8 = (uint8_t) ((s_uf_mod8 + 1) & 0x07);
+    if (s_uf_mod8 != s_phase_uf)
+    {
+        return; /* このSOFでは送らない（1msに1回だけ送る） */
+    }
+
+    USBD_EndpointTypeDef ep = pdev->ep_in[s_fb_ep & 0xF];
+    if (pdev->dev_state != USBD_STATE_CONFIGURED)
+        return;
+    if (!ep.is_used || ep.maxpacket == 0)
+        return;
+
+    /* --- ACKで位相を自己同期（0↔4 の自動切替） --- */
+    const uint32_t now = HAL_GetTick();
+    if (g_fb_ack_raw != s_prev_ack_raw)
+    {
+        s_prev_ack_raw = g_fb_ack_raw; /* ACKが増えた → 今の位相で合っている */
+        s_phase_locked = 1;
+        s_last_sync_ms = now;
+    }
+    else
+    {
+        /* 初期探索は速く（32ms）、ロック後に崩れたら粘って（250ms）再探索 */
+        const uint32_t th_ms = s_phase_locked ? 250u : 32u;
+        if ((now - s_last_sync_ms) > th_ms)
+        {
+            s_phase_uf ^= 4u; /* ★ 0 ↔ 4 を一度だけ切替 */
+            s_phase_locked = 0;
+            s_last_sync_ms = now;
+            /* すぐには送らず、次の1msの先頭で再トライ（以降ここは素通り） */
+            return;
+        }
+    }
+
+    /* ここから下は“いつも通り”の送信（できるだけ軽く） */
     if (s_fb_busy)
     {
         g_fb_tx_busy++;
@@ -317,7 +358,7 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 #endif
 #if 1
     static uint32_t last_ms;
-    const uint32_t now = HAL_GetTick();
+    // const uint32_t now = HAL_GetTick();
     if (now - last_ms >= 1000)
     {
         last_ms = now;

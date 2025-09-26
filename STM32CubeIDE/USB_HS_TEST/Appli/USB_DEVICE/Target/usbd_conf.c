@@ -26,7 +26,7 @@
 #include "usbd_audio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "usbd_audio_if.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
