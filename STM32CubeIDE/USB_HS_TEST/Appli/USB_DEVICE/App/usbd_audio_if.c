@@ -176,12 +176,13 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
 void AUDIO_FB_Task_1ms(void)
 {
-    static uint32_t last_ms = 0;
+#if 0
+	static uint32_t last_ms = 0;
     uint32_t now            = HAL_GetTick();
     if (now == last_ms)
         return; /* 1msに1回 */
     last_ms = now;
-
+#endif
     /* 可変に戻す前の固定48k（10.14） */
     const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
     s_fb_pkt[0]           = (uint8_t) (fb_q14);
@@ -192,13 +193,14 @@ void AUDIO_FB_Task_1ms(void)
 /* FBを“いまからの次フレーム”に備えてアーム（呼び出し元：DataIn/Incomplete/初回） */
 void AUDIO_FB_ArmTx_if_ready(void)
 {
+#if 0
     /* ★ 同じmsでは再アームしない（8kHz連打を防ぐ） */
     static uint32_t last_arm_ms = 0;
     uint32_t now                = HAL_GetTick();
     if (now == last_arm_ms)
         return;
     last_arm_ms = now;
-
+#endif
     if (!s_fb_opened || hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
         return;
     if (s_fb_busy)
