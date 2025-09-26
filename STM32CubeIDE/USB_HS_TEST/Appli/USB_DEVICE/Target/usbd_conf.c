@@ -55,42 +55,6 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status);
 
 /* USER CODE BEGIN 1 */
 /* ---- FB EP の even/odd マイクロフレームを明示指定するヘルパ ---- */
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS; /* HSを使用中 */
-void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even)
-{
-    uint8_t idx = ep_addr & 0x0F;
-    /* HALは even_odd_frame を見て SEVNFRM/SODDFRM を設定後、内部でトグルする。
-       bInterval=4(=8uframe)では“同じパリティを維持”したいので、送信直前に
-       希望のパリティを書き戻しておく。 */
-    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = (even ? 0U : 1U);
-}
-
-/* HS: 現在の microframe 番号(0..7)を読む */
-uint8_t USBD_GetMicroframeHS(void)
-{
-    USB_OTG_DeviceTypeDef* dev =
-        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
-    uint32_t dsts = dev->DSTS;
-    /* FNSOF[14:8] の下位3bitが uframe(0..7) */
-    return (uint8_t) (((dsts & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos) & 0x7U);
-}
-
-/* 現在のフレーム奇偶を読み、"同じ奇偶"を指定して次のmsへ確実にスケジュール */
-static inline uint8_t USBHS_GetFrameParity(void)
-{
-    USB_OTG_DeviceTypeDef* dev =
-        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
-    /* DSTS.FNSOF[0] が奇偶（0=even, 1=odd） */
-    return (uint8_t) ((dev->DSTS >> 8) & 0x1U);
-}
-
-void USBD_FB_ProgramNextMs(uint8_t ep_addr)
-{
-    uint8_t idx     = ep_addr & 0x0F;
-    uint8_t cur_par = USBHS_GetFrameParity(); /* 今の奇偶 */
-    /* ★ "同じ奇偶" を指定 ⇒ 次のms（8uFrame後）に乗る */
-    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = cur_par ? 1U : 0U;
-}
 /* USER CODE END 1 */
 
 /*******************************************************************************

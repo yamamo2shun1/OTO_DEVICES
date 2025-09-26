@@ -564,7 +564,7 @@ static uint8_t USBD_AUDIO_DeInit(USBD_HandleTypeDef* pdev, uint8_t cfgidx)
  * @param  req: usb requests
  * @retval status
  */
-volatile uint8_t s_fb_opened = 0;
+extern volatile uint8_t s_fb_opened;
 static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* req)
 {
     USBD_AUDIO_HandleTypeDef* haudio;
@@ -998,6 +998,18 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
         g_fb_incomp++;
         /* 必要なら一度だけフラッシュ（頻発させないこと） */
         /* USBD_LL_FlushEP(pdev, AUDIOFbEpAdd); */
+
+        /* 1秒に1回だけ詳細 */
+        static uint32_t s_inc_last = 0;
+        uint32_t now               = HAL_GetTick();
+        if ((now - s_inc_last) >= 1000)
+        {
+            extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+            uint8_t idx             = (uint8_t) (s_fb_ep & 0x0F);
+            const PCD_EPTypeDef* ep = &hpcd_USB_OTG_HS.IN_ep[idx];
+            printf("[FB:inc] idx=%u mps=%lu xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
+            s_inc_last = now;
+        }
     }
 
     return (uint8_t) USBD_OK;

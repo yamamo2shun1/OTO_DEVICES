@@ -101,7 +101,6 @@ static volatile uint32_t s_prev_level = 0;
 uint8_t s_fb_ep                = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
 static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
 static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
-static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
 
 __attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
@@ -123,9 +122,7 @@ __attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4
 #define BOOST_PPM         600                       /* 低水位ブーストの下限 +0.06% */
 #define SLEW_DOWN_DIV     8                         /* 減速側のスルー制限：ppm/8/ms 相当 */
 
-static int32_t s_fb_i              = 0; /* I項 */
-static int32_t s_fb_delta_q14_prev = 0; /* ← 追加：前回の増減（10.14） */
-static uint8_t s_low_water_mode    = 0; /* ← 追加：低水位ブースト中フラグ */
+static int32_t s_fb_i = 0; /* I項 */
 
 static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
 
@@ -140,20 +137,13 @@ volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even);
 uint8_t USBD_GetMicroframeHS(void); /* 上のヘルパ */
 
-/* === FB parity の自己同期＆ロック === */
-static uint8_t s_fb_parity_even   = 1; /* 1=even, 0=odd（起動直後は仮にeven） */
-static uint8_t s_fb_parity_locked = 0; /* ACKが来たら1にして固定 */
-static uint16_t s_noack_ms        = 0; /* ACKが来ない連続ms数 */
-static uint32_t g_fb_ack_raw;          /* usbd_conf.c で数えている“生ACK” */
-static uint32_t s_prev_ack_raw = 0;
-
-static uint8_t s_uf_mod8       = 0; /* 0..7 をSOFごとに進める */
-static uint8_t s_phase_uf      = 0;
-static uint8_t s_phase_locked  = 0; /* ACKが出たらロック */
-static uint32_t s_last_sync_ms = 0;
-
 /* ★ 1msに“ちょうど1回だけ”送るためのラッチ */
 static uint32_t s_last_tx_ms = 0;
+
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+volatile uint8_t s_fb_opened  = 0;
+static uint32_t s_dbg_last_ms = 0; /* 1秒に1回だけ詳細を出す用 */
+static uint32_t s_dbg_rate    = 0;
 
 uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
@@ -205,28 +195,51 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
         return;
     }
 
+    if ((now - s_dbg_last_ms) >= 1000)
+    {
+        uint8_t idx             = (uint8_t) (s_fb_ep & 0x0F);
+        const PCD_EPTypeDef* ep = &hpcd_USB_OTG_HS.IN_ep[idx];
+        printf("[FB:pre] idx=%u mps=%lu type=%u is_in=%u tx_fifo=%lu xlen=%lu xcnt=%lu evenodd=%u opened=%u state=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned) ep->type, (unsigned) ep->is_in, (unsigned long) ep->tx_fifo_num, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame, (unsigned) s_fb_opened, (unsigned) hUsbDeviceHS.dev_state);
+    }
+
     /* まずは固定48kの1ms用10.14（可変サーボは後で戻す） */
     const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
     s_fb_pkt[0]           = (uint8_t) (fb_q14);
     s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
 
-    /* ★ “次のms”に確実に乗るよう予約してから送信 */
-    USBD_FB_ProgramNextMs(s_fb_ep);
-
     /* 実送信OKのときだけカウント＆busy=1 */
-    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    USBD_StatusTypeDef st = USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+    if (st == USBD_OK)
     {
         s_fb_busy = 1;
         g_fb_tx_req++;
         g_fb_tx_ok++;
+        if ((now - s_dbg_last_ms) >= 1000)
+        {
+            uint8_t idx             = (uint8_t) (s_fb_ep & 0x0F);
+            const PCD_EPTypeDef* ep = &hpcd_USB_OTG_HS.IN_ep[idx];
+            printf("[FB:arm]  st=OK  idx=%u mps=%lu pkt=3 pcnt(exp)=1 xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
+        }
     }
     else
     {
         g_fb_tx_busy++;
+        if ((now - s_dbg_last_ms) >= 1000)
+        {
+            printf("[FB:arm]  st=%d (NOT OK)\n", (int) st);
+        }
     }
 
-#if 1
+    /* 1秒ごとにレート行と一緒に詳細を1回だけ出す */
+    s_dbg_rate++;
+    if ((now - s_dbg_last_ms) >= 1000)
+    {
+        s_dbg_last_ms = now;
+        s_dbg_rate    = 0;
+    }
+
+#if 0
     static uint32_t last_ms;
     // const uint32_t now = HAL_GetTick();
     if (now - last_ms >= 1000)
