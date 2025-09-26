@@ -138,9 +138,13 @@ volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 
 /* usbd_conf.c に追加したヘルパ */
 void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even);
-/* HS bInterval=4では“同じパリティ”を維持したい。既定は even(0) から開始。*/
-static uint8_t s_fb_parity_even = 1; /* 1=even, 0=odd */
-static uint32_t s_incomp_streak = 0;
+
+/* === FB parity の自己同期＆ロック === */
+static uint8_t s_fb_parity_even   = 1; /* 1=even, 0=odd（起動直後は仮にeven） */
+static uint8_t s_fb_parity_locked = 0; /* ACKが来たら1にして固定 */
+static uint16_t s_noack_ms        = 0; /* ACKが来ない連続ms数 */
+static uint32_t g_fb_ack_raw;          /* usbd_conf.c で数えている“生ACK” */
+static uint32_t s_prev_ack_raw = 0;
 
 static inline uint8_t FB_EP_IDX(void)
 {
@@ -170,6 +174,27 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
+    /* --- 1msごと：ACKの有無で位相ロック/解除を管理 --- */
+    if (g_fb_ack_raw != s_prev_ack_raw)
+    { /* ACKが増えた → 位相が合っている */
+        s_prev_ack_raw     = g_fb_ack_raw;
+        s_noack_ms         = 0;
+        s_fb_parity_locked = 1; /* ★ このパリティをロック */
+    }
+    else
+    {
+        if (s_noack_ms < 1000)
+            s_noack_ms++; /* 上限で飽和 */
+        /* ロック前（初期）なら短めに探索、ロック後に失う時は長めに粘る */
+        const uint16_t threshold = s_fb_parity_locked ? 250 : 32; /* ms */
+        if (s_noack_ms > threshold)
+        {
+            s_fb_parity_even ^= 1; /* ★ 一度だけ反転して再探索 */
+            s_noack_ms         = 0;
+            s_fb_parity_locked = 0; /* ロック解除（再ロック待ち） */
+        }
+    }
+
     /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
     static uint8_t s_fb_first = 1;
     if (s_fb_first)
@@ -277,7 +302,7 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
                "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
                st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
     #endif
-        printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, +(unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
+        printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X parity=%s lock=%u\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep, s_fb_parity_even ? "even" : "odd", (unsigned) s_fb_parity_locked);
         g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
     }
 
