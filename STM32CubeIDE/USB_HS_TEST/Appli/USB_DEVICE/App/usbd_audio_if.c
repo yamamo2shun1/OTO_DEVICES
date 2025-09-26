@@ -376,17 +376,14 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
         printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X parity=%s lock=%u\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep, s_fb_parity_even ? "even" : "odd", (unsigned) s_fb_parity_locked);
         g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
     }
-
-    /* busy中は送らない（BUSY連打で間引かれるのを防ぐ） */
-    if (s_fb_busy)
-    {
-        g_fb_tx_busy++;
-        return;
-    }
 #endif
 
     /* 1msでは even 固定でOK（0/4 どちらも even）。呼ぶならここ */
-    USBD_FB_ForceEvenOdd(s_fb_ep, 1);
+    // USBD_FB_ForceEvenOdd(s_fb_ep, 1);
+
+    /* ★ 送信は "次のms" に確実に乗せる（奇偶=現在と同じを指定） */
+    extern void USBD_FB_ProgramNextMs(uint8_t ep_addr);
+    USBD_FB_ProgramNextMs(s_fb_ep);
 
     g_fb_tx_req++;
     if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
