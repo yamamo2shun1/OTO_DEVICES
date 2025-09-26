@@ -99,7 +99,7 @@ static volatile uint32_t s_prev_level = 0;
 
 /* === 10.14 Feedback servo ================================================= */
 uint8_t s_fb_ep                = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
-static uint32_t s_fb_units_sec = 8000; /* 1ms基準=1000, microframe=8000 */
+static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
 static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
 static uint32_t s_fb_ticker    = 0;    /* 1ms タイムベース用 */
 
@@ -147,7 +147,7 @@ static uint16_t s_noack_ms        = 0; /* ACKが来ない連続ms数 */
 static uint32_t g_fb_ack_raw;          /* usbd_conf.c で数えている“生ACK” */
 static uint32_t s_prev_ack_raw = 0;
 
-static uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
+uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
 static inline uint8_t FB_EP_IDX(void)
 {
@@ -177,11 +177,34 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
-    /* SOF直後に microframe を読んで、狙った uframe 以外なら今msは送らない */
-    uint8_t uf = USBD_GetMicroframeHS();
-    if (uf != s_target_uf)
+    /* --- 1msごと：ACKの有無で位相ロック/解除を管理 --- */
+    if (g_fb_ack_raw != s_prev_ack_raw)
+    { /* ACKが増えた → 位相が合っている */
+        s_prev_ack_raw     = g_fb_ack_raw;
+        s_noack_ms         = 0;
+        s_fb_parity_locked = 1; /* ★ このパリティをロック */
+    }
+    else
     {
-        return; /* 次のSOFで再トライ（“常に uf=0 だけ狙う”のが最も安定） */
+        if (s_noack_ms < 1000)
+            s_noack_ms++; /* 上限で飽和 */
+        /* ロック前（初期）なら短めに探索、ロック後に失う時は長めに粘る */
+        const uint16_t threshold = s_fb_parity_locked ? 250 : 32; /* ms */
+        if (s_noack_ms > threshold)
+        {
+            s_fb_parity_even ^= 1; /* ★ 一度だけ反転して再探索 */
+            s_noack_ms         = 0;
+            s_fb_parity_locked = 0; /* ロック解除（再ロック待ち） */
+        }
+    }
+
+    /* ★ マイクロフレーム 8回に1回だけ送る（bInterval=4 = 1ms） */
+    static uint8_t uf_mod8;
+    uf_mod8 = (uint8_t) ((uf_mod8 + 1) & 0x07);
+    if (uf_mod8 != 0)
+    {
+        /* ここでは計測用にスキップを数えない（busy_skipは busy の時だけ増やす） */
+        return;
     }
 
     /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
