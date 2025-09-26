@@ -564,6 +564,7 @@ static uint8_t USBD_AUDIO_DeInit(USBD_HandleTypeDef* pdev, uint8_t cfgidx)
  * @param  req: usb requests
  * @retval status
  */
+volatile uint8_t s_fb_opened = 0;
 static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* req)
 {
     USBD_AUDIO_HandleTypeDef* haudio;
@@ -703,7 +704,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
                     AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
 
-                    s_fb_busy = 0;                             /* ★ busy解除 */
+                    s_fb_busy   = 0; /* ★ busy解除 */
+                    s_fb_opened = 1;
                     (void) USBD_LL_FlushEP(pdev, AUDIO_FB_EP); /* ★ 残データ掃除 */
                 }
                 else
@@ -715,7 +717,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used   = 0U;
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket = 0U;
 
-                    s_fb_busy = 0; /* ★ busy解除 */
+                    s_fb_busy   = 0; /* ★ busy解除 */
+                    s_fb_opened = 0;
                 }
             }
 
@@ -879,7 +882,7 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 
     /* === ここから追加：Feedback(10.14) を毎ms送る ===
                まずは “一定48k” でホストの追従が効くことを確認する */
-    AUDIO_FB_Task_1ms(pdev);
+    // AUDIO_FB_Task_1ms(pdev);
 
     USBD_AUDIO_HandleTypeDef* haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
     if (!haudio)

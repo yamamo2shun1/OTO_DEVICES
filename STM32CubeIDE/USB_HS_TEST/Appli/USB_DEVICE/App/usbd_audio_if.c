@@ -177,6 +177,7 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
+#if 0
     /* --- 1msごと：ACKの有無で位相ロック/解除を管理 --- */
     if (g_fb_ack_raw != s_prev_ack_raw)
     { /* ACKが増えた → 位相が合っている */
@@ -287,7 +288,33 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     s_fb_pkt[1] = (uint8_t) ((fb_q14 >> 8) & 0xFF);
     s_fb_pkt[2] = (uint8_t) ((fb_q14 >> 16) & 0xFF);
     //(void) USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3);
+#else
+    if (s_fb_busy)
+    {
+        g_fb_tx_busy++;
+        return;
+    }
 
+    /* まずは固定48kの1ms用10.14（可変サーボは後で戻す） */
+    const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
+    s_fb_pkt[0]           = (uint8_t) (fb_q14);
+    s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
+    s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
+
+    /* 1ms運用では even 固定で十分（uFrame 0/4 とも even 側） */
+    USBD_FB_ForceEvenOdd(s_fb_ep, 1);
+
+    g_fb_tx_req++;
+    if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+    {
+        s_fb_busy = 1;
+        g_fb_tx_ok++;
+    }
+    else
+    {
+        g_fb_tx_busy++;
+    }
+#endif
 #if 1
     static uint32_t last_ms;
     const uint32_t now = HAL_GetTick();
