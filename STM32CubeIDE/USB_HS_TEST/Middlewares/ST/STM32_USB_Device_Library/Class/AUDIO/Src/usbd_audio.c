@@ -141,8 +141,10 @@ extern uint32_t g_fb_ack;
 extern uint32_t g_fb_incomp;
 
 extern volatile uint8_t s_last_arm_uf;
+extern volatile uint8_t s_fb_arm_pending;
+extern volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy;
 
-__attribute__((section(".dma_nocache"), aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+extern volatile uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
 static uint8_t mic_packet[AUDIO_IN_PACKET];
 /**
@@ -710,8 +712,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     s_fb_opened = 1;
 
                     /* ★ 初回プライム：直近の値を用意して1発アーム */
-                    AUDIO_FB_Task_1ms();       /* 値だけ用意 */
-                    AUDIO_FB_ArmTx_if_ready(); /* 次フレームに向けて即アーム */
+                    AUDIO_FB_Task_1ms(); /* 値だけ用意 */
+                    s_fb_arm_pending = 1;
                 }
                 else
                 {
@@ -825,7 +827,7 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     {
         s_fb_busy = 0; /* ★ 完了で busy を確実に落とす */
         g_fb_ack++;    /* ★ ACK をカウント */
-
+#if 0
         uint8_t uf_now       = USBD_GetMicroframeHS();
         uint8_t duf          = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
         static uint32_t last = 0;
@@ -838,9 +840,9 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
             printf("[FB:ackUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
             last = now;
         }
-
+#endif
         /* ★ ACKが来たら、その場で次回分をアーム */
-        AUDIO_FB_ArmTx_if_ready();
+        s_fb_arm_pending = 1;
         return (uint8_t) USBD_OK;
     }
 
@@ -901,9 +903,54 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
     // UNUSED(pdev);
 
-    /* === ここから追加：Feedback(10.14) を毎ms送る ===
-               まずは “一定48k” でホストの追従が効くことを確認する */
-    // AUDIO_FB_Task_1ms(pdev);
+#if 1
+    AUDIO_FB_Task_1ms();
+    if (pdev && pdev->dev_state == USBD_STATE_CONFIGURED && s_fb_opened)
+    {
+        if (s_fb_arm_pending && !s_fb_busy && USBD_GetMicroframeHS() == 7)
+        {
+            // uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
+            /* “次msの0”を狙うので even を指定（uF=7はodd） */
+            // pdev->ep_in[idx].even_odd_frame = 1U;  // even
+            /* ★ “次のms”に確実に乗るよう予約 → 送信 */
+            // USBD_FB_ProgramNextMs(s_fb_ep);  // ← ここでだけ呼ぶ
+            if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
+            {
+                s_fb_busy        = 1;
+                s_fb_arm_pending = 0;  // 消費
+                g_fb_tx_req++;
+                g_fb_tx_ok++;
+
+    #if 0
+                static uint32_t last_ms = 0;
+                const uint32_t now      = HAL_GetTick();
+                if ((now - last_ms) >= 1000)
+                {
+        #if 0
+                	// printf("[FB:arm]  st=OK  idx=%u mps=%lu pkt=3 pcnt(exp)=1 xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
+
+                    printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
+                    g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
+        #endif
+                    AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
+                    AUDIO_Stats st;
+                    AUDIO_GetStats(&st);
+                    printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
+                           "fps[in/out]=%u/%u, dLevel/s=%ld, "
+                           "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
+                           st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+
+                    last_ms = now;
+                }
+    #endif
+            }
+            else
+            {
+                g_fb_tx_busy++;
+            }
+        }
+    }
+#endif
 
     USBD_AUDIO_HandleTypeDef* haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
     if (!haudio)
@@ -1017,7 +1064,7 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     {
         s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
         g_fb_incomp++;
-
+#if 0
         uint8_t uf_now = USBD_GetMicroframeHS();
         /* 差分（0..7）: uf_now が “アーム時”からどれだけ進んで失敗したか */
         uint8_t duf = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
@@ -1033,9 +1080,9 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
             printf("[FB:incUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
             last = now;
         }
-
+#endif
         /* ★ 未成立でも“すぐ次回分”をアーム（次のmsで間に合うよう先行） */
-        AUDIO_FB_ArmTx_if_ready();
+        s_fb_arm_pending = 1;
 
 #if 0
         /* 1秒に1回だけ詳細 */
@@ -1084,6 +1131,8 @@ static uint8_t USBD_AUDIO_IsoOutIncomplete(USBD_HandleTypeDef* pdev, uint8_t epn
  * @param  epnum: endpoint index
  * @retval status
  */
+static uint32_t s_rx_bytes_acc = 0;
+static uint32_t s_rx_last_ms   = 0;
 static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
 {
     uint16_t PacketSize;

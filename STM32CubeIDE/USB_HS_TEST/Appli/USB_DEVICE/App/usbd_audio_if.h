@@ -155,6 +155,7 @@ extern "C"
     /* 1msごとに呼ぶ（brefresh_pow2=0なら毎ms、=3なら8msごと等） */
     uint8_t USBD_GetMicroframeHS(void);
     // void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev);
+    void USBD_FB_ProgramNextMs(uint8_t ep_addr);
     void AUDIO_FB_Task_1ms(void);
     void AUDIO_FB_ArmTx_if_ready(void);
     /* USER CODE END EXPORTED_FUNCTIONS */

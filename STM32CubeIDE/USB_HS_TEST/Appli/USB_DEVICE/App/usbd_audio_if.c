@@ -102,7 +102,7 @@ uint8_t s_fb_ep                = 0x81; /* 明示FB EP（要: ディスクリプ�
 static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
 static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
 
-__attribute__((aligned(4))) static uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+__attribute__((section(".dma_nocache"), aligned(4))) uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
 /* Q14定義（10.14固定小数） */
 #define Q14 16384
@@ -128,7 +128,7 @@ static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→
 
 // static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
 
-static uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
+volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
 volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
 volatile uint32_t g_fb_ack;
 volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
@@ -146,6 +146,8 @@ static uint32_t s_dbg_last_ms = 0; /* 1秒に1回だけ詳細を出す用 */
 static uint32_t s_dbg_rate    = 0;
 
 volatile uint8_t s_last_arm_uf = 0;
+
+volatile uint8_t s_fb_arm_pending = 0;
 
 uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
@@ -176,15 +178,14 @@ static inline uint8_t USBHS_GetFrameParity(void)
     USB_OTG_DeviceTypeDef* dev =
         (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
     /* DSTS.FNSOF[0] が奇偶（0=even, 1=odd） */
-    return (uint8_t) ((dev->DSTS >> 8) & 0x1U);
+    return (uint8_t) ((dev->DSTS >> 8) & 0x07U);
 }
 
 void USBD_FB_ProgramNextMs(uint8_t ep_addr)
 {
-    uint8_t idx     = ep_addr & 0x0F;
-    uint8_t cur_par = USBHS_GetFrameParity(); /* 今の奇偶 */
-    /* ★ "同じ奇偶" を指定 ⇒ 次のms（8uFrame後）に乗る */
-    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = cur_par ? 1U : 0U;
+    uint8_t idx = ep_addr & 0x0F;
+
+    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = 0U;  // even
 }
 
 uint8_t USBD_GetMicroframeHS(void)
@@ -198,67 +199,17 @@ uint8_t USBD_GetMicroframeHS(void)
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
 void AUDIO_FB_Task_1ms(void)
 {
-#if 0
-	static uint32_t last_ms = 0;
+    static uint32_t last_ms = 0;
     uint32_t now            = HAL_GetTick();
     if (now == last_ms)
         return; /* 1msに1回 */
     last_ms = now;
-#endif
+
     /* 可変に戻す前の固定48k（10.14） */
     const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
     s_fb_pkt[0]           = (uint8_t) (fb_q14);
     s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
-}
-
-/* FBを“いまからの次フレーム”に備えてアーム（呼び出し元：DataIn/Incomplete/初回） */
-void AUDIO_FB_ArmTx_if_ready(void)
-{
-#if 0
-    /* ★ 同じmsでは再アームしない（8kHz連打を防ぐ） */
-    static uint32_t last_arm_ms = 0;
-    uint32_t now                = HAL_GetTick();
-    if (now == last_arm_ms)
-        return;
-    last_arm_ms = now;
-#endif
-    if (!s_fb_opened || hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
-        return;
-    if (s_fb_busy)
-    {
-        g_fb_tx_busy++;
-        return;
-    }
-
-    s_last_arm_uf = USBD_GetMicroframeHS();
-
-    /* 値は直近の AUDIO_FB_Task_1ms() で準備済み（s_fb_pkt） */
-    USBD_FB_ProgramNextMs(s_fb_ep);
-    if (USBD_LL_Transmit(&hUsbDeviceHS, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
-    {
-        s_fb_busy = 1;
-        g_fb_tx_req++;
-        g_fb_tx_ok++;
-#if 0
-        const uint32_t now = HAL_GetTick();
-        if ((now - s_dbg_last_ms) >= 1000)
-        {
-            uint8_t idx             = (uint8_t) (s_fb_ep & 0x0F);
-            const PCD_EPTypeDef* ep = &hpcd_USB_OTG_HS.IN_ep[idx];
-            // printf("[FB:arm]  st=OK  idx=%u mps=%lu pkt=3 pcnt(exp)=1 xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
-
-            printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
-            g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
-
-            s_dbg_last_ms = now;
-        }
-#endif
-    }
-    else
-    {
-        g_fb_tx_busy++;
-    }
 }
 
 static inline void stats_update_level(uint32_t level)
