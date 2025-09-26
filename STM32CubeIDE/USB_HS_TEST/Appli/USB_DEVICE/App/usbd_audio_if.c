@@ -138,6 +138,7 @@ volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 
 /* usbd_conf.c に追加したヘルパ */
 void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even);
+uint8_t USBD_GetMicroframeHS(void); /* 上のヘルパ */
 
 /* === FB parity の自己同期＆ロック === */
 static uint8_t s_fb_parity_even   = 1; /* 1=even, 0=odd（起動直後は仮にeven） */
@@ -145,6 +146,8 @@ static uint8_t s_fb_parity_locked = 0; /* ACKが来たら1にして固定 */
 static uint16_t s_noack_ms        = 0; /* ACKが来ない連続ms数 */
 static uint32_t g_fb_ack_raw;          /* usbd_conf.c で数えている“生ACK” */
 static uint32_t s_prev_ack_raw = 0;
+
+static uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
 
 static inline uint8_t FB_EP_IDX(void)
 {
@@ -174,25 +177,11 @@ void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefres
 
 void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
 {
-    /* --- 1msごと：ACKの有無で位相ロック/解除を管理 --- */
-    if (g_fb_ack_raw != s_prev_ack_raw)
-    { /* ACKが増えた → 位相が合っている */
-        s_prev_ack_raw     = g_fb_ack_raw;
-        s_noack_ms         = 0;
-        s_fb_parity_locked = 1; /* ★ このパリティをロック */
-    }
-    else
+    /* SOF直後に microframe を読んで、狙った uframe 以外なら今msは送らない */
+    uint8_t uf = USBD_GetMicroframeHS();
+    if (uf != s_target_uf)
     {
-        if (s_noack_ms < 1000)
-            s_noack_ms++; /* 上限で飽和 */
-        /* ロック前（初期）なら短めに探索、ロック後に失う時は長めに粘る */
-        const uint16_t threshold = s_fb_parity_locked ? 250 : 32; /* ms */
-        if (s_noack_ms > threshold)
-        {
-            s_fb_parity_even ^= 1; /* ★ 一度だけ反転して再探索 */
-            s_noack_ms         = 0;
-            s_fb_parity_locked = 0; /* ロック解除（再ロック待ち） */
-        }
+        return; /* 次のSOFで再トライ（“常に uf=0 だけ狙う”のが最も安定） */
     }
 
     /* ★ 初回だけ必ず busy を解放（電源投入直後に 1 のままになるのを防ぐ） */
@@ -305,8 +294,8 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
     }
 #endif
 
-    /* ★ 送信直前にパリティを固定（HAL内部のトグルを打ち消す） */
-    USBD_FB_ForceEvenOdd(s_fb_ep, s_fb_parity_even);
+    /* 1msでは even 固定でOK（0/4 どちらも even）。呼ぶならここ */
+    USBD_FB_ForceEvenOdd(s_fb_ep, 1);
 
     g_fb_tx_req++;
     if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
@@ -319,6 +308,24 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
         /* BUSYなど。次SOFに回す */
         g_fb_tx_busy++;
         return;
+    }
+
+    /* 簡易自己同期：ACKが全く来ない状態が続くなら 0 と 4 を切り替えて探索 */
+    static uint32_t prev_ack = 0;
+    if (g_fb_ack_raw == prev_ack)
+    {
+        if (s_noack_ms < 1000)
+            s_noack_ms++;
+    }
+    else
+    {
+        prev_ack   = g_fb_ack_raw;
+        s_noack_ms = 0;
+    }
+    if (s_noack_ms > 32)
+    { /* 32ms 連続で ACK 0 なら位相を 0↔4 で切替 */
+        s_target_uf ^= 4;
+        s_noack_ms = 0;
     }
 }
 

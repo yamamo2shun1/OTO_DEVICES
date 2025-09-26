@@ -64,6 +64,16 @@ void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even)
        希望のパリティを書き戻しておく。 */
     hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = (even ? 0U : 1U);
 }
+
+/* HS: 現在の microframe 番号(0..7)を読む */
+uint8_t USBD_GetMicroframeHS(void)
+{
+    USB_OTG_DeviceTypeDef* dev =
+        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
+    uint32_t dsts = dev->DSTS;
+    /* FNSOF[14:8] の下位3bitが uframe(0..7) */
+    return (uint8_t) (((dsts & USB_OTG_DSTS_FNSOF_Msk) >> USB_OTG_DSTS_FNSOF_Pos) & 0x7U);
+}
 /* USER CODE END 1 */
 
 /*******************************************************************************
