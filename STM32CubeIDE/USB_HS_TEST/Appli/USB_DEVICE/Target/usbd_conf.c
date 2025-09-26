@@ -54,6 +54,16 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status);
 /* Private functions ---------------------------------------------------------*/
 
 /* USER CODE BEGIN 1 */
+/* ---- FB EP の even/odd マイクロフレームを明示指定するヘルパ ---- */
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS; /* HSを使用中 */
+void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even)
+{
+    uint8_t idx = ep_addr & 0x0F;
+    /* HALは even_odd_frame を見て SEVNFRM/SODDFRM を設定後、内部でトグルする。
+       bInterval=4(=8uframe)では“同じパリティを維持”したいので、送信直前に
+       希望のパリティを書き戻しておく。 */
+    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = (even ? 0U : 1U);
+}
 /* USER CODE END 1 */
 
 /*******************************************************************************

@@ -136,6 +136,12 @@ volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
 volatile uint32_t g_fb_ack;
 volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 
+/* usbd_conf.c に追加したヘルパ */
+void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even);
+/* HS bInterval=4では“同じパリティ”を維持したい。既定は even(0) から開始。*/
+static uint8_t s_fb_parity_even = 1; /* 1=even, 0=odd */
+static uint32_t s_incomp_streak = 0;
+
 static inline uint8_t FB_EP_IDX(void)
 {
     return (uint8_t) (s_fb_ep & 0x0F);
@@ -272,7 +278,7 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
                st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
     #endif
         printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, +(unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
-        g_fb_tx_req = g_fb_tx_ok = g_fb_tx_busy = 0;
+        g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
     }
 
     /* busy中は送らない（BUSY連打で間引かれるのを防ぐ） */
@@ -282,6 +288,9 @@ void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev)
         return;
     }
 #endif
+
+    /* ★ 送信直前にパリティを固定（HAL内部のトグルを打ち消す） */
+    USBD_FB_ForceEvenOdd(s_fb_ep, s_fb_parity_even);
 
     g_fb_tx_req++;
     if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
