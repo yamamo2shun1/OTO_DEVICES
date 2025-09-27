@@ -106,17 +106,34 @@ volatile uint32_t g_audio_level_now_frames = 0;          /* 現在のバッフ�
 volatile uint32_t g_audio_cap_frames       = RXQ_FRAMES; /* バッファ総容量[frames]（初期化時に実値を代入） */
 volatile uint32_t g_audio_out_fps          = 48384;      /* 再生実効レート[frames/s]。DMAで1秒毎に実測して代入（暫定なら48384でOK） */
 
-/* ==== P制御パラメータ ==== */
-#define FB_KP_NUM  1     /* Kp = 1/FB_KP_DEN [1/s]（Pゲイン） */
-#define FB_KP_DEN  8     /* 例: 1/8 → 誤差 800 frm で 100 fps 調整 */
-#define FB_MIN_FPS 44000 /* ホストに要求する下限 [frames/s] 安全幅 */
-#define FB_MAX_FPS 52000 /* 上限（必要に応じて狭めてOK） */
+/* ==== PI制御パラメータ ==== */
+#define FB_DEADBAND_FRM 64        // 目標周り±64frmは誤差ゼロ扱い
+#define KP_SHIFT        5         // Kp = 1/16 [1/s]（強すぎたら数値↑、弱すぎたら↓）
+#define KI_SHIFT        10        // Ki = 1/1024 [1/s] を毎ms積分（弱ければ数値↓、強ければ↑）
+#define I_ACC_CLAMP     (400000)  // 積分器の上限（frames・ms相当のスカラー）
+#define DELTA_FPS_CLAMP 1500      // 1回の要求で許す偏差の最大値[frames/s]
+#define FB_SLEW_FPS     80        // 1msあたりの変化量上限[frames/s]（出力スlew）
+#define FB_MIN_FPS      44000
+#define FB_MAX_FPS      52000
+
+/* 出力スルーレート制限用の保持 */
+static int32_t s_last_fps_req = 48000;
+/* 積分器 */
+static int32_t s_iacc = 0;
 
 /* 10.14（1msあたり）に変換 */
 static inline uint32_t fps_to_q14_per_ms(uint32_t fps)
 {
     /* (fps << 14) / 1000; 64bitで安全に */
     return (uint32_t) (((uint64_t) fps << 14) / 1000u);
+}
+
+/* 符号付きの安全シフト（算術シフトを保証）*/
+static inline int32_t asr_s32(int32_t x, unsigned s)
+{
+    if (s == 0)
+        return x;
+    return (x >= 0) ? (x >> s) : -(((-x) >> s));
 }
 
 /* なめらかにするための1次遅れ（オプション） */
@@ -177,60 +194,69 @@ uint8_t USBD_GetMicroframeHS(void)
     return (uint8_t) ((dev->DSTS >> 8) & 0x7U);
 }
 
-/* 符号付きの安全シフト（算術シフトを保証）*/
-static inline int32_t asr_s32(int32_t x, unsigned s)
-{
-    if (s == 0)
-        return x;
-    return (x >= 0) ? (x >> s) : -(((-x) >> s));
-}
-
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
 void AUDIO_FB_Task_1ms(void)
 {
     g_audio_level_now_frames = g_rxq_wr - g_rxq_rd;
     g_audio_cap_frames       = RXQ_FRAMES;
+
 #if 1
-    /* 目標水位＝cap/2（好みで 2/3*cap 等にしてもよい） */
-    uint32_t cap    = g_audio_cap_frames ? g_audio_cap_frames : 9216u;
-    uint32_t target = cap >> 1; /* cap/2 */
-    int32_t level   = (int32_t) g_audio_level_now_frames;
-    int32_t err     = (int32_t) target - level; /* +なら増やしたい */
+    /* 目標水位 */
+    uint32_t cap = g_audio_cap_frames ? g_audio_cap_frames : 9216u;
+    if (cap < 2)
+        cap = 2;
+    int32_t target = (int32_t) (cap >> 1);  // cap/2
+    int32_t level  = (int32_t) g_audio_level_now_frames;
+    int32_t err    = target - level;  // +で“入れたい”
 
-    /* P制御：要求する入力レート [frames/s] = 出力レート + Kp*誤差 */
-    uint32_t fps_out = g_audio_out_fps ? g_audio_out_fps : 48000u;
-    int32_t adj_fps  = (err * FB_KP_NUM) / FB_KP_DEN; /* frames/s */
-    int32_t fps_in   = (int32_t) fps_out + adj_fps;
+    /* デッドバンド */
+    if (err > -FB_DEADBAND_FRM && err < FB_DEADBAND_FRM)
+        err = 0;
 
-    /* クランプ（安全域） */
-    if (fps_in < (int32_t) FB_MIN_FPS)
-        fps_in = (int32_t) FB_MIN_FPS;
-    if (fps_in > (int32_t) FB_MAX_FPS)
-        fps_in = (int32_t) FB_MAX_FPS;
+    /* 再生レートの平滑（実測が1秒更新でも、軽くLPF） */
+    static int32_t fps_out_avg = 48384;
+    int32_t fps_out_now        = (g_audio_out_fps ? (int32_t) g_audio_out_fps : 48000);
+    fps_out_avg += asr_s32(fps_out_now - fps_out_avg, 3);  // 1/8 追従
 
-    /* 10.14（1msあたり）へ変換 */
-    uint32_t fb_target_q14 = fps_to_q14_per_ms((uint32_t) fps_in);
+    /* --- PI 制御 --- */
+    // P項
+    int32_t p_term = asr_s32(err, KP_SHIFT);  // err / 2^KP_SHIFT
+    // I項：毎ms e を加算 → 1/2^KI_SHIFT でfps寄与
+    s_iacc += err;
+    if (s_iacc > I_ACC_CLAMP)
+        s_iacc = I_ACC_CLAMP;
+    if (s_iacc < -I_ACC_CLAMP)
+        s_iacc = -I_ACC_CLAMP;
+    int32_t i_term = asr_s32(s_iacc, KI_SHIFT);
 
-    /* 送出値の平滑化（オプション。揺れがある時だけ有効化） */
-    static int32_t fb_q14_smooth = (48u << 14); /* 初期48.0000/ms */
-    #if FB_SMOOTH_SHIFT > 0
-    int32_t target_q14 = (int32_t) fb_target_q14;
-    int32_t diff       = target_q14 - fb_q14_smooth; /* ← ここが負にもなる */
-    fb_q14_smooth += asr_s32(diff, FB_SMOOTH_SHIFT); /* 安全な算術シフト */
-    /* クランプ（安全域） */
-    {
-        int32_t q14_min = (int32_t) fps_to_q14_per_ms(FB_MIN_FPS);
-        int32_t q14_max = (int32_t) fps_to_q14_per_ms(FB_MAX_FPS);
-        if (fb_q14_smooth < q14_min)
-            fb_q14_smooth = q14_min;
-        if (fb_q14_smooth > q14_max)
-            fb_q14_smooth = q14_max;
-    }
-    uint32_t fb_q14 = (fb_q14_smooth < 0) ? 0u : (uint32_t) fb_q14_smooth;
+    // 希望入力レート = 再生平均 + P + I
+    int32_t fps_req = fps_out_avg + p_term + i_term;
 
-    #else
-    uint32_t fb_q14 = fb_target_q14;
-    #endif
+    // 要求偏差のクランプ（過激な指示を抑制）
+    int32_t delta_from_out = fps_req - fps_out_avg;
+    if (delta_from_out > DELTA_FPS_CLAMP)
+        delta_from_out = DELTA_FPS_CLAMP;
+    if (delta_from_out < -DELTA_FPS_CLAMP)
+        delta_from_out = -DELTA_FPS_CLAMP;
+    fps_req = fps_out_avg + delta_from_out;
+
+    // 出力スルーレート制限（ホスト側スムージングと相性良く）
+    int32_t dstep = fps_req - s_last_fps_req;
+    if (dstep > FB_SLEW_FPS)
+        dstep = FB_SLEW_FPS;
+    if (dstep < -FB_SLEW_FPS)
+        dstep = -FB_SLEW_FPS;
+    s_last_fps_req += dstep;
+    fps_req = s_last_fps_req;
+
+    // 絶対クランプ
+    if (fps_req < (int32_t) FB_MIN_FPS)
+        fps_req = (int32_t) FB_MIN_FPS;
+    if (fps_req > (int32_t) FB_MAX_FPS)
+        fps_req = (int32_t) FB_MAX_FPS;
+
+    /* 10.14/1ms に変換して 3B 詰め */
+    uint32_t fb_q14 = fps_to_q14_per_ms((uint32_t) fps_req);
 #else
     /* 可変に戻す前の固定48k（10.14） */
     const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
