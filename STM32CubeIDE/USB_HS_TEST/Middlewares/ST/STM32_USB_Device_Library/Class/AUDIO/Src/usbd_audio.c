@@ -97,9 +97,9 @@ EndBSPDependencies */
 #define AUDIO_PACKET_SIZE(frq) \
     (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) >> 8) & 0xFFU)
 
-#define AUDIO_PACKET_SIZE_MAX(frq)                                                             \
-    (uint8_t) (((frq / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) & 0xFFU), \
-        (uint8_t) ((((frq / 1000U + 0) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) >> 8) & 0xFFU)
+#define AUDIO_PACKET_SIZE_MAX(frq)                                                                         \
+    (uint8_t) (((frq / 1000U + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) & 0xFFU), \
+        (uint8_t) ((((frq / 1000U + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
     #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
@@ -704,10 +704,6 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used   = 1U;
                     pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket = 3U;
 
-                    printf("[FB:Open] is_used=%d, maxpacket=%d\n", pdev->ep_in[AUDIOFbEpAdd & 0xF].is_used, pdev->ep_in[AUDIOFbEpAdd & 0xF].maxpacket);
-
-                    AUDIO_FB_Config(AUDIO_FB_EP, 1000, 0);
-
                     s_fb_busy   = 0; /* ★ busy解除 */
                     s_fb_opened = 1;
 
@@ -904,9 +900,13 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
     // UNUSED(pdev);
 
 #if 1
-    AUDIO_FB_Task_1ms();
     if (pdev && pdev->dev_state == USBD_STATE_CONFIGURED && s_fb_opened)
     {
+        if (USBD_GetMicroframeHS() == 0)
+        {
+            AUDIO_FB_Task_1ms();
+        }
+
         if (s_fb_arm_pending && !s_fb_busy && USBD_GetMicroframeHS() == 7)
         {
             // uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);

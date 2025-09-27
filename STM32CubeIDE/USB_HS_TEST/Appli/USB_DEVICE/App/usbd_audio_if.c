@@ -98,35 +98,29 @@ static volatile int32_t s_dlevel_ps   = 0;
 static volatile uint32_t s_prev_level = 0;
 
 /* === 10.14 Feedback servo ================================================= */
-uint8_t s_fb_ep                = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
-static uint32_t s_fb_units_sec = 1000; /* 1ms基準=1000, microframe=8000 */
-static uint8_t s_fb_bref_pow2  = 0;    /* bRefresh=2^N (1ms基準ならN=0で毎ms) */
+uint8_t s_fb_ep = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
 
 __attribute__((section(".dma_nocache"), aligned(4))) uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
 
-/* Q14定義（10.14固定小数） */
-#define Q14 16384
-/* 目標水位（中央付近）：必要なら60%などにしても可 */
-#define RXQ_TARGET_FRAMES (RXQ_FRAMES / 2u)
-/* P/I ゲイン（保守的）：誤差1frameあたりの微調整をごく小さく */
-#define KP_NUM 1
-#define KP_DEN 1024 /* ≈ 0.00049 */
-#define KI_NUM 1
-#define KI_DEN 32768 /* ≈ 0.00003/frame·ms */
-/* 変化量の上限（ppmガード）。例: ±0.5% = ±5000ppm なら以下を調整 */
-#define FB_PPM_LIMIT 1000 /* ±3000ppm */
+volatile uint32_t g_audio_level_now_frames = 0;          /* 現在のバッファ水位[frames]。ログを出す場所で毎ms更新してください */
+volatile uint32_t g_audio_cap_frames       = RXQ_FRAMES; /* バッファ総容量[frames]（初期化時に実値を代入） */
+volatile uint32_t g_audio_out_fps          = 48384;      /* 再生実効レート[frames/s]。DMAで1秒毎に実測して代入（暫定なら48384でOK） */
 
-#define DEADBAND_FRAMES   24                        /* 誤差この範囲は0扱い（ノイズ無視） */
-#define LOW_WATER_FRAMES  (RXQ_FRAMES * 20u / 100u) /* 20% 未満で増量モードON */
-#define HIGH_WATER_FRAMES (RXQ_FRAMES * 35u / 100u) /* 35% 超でOFF（ヒステリシス） */
-#define BOOST_PPM         600                       /* 低水位ブーストの下限 +0.06% */
-#define SLEW_DOWN_DIV     8                         /* 減速側のスルー制限：ppm/8/ms 相当 */
+/* ==== P制御パラメータ ==== */
+#define FB_KP_NUM  1     /* Kp = 1/FB_KP_DEN [1/s]（Pゲイン） */
+#define FB_KP_DEN  8     /* 例: 1/8 → 誤差 800 frm で 100 fps 調整 */
+#define FB_MIN_FPS 44000 /* ホストに要求する下限 [frames/s] 安全幅 */
+#define FB_MAX_FPS 52000 /* 上限（必要に応じて狭めてOK） */
 
-static int32_t s_fb_i = 0; /* I項 */
+/* 10.14（1msあたり）に変換 */
+static inline uint32_t fps_to_q14_per_ms(uint32_t fps)
+{
+    /* (fps << 14) / 1000; 64bitで安全に */
+    return (uint32_t) (((uint64_t) fps << 14) / 1000u);
+}
 
-static uint32_t s_fb_base_q14 = 0; /* 基準値（10.14, 1ms→48<<14 / 125us→6<<14 等） */
-
-// static uint32_t s_hist47 = 0, s_hist48 = 0, s_hist49 = 0;
+/* なめらかにするための1次遅れ（オプション） */
+#define FB_SMOOTH_SHIFT 4 /* 1/16 だけ追従（小さくすると速応、0で無効） */
 
 volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
 volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
@@ -134,7 +128,6 @@ volatile uint32_t g_fb_ack;
 volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
 
 /* usbd_conf.c に追加したヘルパ */
-void USBD_FB_ForceEvenOdd(uint8_t ep_addr, uint8_t even);
 uint8_t USBD_GetMicroframeHS(void); /* 上のヘルパ */
 
 /* ★ 1msに“ちょうど1回だけ”送るためのラッチ */
@@ -158,18 +151,6 @@ static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
 static inline int32_t clamp_s32(int32_t v, int32_t lo, int32_t hi)
 {
     return (v < lo) ? lo : (v > hi ? hi : v);
-}
-
-void AUDIO_FB_Config(uint8_t fb_ep_addr, uint32_t units_per_sec, uint8_t brefresh_pow2)
-{
-    s_fb_ep        = fb_ep_addr;
-    s_fb_units_sec = (units_per_sec == 0) ? 1000 : units_per_sec;
-    s_fb_bref_pow2 = brefresh_pow2;
-    /* 基準（10.14）: “1単位あたりのフレーム数”<<14 */
-    /* 例：48kHz×1ms→48, 48kHz×125us→6 */
-    uint32_t base_units = USBD_AUDIO_FREQ / s_fb_units_sec;
-    s_fb_base_q14       = base_units << 14;
-    s_fb_i              = 0;
 }
 
 /* 現在のフレーム奇偶を読み、"同じ奇偶"を指定して次のmsへ確実にスケジュール */
@@ -196,20 +177,69 @@ uint8_t USBD_GetMicroframeHS(void)
     return (uint8_t) ((dev->DSTS >> 8) & 0x7U);
 }
 
+/* 符号付きの安全シフト（算術シフトを保証）*/
+static inline int32_t asr_s32(int32_t x, unsigned s)
+{
+    if (s == 0)
+        return x;
+    return (x >= 0) ? (x >> s) : -(((-x) >> s));
+}
+
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
 void AUDIO_FB_Task_1ms(void)
 {
-    static uint32_t last_ms = 0;
-    uint32_t now            = HAL_GetTick();
-    if (now == last_ms)
-        return; /* 1msに1回 */
-    last_ms = now;
+    g_audio_level_now_frames = g_rxq_wr - g_rxq_rd;
+    g_audio_cap_frames       = RXQ_FRAMES;
+#if 1
+    /* 目標水位＝cap/2（好みで 2/3*cap 等にしてもよい） */
+    uint32_t cap    = g_audio_cap_frames ? g_audio_cap_frames : 9216u;
+    uint32_t target = cap >> 1; /* cap/2 */
+    int32_t level   = (int32_t) g_audio_level_now_frames;
+    int32_t err     = (int32_t) target - level; /* +なら増やしたい */
 
+    /* P制御：要求する入力レート [frames/s] = 出力レート + Kp*誤差 */
+    uint32_t fps_out = g_audio_out_fps ? g_audio_out_fps : 48000u;
+    int32_t adj_fps  = (err * FB_KP_NUM) / FB_KP_DEN; /* frames/s */
+    int32_t fps_in   = (int32_t) fps_out + adj_fps;
+
+    /* クランプ（安全域） */
+    if (fps_in < (int32_t) FB_MIN_FPS)
+        fps_in = (int32_t) FB_MIN_FPS;
+    if (fps_in > (int32_t) FB_MAX_FPS)
+        fps_in = (int32_t) FB_MAX_FPS;
+
+    /* 10.14（1msあたり）へ変換 */
+    uint32_t fb_target_q14 = fps_to_q14_per_ms((uint32_t) fps_in);
+
+    /* 送出値の平滑化（オプション。揺れがある時だけ有効化） */
+    static int32_t fb_q14_smooth = (48u << 14); /* 初期48.0000/ms */
+    #if FB_SMOOTH_SHIFT > 0
+    int32_t target_q14 = (int32_t) fb_target_q14;
+    int32_t diff       = target_q14 - fb_q14_smooth; /* ← ここが負にもなる */
+    fb_q14_smooth += asr_s32(diff, FB_SMOOTH_SHIFT); /* 安全な算術シフト */
+    /* クランプ（安全域） */
+    {
+        int32_t q14_min = (int32_t) fps_to_q14_per_ms(FB_MIN_FPS);
+        int32_t q14_max = (int32_t) fps_to_q14_per_ms(FB_MAX_FPS);
+        if (fb_q14_smooth < q14_min)
+            fb_q14_smooth = q14_min;
+        if (fb_q14_smooth > q14_max)
+            fb_q14_smooth = q14_max;
+    }
+    uint32_t fb_q14 = (fb_q14_smooth < 0) ? 0u : (uint32_t) fb_q14_smooth;
+
+    #else
+    uint32_t fb_q14 = fb_target_q14;
+    #endif
+#else
     /* 可変に戻す前の固定48k（10.14） */
     const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
-    s_fb_pkt[0]           = (uint8_t) (fb_q14);
-    s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
-    s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
+#endif
+
+    // printf("fb_q14=%lu, smooth=%lu, target=%lu\n", fb_q14, fb_q14_smooth, fb_target_q14);
+    s_fb_pkt[0] = (uint8_t) (fb_q14);
+    s_fb_pkt[1] = (uint8_t) (fb_q14 >> 8);
+    s_fb_pkt[2] = (uint8_t) (fb_q14 >> 16);
 }
 
 static inline void stats_update_level(uint32_t level)
