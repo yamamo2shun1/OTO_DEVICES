@@ -23,7 +23,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include <math.h>
-
+#include <stdbool.h>
 #include "sai.h"
 
 #include "core_cm7.h" /* DWT->CYCCNT 用 */
@@ -107,14 +107,17 @@ volatile uint32_t g_audio_cap_frames       = RXQ_FRAMES; /* バッファ総容�
 volatile uint32_t g_audio_out_fps          = 48384;      /* 再生実効レート[frames/s]。DMAで1秒毎に実測して代入（暫定なら48384でOK） */
 
 /* ==== PI制御パラメータ ==== */
-#define FB_DEADBAND_FRM 64        // 目標周り±64frmは誤差ゼロ扱い
-#define KP_SHIFT        5         // Kp = 1/16 [1/s]（強すぎたら数値↑、弱すぎたら↓）
-#define KI_SHIFT        10        // Ki = 1/1024 [1/s] を毎ms積分（弱ければ数値↓、強ければ↑）
-#define I_ACC_CLAMP     (400000)  // 積分器の上限（frames・ms相当のスカラー）
-#define DELTA_FPS_CLAMP 1500      // 1回の要求で許す偏差の最大値[frames/s]
-#define FB_SLEW_FPS     80        // 1msあたりの変化量上限[frames/s]（出力スlew）
-#define FB_MIN_FPS      44000
-#define FB_MAX_FPS      52000
+#define FB_DEADBAND_FRM       64        // 目標周り±64frmは誤差ゼロ扱い
+#define KP_SHIFT              5         // Kp = 1/16 [1/s]（強すぎたら数値↑、弱すぎたら↓）
+#define KI_SHIFT              10        // Ki = 1/1024 [1/s] を毎ms積分（弱ければ数値↓、強ければ↑）
+#define I_ACC_CLAMP           (400000)  // 積分器の上限（frames・ms相当のスカラー）
+#define DELTA_FPS_CLAMP       5000      // 1回の要求で許す偏差の最大値[frames/s]
+#define FB_SLEW_FPS           60        // 1msあたりの変化量上限[frames/s]（出力スlew）
+#define FB_SLEW_FPS_BOOST     200       // ★ 低水位レスキュー時のスルー
+#define DELTA_FPS_CLAMP_BOOST 8000      // ★ 低水位レスキュー時の相対クランプ
+#define LOW_WATER_FRAC        6         // cap/6 未満を低水位とみなす
+#define FB_MIN_FPS            44000
+#define FB_MAX_FPS            52000
 
 /* 出力スルーレート制限用の保持 */
 static int32_t s_last_fps_req = 48000;
@@ -218,34 +221,52 @@ void AUDIO_FB_Task_1ms(void)
     int32_t fps_out_now        = (g_audio_out_fps ? (int32_t) g_audio_out_fps : 48000);
     fps_out_avg += asr_s32(fps_out_now - fps_out_avg, 3);  // 1/8 追従
 
+    /* --- 低水位レスキュー判定 --- */
+    bool low_water      = (level < (int32_t) (cap / LOW_WATER_FRAC));
+    int32_t delta_limit = low_water ? DELTA_FPS_CLAMP_BOOST : DELTA_FPS_CLAMP;
+    int32_t slew_limit  = low_water ? FB_SLEW_FPS_BOOST : FB_SLEW_FPS;
+
     /* --- PI 制御 --- */
     // P項
     int32_t p_term = asr_s32(err, KP_SHIFT);  // err / 2^KP_SHIFT
-    // I項：毎ms e を加算 → 1/2^KI_SHIFT でfps寄与
-    s_iacc += err;
-    if (s_iacc > I_ACC_CLAMP)
-        s_iacc = I_ACC_CLAMP;
-    if (s_iacc < -I_ACC_CLAMP)
-        s_iacc = -I_ACC_CLAMP;
+                                              // I項：毎ms e を加算 → 1/2^KI_SHIFT でfps寄与
+
+    // 仮の i_term を計算する前に、積分器更新を判定（出力がサチっている間は積分停止）
+    // まずはサチっていない前提で i_term を見積もる
+    int32_t i_term_pred  = asr_s32(s_iacc, KI_SHIFT);
+    int32_t fps_req_pred = fps_out_avg + p_term + i_term_pred;
+    int32_t delta_pred   = fps_req_pred - fps_out_avg;
+    bool sat_upper_pred  = (delta_pred >= delta_limit) || (fps_req_pred >= (int32_t) FB_MAX_FPS);
+    bool sat_lower_pred  = (delta_pred <= -delta_limit) || (fps_req_pred <= (int32_t) FB_MIN_FPS);
+
+    if (!((sat_upper_pred && err > 0) || (sat_lower_pred && err < 0)))
+    {
+        // サチ方向にさらに積分しない
+        s_iacc += err;
+        if (s_iacc > I_ACC_CLAMP)
+            s_iacc = I_ACC_CLAMP;
+        if (s_iacc < -I_ACC_CLAMP)
+            s_iacc = -I_ACC_CLAMP;
+    }
     int32_t i_term = asr_s32(s_iacc, KI_SHIFT);
 
     // 希望入力レート = 再生平均 + P + I
     int32_t fps_req = fps_out_avg + p_term + i_term;
 
-    // 要求偏差のクランプ（過激な指示を抑制）
+    /* 相対クランプ（out_avg基準） */
     int32_t delta_from_out = fps_req - fps_out_avg;
-    if (delta_from_out > DELTA_FPS_CLAMP)
-        delta_from_out = DELTA_FPS_CLAMP;
-    if (delta_from_out < -DELTA_FPS_CLAMP)
-        delta_from_out = -DELTA_FPS_CLAMP;
+    if (delta_from_out > delta_limit)
+        delta_from_out = delta_limit;
+    if (delta_from_out < -delta_limit)
+        delta_from_out = -delta_limit;
     fps_req = fps_out_avg + delta_from_out;
 
-    // 出力スルーレート制限（ホスト側スムージングと相性良く）
+    /* 出力スルーレート制限（低水位では緩める） */
     int32_t dstep = fps_req - s_last_fps_req;
-    if (dstep > FB_SLEW_FPS)
-        dstep = FB_SLEW_FPS;
-    if (dstep < -FB_SLEW_FPS)
-        dstep = -FB_SLEW_FPS;
+    if (dstep > slew_limit)
+        dstep = slew_limit;
+    if (dstep < -slew_limit)
+        dstep = -slew_limit;
     s_last_fps_req += dstep;
     fps_req = s_last_fps_req;
 
