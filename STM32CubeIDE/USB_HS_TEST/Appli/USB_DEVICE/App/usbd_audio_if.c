@@ -35,7 +35,6 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-extern USBD_HandleTypeDef hUsbDeviceHS;
 extern SAI_HandleTypeDef hsai_BlockA2;
 extern uint32_t sai_tx_buf[];  // main.c 側で定義済み
 extern volatile uint8_t g_tx_safe;
@@ -44,15 +43,15 @@ extern volatile uint8_t g_tx_safe;
 #ifndef RXQ_MS
     #define RXQ_MS 192u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
-#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
+#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u + AUDIO_PKT_EXT) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)                  /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
 __attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
 static volatile uint32_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
 static volatile uint32_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 
 static volatile int s_rxq_started           = 0;                          // 再生開始済み
-static volatile size_t s_rxq_preroll_frames = (RXQ_FRAMES * 80u) / 100u;  // 既定=95%
+static volatile size_t s_rxq_preroll_frames = (RXQ_FRAMES * 80u) / 100u;  // 既定=80%
 
 size_t AUDIO_RxQ_LevelFrames(void)
 {
@@ -154,9 +153,10 @@ uint8_t USBD_GetMicroframeHS(void); /* 上のヘルパ */
 static uint32_t s_last_tx_ms = 0;
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
-volatile uint8_t s_fb_opened  = 0;
-static uint32_t s_dbg_last_ms = 0; /* 1秒に1回だけ詳細を出す用 */
-static uint32_t s_dbg_rate    = 0;
+volatile uint8_t s_fb_opened    = 0;
+volatile uint8_t s_fb_opened_in = 0;
+static uint32_t s_dbg_last_ms   = 0; /* 1秒に1回だけ詳細を出す用 */
+static uint32_t s_dbg_rate      = 0;
 
 volatile uint8_t s_last_arm_uf = 0;
 
@@ -203,7 +203,7 @@ void AUDIO_FB_Task_1ms(void)
     g_audio_level_now_frames = g_rxq_wr - g_rxq_rd;
     g_audio_cap_frames       = RXQ_FRAMES;
 
-#if 1
+#if 0
     /* 目標水位 */
     uint32_t cap = g_audio_cap_frames ? g_audio_cap_frames : 9216u;
     if (cap < 2)
@@ -369,6 +369,7 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
     size_t copy = 0; /* 今回リングから実際に取り出すフレーム数 */
 
     /* === プリロール：8割未満ならミュートで埋める（ポップしない） === */
+#if 0
     if (!s_rxq_started)
     {
         if (level < s_rxq_preroll_frames)
@@ -381,7 +382,7 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
         s_rxq_started = 1;
         AUDIO_ResetStats();  // ★ここで1秒積算系をリセット
     }
-
+#endif
     /* 今回取り出すフレーム数（部分ポップを許可） */
     if (level >= frames)
     {
@@ -723,14 +724,6 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
     /* 供給フレーム数を記録（1回の呼び出しで 'frames' 供給） */
     AUDIO_AddInFrames(frames);
 
-#if 0
-    if (frames == 47)
-        ++s_hist47;
-    else if (frames == 48)
-        ++s_hist48;
-    else if (frames == 49)
-        ++s_hist49;
-#endif
     return (USBD_OK);
     /* USER CODE END 14 */
 }
