@@ -65,6 +65,8 @@ EndBSPDependencies */
 
 #include "usbd_audio_if.h"
 
+#include <stdbool.h>
+
 /** @addtogroup STM32_USB_DEVICE_LIBRARY
  * @{
  */
@@ -830,7 +832,10 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
         g_fb_ack++;    /* ★ ACK をカウント */
 
         /* ★ ACKが来たら、その場で次回分をアーム */
-        s_fb_arm_pending = 1;
+        if (!s_fb_arm_pending)
+        {
+            s_fb_arm_pending = 1;
+        }
         return (uint8_t) USBD_OK;
     }
 
@@ -889,9 +894,13 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  */
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
+    static int8_t s_fb_poll_uframe = -1;
+
     if (pdev && pdev->dev_state == USBD_STATE_CONFIGURED && s_fb_opened)
     {
-        if (s_fb_arm_pending && !s_fb_busy && USBD_GetMicroframeHS() == 7)
+        uint8_t uf      = USBD_GetMicroframeHS();
+        bool poll_match = (s_fb_poll_uframe < 0) ? (uf == 0) : (uf == (uint8_t) s_fb_poll_uframe);
+        if (s_fb_arm_pending && !s_fb_busy && poll_match)
         {
 #if 0
             uint32_t test = 50000u;
@@ -905,17 +914,22 @@ static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
             s_fb_pkt[0]           = (uint8_t) (fb_q14);
             s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
             s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
-            __DMB();
 #else
             AUDIO_FB_Task_1ms();
 #endif
-            // printf("fb_q14 = %lu(%08X) %02X,%02X,%02X\n", fb_q14, fb_q14, s_fb_pkt[0], s_fb_pkt[1], s_fb_pkt[2]);
+            __DMB();
             if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
             {
                 s_fb_busy        = 1;
                 s_fb_arm_pending = 0;
                 g_fb_tx_req++;
                 g_fb_tx_ok++;
+
+                // 初回成功で“ホストが実際にポーリングしていたµframe”を学習
+                if (s_fb_poll_uframe < 0)
+                {
+                    s_fb_poll_uframe = (int8_t) uf;
+                }
             }
             else
             {
@@ -1067,7 +1081,10 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
         g_fb_incomp++;
 
         /* ★ 未成立でも“すぐ次回分”をアーム（次のmsで間に合うよう先行） */
-        s_fb_arm_pending = 1;
+        if (!s_fb_arm_pending)
+        {
+            s_fb_arm_pending = 1;
+        }
     }
 
     return (uint8_t) USBD_OK;
