@@ -95,14 +95,14 @@ EndBSPDependencies */
     (uint8_t) (frq), (uint8_t) ((frq >> 8)), (uint8_t) ((frq >> 16))
 
 #define AUDIO_PACKET_SIZE(frq) \
-    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / 1000U) >> 8) & 0xFFU)
+    (uint8_t) (((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / AUDIO_NUM_PER_S) & 0xFFU), (uint8_t) ((((frq * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) / AUDIO_NUM_PER_S) >> 8) & 0xFFU)
 
-#define AUDIO_PACKET_SIZE_MAX(frq)                                                                         \
-    (uint8_t) (((frq / 1000U + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) & 0xFFU), \
-        (uint8_t) ((((frq / 1000U + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) >> 8) & 0xFFU)
+#define AUDIO_PACKET_SIZE_MAX(frq)                                                                                   \
+    (uint8_t) (((frq / AUDIO_NUM_PER_S + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) & 0xFFU), \
+        (uint8_t) ((((frq / AUDIO_NUM_PER_S + AUDIO_PKT_EXT) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES) >> 8) & 0xFFU)
 
 #ifdef USE_USBD_COMPOSITE
-    #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / 1000U))
+    #define AUDIO_PACKET_SZE_WORD(frq) (uint32_t) ((((frq) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME) / AUDIO_NUM_PER_S))
 #endif /* USE_USBD_COMPOSITE  */
 /**
  * @}
@@ -375,7 +375,7 @@ __ALIGN_BEGIN static uint8_t USBD_AUDIO_CfgDesc[USB_AUDIO_CONFIG_DESC_SIZ] __ALI
         0x11,                              /* bmAttributes: Isoch | Usage=Feedback */
         0x03,
         0x00,               /* wMaxPacketSize = 3 bytes (HS:10.14) */
-        AUDIO_HS_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
+        AUDIO_FB_BINTERVAL, /* bInterval: 1ms (=2^(4-1) µframes) */
         0x00,               /* bRefresh (未使用) */
         0x00,               /* bSynchAddress=0 */
                             /* 09 byte(151) */
@@ -697,7 +697,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                     (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], AUDIO_OUT_PACKET);
 
                     if (pdev->dev_speed == USBD_SPEED_HIGH)
-                        pdev->ep_in[AUDIOFbEpAdd & 0xF].bInterval = AUDIO_HS_BINTERVAL;
+                        pdev->ep_in[AUDIOFbEpAdd & 0xF].bInterval = AUDIO_FB_BINTERVAL;
                     else
                         pdev->ep_in[AUDIOFbEpAdd & 0xF].bInterval = AUDIO_FS_BINTERVAL;
 
@@ -811,9 +811,9 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     extern USBD_HandleTypeDef hUsbDeviceHS;
     USBD_EndpointTypeDef* ep = &hUsbDeviceHS.ep_in[s_fb_ep & 0xF];
     if (hUsbDeviceHS.dev_state != USBD_STATE_CONFIGURED)
-        return (uint8_t) USBD_FAIL;
+        return (uint8_t) USBD_OK;
     if (!ep->is_used || ep->maxpacket == 0)
-        return (uint8_t) USBD_FAIL;
+        return (uint8_t) USBD_OK;
 
     if ((epnum & 0x0F) == (AUDIOInEpAdd & 0x0F))
     {
@@ -828,20 +828,7 @@ static uint8_t USBD_AUDIO_DataIn(USBD_HandleTypeDef* pdev, uint8_t epnum)
     {
         s_fb_busy = 0; /* ★ 完了で busy を確実に落とす */
         g_fb_ack++;    /* ★ ACK をカウント */
-#if 0
-        uint8_t uf_now       = USBD_GetMicroframeHS();
-        uint8_t duf          = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
-        static uint32_t last = 0;
-        uint32_t now         = HAL_GetTick();
-        if ((now - last) >= 1000)
-        {
-            USB_OTG_INEndpointTypeDef* in =
-                (USB_OTG_INEndpointTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_IN_ENDPOINT_BASE);
-            uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
-            printf("[FB:ackUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
-            last = now;
-        }
-#endif
+
         /* ★ ACKが来たら、その場で次回分をアーム */
         s_fb_arm_pending = 1;
         return (uint8_t) USBD_OK;
@@ -902,67 +889,69 @@ static uint8_t USBD_AUDIO_EP0_TxReady(USBD_HandleTypeDef* pdev)
  */
 static uint8_t USBD_AUDIO_SOF(USBD_HandleTypeDef* pdev)
 {
-    // UNUSED(pdev);
-
-#if 1
     if (pdev && pdev->dev_state == USBD_STATE_CONFIGURED && s_fb_opened)
     {
-        if (USBD_GetMicroframeHS() == 0)
-        {
-            AUDIO_FB_Task_1ms();
-        }
-
         if (s_fb_arm_pending && !s_fb_busy && USBD_GetMicroframeHS() == 7)
         {
-            // uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
-            /* “次msの0”を狙うので even を指定（uF=7はodd） */
-            // pdev->ep_in[idx].even_odd_frame = 1U;  // even
-            /* ★ “次のms”に確実に乗るよう予約 → 送信 */
-            // USBD_FB_ProgramNextMs(s_fb_ep);  // ← ここでだけ呼ぶ
-    #if 1
-            const uint32_t fb_q14 = (48000u << 14) / 1000u; /* 0x000C0000 */
+#if 0
+            uint32_t test = 50000u;
+    #if 0
+            if (g_audio_out_fps >= 48000)
+            {
+                test = 48000u;
+            }
+    #endif
+            const uint32_t fb_q14 = (test << 14) / AUDIO_NUM_PER_S; /* 0x000C0000 */
             s_fb_pkt[0]           = (uint8_t) (fb_q14);
             s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
             s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
+            __DMB();
+#else
+            AUDIO_FB_Task_1ms();
+#endif
             // printf("fb_q14 = %lu(%08X) %02X,%02X,%02X\n", fb_q14, fb_q14, s_fb_pkt[0], s_fb_pkt[1], s_fb_pkt[2]);
             if (USBD_LL_Transmit(pdev, s_fb_ep, s_fb_pkt, 3) == USBD_OK)
             {
                 s_fb_busy        = 1;
-                s_fb_arm_pending = 0;  // 消費
+                s_fb_arm_pending = 0;
                 g_fb_tx_req++;
                 g_fb_tx_ok++;
-
-        #if 0
-                static uint32_t last_ms = 0;
-                const uint32_t now      = HAL_GetTick();
-                if ((now - last_ms) >= 1000)
-                {
-            #if 0
-                	// printf("[FB:arm]  st=OK  idx=%u mps=%lu pkt=3 pcnt(exp)=1 xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
-
-                    printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
-                    g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
-            #endif
-                    AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
-                    AUDIO_Stats st;
-                    AUDIO_GetStats(&st);
-                    printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
-                           "fps[in/out]=%u/%u, dLevel/s=%ld, "
-                           "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
-                           st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
-
-                    last_ms = now;
-                }
-        #endif
             }
             else
             {
                 g_fb_tx_busy++;
             }
-    #endif
+#if 0
+            static uint32_t last = 0;
+            uint32_t now         = HAL_GetTick();
+            if ((now - last) >= 1000)
+            {
+                USB_OTG_INEndpointTypeDef* in =
+                    (USB_OTG_INEndpointTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_IN_ENDPOINT_BASE);
+                uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
+                printf("[FB:sof] DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
+                last = now;
+            }
+#endif
+
+#if 1
+            static uint32_t last_ms = 0;
+            const uint32_t now      = HAL_GetTick();
+            if ((now - last_ms) >= 1000)
+            {
+                AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
+                AUDIO_Stats st;
+                AUDIO_GetStats(&st);
+                printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
+                       "fps[in/out]=%u/%u, dLevel/s=%ld, "
+                       "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
+                       st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+
+                last_ms = now;
+            }
+#endif
         }
     }
-#endif
 
     if (s_fb_opened_in)
     {
@@ -1065,9 +1054,6 @@ void USBD_AUDIO_Sync(USBD_HandleTypeDef* pdev, AUDIO_OffsetTypeDef offset)
  */
 static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnum)
 {
-    // UNUSED(pdev);
-    // UNUSED(epnum);
-
     if ((epnum & 0x0F) == (AUDIOInEpAdd & 0x0F))
     {
         (void) USBD_LL_Transmit(pdev, AUDIOInEpAdd, mic_packet, AUDIO_IN_PACKET);
@@ -1079,39 +1065,9 @@ static uint8_t USBD_AUDIO_IsoINIncomplete(USBD_HandleTypeDef* pdev, uint8_t epnu
     {
         s_fb_busy = 0; /* ★ 完了しなくても次回送れるように busy を解放 */
         g_fb_incomp++;
-#if 0
-        uint8_t uf_now = USBD_GetMicroframeHS();
-        /* 差分（0..7）: uf_now が “アーム時”からどれだけ進んで失敗したか */
-        uint8_t duf = (uint8_t) ((uf_now - s_last_arm_uf) & 0x7);
-        /* 1秒1回だけでOKなら抑制して */
-        static uint32_t last = 0;
-        uint32_t now         = HAL_GetTick();
-        if ((now - last) >= 1000)
-        {
-            /* DIEPCTL/SIZも参考ダンプ（hexで可） */
-            USB_OTG_INEndpointTypeDef* in =
-                (USB_OTG_INEndpointTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_IN_ENDPOINT_BASE);
-            uint8_t idx = (uint8_t) (s_fb_ep & 0x0F);
-            printf("[FB:incUF] dUF=%u (arm=%u -> now=%u) DIEPCTL=0x%08lX DIEPTSIZ=0x%08lX\n", duf, s_last_arm_uf, uf_now, (unsigned long) in[idx].DIEPCTL, (unsigned long) in[idx].DIEPTSIZ);
-            last = now;
-        }
-#endif
+
         /* ★ 未成立でも“すぐ次回分”をアーム（次のmsで間に合うよう先行） */
         s_fb_arm_pending = 1;
-
-#if 0
-        /* 1秒に1回だけ詳細 */
-        static uint32_t s_inc_last = 0;
-        uint32_t now               = HAL_GetTick();
-        if ((now - s_inc_last) >= 1000)
-        {
-            extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
-            uint8_t idx             = (uint8_t) (s_fb_ep & 0x0F);
-            const PCD_EPTypeDef* ep = &hpcd_USB_OTG_HS.IN_ep[idx];
-            printf("[FB:inc] idx=%u mps=%lu xlen=%lu xcnt=%lu evenodd=%u\n", idx, (unsigned long) ep->maxpacket, (unsigned long) ep->xfer_len, (unsigned long) ep->xfer_count, (unsigned) ep->even_odd_frame);
-            s_inc_last = now;
-        }
-#endif
     }
 
     return (uint8_t) USBD_OK;
@@ -1134,8 +1090,18 @@ static uint8_t USBD_AUDIO_IsoOutIncomplete(USBD_HandleTypeDef* pdev, uint8_t epn
 
     haudio = (USBD_AUDIO_HandleTypeDef*) pdev->pClassDataCmsit[pdev->classId];
 
-    /* Prepare Out endpoint to receive next audio packet */
-    (void) USBD_LL_PrepareReceive(pdev, epnum, &haudio->buffer[haudio->wr_ptr], AUDIO_OUT_PACKET);
+    if ((epnum & 0x0F) == (AUDIOOutEpAdd & 0x0F))
+    {
+#if 0
+        uint32_t USBx_BASE = USB_OTG_HS;
+        uint32_t ctl       = USBx_OUTEP(epnum & 0x0f)->DOEPCTL;
+        uint32_t siz       = USBx_OUTEP(epnum & 0x0f)->DOEPTSIZ;
+        printf("[OUT:INC] DOEPCTL=%08lX DOEPTSIZ=%08lX\n", ctl, siz);
+#endif
+
+        /* Prepare Out endpoint to receive next audio packet */
+        (void) USBD_LL_PrepareReceive(pdev, epnum, &haudio->buffer[haudio->wr_ptr], AUDIO_OUT_PACKET);
+    }
 
     return (uint8_t) USBD_OK;
 }
@@ -1174,7 +1140,7 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
         /* Increment the Buffer pointer or roll it back when all buffers are full */
         haudio->wr_ptr += PacketSize;
 
-        if (haudio->wr_ptr >= AUDIO_TOTAL_BUF_SIZE)
+        if (haudio->wr_ptr >= AUDIO_TOTAL_BUF_SIZE - PacketSize)
         {
             /* All buffers are full: roll back */
             haudio->wr_ptr = 0U;
@@ -1195,7 +1161,7 @@ static uint8_t USBD_AUDIO_DataOut(USBD_HandleTypeDef* pdev, uint8_t epnum)
         }
 
         /* Prepare Out endpoint to receive next audio packet */
-        (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], AUDIO_OUT_PACKET);
+        (void) USBD_LL_PrepareReceive(pdev, AUDIOOutEpAdd, &haudio->buffer[haudio->wr_ptr], PacketSize);
     }
 
     return (uint8_t) USBD_OK;

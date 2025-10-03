@@ -208,39 +208,14 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 #endif
 
+#if 1
     if (g_tx_safe != tx_safe_prev)
     {
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
         size_t done   = AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
         AUDIO_AddOutFrames((uint32_t) done);
         tx_safe_prev = g_tx_safe;
-    }
-
-    /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
-#if 0
-    static uint32_t s_last_log = 0;
-    uint32_t now               = HAL_GetTick();
-
-    if ((now - s_last_log) >= 1000u)
-    {
-    #if 1
-        AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
-        AUDIO_Stats st;
-        AUDIO_GetStats(&st);
-        printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
-               "fps[in/out]=%u/%u, dLevel/s=%ld, "
-               "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
-               st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
-    #endif
-    #if 0
-        extern uint8_t s_fb_ep;
-        extern volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
-        extern volatile uint32_t g_fb_ack;
-        extern volatile uint32_t g_fb_incomp;
-        printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
-        g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
-    #endif
-        s_last_log = now;
+        __DMB();
     }
 #endif
     /* USER CODE END USBPD_DPM_UserExecute */
