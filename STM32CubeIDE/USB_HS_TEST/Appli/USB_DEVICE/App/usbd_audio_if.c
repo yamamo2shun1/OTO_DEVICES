@@ -43,8 +43,8 @@ extern volatile uint8_t g_tx_safe;
 #ifndef RXQ_MS
     #define RXQ_MS 384u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS (USBD_AUDIO_FREQ / AUDIO_NUM_PER_S + AUDIO_PKT_EXT) /* 48kHz→48 */
-#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)                            /* リング内の総フレーム数 */
+#define FRAMES_PER_MS ((USBD_AUDIO_FREQ + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)                              /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
 __attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
 static volatile uint32_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
@@ -201,7 +201,7 @@ uint8_t USBD_GetMicroframeHS(void)
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
 void AUDIO_FB_Task_1ms(void)
 {
-    uint32_t test = 50000u;
+    uint32_t test = 49000u;
 
     if (g_audio_out_fps >= 48000)
     {
@@ -213,7 +213,7 @@ void AUDIO_FB_Task_1ms(void)
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
 
     /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
-#if 1
+#if 0
     static uint32_t s_last_log = 0;
     uint32_t now               = HAL_GetTick();
 
@@ -347,6 +347,7 @@ size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
         copy = level; /* ある分だけ取り出す */
         s_underrun_events++;
         s_underrun_frames += (uint32_t) (frames - copy);
+        // return 0;
     }
 
     /* --- コピー：copy 分だけリング→dst --- */
@@ -604,7 +605,7 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
     /* ホスト→デバイス(OUT) の 1ms パケットだけ処理 */
     if (cmd != AUDIO_OUT_TC || pbuf == NULL || size == 0U)
     {
-        return (int8_t) USBD_FAIL;
+        return (int8_t) USBD_OK;
     }
 
     /* 1フレーム(LR)のバイト数とフレーム数を算出 */
@@ -651,7 +652,7 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         }
         else
         {
-            return (int8_t) USBD_FAIL;
+            return (int8_t) USBD_OK;
         }
 
         /* リングへ [L,R] の順で格納 */
