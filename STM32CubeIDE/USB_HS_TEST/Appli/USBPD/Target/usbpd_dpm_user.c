@@ -214,8 +214,8 @@ void USBPD_DPM_UserExecute(void const* argument)
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
         size_t done   = AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
         AUDIO_AddOutFrames((uint32_t) done);
-        tx_safe_prev = g_tx_safe;
         __DMB();
+        tx_safe_prev = g_tx_safe;
     }
 #endif
     /* USER CODE END USBPD_DPM_UserExecute */
