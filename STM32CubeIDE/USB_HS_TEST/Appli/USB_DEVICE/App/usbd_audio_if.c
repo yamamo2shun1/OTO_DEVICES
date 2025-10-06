@@ -23,7 +23,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include <math.h>
-
+#include <stdbool.h>
 #include "sai.h"
 
 #include "core_cm7.h" /* DWT->CYCCNT 用 */
@@ -41,14 +41,14 @@ extern volatile uint8_t g_tx_safe;
 
 /* === ①: USB→オーディオ受信用リング ===================================== */
 #ifndef RXQ_MS
-    #define RXQ_MS 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
+    #define RXQ_MS 384u  // 384u /* リング深さ（ミリ秒）。96ms推奨：half(≈48ms)×2を確保 */
 #endif
-#define FRAMES_PER_MS (USBD_AUDIO_FREQ / 1000u) /* 48kHz→48 */
-#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)  /* リング内の総フレーム数 */
+#define FRAMES_PER_MS ((USBD_AUDIO_FREQ + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) /* 48kHz→48 */
+#define RXQ_FRAMES    (FRAMES_PER_MS * RXQ_MS)                              /* リング内の総フレーム数 */
 /* 1frame = [L(32bit), R(32bit)] の並び。D-Cache親和性のため32B境界に揃える */
 __attribute__((section(".RAM_D1"), aligned(32))) static uint32_t g_rxq_buf[RXQ_FRAMES * 2];
-static volatile uint64_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
-static volatile uint64_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
+static volatile uint32_t g_rxq_wr = 0; /* 書込み位置（frame単位） */
+static volatile uint32_t g_rxq_rd = 0; /* 読み出し位置（frame単位） */
 
 static volatile int s_rxq_started           = 0;                          // 再生開始済み
 static volatile size_t s_rxq_preroll_frames = (RXQ_FRAMES * 80u) / 100u;  // 既定=80%
@@ -79,47 +79,318 @@ static inline void fill_silence(uint32_t* dst_words, size_t frames)
     memset(dst_words, 0, frames * 2u * sizeof(uint32_t));
 }
 
+/* === 統計用カウンタ ================================================ */
+static volatile uint32_t s_underrun_events = 0;
+static volatile uint32_t s_underrun_frames = 0;
+static volatile uint32_t s_overrun_events  = 0;
+static volatile uint32_t s_overrun_frames  = 0;
+static volatile uint32_t s_level_min       = 0xFFFFFFFFu;
+static volatile uint32_t s_level_max       = 0u;
+static volatile uint32_t s_copy_us_last    = 0u;
+static volatile uint32_t s_copy_us_max     = 0u;
+
+/* 1秒集計 */
+static volatile uint32_t s_in_accum = 0, s_out_accum = 0;
+static volatile uint32_t s_in_fps = 0, s_out_fps = 0;
+static volatile uint32_t s_level_now  = 0;
+static volatile int32_t s_dlevel_ps   = 0;
+static volatile uint32_t s_prev_level = 0;
+
+/* === 10.14 Feedback servo ================================================= */
+uint8_t s_fb_ep = 0x81; /* 明示FB EP（要: ディスクリプタ一致） */
+
+__attribute__((section(".dma_nocache"), aligned(32))) uint8_t s_fb_pkt[4];  // 3バイト送るが4バイト確保してアライン確保
+
+volatile uint32_t g_audio_level_now_frames = 0;          /* 現在のバッファ水位[frames]。ログを出す場所で毎ms更新してください */
+volatile uint32_t g_audio_cap_frames       = RXQ_FRAMES; /* バッファ総容量[frames]（初期化時に実値を代入） */
+volatile uint32_t g_audio_out_fps          = 48000;      /* 再生実効レート[frames/s]。DMAで1秒毎に実測して代入（暫定なら48384でOK） */
+
+/* ==== PI制御パラメータ ==== */
+#define FB_DEADBAND_FRM       96  // 目標周り±64frmは誤差ゼロ扱い
+#define KP_SHIFT              8   // Kp = 1/16 [1/s]（強すぎたら数値↑、弱すぎたら↓）
+#define KI_SHIFT              10  // Ki = 1/1024 [1/s] を毎ms積分（弱ければ数値↓、強ければ↑）
+#define I_TERM_MAX_FPS        400
+#define I_ACC_CLAMP           (I_TERM_MAX_FPS << KI_SHIFT)  // = 6000 * 1024 = 6,144,000
+#define DELTA_FPS_CLAMP       5000                          // 1回の要求で許す偏差の最大値[frames/s]
+#define FB_SLEW_FPS           600                           // 1msあたりの変化量上限[frames/s]（出力Slew）
+#define FB_SLEW_FPS_BOOST     1200                          // ★ 低水位レスキュー時のスルー
+#define DELTA_FPS_CLAMP_BOOST 8000                          // ★ 低水位レスキュー時の相対クランプ
+#define LOW_WATER_FRAC        6                             // cap/6 未満を低水位とみなす
+#define FB_MIN_FPS            44000
+#define FB_MAX_FPS            52000
+
+/* 出力スルーレート制限用の保持 */
+static int32_t s_last_fps_req = 48000;
+/* 積分器 */
+static int32_t s_iacc = 0;
+
+/* 10.14（1msあたり）に変換 */
+static inline uint32_t fps_to_q14_per_ms(uint32_t fps)
+{
+    /* (fps << 14) / 8000; 64bitで安全に */
+    return (uint32_t) (((uint64_t) fps << 14) / AUDIO_NUM_PER_S);
+}
+
+/* 符号付きの安全シフト（算術シフトを保証）*/
+static inline int32_t asr_s32(int32_t x, unsigned s)
+{
+    if (s == 0)
+        return x;
+    return (x >= 0) ? (x >> s) : -(((-x) >> s));
+}
+
+/* なめらかにするための1次遅れ（オプション） */
+#define FB_SMOOTH_SHIFT 4 /* 1/16 だけ追従（小さくすると速応、0で無効） */
+
+volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
+volatile uint8_t s_fb_busy; /* 既存のbusyフラグを利用 */
+volatile uint32_t g_fb_ack;
+volatile uint32_t g_fb_incomp; /* ★ 不成立の回数を数える */
+
+/* usbd_conf.c に追加したヘルパ */
+uint8_t USBD_GetMicroframeHS(void); /* 上のヘルパ */
+
+/* ★ 1msに“ちょうど1回だけ”送るためのラッチ */
+static uint32_t s_last_tx_ms = 0;
+
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+volatile uint8_t s_fb_opened    = 0;
+volatile uint8_t s_fb_opened_in = 0;
+static uint32_t s_dbg_last_ms   = 0; /* 1秒に1回だけ詳細を出す用 */
+static uint32_t s_dbg_rate      = 0;
+
+volatile uint8_t s_last_arm_uf = 0;
+
+volatile uint8_t s_fb_arm_pending = 0;
+
+uint8_t s_target_uf = 0; /* 0 か 4 を使用（ホストに合わせて後述で自己同期） */
+
+static inline uint32_t clamp_u32(uint32_t v, uint32_t lo, uint32_t hi)
+{
+    return (v < lo) ? lo : (v > hi ? hi : v);
+}
+static inline int32_t clamp_s32(int32_t v, int32_t lo, int32_t hi)
+{
+    return (v < lo) ? lo : (v > hi ? hi : v);
+}
+
+/* 現在のフレーム奇偶を読み、"同じ奇偶"を指定して次のmsへ確実にスケジュール */
+static inline uint8_t USBHS_GetFrameParity(void)
+{
+    USB_OTG_DeviceTypeDef* dev =
+        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
+    /* DSTS.FNSOF[0] が奇偶（0=even, 1=odd） */
+    return (uint8_t) ((dev->DSTS >> 8) & 0x07U);
+}
+
+void USBD_FB_ProgramNextMs(uint8_t ep_addr)
+{
+    uint8_t idx = ep_addr & 0x0F;
+
+    hpcd_USB_OTG_HS.IN_ep[idx].even_odd_frame = 0U;  // even
+}
+
+uint8_t USBD_GetMicroframeHS(void)
+{
+    USB_OTG_DeviceTypeDef* dev =
+        (USB_OTG_DeviceTypeDef*) ((uint32_t) USB_OTG_HS + USB_OTG_DEVICE_BASE);
+    /* FNSOF[14:8] の下位3bitが uframe(0..7) */
+    return (uint8_t) ((dev->DSTS >> 8) & 0x7U);
+}
+
+/* 1msごとに“次回分の値だけ”を用意（送信はしない） */
+void AUDIO_FB_Task_1ms(void)
+{
+    uint32_t test = 49000u;
+
+    if (g_audio_out_fps >= 48000)
+    {
+        test = 48000u;
+    }
+    const uint32_t fb_q14 = (test << 14) / AUDIO_NUM_PER_S; /* 0x000C0000 */
+    s_fb_pkt[0]           = (uint8_t) (fb_q14);
+    s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
+    s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);
+
+    /* === 1秒に1回サマリ出力（重くならないように節度を守る） === */
+#if 0
+    static uint32_t s_last_log = 0;
+    uint32_t now               = HAL_GetTick();
+
+    if ((now - s_last_log) >= 1000u)
+    {
+        AUDIO_Stats_On1sTick(); /* ← 1秒境界で確定 */
+        AUDIO_Stats st;
+        AUDIO_GetStats(&st);
+
+        g_audio_out_fps = st.in_fps;
+    #if 1
+        printf("[AUDIO] cap=%u frm, level[now/min/max]=%u/%u/%u, "
+               "fps[in/out]=%u/%u, dLevel/s=%ld, "
+               "UR(ev=%u,frm=%u), OR(ev=%u,frm=%u), copy_us(last=%u,max=%u)\n",
+               st.rxq_capacity_frames, st.rxq_level_now, st.rxq_level_min, st.rxq_level_max, st.in_fps, st.out_fps, (long) st.dlevel_per_s, st.underrun_events, st.underrun_frames, st.overrun_events, st.overrun_frames, st.copy_us_last, st.copy_us_max);
+    #endif
+    #if 0
+        extern uint8_t s_fb_ep;
+        extern volatile uint32_t g_fb_tx_req, g_fb_tx_ok, g_fb_tx_busy, g_fb_ms_last;
+        extern volatile uint32_t g_fb_ack;
+        extern volatile uint32_t g_fb_incomp;
+        printf("[FB:rate] req=%lu ok=%lu ack=%lu incomp=%lu busy_skip=%lu ep=0x%02X\n", (unsigned long) g_fb_tx_req, (unsigned long) g_fb_tx_ok, (unsigned long) g_fb_ack, (unsigned long) g_fb_incomp, (unsigned long) g_fb_tx_busy, (unsigned) s_fb_ep);
+        g_fb_tx_req = g_fb_tx_ok = g_fb_ack = g_fb_incomp = g_fb_tx_busy = 0;
+    #endif
+        s_last_log = now;
+    }
+#endif
+}
+
+static inline void stats_update_level(uint32_t level)
+{
+    if (level < s_level_min)
+        s_level_min = level;
+    if (level > s_level_max)
+        s_level_max = level;
+}
+
+void AUDIO_GetStats(AUDIO_Stats* out)
+{
+    if (!out)
+        return;
+    out->rxq_capacity_frames = (uint32_t) RXQ_FRAMES;
+    out->rxq_level_min       = s_level_min == 0xFFFFFFFFu ? 0u : s_level_min;
+    out->rxq_level_max       = s_level_max;
+    out->underrun_events     = s_underrun_events;
+    out->underrun_frames     = s_underrun_frames;
+    out->overrun_events      = s_overrun_events;
+    out->overrun_frames      = s_overrun_frames;
+    out->copy_us_last        = s_copy_us_last;
+    out->copy_us_max         = s_copy_us_max;
+    out->rxq_level_now       = s_level_now;
+    out->in_fps              = s_in_fps;
+    out->out_fps             = s_out_fps;
+    out->dlevel_per_s        = s_dlevel_ps;
+}
+
+void AUDIO_ResetStats(void)
+{
+    s_underrun_events = s_underrun_frames = 0;
+    s_overrun_events = s_overrun_frames = 0;
+    s_level_min                         = 0xFFFFFFFFu;
+    s_level_max                         = 0u;
+    s_copy_us_last = s_copy_us_max = 0u;
+    s_in_accum = s_out_accum = 0;
+    s_in_fps = s_out_fps = 0;
+    s_prev_level = s_level_now = 0;
+    s_dlevel_ps                = 0;
+}
+
+void AUDIO_AddInFrames(uint32_t frames)
+{
+    s_in_accum += frames;
+}
+void AUDIO_AddOutFrames(uint32_t frames)
+{
+    s_out_accum += frames;
+}
+void AUDIO_Stats_On1sTick(void)
+{
+    /* 現在水位と傾き */
+    const uint32_t wr    = g_rxq_wr;
+    const uint32_t rd    = g_rxq_rd;
+    const uint32_t level = (uint32_t) (wr - rd);
+    s_level_now          = level;
+    s_dlevel_ps          = (int32_t) level - (int32_t) s_prev_level;
+    s_prev_level         = level;
+    /* fpsに確定＆リセット */
+    s_in_fps    = s_in_accum;
+    s_in_accum  = 0;
+    s_out_fps   = s_out_accum;
+    s_out_accum = 0;
+
+    // printf("[AUDIO] pkt_hist(fr/ms): 47=%lu 48=%lu 49=%lu\n", (unsigned long) s_hist47, (unsigned long) s_hist48, (unsigned long) s_hist49);
+    // s_hist47 = s_hist48 = s_hist49 = 0;
+}
+
 /* dst_words には 32bit LR 連続で frames 個分(=2*frames words)を書き出す */
 size_t AUDIO_RxQ_PopTo(uint32_t* dst_words, size_t frames)
 {
     /* 水位と容量を取得（フレーム単位） */
     const size_t cap   = (size_t) RXQ_FRAMES;
-    const size_t level = (size_t) (g_rxq_wr - g_rxq_rd);
+    const uint32_t wr  = g_rxq_wr; /* 32bit原子ロード */
+    const uint32_t rd  = g_rxq_rd; /* 32bit原子ロード */
+    const size_t level = (size_t) ((uint32_t) (wr - rd));
+    stats_update_level((uint32_t) level);
+
+    size_t copy = 0; /* 今回リングから実際に取り出すフレーム数 */
 
     /* === プリロール：8割未満ならミュートで埋める（ポップしない） === */
+#if 0
     if (!s_rxq_started)
     {
         if (level < s_rxq_preroll_frames)
         {
             fill_silence(dst_words, frames);
-            return frames; /* ミュートで供給：上位は常に安全 */
+            s_underrun_events++;
+            s_underrun_frames += (uint32_t) frames;
+            return 0; /* ミュートで供給：上位は常に安全 */
         }
         s_rxq_started = 1;
+        AUDIO_ResetStats();  // ★ここで1秒積算系をリセット
+    }
+#endif
+    /* 今回取り出すフレーム数（部分ポップを許可） */
+    if (level >= frames)
+    {
+        copy = frames;
+    }
+    else
+    {
+        copy = level; /* ある分だけ取り出す */
+        s_underrun_events++;
+        s_underrun_frames += (uint32_t) (frames - copy);
+        // return 0;
     }
 
-    /* === 通常：足りなければミュート === */
-    if (level < frames)
+    /* --- コピー：copy 分だけリング→dst --- */
+    const size_t rd_idx  = (size_t) (rd % cap);
+    const size_t first_f = (rd_idx + copy <= cap) ? copy : (cap - rd_idx);
+    uint32_t start       = 0;
+    if ((CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk) && (DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk))
     {
-        fill_silence(dst_words, frames);
-        return frames;
+        start = DWT->CYCCNT;
+    }
+    if (copy)
+    {
+        memcpy(dst_words, &g_rxq_buf[rd_idx * 2u], first_f * 2u * sizeof(uint32_t));
+        if (first_f < copy)
+        {
+            const size_t remain = copy - first_f;
+            memcpy(dst_words + first_f * 2u, &g_rxq_buf[0], remain * 2u * sizeof(uint32_t));
+        }
     }
 
-    /* === ラップ対応コピー（フレーム→words換算は *2） === */
-    const size_t rd_idx  = (size_t) (g_rxq_rd % cap);
-    const size_t first_f = (frames <= (cap - rd_idx)) ? frames : (cap - rd_idx);
-
-    memcpy(dst_words, &g_rxq_buf[rd_idx * 2u], first_f * 2u * sizeof(uint32_t));
-    if (first_f < frames)
+    uint32_t cycles = (start ? (DWT->CYCCNT - start) : 0);
+    uint32_t denom  = (SystemCoreClock / 1000000u);
+    if (start && denom != 0u)
     {
-        const size_t remain = frames - first_f;
-        memcpy(dst_words + first_f * 2u, &g_rxq_buf[0], remain * 2u * sizeof(uint32_t));
+        s_copy_us_last = cycles / denom;
+        if (s_copy_us_last > s_copy_us_max)
+            s_copy_us_max = s_copy_us_last;
     }
 
     /* コミット（rdをframes分進める） */
     __DMB();
-    g_rxq_rd += frames;
+    /* rd更新（実際に取り出した分だけ進める）*/
+    g_rxq_rd = rd + (uint32_t) copy;
+
+    /* 足りない分はミュートで埋める（dst の末尾側） */
+    if (copy < frames)
+    {
+        fill_silence(dst_words + copy * 2u, frames - copy);
+    }
     __DMB();
     return frames;
+    /* 返り値は “ポップしたフレーム数” にしたい場合は上を return (copy); にしてもOK。
+       計測で out_fps を「リング消費fps」にするなら return (copy) を推奨。 */
 }
 /* USER CODE END PV */
 
@@ -343,13 +614,9 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
     const uint32_t bytes_per_frame = sub * ch;                   // 1frame=LR
     const uint32_t frames          = size / bytes_per_frame;     // 例: 48kHzなら 1msで48
 
-    if (frames == 0U)
-    {
-        return (int8_t) USBD_OK;
-    }
-
     /* === ①: USB→リングへpush（32bit左詰めLR） ============================ */
-    uint8_t* q = pbuf;
+    uint8_t* q       = pbuf;
+    const size_t cap = (size_t) RXQ_FRAMES;
     for (uint32_t i = 0; i < frames; ++i)
     {
         uint32_t outL = 0;
@@ -385,18 +652,33 @@ static int8_t AUDIO_PeriodicTC_HS(uint8_t* pbuf, uint32_t size, uint8_t cmd)
         }
         else
         {
-            return (int8_t) USBD_FAIL;
+            return (int8_t) USBD_OK;
         }
 
         /* リングへ [L,R] の順で格納 */
-        uint64_t wr                                        = g_rxq_wr;
-        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u)]     = outL;
-        g_rxq_buf[(uint32_t) ((wr % RXQ_FRAMES) * 2u + 1)] = outR;
-        wr                                                 = (wr + 1u);
-        g_rxq_wr                                           = wr;
+        /* リングへ [L,R] の順で格納（満杯なら古い1frameを捨てる＝低レイテンシ維持） */
+        uint32_t wr = g_rxq_wr; /* 32bit原子 */
+        uint32_t rd = g_rxq_rd; /* スナップショット */
+        if ((uint32_t) (wr - rd) >= (uint32_t) cap)
+        {
+            /* 満杯：rdは触らない。新着を丸ごと捨てる（wr据え置き） */
+            s_overrun_events++;
+            s_overrun_frames++;
+            __DMB();
+            q += bytes_per_frame; /* 次のフレームへ */
+            continue;
+        }
+        const uint32_t idx = (wr % (uint32_t) RXQ_FRAMES) * 2u;
+        g_rxq_buf[idx]     = outL;
+        g_rxq_buf[idx + 1] = outR;
+        __DMB(); /* 可視化順序：データ→インデクス */
+        g_rxq_wr = wr + 1u;
 
         q += bytes_per_frame;
     }
+
+    /* 供給フレーム数を記録（1回の呼び出しで 'frames' 供給） */
+    AUDIO_AddInFrames(frames);
 
     return (USBD_OK);
     /* USER CODE END 14 */

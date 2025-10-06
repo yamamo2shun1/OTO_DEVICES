@@ -98,6 +98,8 @@ extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いて
 extern uint32_t sai_buf[];     // RX バッファ（main.c）
 extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 
+extern uint32_t g_sai_ovrudr_count;
+
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
 /* USER CODE END Private_Variables */
@@ -180,7 +182,7 @@ void USBPD_DPM_UserExecute(void const* argument)
             HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 
             // printf("beep on\n");
-            AUDIO_StartBeep(1000, 500, 80);
+            // AUDIO_StartBeep(1000, 500, 80);
         }
         led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
     }
@@ -206,12 +208,16 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 #endif
 
+#if 1
     if (g_tx_safe != tx_safe_prev)
     {
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
-        (void) AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
+        size_t done   = AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
+        AUDIO_AddOutFrames((uint32_t) done);
+        __DMB();
         tx_safe_prev = g_tx_safe;
     }
+#endif
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 
