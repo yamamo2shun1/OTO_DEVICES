@@ -135,6 +135,8 @@ static void* USBD_AUDIO_GetAudioHeaderDesc(uint8_t* pConfDesc);
 
 extern int8_t AUDIO_Mic_GetPacket(uint8_t* dst, uint16_t len);
 
+extern void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz);
+
 /* FB送信 ACK カウンタ（if側から参照） */
 extern uint8_t s_fb_busy; /* if側のフラグを参照 */
 extern uint32_t g_fb_ack;
@@ -782,6 +784,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
             break;
 
         case USB_REQ_GET_INTERFACE:
+            printf("GET_IF\n");
             if (pdev->dev_state == USBD_STATE_CONFIGURED)
             {
                 (void) USBD_CtlSendData(pdev, (uint8_t*) &haudio->alt_setting, 1U);
@@ -814,6 +817,7 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
                 ret = USBD_FAIL;
             }
 #else
+            printf("SET_IF\n");
             if (pdev->dev_state != USBD_STATE_CONFIGURED)
             {
                 USBD_CtlError(pdev, req);
@@ -857,6 +861,8 @@ static uint8_t USBD_AUDIO_Setup(USBD_HandleTypeDef* pdev, USBD_SetupReqTypedef* 
 
                     s_fb_busy   = 0; /* ★ busy解除 */
                     s_fb_opened = 1;
+
+                    AUDIO_SAI_Reset_ForNewRate((alt == 2U) ? USBD_AUDIO_FREQ_96K : USBD_AUDIO_FREQ);
 
                     /* ★ 初回プライム：直近の値を用意して1発アーム */
                     AUDIO_FB_Task_1ms(alt); /* 値だけ用意 */

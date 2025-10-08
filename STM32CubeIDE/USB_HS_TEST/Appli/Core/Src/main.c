@@ -144,6 +144,124 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
         __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
     }
 }
+
+void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
+{
+    /* Clear runtime state to a safe baseline */
+    __disable_irq();
+    g_rx_pending = 0;
+    g_tx_safe    = 1;
+    __DMB();
+    __enable_irq();
+
+    /* Stop DMA first (if running) to avoid FIFO churn while reconfiguring SAI */
+    (void) HAL_SAI_DMAStop(&hsai_BlockA2); /* TX */
+    (void) HAL_SAI_DMAStop(&hsai_BlockA1); /* RX */
+
+    /* Fully re-init SAI blocks so FIFOs/flags are reset as well */
+    (void) HAL_SAI_DeInit(&hsai_BlockA2);
+    (void) HAL_SAI_DeInit(&hsai_BlockA1);
+
+    // 48kHz
+    uint8_t data[2] = {0x00, 0x00};
+    if (new_hz == USBD_AUDIO_FREQ)
+    {
+        // SERIAL_BYTE_0_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF201, 2, data);
+        // SERIAL_BYTE_1_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF205, 2, data);
+        // SERIAL_BYTE_2_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF209, 2, data);
+        // SERIAL_BYTE_4_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF211, 2, data);
+        // SERIAL_BYTE_5_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF215, 2, data);
+        // SERIAL_BYTE_6_1
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
+        // HAL_Delay(15);
+
+        // START_PULSE
+        data[1] = 0x02;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
+        // HAL_Delay(15);
+
+        // MCLK_OUT
+        data[1] = 0x05;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
+        // HAL_Delay(15);
+    }
+    else if (new_hz == USBD_AUDIO_FREQ_96K)
+    {
+        // SERIAL_BYTE_0_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF201, 2, data);
+        // SERIAL_BYTE_1_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF205, 2, data);
+        // SERIAL_BYTE_2_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF209, 2, data);
+        // SERIAL_BYTE_4_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF211, 2, data);
+        // SERIAL_BYTE_5_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF215, 2, data);
+        // SERIAL_BYTE_6_1
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
+        // HAL_Delay(15);
+
+        // START_PULSE
+        data[1] = 0x03;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
+        // HAL_Delay(15);
+
+        // MCLK_OUT
+        data[1] = 0x07;
+        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
+        // HAL_Delay(15);
+    }
+    // PLL_ENABLE
+    data[1] = 0x00;
+    SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
+    // HAL_Delay(15);
+
+    // PLL_ENABLE
+    data[1] = 0x01;
+    SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
+
+    /* Reconfigure peripherals + DMA linked-lists (generated init) */
+    MX_SAI1_Init();
+    MX_SAI2_Init();
+
+    /* Ensure DMA linked-list descriptors are clean in D-Cache before enabling DMA */
+    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
+    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
+
+    /* Restart circular DMA on both directions (sizes are #words) */
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
+    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
+
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    /* 任意: デバッグ用に一言（SWO等） */
+    printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
+}
 /* USER CODE END 0 */
 
 /**
@@ -214,7 +332,8 @@ int main(void)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // System Clock Setting
-    sndData[0] = 0x00;  // 00000 000
+    sndData[0] = 0x00;  // 00000 000 (48kHz)
+    sndData[0] = 0x01;  // 00000 001 (96kHz)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // ADC Input Setting
