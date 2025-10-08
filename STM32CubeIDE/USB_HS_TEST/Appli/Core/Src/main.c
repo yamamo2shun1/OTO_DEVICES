@@ -332,7 +332,7 @@ int main(void)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // System Clock Setting
-    sndData[0] = 0x00;  // 00000 000 (48kHz)
+    // sndData[0] = 0x00;  // 00000 000 (48kHz)
     sndData[0] = 0x01;  // 00000 001 (96kHz)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
