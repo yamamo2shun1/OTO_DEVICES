@@ -199,15 +199,16 @@ uint8_t USBD_GetMicroframeHS(void)
 }
 
 /* 1msごとに“次回分の値だけ”を用意（送信はしない） */
-void AUDIO_FB_Task_1ms(void)
+void AUDIO_FB_Task_1ms(uint8_t alt)
 {
-    uint32_t test = 49000u;
+    const uint32_t sr = (alt == 2) ? 96000u : 48000u;
+    uint32_t sr_fb    = (alt == 2) ? (sr + 2000u) : (sr + 1000u);
 
-    if (g_audio_out_fps >= 48000)
+    if (g_audio_out_fps >= sr)
     {
-        test = 48000u;
+        sr_fb = sr;
     }
-    const uint32_t fb_q14 = (test << 14) / AUDIO_NUM_PER_S; /* 0x000C0000 */
+    const uint32_t fb_q14 = (sr_fb << 14) / AUDIO_NUM_PER_S; /* 0x000C0000 */
     s_fb_pkt[0]           = (uint8_t) (fb_q14);
     s_fb_pkt[1]           = (uint8_t) (fb_q14 >> 8);
     s_fb_pkt[2]           = (uint8_t) (fb_q14 >> 16);

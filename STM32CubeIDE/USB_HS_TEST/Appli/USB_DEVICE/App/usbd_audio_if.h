@@ -154,7 +154,7 @@ extern "C"
     uint8_t USBD_GetMicroframeHS(void);
     // void AUDIO_FB_Task_1ms(USBD_HandleTypeDef* pdev);
     void USBD_FB_ProgramNextMs(uint8_t ep_addr);
-    void AUDIO_FB_Task_1ms(void);
+    void AUDIO_FB_Task_1ms(uint8_t alt);
     void AUDIO_FB_ArmTx_if_ready(void);
     /* USER CODE END EXPORTED_FUNCTIONS */
 
