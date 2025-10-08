@@ -83,7 +83,8 @@ extern "C"
 /*---------- -----------*/
 #define USBD_SELF_POWERED 1U
 /*---------- -----------*/
-#define USBD_AUDIO_FREQ 48000U
+#define USBD_AUDIO_FREQ     48000U
+#define USBD_AUDIO_FREQ_96K 96000U
 
 /****************************************/
 /* #define for FS and HS identification */

@@ -81,7 +81,7 @@ extern "C"
         #define AUDIO_IN_EP 0x82U
     #endif /* AUDIO_IN_EP */
 
-    #define USB_AUDIO_CONFIG_DESC_SIZ          0xCBU
+    #define USB_AUDIO_CONFIG_DESC_SIZ          0x12AU  // 0xCBU
     #define AUDIO_INTERFACE_DESC_SIZE          0x09U
     #define USB_AUDIO_DESC_SIZ                 0x0AU
     #define AUDIO_STANDARD_ENDPOINT_DESC_SIZE  0x09U
@@ -135,17 +135,19 @@ extern "C"
     #define AUDIO_PKT_EXT        999U
     #define AUDIO_OUT_PACKET     (uint16_t) (((USBD_AUDIO_FREQ + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
     #define AUDIO_IN_PACKET      (uint16_t) (((USBD_AUDIO_FREQ + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
+    #define AUDIO_OUT_PACKET_96K (uint16_t) (((USBD_AUDIO_FREQ_96K + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
+    #define AUDIO_IN_PACKET_96K  (uint16_t) (((USBD_AUDIO_FREQ_96K + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
     #define AUDIO_DEFAULT_VOLUME 70U
 
     /* Number of sub-packets in the audio transfer buffer. You can modify this value but always make sure
       that it is an even number and higher than 3 */
     #define AUDIO_OUT_PACKET_NUM 80U
     /* Total size of the audio transfer buffer */
-    #define AUDIO_TOTAL_BUF_SIZE ((uint16_t) (AUDIO_OUT_PACKET * AUDIO_OUT_PACKET_NUM))
+    #define AUDIO_TOTAL_BUF_SIZE ((uint16_t) (AUDIO_OUT_PACKET_96K * AUDIO_OUT_PACKET_NUM))
 
     // 1msパケット（48k * 2ch * 24bit = 288B）
     #ifndef AUDIO_PACKET_SZ
-        #define AUDIO_PACKET_SZ (uint16_t) (((USBD_AUDIO_FREQ + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
+        #define AUDIO_PACKET_SZ (uint16_t) (((USBD_AUDIO_FREQ_96K + AUDIO_PKT_EXT) / AUDIO_NUM_PER_S) * USBD_AUDIO_CHANNELS * USBD_AUDIO_SUBFRAME_BYTES)
     #endif
 
     // ループバック用の小さなリング（8msぶん）
