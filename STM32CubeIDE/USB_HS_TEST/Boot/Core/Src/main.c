@@ -265,7 +265,6 @@ static void MPU_Config(void)
     MPU_InitStruct.IsShareable      = MPU_ACCESS_SHAREABLE;      // ← DMA向けは共有に
 
     HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
     /* Enables the MPU */
     HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 }
