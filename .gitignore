@@ -39,3 +39,5 @@ KiCad/OTO_NO_DEIRI/jlcpcb/
 *.log
 
 *.step
+
+KiCad/OTO_NO_TE/jlcpcb/gerber/
