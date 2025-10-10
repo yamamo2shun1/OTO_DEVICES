@@ -61,7 +61,6 @@ void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
@@ -306,20 +305,6 @@ void SAI2_A_IRQHandler(void)
     /* USER CODE BEGIN SAI2_A_IRQn 1 */
 
     /* USER CODE END SAI2_A_IRQn 1 */
-}
-
-/**
- * @brief This function handles USB OTG HS interrupt.
- */
-void OTG_HS_IRQHandler(void)
-{
-    /* USER CODE BEGIN OTG_HS_IRQn 0 */
-
-    /* USER CODE END OTG_HS_IRQn 0 */
-    HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
-    /* USER CODE BEGIN OTG_HS_IRQn 1 */
-
-    /* USER CODE END OTG_HS_IRQn 1 */
 }
 
 /**

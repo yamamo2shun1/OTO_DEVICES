@@ -25,7 +25,7 @@
 #include "spi.h"
 #include "ucpd.h"
 #include "usbpd.h"
-#include "usb_device.h"
+#include "usb_otg.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -301,7 +301,6 @@ int main(void)
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_GPDMA1_Init();
-    MX_USB_DEVICE_Init();
     MX_UCPD1_Init();
     MX_I2C3_Init();
     MX_ADC2_Init();
@@ -309,6 +308,7 @@ int main(void)
     MX_SPI5_Init();
     MX_SAI1_Init();
     MX_SAI2_Init();
+    MX_USB_OTG_HS_PCD_Init();
     /* USER CODE BEGIN 2 */
     USB_EnableGlobalInt(USB_OTG_HS);
     USB_DevConnect(USB_OTG_HS);
