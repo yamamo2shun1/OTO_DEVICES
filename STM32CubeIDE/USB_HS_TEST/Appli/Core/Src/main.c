@@ -80,11 +80,6 @@ uint_fast64_t sai_buf_index      = 0;
 uint_fast64_t sai_transmit_index = 0;
 int16_t update_pointer           = -1;
 
-volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
-volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
-
-volatile uint32_t g_sai_ovrudr_count = 0;
-
 const uint32_t sample_rates[] = {48000, 96000};
 
 uint32_t current_sample_rate = 48000;
@@ -144,7 +139,6 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        g_rx_pending |= 0x01;
         __DMB();
     }
 }
@@ -153,7 +147,6 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        g_rx_pending |= 0x02;
         __DMB();
     }
 }
@@ -188,19 +181,16 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
 
     if (__HAL_SAI_GET_FLAG(hsai, SAI_FLAG_OVRUDR) != RESET)
     {
-        g_sai_ovrudr_count++;
         __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
     }
 }
 
 void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
 {
-    /* Clear runtime state to a safe baseline */
-    __disable_irq();
-    g_rx_pending = 0;
-    g_tx_safe    = 1;
-    __DMB();
-    __enable_irq();
+    static uint32_t prev_hz = 0;
+
+    if (new_hz == prev_hz)
+        return;
 
     /* Stop DMA first (if running) to avoid FIFO churn while reconfiguring SAI */
     (void) HAL_SAI_DMAStop(&hsai_BlockA2); /* TX */
@@ -209,6 +199,11 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
     /* Fully re-init SAI blocks so FIFOs/flags are reset as well */
     (void) HAL_SAI_DeInit(&hsai_BlockA2);
     (void) HAL_SAI_DeInit(&hsai_BlockA1);
+
+    hpout_clear_count  = 0;
+    sai_buf_index      = 0;
+    sai_transmit_index = 0;
+    update_pointer     = -1;
 
     // 48kHz
     uint8_t data[2] = {0x00, 0x00};
@@ -232,17 +227,17 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
         // SERIAL_BYTE_6_1
         data[1] = 0x02;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
 
         // START_PULSE
         data[1] = 0x02;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
 
         // MCLK_OUT
         data[1] = 0x05;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
     }
     else if (new_hz == USBD_AUDIO_FREQ_96K)
     {
@@ -264,17 +259,17 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
         // SERIAL_BYTE_6_1
         data[1] = 0x03;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
 
         // START_PULSE
         data[1] = 0x03;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
 
         // MCLK_OUT
         data[1] = 0x07;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
-        // HAL_Delay(15);
+        HAL_Delay(15);
     }
     // PLL_ENABLE
     data[1] = 0x00;
@@ -294,7 +289,7 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
 
     /* Restart circular DMA on both directions (sizes are #words) */
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
@@ -302,13 +297,15 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
     clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
     clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
 
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
 
     /* 任意: デバッグ用に一言（SWO等） */
     printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
+
+    prev_hz = new_hz;
 }
 
 // Invoked when device is mounted
@@ -394,6 +391,8 @@ static bool tud_audio_clock_set_request(uint8_t rhport, audio_control_request_t 
         current_sample_rate = (uint32_t) ((audio_control_cur_4_t const*) buf)->bCur;
 
         TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
+
+        AUDIO_SAI_Reset_ForNewRate(current_sample_rate);
 
         return true;
     }
@@ -555,7 +554,7 @@ void tud_audio_feedback_params_cb(uint8_t func_id, uint8_t alt_itf, audio_feedba
 
 void copybuf_usb2sai(void)
 {
-    // SEGGER_RTT_printf(0, "sb_index = %d -> ", sai_buf_index);
+    // printf("sb_index = %d -> ", sai_buf_index);
 
     const uint_fast16_t array_size = spk_data_size >> 2;
     for (uint_fast16_t i = 0; i < array_size; i++)
@@ -567,7 +566,7 @@ void copybuf_usb2sai(void)
             sai_buf_index++;
         }
     }
-    // SEGGER_RTT_printf(0, " %d\n", sai_buf_index);
+    // printf(" %d\n", sai_buf_index);
 }
 
 void copybuf_sai2codec(void)
@@ -581,13 +580,13 @@ void copybuf_sai2codec(void)
         const int16_t index0 = update_pointer;
         update_pointer       = -1;
 
-        // SEGGER_RTT_printf(0, "st_index = %d -> ", sai_transmit_index);
+        // printf("st_index = %d -> ", sai_transmit_index);
 
         const uint_fast64_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
         memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
 
-        // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
+        // printf(" %d\n", sai_transmit_index);
 
         if (update_pointer != -1)
         {
@@ -598,12 +597,8 @@ void copybuf_sai2codec(void)
 
 void audio_task(void)
 {
-    // When new data arrived, copy data from speaker buffer, to microphone buffer
-    // and send it over
-    // Only support speaker & headphone both have the same resolution
-    // If one is 16bit another is 24bit be care of LOUD noise !
-    const uint16_t rcv_buf_size = TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
-    spk_data_size               = tud_audio_read(spk_buf, rcv_buf_size);
+    const uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+    spk_data_size         = tud_audio_read(spk_buf, length);
 
     if (spk_data_size == 0 && hpout_clear_count < 100)
     {

@@ -128,7 +128,7 @@ extern "C"
 // Audio format type I specifications
 /* 24bit/48kHz is the best quality for headset or 24bit/96kHz for 2ch speaker,
    high-speed is needed beyond this */
-#define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE 48000
+#define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE 96000
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   2
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   2
 
@@ -138,28 +138,13 @@ extern "C"
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX 4
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX         24
 
-#if defined(__RX__)
-    // 8bit in 8bit slots
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX 1
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX         8
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX 1
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX         8
-#else
-    // 24bit in 32bit slots
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX 4
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX         24
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX 4
-    #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX         24
-#endif
-
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_IN 1
 
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_IN TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_EP_SZ_IN TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
 
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX    TU_MAX(CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_IN, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_EP_SZ_IN)  // Maximum EP IN size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ (TUD_OPT_HIGH_SPEED ? 32 : 4) * CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX                       // Example read FIFO every 1ms, so it should be 8 times larger for HS device
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX    CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_IN                             // Maximum EP IN size for all AS alternate settings used
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ (TUD_OPT_HIGH_SPEED ? 32 : 4) * CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX  // Example read FIFO every 1ms, so it should be 8 times larger for HS device
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_OUT 1
@@ -168,10 +153,9 @@ extern "C"
 #define CFG_TUD_AUDIO_ENABLE_FEEDBACK_EP 1
 
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_OUT TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_EP_SZ_OUT TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
 
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX    TU_MAX(CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_OUT, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_EP_SZ_OUT)  // Maximum EP IN size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ (TUD_OPT_HIGH_SPEED ? 32 : 4) * CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX                        // Example read FIFO every 1ms, so it should be 8 times larger for HS device
+#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX    CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_OUT                             // Maximum EP IN size for all AS alternate settings used
+#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ (TUD_OPT_HIGH_SPEED ? 32 : 4) * CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX  // Example read FIFO every 1ms, so it should be 8 times larger for HS device
 
 // Size of control request buffer
 #define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ 64
