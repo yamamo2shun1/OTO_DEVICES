@@ -129,7 +129,7 @@ extern "C"
 /* 24bit/48kHz is the best quality for headset or 24bit/96kHz for 2ch speaker,
    high-speed is needed beyond this */
 #define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE 48000
-#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   1
+#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   2
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   2
 
 // 16bit in 16bit slots
