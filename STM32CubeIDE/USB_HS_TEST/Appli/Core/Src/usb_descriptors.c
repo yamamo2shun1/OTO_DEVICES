@@ -34,7 +34,7 @@
  *   [MSB]     AUDIO | MIDI | HID | MSC | CDC          [LSB]
  */
 #define _PID_MAP(itf, n) ((CFG_TUD_##itf) << (n))
-#define USB_PID          (0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(MIDI, 3) | _PID_MAP(AUDIO, 4) | _PID_MAP(VENDOR, 5))
+#define USB_PID          0x0010  //(0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(MIDI, 3) | _PID_MAP(AUDIO, 4) | _PID_MAP(VENDOR, 5))
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -52,7 +52,7 @@ tusb_desc_device_t const desc_device =
         .bDeviceProtocol = MISC_PROTOCOL_IAD,
         .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
-        .idVendor  = 0xCafe,
+        .idVendor  = 0x31BF,
         .idProduct = USB_PID,
         .bcdDevice = 0x0100,
 
@@ -142,11 +142,11 @@ enum
 char const* string_desc_arr[] =
     {
         (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-        "TinyUSB", // 1: Manufacturer
-        "TinyUSB headset", // 2: Product
+        "Yamamoto Works Ltd.", // 1: Manufacturer
+        "swKUT", // 2: Product
         NULL, // 3: Serials will use unique ID if possible
-        "TinyUSB Speakers", // 4: Audio Interface
-        "TinyUSB Microphone", // 5: Audio Interface
+        "swKUT Stereo Out", // 4: Audio Interface
+        "swKUT Stereo In", // 5: Audio Interface
 };
 
 static uint16_t _desc_str[32 + 1];
