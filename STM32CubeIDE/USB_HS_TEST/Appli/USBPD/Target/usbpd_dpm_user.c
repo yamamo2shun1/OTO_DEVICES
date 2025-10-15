@@ -32,7 +32,6 @@
 #include "sai.h"
 #include "stdbool.h"
 #include "string.h"
-#include "usbd_audio_if.h" /* リングAPIを使用（①） */
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
@@ -208,7 +207,7 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 #endif
 
-#if 1
+#if 0
     if (g_tx_safe != tx_safe_prev)
     {
         uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
@@ -218,6 +217,10 @@ void USBPD_DPM_UserExecute(void const* argument)
         tx_safe_prev = g_tx_safe;
     }
 #endif
+
+    tud_task();
+
+    audio_task();
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 

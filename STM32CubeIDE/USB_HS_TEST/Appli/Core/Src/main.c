@@ -63,8 +63,8 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((section(".dma_nocache"), aligned(32))) uint32_t sai_buf[SAI_BUF_SIZE * 2];
-__attribute__((section(".dma_nocache"), aligned(32))) uint32_t sai_tx_buf[SAI_BUF_SIZE * 2];
+__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_buf[SAI_BUF_SIZE * 2]    = {0x00};
+__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE * 2] = {0x00};
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -72,6 +72,13 @@ static inline void clean_ll_cache(void* p, size_t sz)
     size_t n    = (sz + 31u) & ~31u;
     SCB_CleanDCache_by_Addr((uint32_t*) a, n);
 }
+
+#define SAI_RNG_BUF_SIZE 16384
+
+int16_t hpout_clear_count        = 0;
+uint_fast64_t sai_buf_index      = 0;
+uint_fast64_t sai_transmit_index = 0;
+int16_t update_pointer           = -1;
 
 volatile uint8_t g_rx_pending = 0;  // bit0: 前半, bit1: 後半 が溜まっている
 volatile uint8_t g_tx_safe    = 1;  // 1: 前半に書いてOK, 2: 後半に書いてOK
@@ -106,13 +113,16 @@ int8_t mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];     // +1 for master channe
 int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channel 0
 
 // Buffer for microphone data
-int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
+//__attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
+int_fast32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
 // Buffer for speaker data
-int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
+//__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
+int_fast32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
+int_fast32_t hpout_buf[SAI_BUF_SIZE] = {0};
 // Speaker data size received in the last frame
 int spk_data_size;
 // Resolution per format
-const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX};
+const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX};
 // Current resolution, update on format change
 uint8_t current_resolution;
 // === USER CODE END 0 ===
@@ -152,7 +162,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        g_tx_safe = 1; /* 前半が“安全に書ける側”へ */
+        update_pointer = 0;
         __DMB();
     }
 }
@@ -161,7 +171,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        g_tx_safe = 2; /* 後半が“安全に書ける側”へ */
+        update_pointer = SAI_BUF_SIZE / 2;
         __DMB();
     }
 }
@@ -533,6 +543,108 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
     return true;
 }
+
+void tud_audio_feedback_params_cb(uint8_t func_id, uint8_t alt_itf, audio_feedback_params_t* feedback_param)
+{
+    (void) func_id;
+    (void) alt_itf;
+    // Set feedback method to fifo counting
+    feedback_param->method      = AUDIO_FEEDBACK_METHOD_FIFO_COUNT;
+    feedback_param->sample_freq = current_sample_rate;
+}
+
+void copybuf_usb2sai(void)
+{
+    // SEGGER_RTT_printf(0, "sb_index = %d -> ", sai_buf_index);
+
+    const uint_fast16_t array_size = spk_data_size >> 2;
+    for (uint_fast16_t i = 0; i < array_size; i++)
+    {
+        if (sai_buf_index + array_size != sai_transmit_index)
+        {
+            const int_fast32_t val                          = spk_buf[i];
+            sai_buf[sai_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
+            sai_buf_index++;
+        }
+    }
+    // SEGGER_RTT_printf(0, " %d\n", sai_buf_index);
+}
+
+void copybuf_sai2codec(void)
+{
+    if (sai_buf_index - sai_transmit_index >= SAI_BUF_SIZE / 2)
+    {
+        while (update_pointer == -1)
+        {
+        }
+
+        const int16_t index0 = update_pointer;
+        update_pointer       = -1;
+
+        // SEGGER_RTT_printf(0, "st_index = %d -> ", sai_transmit_index);
+
+        const uint_fast64_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
+        memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
+        sai_transmit_index += SAI_BUF_SIZE / 2;
+
+        // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
+
+        if (update_pointer != -1)
+        {
+            printf("buffer update too long...\n");
+        }
+    }
+}
+
+void audio_task(void)
+{
+    // When new data arrived, copy data from speaker buffer, to microphone buffer
+    // and send it over
+    // Only support speaker & headphone both have the same resolution
+    // If one is 16bit another is 24bit be care of LOUD noise !
+    const uint16_t rcv_buf_size = TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+    spk_data_size               = tud_audio_read(spk_buf, rcv_buf_size);
+
+    if (spk_data_size == 0 && hpout_clear_count < 100)
+    {
+        hpout_clear_count++;
+
+        if (hpout_clear_count == 100)
+        {
+            memset(hpout_buf, 0, sizeof(hpout_buf));
+            hpout_clear_count = 101;
+        }
+    }
+    else
+    {
+        hpout_clear_count = 0;
+    }
+
+    copybuf_usb2sai();
+    copybuf_sai2codec();
+
+#if 0
+    if (spk_data_size)
+    {
+        if (current_resolution == 24)
+        {
+            int32_t* src   = spk_buf;
+            int32_t* limit = spk_buf + spk_data_size / 4;
+            // int32_t* dst   = mic_buf;
+            int32_t* dst = sai_tx_buf;
+            while (src < limit)
+            {
+                // Combine two channels into one
+                int32_t left  = *src++;
+                int32_t right = *src++;
+                *dst++        = (int32_t) ((uint32_t) ((left >> 1) + (right >> 1)) & 0xffffff00ul);
+            }
+            // tud_audio_write((uint8_t*) mic_buf, (uint16_t) (spk_data_size / 2));
+            spk_data_size = 0;
+        }
+    }
+#endif
+}
 /* USER CODE END 0 */
 
 /**
@@ -633,7 +745,7 @@ int main(void)
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
     SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
 
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
         Error_Handler();
@@ -647,7 +759,7 @@ int main(void)
     clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
     clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
 
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_buf, SAI_BUF_SIZE * 2) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
         Error_Handler();

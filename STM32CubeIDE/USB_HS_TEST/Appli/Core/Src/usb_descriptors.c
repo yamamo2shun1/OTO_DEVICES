@@ -104,6 +104,7 @@ uint8_t const* tud_descriptor_device_cb(void)
 #else
     #define EPNUM_AUDIO_IN  0x01
     #define EPNUM_AUDIO_OUT 0x01
+    #define EPNUM_AUDIO_FB  0x01
     #define EPNUM_AUDIO_INT 0x02
 #endif
 
@@ -113,7 +114,7 @@ uint8_t const desc_configuration[] =
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
         // Interface number, string index, EP Out & EP In address, EP size
-        TUD_AUDIO_HEADSET_STEREO_DESCRIPTOR(2, EPNUM_AUDIO_OUT, EPNUM_AUDIO_IN | 0x80, EPNUM_AUDIO_INT | 0x80)};
+        TUD_AUDIO_HEADSET_STEREO_DESCRIPTOR(2, EPNUM_AUDIO_OUT, EPNUM_AUDIO_FB | 0x80, 4, EPNUM_AUDIO_IN | 0x80, EPNUM_AUDIO_INT | 0x80)};
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor

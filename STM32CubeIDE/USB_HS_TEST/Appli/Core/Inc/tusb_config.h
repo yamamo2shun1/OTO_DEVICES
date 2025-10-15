@@ -44,7 +44,7 @@ extern "C"
 #define BOARD_DEVICE_RHPORT_NUM   1
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
-#define CFG_TUSB_DEBUG            4
+#define CFG_TUSB_DEBUG            0
 
 #define USBD_AUDIO_FREQ     48000U
 #define USBD_AUDIO_FREQ_96K 96000U
@@ -123,7 +123,7 @@ extern "C"
 #define CFG_TUD_AUDIO_FUNC_1_DESC_LEN TUD_AUDIO_HEADSET_STEREO_DESC_LEN
 
 // How many formats are used, need to adjust USB descriptor if changed
-#define CFG_TUD_AUDIO_FUNC_1_N_FORMATS 2
+#define CFG_TUD_AUDIO_FUNC_1_N_FORMATS 1
 
 // Audio format type I specifications
 /* 24bit/48kHz is the best quality for headset or 24bit/96kHz for 2ch speaker,
@@ -133,10 +133,10 @@ extern "C"
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   2
 
 // 16bit in 16bit slots
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX 2
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX         16
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX 2
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX         16
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX 4
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX         24
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX 4
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX         24
 
 #if defined(__RX__)
     // 8bit in 8bit slots
@@ -163,6 +163,9 @@ extern "C"
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_OUT 1
+
+// Enable feedback EP
+#define CFG_TUD_AUDIO_ENABLE_FEEDBACK_EP 1
 
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_EP_SZ_OUT TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_EP_SZ_OUT TUD_AUDIO_EP_SIZE(CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)

@@ -57,7 +57,8 @@ extern "C"
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define SAI_BUF_SIZE 2048
+#define SAI_BUF_SIZE 4096
+
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
@@ -68,8 +69,8 @@ extern "C"
     /* Exported functions prototypes ---------------------------------------------*/
     void Error_Handler(void);
 
-/* USER CODE BEGIN EFP */
-
+    /* USER CODE BEGIN EFP */
+    void audio_task(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

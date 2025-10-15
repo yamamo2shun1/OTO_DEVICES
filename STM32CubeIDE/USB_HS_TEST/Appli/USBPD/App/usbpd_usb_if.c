@@ -24,8 +24,6 @@
 #include "usbpd_trace.h"
 
 /* USER CODE BEGIN Includes */
-#include "usbd_def.h"
-#include "usbd_core.h"
 /* USER CODE END Includes */
 
 /* USB include files ----------------------------------------------------------*/
@@ -91,7 +89,6 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN USB Private typedef */
 /* USB Device Core handle declaration. */
-extern USBD_HandleTypeDef hUsbDeviceHS;
 /* USER CODE END USB Private typedef */
 
 /* Private define ------------------------------------------------------------*/
@@ -134,22 +131,14 @@ int32_t USBPD_USBIF_Init(void)
 void USBPD_USBIF_DeviceStart(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceStart */
-    if (USBD_Start(&hUsbDeviceHS) != USBD_OK)
-    {
-        Error_Handler();
-    }
-    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF Device start", 18);
+
 /* USER CODE END USBPD_USBIF_DeviceStart */
 }
 
 void USBPD_USBIF_DeviceStop(uint32_t PortNum)
 {
 /* USER CODE BEGIN USBPD_USBIF_DeviceStop */
-    if (USBD_Stop(&hUsbDeviceHS) != USBD_OK)
-    {
-        Error_Handler();
-    }
-    USBPD_TRACE_Add(USBPD_TRACE_DEBUG, PortNum, 0, (uint8_t*) "USBIF Device stop", 17);
+
 /* USER CODE END USBPD_USBIF_DeviceStop */
 }
 
