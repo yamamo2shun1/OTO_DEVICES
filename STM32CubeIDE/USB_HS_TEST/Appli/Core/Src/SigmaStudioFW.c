@@ -21,11 +21,11 @@ void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t l
     {
         data[i + 3] = pData[i];
     }
-    HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 10000);
-#if 0
+    HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 10000);
+#if 1
     if (status != HAL_OK)
     {
-        SEGGER_RTT_printf(0, "[%X] spi write error\n", address);
+        printf("[%X] spi write error\n", address);
     }
 #endif
 }
