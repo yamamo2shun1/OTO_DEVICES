@@ -30,7 +30,6 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7rsxx_hal.h"
 
-#include "stm32h7rsxx_ll_ucpd.h"
 #include "stm32h7rsxx_ll_bus.h"
 #include "stm32h7rsxx_ll_cortex.h"
 #include "stm32h7rsxx_ll_rcc.h"
@@ -70,6 +69,8 @@ extern "C"
 /* Private defines -----------------------------------------------------------*/
 #define DSP_RESET_Pin       GPIO_PIN_1
 #define DSP_RESET_GPIO_Port GPIOH
+#define PDN_Pin             GPIO_PIN_13
+#define PDN_GPIO_Port       GPIOB
 #define SW2_Pin             GPIO_PIN_14
 #define SW2_GPIO_Port       GPIOD
 #define SW1_Pin             GPIO_PIN_15

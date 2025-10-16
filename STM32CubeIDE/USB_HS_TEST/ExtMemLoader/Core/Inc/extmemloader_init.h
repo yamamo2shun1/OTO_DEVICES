@@ -70,4 +70,6 @@ void Error_Handler(void);
 
 #define DSP_RESET_Pin GPIO_PIN_1
 #define DSP_RESET_GPIO_Port GPIOH
+#define PDN_Pin GPIO_PIN_13
+#define PDN_GPIO_Port GPIOB
 #endif /* EXTMEMLOADER_INIT_H */
