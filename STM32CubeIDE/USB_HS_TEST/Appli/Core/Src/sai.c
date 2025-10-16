@@ -22,7 +22,7 @@
 #include "sai.h"
 
 /* USER CODE BEGIN 0 */
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
+extern uint32_t hpout_buf[];   // RX バッファ（main.c）
 extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 /* USER CODE END 0 */
 
@@ -189,8 +189,8 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         NodeConfig.DataHandlingConfig.DataExchange  = DMA_EXCHANGE_NONE;
         NodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
         NodeConfig.SrcAddress                       = (uint32_t) &SAI1_Block_A->DR;  // SAI1_A のデータレジスタ
-        NodeConfig.DstAddress                       = (uint32_t) sai_buf;            // 受信先バッファ
-        NodeConfig.DataSize                         = SAI_BUF_SIZE * 2;              // 転送アイテム数（32bitワード数）
+        NodeConfig.DstAddress                       = (uint32_t) hpout_buf;          // 受信先バッファ
+        NodeConfig.DataSize                         = SAI_BUF_SIZE;                  // 転送アイテム数（32bitワード数）
 
         if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel3) != HAL_OK)
         {
@@ -293,7 +293,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
         NodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
         NodeConfig.SrcAddress                       = (uint32_t) sai_tx_buf;         // 送信元バッファ
         NodeConfig.DstAddress                       = (uint32_t) &SAI2_Block_A->DR;  // SAI2_A のデータレジスタ
-        NodeConfig.DataSize                         = SAI_BUF_SIZE * 2;              // 転送アイテム数（32bitワード数）
+        NodeConfig.DataSize                         = SAI_BUF_SIZE;                  // 転送アイテム数（32bitワード数）
 
         if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel2) != HAL_OK)
         {

@@ -92,13 +92,6 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
-
-extern uint32_t g_sai_ovrudr_count;
-
 uint32_t led_toggle_counter0 = 0;
 uint32_t led_toggle_counter1 = 0;
 /* USER CODE END Private_Variables */
@@ -220,7 +213,16 @@ void USBPD_DPM_UserExecute(void const* argument)
 
     tud_task();
 
-    audio_task();
+    if (get_sr_changed_state())
+    {
+        AUDIO_SAI_Reset_ForNewRate();
+        __DMB();
+        reset_sr_changed_state();
+    }
+    else
+    {
+        audio_task();
+    }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 

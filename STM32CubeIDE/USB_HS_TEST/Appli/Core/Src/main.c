@@ -63,9 +63,6 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
-__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_buf[SAI_BUF_SIZE * 2]    = {0x00};
-__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE * 2] = {0x00};
-
 static inline void clean_ll_cache(void* p, size_t sz)
 {
     uintptr_t a = (uintptr_t) p & ~31u;
@@ -75,10 +72,10 @@ static inline void clean_ll_cache(void* p, size_t sz)
 
 #define SAI_RNG_BUF_SIZE 16384
 
-int16_t hpout_clear_count        = 0;
-uint_fast64_t sai_buf_index      = 0;
-uint_fast64_t sai_transmit_index = 0;
-int16_t update_pointer           = -1;
+int16_t hpout_clear_count   = 0;
+uint64_t sai_buf_index      = 0;
+uint64_t sai_transmit_index = 0;
+int16_t update_pointer      = -1;
 
 const uint32_t sample_rates[] = {48000, 96000};
 
@@ -107,19 +104,24 @@ enum
 int8_t mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];     // +1 for master channel 0
 int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channel 0
 
-// Buffer for microphone data
 //__attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
-int_fast32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
-// Buffer for speaker data
+int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
+
 //__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
-int_fast32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
-int_fast32_t hpout_buf[SAI_BUF_SIZE] = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
+__attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE] = {0x00};
+
+__attribute__((section(".dma_nocache"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0x00};
+
 // Speaker data size received in the last frame
 int spk_data_size;
 // Resolution per format
 const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX};
 // Current resolution, update on format change
 uint8_t current_resolution;
+
+bool is_sr_changed = false;
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -133,6 +135,16 @@ uint8_t current_resolution;
 int __io_putchar(uint8_t ch)
 {
     return ITM_SendChar(ch);
+}
+
+bool get_sr_changed_state(void)
+{
+    return is_sr_changed;
+}
+
+void reset_sr_changed_state(void)
+{
+    is_sr_changed = false;
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -185,12 +197,75 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
     }
 }
 
-void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
+void AUDIO_Init_AK4619(uint32_t hz)
+{
+    uint8_t sndData[1] = {0x00};
+
+    // AK4619 HW Reset
+    HAL_GPIO_WritePin(CODEC_RESET_GPIO_Port, CODEC_RESET_Pin, 0);
+    HAL_Delay(10);
+    HAL_GPIO_WritePin(CODEC_RESET_GPIO_Port, CODEC_RESET_Pin, 1);
+    HAL_Delay(500);
+
+    // Power Management
+    // sndData[0] = 0x36;  // 00 11 0 11 0
+    // HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // Audio I/F format
+    sndData[0] = 0xAC;  // 1 010 11 00 (TDM, 32bit, TDM128 I2S compatible, Falling, Slow)
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x01, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // Reset Control
+    sndData[0] = 0x10;  // 000 1 00 00
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // System Clock Setting
+    if (hz == USBD_AUDIO_FREQ)
+    {
+        sndData[0] = 0x00;  // 00000 000 (48kHz)
+    }
+    else if (hz == USBD_AUDIO_FREQ_96K)
+    {
+        sndData[0] = 0x01;  // 00000 001 (96kHz)
+    }
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // ADC Input Setting
+    sndData[0] = 0x55;  // 01 01 01 01
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x0B, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // DAC Input Select Setting
+    // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
+    sndData[0] = 0x00;  // 00 00 00 00 (SDIN1 -> DAC1, SDIN2 -> DAC2)
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x12, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+
+    // Power Management
+    sndData[0] = 0x37;  // 00 11 0 11 1
+    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
+    // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
+}
+
+void AUDIO_Init_ADAU1466(void)
+{
+    // ADAU1466 HW Reset
+    HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 0);
+    HAL_Delay(10);
+    HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
+    HAL_Delay(500);
+    default_download_ADAU146XSCHEMATIC_1();
+}
+
+void AUDIO_SAI_Reset_ForNewRate(void)
 {
     static uint32_t prev_hz = 0;
+    const uint32_t new_hz   = current_sample_rate;
 
     if (new_hz == prev_hz)
         return;
+
+    __disable_irq();
+    __DMB();
+    __enable_irq();
 
     /* Stop DMA first (if running) to avoid FIFO churn while reconfiguring SAI */
     (void) HAL_SAI_DMAStop(&hsai_BlockA2); /* TX */
@@ -205,7 +280,9 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
     sai_transmit_index = 0;
     update_pointer     = -1;
 
-    // 48kHz
+    AUDIO_Init_AK4619(new_hz);
+    AUDIO_Init_ADAU1466();
+
     uint8_t data[2] = {0x00, 0x00};
     if (new_hz == USBD_AUDIO_FREQ)
     {
@@ -227,17 +304,14 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
         // SERIAL_BYTE_6_1
         data[1] = 0x02;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
-        HAL_Delay(15);
 
-        // START_PULSE
+        // CORE CONTROL -> START_PULSE
         data[1] = 0x02;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-        HAL_Delay(15);
 
         // MCLK_OUT
         data[1] = 0x05;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
-        HAL_Delay(15);
     }
     else if (new_hz == USBD_AUDIO_FREQ_96K)
     {
@@ -259,26 +333,24 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
         // SERIAL_BYTE_6_1
         data[1] = 0x03;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
-        HAL_Delay(15);
 
-        // START_PULSE
+        // CORE CONTROL -> START_PULSE
         data[1] = 0x03;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-        HAL_Delay(15);
 
         // MCLK_OUT
         data[1] = 0x07;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
-        HAL_Delay(15);
     }
     // PLL_ENABLE
     data[1] = 0x00;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
-    // HAL_Delay(15);
 
     // PLL_ENABLE
     data[1] = 0x01;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
+
+    __DMB();
 
     /* Reconfigure peripherals + DMA linked-lists (generated init) */
     MX_SAI1_Init();
@@ -305,6 +377,7 @@ void AUDIO_SAI_Reset_ForNewRate(uint32_t new_hz)
     /* 任意: デバッグ用に一言（SWO等） */
     printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
 
+    __DMB();
     prev_hz = new_hz;
 }
 
@@ -392,7 +465,8 @@ static bool tud_audio_clock_set_request(uint8_t rhport, audio_control_request_t 
 
         TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
 
-        AUDIO_SAI_Reset_ForNewRate(current_sample_rate);
+        is_sr_changed = true;
+        // AUDIO_SAI_Reset_ForNewRate();
 
         return true;
     }
@@ -556,12 +630,12 @@ void copybuf_usb2sai(void)
 {
     // printf("sb_index = %d -> ", sai_buf_index);
 
-    const uint_fast16_t array_size = spk_data_size >> 2;
-    for (uint_fast16_t i = 0; i < array_size; i++)
+    const uint16_t array_size = spk_data_size >> 2;
+    for (uint16_t i = 0; i < array_size; i++)
     {
         if (sai_buf_index + array_size != sai_transmit_index)
         {
-            const int_fast32_t val                          = spk_buf[i];
+            const int32_t val                               = spk_buf[i];
             sai_buf[sai_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
             sai_buf_index++;
         }
@@ -582,7 +656,7 @@ void copybuf_sai2codec(void)
 
         // printf("st_index = %d -> ", sai_transmit_index);
 
-        const uint_fast64_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
+        const uint64_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
         memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
 
@@ -688,49 +762,13 @@ int main(void)
     MX_SAI2_Init();
     MX_USB_OTG_HS_PCD_Init();
     /* USER CODE BEGIN 2 */
-    // USB_EnableGlobalInt(USB_OTG_HS);
-    // USB_DevConnect(USB_OTG_HS);
-
-    uint8_t sndData[1] = {0x00};
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
-    // Power Management
-    // sndData[0] = 0x36;  // 00 11 0 11 0
-    // HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Audio I/F format
-    sndData[0] = 0xAC;  // 1 010 11 00 (TDM, 32bit, TDM128 I2S compatible, Falling, Slow)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x01, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Reset Control
-    sndData[0] = 0x10;  // 000 1 00 00
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // System Clock Setting
-    // sndData[0] = 0x00;  // 00000 000 (48kHz)
-    sndData[0] = 0x01;  // 00000 001 (96kHz)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // ADC Input Setting
-    sndData[0] = 0x55;  // 01 01 01 01
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x0B, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // DAC Input Select Setting
-    // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
-    sndData[0] = 0x00;  // 00 00 00 00 (SDIN1 -> DAC1, SDIN2 -> DAC2)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x12, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Power Management
-    sndData[0] = 0x37;  // 00 11 0 11 1
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-    // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
-
-    HAL_Delay(100);
-    default_download_ADAU146XSCHEMATIC_1();
-    HAL_Delay(100);
+    AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
+    AUDIO_Init_ADAU1466();
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
