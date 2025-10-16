@@ -30,6 +30,7 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7rsxx_hal.h"
 
+#include "stm32h7rsxx_ll_ucpd.h"
 #include "stm32h7rsxx_ll_bus.h"
 #include "stm32h7rsxx_ll_cortex.h"
 #include "stm32h7rsxx_ll_rcc.h"
@@ -67,20 +68,20 @@ extern "C"
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DSP_RESET_Pin       GPIO_PIN_1
-#define DSP_RESET_GPIO_Port GPIOH
-#define PDN_Pin             GPIO_PIN_13
-#define PDN_GPIO_Port       GPIOB
-#define SW2_Pin             GPIO_PIN_14
-#define SW2_GPIO_Port       GPIOD
-#define SW1_Pin             GPIO_PIN_15
-#define SW1_GPIO_Port       GPIOD
-#define LED2_Pin            GPIO_PIN_0
-#define LED2_GPIO_Port      GPIOD
-#define LED1_Pin            GPIO_PIN_1
-#define LED1_GPIO_Port      GPIOD
-#define LED0_Pin            GPIO_PIN_2
-#define LED0_GPIO_Port      GPIOD
+#define DSP_RESET_Pin         GPIO_PIN_1
+#define DSP_RESET_GPIO_Port   GPIOH
+#define CODEC_RESET_Pin       GPIO_PIN_13
+#define CODEC_RESET_GPIO_Port GPIOB
+#define SW2_Pin               GPIO_PIN_14
+#define SW2_GPIO_Port         GPIOD
+#define SW1_Pin               GPIO_PIN_15
+#define SW1_GPIO_Port         GPIOD
+#define LED2_Pin              GPIO_PIN_0
+#define LED2_GPIO_Port        GPIOD
+#define LED1_Pin              GPIO_PIN_1
+#define LED1_GPIO_Port        GPIOD
+#define LED0_Pin              GPIO_PIN_2
+#define LED0_GPIO_Port        GPIOD
 
     /* USER CODE BEGIN Private defines */
 
