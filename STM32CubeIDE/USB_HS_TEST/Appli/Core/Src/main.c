@@ -23,6 +23,7 @@
 #include "i2c.h"
 #include "sai.h"
 #include "spi.h"
+#include "tim.h"
 #include "ucpd.h"
 #include "usbpd.h"
 #include "usb_otg.h"
@@ -70,11 +71,11 @@ static inline void clean_ll_cache(void* p, size_t sz)
     SCB_CleanDCache_by_Addr((uint32_t*) a, n);
 }
 
-#define SAI_RNG_BUF_SIZE 16384
+#define SAI_RNG_BUF_SIZE 32768
 
 int16_t hpout_clear_count   = 0;
-uint64_t sai_buf_index      = 0;
-uint64_t sai_transmit_index = 0;
+uint32_t sai_buf_index      = 0;
+uint32_t sai_transmit_index = 0;
 int16_t update_pointer      = -1;
 
 const uint32_t sample_rates[] = {48000, 96000};
@@ -104,24 +105,28 @@ enum
 int8_t mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];     // +1 for master channel 0
 int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channel 0
 
-//__attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
-int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4];
+__attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
 
-//__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
-__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4];
-__attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE] = {0x00};
+__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
 __attribute__((section(".dma_nocache"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0x00};
+__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
-int spk_data_size;
+uint16_t spk_data_size;
 // Resolution per format
 const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX};
 // Current resolution, update on format change
 uint8_t current_resolution;
 
 bool is_sr_changed = false;
+
+uint8_t pot_ch      = 0;
+uint16_t pot_val[8] = {0};
+
+uint8_t mag_ch      = 0;
+uint16_t mag_val[6] = {0};
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -350,7 +355,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     data[1] = 0x01;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
 
-    __DMB();
+    //__DMB();
 
     /* Reconfigure peripherals + DMA linked-lists (generated init) */
     MX_SAI1_Init();
@@ -656,7 +661,7 @@ void copybuf_sai2codec(void)
 
         // printf("st_index = %d -> ", sai_transmit_index);
 
-        const uint64_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
+        const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
         memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
 
@@ -664,7 +669,7 @@ void copybuf_sai2codec(void)
 
         if (update_pointer != -1)
         {
-            printf("buffer update too long...\n");
+            // printf("buffer update too long...\n");
         }
     }
 }
@@ -714,6 +719,103 @@ void audio_task(void)
     }
 #endif
 }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    if (htim == &htim4)
+    {
+        // POT
+        switch (pot_ch)
+        {
+        case 0:  // RV1
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 1:  // RV3
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 2:  // RV5
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 3:  // RV7
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 4:  // RV2
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 5:  // RV4
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 6:  // RV6
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 7:  // RV8
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        default:
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        }
+
+        if (HAL_ADC_Start(&hadc2) == HAL_OK)
+        {
+            if (HAL_ADC_PollForConversion(&hadc2, 100) == HAL_OK)
+            {
+                pot_val[pot_ch] = HAL_ADC_GetValue(&hadc2);
+            }
+        }
+#if 0
+        if (pot_ch == 7)
+        {
+            printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+        }
+#endif
+        pot_ch = (pot_ch + 1) % 8;
+
+        // Key Switch
+        for (int i = 0; i < 6; i++)
+        {
+            if (HAL_ADC_Start(&hadc1) == HAL_OK)
+            {
+                if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+                {
+                    mag_val[i] = HAL_ADC_GetValue(&hadc1);
+                }
+            }
+            // HAL_ADC_Stop(&hadc1);
+        }
+#if 1
+        // if (mag_ch == 5)
+        {
+            printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+        }
+#endif
+        mag_ch = (mag_ch + 1) % 6;
+    }
+    else if (htim == &htim6)
+    {
+        HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -724,6 +826,7 @@ int main(void)
 {
 
     /* USER CODE BEGIN 1 */
+
     /* USER CODE END 1 */
 
     /* Enable the CPU Cache */
@@ -761,6 +864,8 @@ int main(void)
     MX_SAI1_Init();
     MX_SAI2_Init();
     MX_USB_OTG_HS_PCD_Init();
+    MX_TIM6_Init();
+    MX_TIM4_Init();
     /* USER CODE BEGIN 2 */
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
@@ -806,6 +911,9 @@ int main(void)
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_AUTO};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
+
+    HAL_TIM_Base_Start_IT(&htim4);
+    HAL_TIM_Base_Start_IT(&htim6);
 
     printf("Hello from SWO.\n");
     /* USER CODE END 2 */
