@@ -124,9 +124,17 @@ bool is_sr_changed = false;
 
 uint8_t pot_ch      = 0;
 uint16_t pot_val[8] = {0};
-
-uint8_t mag_ch      = 0;
 uint16_t mag_val[6] = {0};
+
+// for SWV data tracing
+uint16_t trace_v0 = 0;
+uint16_t trace_v1 = 0;
+uint16_t trace_v2 = 0;
+uint16_t trace_v3 = 0;
+uint16_t trace_v4 = 0;
+uint16_t trace_v5 = 0;
+uint16_t trace_v6 = 0;
+uint16_t trace_v7 = 0;
 // === USER CODE END 0 ===
 
 /* USER CODE END PV */
@@ -776,15 +784,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 
         if (HAL_ADC_Start(&hadc2) == HAL_OK)
         {
-            if (HAL_ADC_PollForConversion(&hadc2, 100) == HAL_OK)
+            if (HAL_ADC_PollForConversion(&hadc2, 10) == HAL_OK)
             {
                 pot_val[pot_ch] = HAL_ADC_GetValue(&hadc2);
             }
         }
+        HAL_ADC_Stop(&hadc2);
 #if 0
         if (pot_ch == 7)
         {
-            printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+            trace_v0 = pot_val[0];
+            trace_v1 = pot_val[1];
+            trace_v2 = pot_val[2];
+            trace_v3 = pot_val[3];
+            trace_v4 = pot_val[4];
+            trace_v5 = pot_val[5];
+            trace_v6 = pot_val[6];
+            trace_v7 = pot_val[7];
+            // printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
         }
 #endif
         pot_ch = (pot_ch + 1) % 8;
@@ -794,20 +811,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         {
             if (HAL_ADC_Start(&hadc1) == HAL_OK)
             {
-                if (HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK)
+                if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK)
                 {
                     mag_val[i] = HAL_ADC_GetValue(&hadc1);
                 }
             }
-            // HAL_ADC_Stop(&hadc1);
         }
-#if 1
-        // if (mag_ch == 5)
-        {
-            printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
-        }
+#if 0
+        trace_v0 = mag_val[0];
+        trace_v1 = mag_val[1];
+        trace_v2 = mag_val[2];
+        trace_v3 = mag_val[3];
+        trace_v4 = mag_val[4];
+        trace_v5 = mag_val[5];
+        // printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
 #endif
-        mag_ch = (mag_ch + 1) % 6;
     }
     else if (htim == &htim6)
     {
