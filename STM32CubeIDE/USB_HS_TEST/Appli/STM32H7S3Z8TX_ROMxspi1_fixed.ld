@@ -196,6 +196,14 @@ SECTIONS
     . = ALIGN(32);
   } >RAM_D1 AT>RAM_D1
 
+  .dma_nc_init :
+  {
+    . = ALIGN(32);
+    *(.dma_nc_init)
+    *(.dma_nc_init.*)
+    . = ALIGN(32);
+  } >NC_SRAM3 AT>NC_SRAM3
+
   .dma_nocache (NOLOAD) :
   {
     . = ALIGN(32);
@@ -203,7 +211,7 @@ SECTIONS
     *(.dma_nocache) *(.dma_nocache.*)
     . = ALIGN(32);
     __dma_nocache_end__ = .;
-  } > NC_SRAM3
+  } > NC_SRAM3 AT>NC_SRAM3
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :
