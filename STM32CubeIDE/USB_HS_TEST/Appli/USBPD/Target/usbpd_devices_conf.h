@@ -66,10 +66,10 @@ extern "C" {
       Definitions for timer service feature
 -------------------------------------------------------------------------------*/
 
-#define TIMX                           TIM1
-#define TIMX_CLK_ENABLE                LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM1)
-#define TIMX_CLK_DISABLE               LL_APB2_GRP1_DisableClock(LL_APB2_GRP1_PERIPH_TIM1)
-#define TIMX_IRQ                       TIM1_UP_IRQn
+#define TIMX                           TIM2
+#define TIMX_CLK_ENABLE                LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2)
+#define TIMX_CLK_DISABLE               LL_APB1_GRP1_DisableClock(LL_APB1_GRP1_PERIPH_TIM2)
+#define TIMX_IRQ                       TIM2_IRQn
 /* As Timer freq is not equal to SystemCoreClock, define the timer freq here */
 #define TIMX_CLK_FREQ                  300000000U
 #define TIMX_CHANNEL_CH1               LL_TIM_CHANNEL_CH1
