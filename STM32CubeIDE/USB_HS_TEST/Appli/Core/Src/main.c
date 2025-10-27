@@ -126,6 +126,16 @@ uint8_t pot_ch      = 0;
 uint16_t pot_val[8] = {0};
 uint16_t mag_val[6] = {0};
 
+#define RGB            3
+#define COL_BITS       8
+#define WL_LED_BIT_LEN (RGB * COL_BITS)  // g:8,r:8,b:8
+#define LED_NUMS       11
+#define LED_BUF_NUMS   WL_LED_BIT_LEN* LED_NUMS
+uint8_t resetData[150]               = {0x00};
+uint8_t sendData[LED_BUF_NUMS + 200] = {0x00};
+
+uint16_t test = 0;
+
 // for SWV data tracing
 uint16_t trace_v0 = 0;
 uint16_t trace_v1 = 0;
@@ -158,6 +168,30 @@ bool get_sr_changed_state(void)
 void reset_sr_changed_state(void)
 {
     is_sr_changed = false;
+}
+
+void icled_reset(void)
+{
+    HAL_SPI_Transmit(&hspi3, resetData, 150, 100);
+}
+
+void icled_set_color(int GREEN, int RED, int BLUE)
+{
+    uint32_t color = GREEN << 16 | RED << 8 | BLUE;
+    int indx       = 0;
+
+    for (int j = 0; j < LED_NUMS; j++)
+    {
+        for (int i = WL_LED_BIT_LEN - 1; i >= 0; i--)
+        {
+            if (((color >> i) & 0x01) == 0x01)
+                sendData[indx++] = 0b11111100;  // store 1
+            else
+                sendData[indx++] = 0b11000000;  // store 0
+        }
+    }
+    // HAL_SPI_Transmit(&hspi3, sendData, LED_BUF_NUMS + 200, 100);
+    HAL_SPI_Transmit_IT(&hspi3, sendData, LED_BUF_NUMS + 200);
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -832,6 +866,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
         HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
         HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+
+#if 1
+        switch (test)
+        {
+        case 0:
+            icled_set_color(0, 255, 0);
+            test = 1;
+            break;
+        case 1:
+            icled_set_color(255, 0, 0);
+            test = 2;
+            break;
+        case 2:
+            icled_set_color(0, 0, 255);
+            test = 3;
+            break;
+        case 3:
+        default:
+            icled_set_color(0, 0, 0);
+            test = 0;
+            break;
+        }
+#endif
     }
 }
 /* USER CODE END 0 */
@@ -884,6 +941,7 @@ int main(void)
     MX_USB_OTG_HS_PCD_Init();
     MX_TIM6_Init();
     MX_TIM4_Init();
+    MX_SPI3_Init();
     /* USER CODE BEGIN 2 */
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
@@ -932,6 +990,9 @@ int main(void)
 
     HAL_TIM_Base_Start_IT(&htim4);
     HAL_TIM_Base_Start_IT(&htim6);
+
+    icled_reset();
+    icled_set_color(0, 0, 0);
 
     printf("Hello from SWO.\n");
     /* USER CODE END 2 */
