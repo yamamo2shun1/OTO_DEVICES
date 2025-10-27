@@ -170,7 +170,17 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL2.PLLS = 4;
   RCC_OscInitStruct.PLL2.PLLT = 2;
   RCC_OscInitStruct.PLL2.PLLFractional = 0;
-  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL3.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL3.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL3.PLLM = 16;
+  RCC_OscInitStruct.PLL3.PLLN = 137;
+  RCC_OscInitStruct.PLL3.PLLP = 2;
+  RCC_OscInitStruct.PLL3.PLLQ = 2;
+  RCC_OscInitStruct.PLL3.PLLR = 2;
+  RCC_OscInitStruct.PLL3.PLLS = 2;
+  RCC_OscInitStruct.PLL3.PLLT = 2;
+  RCC_OscInitStruct.PLL3.PLLFractional = 0;
+
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
