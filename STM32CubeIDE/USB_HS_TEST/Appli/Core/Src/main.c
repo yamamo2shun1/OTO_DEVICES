@@ -129,10 +129,9 @@ uint16_t mag_val[6] = {0};
 #define RGB            3
 #define COL_BITS       8
 #define WL_LED_BIT_LEN (RGB * COL_BITS)  // g:8,r:8,b:8
-#define LED_NUMS       11
+#define LED_NUMS       1
 #define LED_BUF_NUMS   WL_LED_BIT_LEN* LED_NUMS
-uint8_t resetData[150]               = {0x00};
-uint8_t sendData[LED_BUF_NUMS + 200] = {0x00};
+#define DMA_BUF_SIZE   (LED_NUMS * WL_LED_BIT_LEN + 1)
 
 uint16_t test = 0;
 
@@ -170,28 +169,40 @@ void reset_sr_changed_state(void)
     is_sr_changed = false;
 }
 
-void icled_reset(void)
+#define WL_LED_ONE  16
+#define WL_LED_ZERO 7
+
+uint8_t grb[LED_NUMS][RGB]                                             = {0};
+__attribute__((section(".dma_nocache"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+
+void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
-    HAL_SPI_Transmit(&hspi3, resetData, 150, 100);
+    grb[index][0] = green;
+    grb[index][1] = red;
+    grb[index][2] = blue;
 }
 
-void icled_set_color(int GREEN, int RED, int BLUE)
+void renew(void)
 {
-    uint32_t color = GREEN << 16 | RED << 8 | BLUE;
-    int indx       = 0;
-
     for (int j = 0; j < LED_NUMS; j++)
     {
-        for (int i = WL_LED_BIT_LEN - 1; i >= 0; i--)
+        for (int k = 0; k < RGB; k++)
         {
-            if (((color >> i) & 0x01) == 0x01)
-                sendData[indx++] = 0b11111100;  // store 1
-            else
-                sendData[indx++] = 0b11000000;  // store 0
+            for (int i = 0; i < COL_BITS; i++)
+            {
+                const uint8_t val = grb[j][k];
+
+                led_buf[j * WL_LED_BIT_LEN + i + COL_BITS * k] = ((val >> ((COL_BITS - 1) - i)) & 0x01) ? WL_LED_ONE : WL_LED_ZERO;
+            }
         }
     }
-    // HAL_SPI_Transmit(&hspi3, sendData, LED_BUF_NUMS + 200, 100);
-    HAL_SPI_Transmit_IT(&hspi3, sendData, LED_BUF_NUMS + 200);
+
+    HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
+}
+
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
+{
+    HAL_TIM_PWM_Stop_DMA(htim, TIM_CHANNEL_3);
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -871,20 +882,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         switch (test)
         {
         case 0:
-            icled_set_color(0, 255, 0);
+            set_led(0, 255, 0, 0);
+            renew();
             test = 1;
             break;
         case 1:
-            icled_set_color(255, 0, 0);
+            set_led(0, 0, 255, 0);
+            renew();
             test = 2;
             break;
         case 2:
-            icled_set_color(0, 0, 255);
+            set_led(0, 0, 0, 255);
+            renew();
             test = 3;
             break;
         case 3:
         default:
-            icled_set_color(0, 0, 0);
+            set_led(0, 0, 0, 0);
+            renew();
             test = 0;
             break;
         }
@@ -941,7 +956,7 @@ int main(void)
     MX_USB_OTG_HS_PCD_Init();
     MX_TIM6_Init();
     MX_TIM4_Init();
-    MX_SPI3_Init();
+    MX_TIM1_Init();
     /* USER CODE BEGIN 2 */
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
@@ -991,8 +1006,8 @@ int main(void)
     HAL_TIM_Base_Start_IT(&htim4);
     HAL_TIM_Base_Start_IT(&htim6);
 
-    icled_reset();
-    icled_set_color(0, 0, 0);
+    set_led(0, 0, 0, 0);
+    renew();
 
     printf("Hello from SWO.\n");
     /* USER CODE END 2 */
