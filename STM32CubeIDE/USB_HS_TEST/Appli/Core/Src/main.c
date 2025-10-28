@@ -65,6 +65,10 @@ extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
+extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
+extern DMA_QListTypeDef List_HPDMA1_Channel0;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
+
 static inline void clean_ll_cache(void* p, size_t sz)
 {
     uintptr_t a = (uintptr_t) p & ~31u;
@@ -111,8 +115,8 @@ __attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_F
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
-__attribute__((section(".dma_nc_init"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__attribute__((section(".dma_nc_init"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+__IO __attribute__((section(".dma_nc_init"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+__IO __attribute__((section(".dma_nc_init"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -123,10 +127,10 @@ uint8_t current_resolution;
 
 bool is_sr_changed = false;
 
-__attribute__((section(".dma_nc_init"))) uint16_t adc_val[7] = {0};
-uint16_t pot_val[8]                                          = {0};
-uint16_t mag_val[6]                                          = {0};
-uint8_t pot_ch                                               = 0;
+__IO __attribute__((section(".dma_nc_init"), aligned(32))) uint16_t adc_val[7] = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) uint16_t pot_val[8]           = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) uint16_t mag_val[6]           = {0};
+uint8_t pot_ch                                                                 = 0;
 
 #define RGB            3
 #define COL_BITS       8
@@ -137,8 +141,8 @@ uint8_t pot_ch                                               = 0;
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
 
-uint8_t grb[LED_NUMS][RGB]                                             = {0};
-__attribute__((section(".dma_nc_init"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) uint8_t grb[LED_NUMS][RGB]              = {0};
+__IO __attribute__((section(".dma_nc_init"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
 uint16_t test = 0;
 
@@ -213,6 +217,11 @@ void start_adc(void)
     HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
     HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
     pot_ch = 1;
+
+    // SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_HPDMA1_Channel0), CACHE_ALIGN_UP(sizeof(Node_HPDMA1_Channel0)));
+    // SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_HPDMA1_Channel0), CACHE_ALIGN_UP(sizeof(List_HPDMA1_Channel0)));
+    clean_ll_cache(&Node_HPDMA1_Channel0, sizeof(Node_HPDMA1_Channel0));
+    clean_ll_cache(&List_HPDMA1_Channel0, sizeof(List_HPDMA1_Channel0));
 
     if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
     {
@@ -290,12 +299,44 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
         pot_val[pot_ch] = adc_val[6];
         pot_ch          = (pot_ch + 1) % 8;
 
-#if 0
+#if 1
         if (pot_ch == 0)
         {
             printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
         }
 #endif
+    }
+}
+
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
+{
+    // printf("errorCode -> %X\n", hadc->ErrorCode);
+}
+
+void start_sai(void)
+{
+    // 1) LLI(ノード/キュー) を Clean（DMAが構造体を読む）
+    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
+    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
+
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
+    {
+        /* SAI transmit start error */
+        Error_Handler();
+    }
+
+    HAL_Delay(1000);
+    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+
+    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
+    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
+
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
+    {
+        /* SAI receive start error */
+        Error_Handler();
     }
 }
 
@@ -967,32 +1008,11 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
-    // 1) LLI(ノード/キュー) を Clean（DMAが構造体を読む）
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
-
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
-    {
-        /* SAI transmit start error */
-        Error_Handler();
-    }
-
-    HAL_Delay(1000);
-    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-
-    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
-    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
-
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
-    {
-        /* SAI receive start error */
-        Error_Handler();
-    }
+    start_sai();
     HAL_Delay(100);
 
     start_adc();
+    printf("hadc1.DMA_Handle=%p handle_HPDMA1_Channel0=%p\n", (void*) hadc1.DMA_Handle, (void*) &handle_HPDMA1_Channel0);
     HAL_Delay(100);
 
     set_led(0, 0, 0, 0);

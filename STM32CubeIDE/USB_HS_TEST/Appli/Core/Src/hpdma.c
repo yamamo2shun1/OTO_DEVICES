@@ -29,7 +29,10 @@ void MX_HPDMA1_Init(void)
 {
 
   /* USER CODE BEGIN HPDMA1_Init 0 */
+  __HAL_RCC_HPDMA1_CLK_ENABLE();
 
+  HAL_NVIC_SetPriority(HPDMA1_Channel0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(HPDMA1_Channel0_IRQn);
   /* USER CODE END HPDMA1_Init 0 */
 
   /* USER CODE BEGIN HPDMA1_Init 1 */
