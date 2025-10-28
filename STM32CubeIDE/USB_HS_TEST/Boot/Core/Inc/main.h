@@ -23,13 +23,13 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7rsxx_hal.h"
 
+#include "stm32h7rsxx_ll_ucpd.h"
 #include "stm32h7rsxx_ll_bus.h"
 #include "stm32h7rsxx_ll_cortex.h"
 #include "stm32h7rsxx_ll_rcc.h"
@@ -39,58 +39,58 @@ extern "C"
 #include "stm32h7rsxx_ll_gpio.h"
 #include "stm32h7rsxx_ll_dma.h"
 
-    /* Private includes ----------------------------------------------------------*/
-    /* USER CODE BEGIN Includes */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-    /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-    /* Exported types ------------------------------------------------------------*/
-    /* USER CODE BEGIN ET */
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 
-    /* USER CODE END ET */
+/* USER CODE END ET */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
 
-    /* USER CODE END EC */
+/* USER CODE END EC */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-    /* USER CODE END EM */
+/* USER CODE END EM */
 
-    /* Exported functions prototypes ---------------------------------------------*/
-    void Error_Handler(void);
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DSP_RESET_Pin         GPIO_PIN_1
-#define DSP_RESET_GPIO_Port   GPIOH
-#define S0_Pin                GPIO_PIN_8
-#define S0_GPIO_Port          GPIOD
-#define S1_Pin                GPIO_PIN_9
-#define S1_GPIO_Port          GPIOD
-#define S2_Pin                GPIO_PIN_10
-#define S2_GPIO_Port          GPIOD
-#define CODEC_RESET_Pin       GPIO_PIN_13
+#define DSP_RESET_Pin GPIO_PIN_1
+#define DSP_RESET_GPIO_Port GPIOH
+#define S0_Pin GPIO_PIN_8
+#define S0_GPIO_Port GPIOD
+#define S1_Pin GPIO_PIN_9
+#define S1_GPIO_Port GPIOD
+#define S2_Pin GPIO_PIN_10
+#define S2_GPIO_Port GPIOD
+#define CODEC_RESET_Pin GPIO_PIN_13
 #define CODEC_RESET_GPIO_Port GPIOB
-#define SW2_Pin               GPIO_PIN_14
-#define SW2_GPIO_Port         GPIOD
-#define SW1_Pin               GPIO_PIN_15
-#define SW1_GPIO_Port         GPIOD
-#define LED2_Pin              GPIO_PIN_0
-#define LED2_GPIO_Port        GPIOD
-#define LED1_Pin              GPIO_PIN_1
-#define LED1_GPIO_Port        GPIOD
-#define LED0_Pin              GPIO_PIN_2
-#define LED0_GPIO_Port        GPIOD
+#define SW2_Pin GPIO_PIN_14
+#define SW2_GPIO_Port GPIOD
+#define SW1_Pin GPIO_PIN_15
+#define SW1_GPIO_Port GPIOD
+#define LED2_Pin GPIO_PIN_0
+#define LED2_GPIO_Port GPIOD
+#define LED1_Pin GPIO_PIN_1
+#define LED1_GPIO_Port GPIOD
+#define LED0_Pin GPIO_PIN_2
+#define LED0_GPIO_Port GPIOD
 
-    /* USER CODE BEGIN Private defines */
+/* USER CODE BEGIN Private defines */
 
-    /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
