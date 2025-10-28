@@ -110,8 +110,8 @@ __attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_F
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
-__attribute__((section(".dma_nocache"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__attribute__((section(".dma_nocache"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+__attribute__((section(".dma_nc_init"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+__attribute__((section(".dma_nc_init"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -132,6 +132,11 @@ uint16_t mag_val[6] = {0};
 #define LED_NUMS       1
 #define LED_BUF_NUMS   WL_LED_BIT_LEN* LED_NUMS
 #define DMA_BUF_SIZE   (LED_NUMS * WL_LED_BIT_LEN + 1)
+#define WL_LED_ONE     16
+#define WL_LED_ZERO    7
+
+uint8_t grb[LED_NUMS][RGB]                                             = {0};
+__attribute__((section(".dma_nc_init"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
 uint16_t test = 0;
 
@@ -169,12 +174,6 @@ void reset_sr_changed_state(void)
     is_sr_changed = false;
 }
 
-#define WL_LED_ONE  16
-#define WL_LED_ZERO 7
-
-uint8_t grb[LED_NUMS][RGB]                                             = {0};
-__attribute__((section(".dma_nocache"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
-
 void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
     grb[index][0] = green;
@@ -184,18 +183,19 @@ void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 
 void renew(void)
 {
-    for (int j = 0; j < LED_NUMS; j++)
+    for (int k = 0; k < LED_NUMS; k++)
     {
-        for (int k = 0; k < RGB; k++)
+        for (int j = 0; j < RGB; j++)
         {
             for (int i = 0; i < COL_BITS; i++)
             {
-                const uint8_t val = grb[j][k];
+                const uint8_t val = grb[k][j];
 
-                led_buf[j * WL_LED_BIT_LEN + i + COL_BITS * k] = ((val >> ((COL_BITS - 1) - i)) & 0x01) ? WL_LED_ONE : WL_LED_ZERO;
+                led_buf[WL_LED_BIT_LEN * k + COL_BITS * j + i] = ((val >> ((COL_BITS - 1) - i)) & 0x01) ? WL_LED_ONE : WL_LED_ZERO;
             }
         }
     }
+    led_buf[DMA_BUF_SIZE - 1] = 0x00;
 
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
@@ -896,6 +896,12 @@ int main(void)
         Error_Handler();
     }
 
+    set_led(0, 0, 0, 0);
+    renew();
+    HAL_Delay(100);
+
+    HAL_TIM_Base_Start_IT(&htim6);
+
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
@@ -904,11 +910,6 @@ int main(void)
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_AUTO};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
-
-    HAL_TIM_Base_Start_IT(&htim6);
-
-    set_led(0, 0, 0, 0);
-    renew();
 
     printf("Hello from SWO.\n");
     /* USER CODE END 2 */
