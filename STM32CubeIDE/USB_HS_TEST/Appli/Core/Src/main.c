@@ -20,6 +20,7 @@
 #include "main.h"
 #include "adc.h"
 #include "gpdma.h"
+#include "hpdma.h"
 #include "i2c.h"
 #include "sai.h"
 #include "spi.h"
@@ -942,6 +943,7 @@ int main(void)
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_GPDMA1_Init();
+    MX_HPDMA1_Init();
     MX_UCPD1_Init();
     MX_I2C3_Init();
     MX_ADC2_Init();
@@ -950,8 +952,8 @@ int main(void)
     MX_SAI1_Init();
     MX_SAI2_Init();
     MX_USB_OTG_HS_PCD_Init();
-    MX_TIM6_Init();
     MX_TIM1_Init();
+    MX_TIM6_Init();
     /* USER CODE BEGIN 2 */
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);

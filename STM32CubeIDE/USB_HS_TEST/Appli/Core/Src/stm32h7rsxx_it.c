@@ -63,9 +63,9 @@ void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern DMA_NodeTypeDef Node_GPDMA1_Channel5;
-extern DMA_QListTypeDef List_GPDMA1_Channel5;
-extern DMA_HandleTypeDef handle_GPDMA1_Channel5;
+extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
+extern DMA_QListTypeDef List_HPDMA1_Channel0;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
@@ -319,20 +319,6 @@ void GPDMA1_Channel4_IRQHandler(void)
 }
 
 /**
- * @brief This function handles GPDMA1 Channel 5 global interrupt.
- */
-void GPDMA1_Channel5_IRQHandler(void)
-{
-    /* USER CODE BEGIN GPDMA1_Channel5_IRQn 0 */
-
-    /* USER CODE END GPDMA1_Channel5_IRQn 0 */
-    HAL_DMA_IRQHandler(&handle_GPDMA1_Channel5);
-    /* USER CODE BEGIN GPDMA1_Channel5_IRQn 1 */
-
-    /* USER CODE END GPDMA1_Channel5_IRQn 1 */
-}
-
-/**
  * @brief This function handles TIM6 global interrupt.
  */
 void TIM6_IRQHandler(void)
@@ -344,6 +330,20 @@ void TIM6_IRQHandler(void)
     /* USER CODE BEGIN TIM6_IRQn 1 */
 
     /* USER CODE END TIM6_IRQn 1 */
+}
+
+/**
+ * @brief This function handles HPDMA1 Channel 0 global interrupt.
+ */
+void HPDMA1_Channel0_IRQHandler(void)
+{
+    /* USER CODE BEGIN HPDMA1_Channel0_IRQn 0 */
+
+    /* USER CODE END HPDMA1_Channel0_IRQn 0 */
+    HAL_DMA_IRQHandler(&handle_HPDMA1_Channel0);
+    /* USER CODE BEGIN HPDMA1_Channel0_IRQn 1 */
+
+    /* USER CODE END HPDMA1_Channel0_IRQn 1 */
 }
 
 /**

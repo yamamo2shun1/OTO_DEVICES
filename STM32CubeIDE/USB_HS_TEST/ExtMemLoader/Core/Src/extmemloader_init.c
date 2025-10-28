@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include "extmem_manager.h"
 #include "gpdma.h"
+#include "hpdma.h"
 #include "sbs.h"
 #include "xspi.h"
 #include "gpio.h"
@@ -115,6 +116,8 @@ uint32_t extmemloader_Init()
   MX_GPIO_Init();
 
   MX_GPDMA1_Init();
+
+  MX_HPDMA1_Init();
 
   MX_XSPI1_Init();
 
