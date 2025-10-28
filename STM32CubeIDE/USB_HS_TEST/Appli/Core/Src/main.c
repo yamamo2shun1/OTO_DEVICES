@@ -122,13 +122,14 @@ uint8_t current_resolution;
 
 bool is_sr_changed = false;
 
-uint8_t pot_ch      = 0;
+__attribute__((section(".dma_nc_init"))) uint16_t adc_val[7] = {0};
 uint16_t pot_val[8] = {0};
 uint16_t mag_val[6] = {0};
+uint8_t pot_ch                                               = 0;
 
 #define RGB            3
 #define COL_BITS       8
-#define WL_LED_BIT_LEN (RGB * COL_BITS)  // g:8,r:8,b:8
+#define WL_LED_BIT_LEN (RGB * COL_BITS)
 #define LED_NUMS       1
 #define LED_BUF_NUMS   WL_LED_BIT_LEN* LED_NUMS
 #define DMA_BUF_SIZE   (LED_NUMS * WL_LED_BIT_LEN + 1)
@@ -203,6 +204,98 @@ void renew(void)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
     HAL_TIM_PWM_Stop_DMA(htim, TIM_CHANNEL_3);
+}
+
+void start_adc(void)
+{
+    HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+    HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+    HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+    pot_ch = 1;
+
+    if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
+    {
+        /* Calibration Error */
+        Error_Handler();
+    }
+
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 7) != HAL_OK)
+    {
+        /* ADC conversion start error */
+        Error_Handler();
+    }
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    if (hadc == &hadc1)
+    {
+        switch (pot_ch)
+        {
+        case 0:  // RV1
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 1:  // RV3
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 2:  // RV5
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 3:  // RV7
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 4:  // RV2
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 5:  // RV4
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 6:  // RV6
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 7:  // RV8
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        default:
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        }
+        for (int i = 0; i < 6; i++)
+        {
+            mag_val[i] = adc_val[i];
+        }
+#if 0
+        printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+#endif
+
+        pot_val[pot_ch] = adc_val[6];
+        pot_ch          = (pot_ch + 1) % 8;
+
+#if 0
+        if (pot_ch == 0)
+        {
+            printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+        }
+#endif
+    }
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
