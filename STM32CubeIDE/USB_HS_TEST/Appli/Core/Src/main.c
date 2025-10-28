@@ -123,8 +123,8 @@ uint8_t current_resolution;
 bool is_sr_changed = false;
 
 __attribute__((section(".dma_nc_init"))) uint16_t adc_val[7] = {0};
-uint16_t pot_val[8] = {0};
-uint16_t mag_val[6] = {0};
+uint16_t pot_val[8]                                          = {0};
+uint16_t mag_val[6]                                          = {0};
 uint8_t pot_ch                                               = 0;
 
 #define RGB            3
@@ -988,6 +988,10 @@ int main(void)
         /* SAI receive start error */
         Error_Handler();
     }
+    HAL_Delay(100);
+
+    start_adc();
+    HAL_Delay(100);
 
     set_led(0, 0, 0, 0);
     renew();
