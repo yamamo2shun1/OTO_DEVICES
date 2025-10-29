@@ -135,7 +135,7 @@ uint8_t pot_ch                                                                 =
 #define RGB            3
 #define COL_BITS       8
 #define WL_LED_BIT_LEN (RGB * COL_BITS)
-#define LED_NUMS       1
+#define LED_NUMS       10
 #define LED_BUF_NUMS   WL_LED_BIT_LEN* LED_NUMS
 #define DMA_BUF_SIZE   (LED_NUMS * WL_LED_BIT_LEN + 1)
 #define WL_LED_ONE     16
@@ -920,27 +920,36 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
         switch (test)
         {
         case 0:
-            set_led(0, 255, 0, 0);
-            renew();
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 255, 0, 0);
+            }
             test = 1;
             break;
         case 1:
-            set_led(0, 0, 255, 0);
-            renew();
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 255, 0);
+            }
             test = 2;
             break;
         case 2:
-            set_led(0, 0, 0, 255);
-            renew();
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 0, 255);
+            }
             test = 3;
             break;
         case 3:
         default:
-            set_led(0, 0, 0, 0);
-            renew();
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 0, 0);
+            }
             test = 0;
             break;
         }
+        renew();
 #endif
     }
 }
