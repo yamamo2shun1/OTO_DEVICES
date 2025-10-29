@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>LED_BLINK_APP_Appli</name>
+	<name>USB_HS_TEST_Appli</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -234,4 +234,10 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USBPD_Library/Core/src/usbpd_trace.c</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/USB_HS_TEST</value>
+		</variable>
+	</variableList>
 </projectDescription>
