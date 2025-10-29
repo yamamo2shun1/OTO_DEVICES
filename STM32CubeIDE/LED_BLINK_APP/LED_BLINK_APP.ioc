@@ -1,6 +1,6 @@
 #MicroXplorer Configuration settings - do not modify
 Appli.IPs=CORTEX_M7_APPLI\:I,GPDMA1,GPIO,HPDMA1,LINKEDLIST,NVIC2\:I,RCC,DEBUG
-Boot.IPs=CORTEX_M7_BOOT\:I,GPDMA1\:I,GPIO,HPDMA1\:I,LINKEDLIST\:I,NVIC1\:I,RCC\:I,MEMORYMAP\:I,XSPI1,DEBUG,EXTMEM_MANAGER,SYS\:I,SBS
+Boot.IPs=CORTEX_M7_BOOT\:I,GPDMA1\:I,GPIO,HPDMA1\:I,LINKEDLIST\:I,NVIC1\:I,RCC\:I,MEMORYMAP\:I,XSPI1,DEBUG,EXTMEM_MANAGER,SYS,SBS
 Boot.Pins=PD0,PD1,PD2
 CAD.formats=[]
 CAD.pinconfig=Dual
@@ -30,7 +30,7 @@ EXTMEM_MANAGER.IPParameters=RefParam_BOOT_enable,RefParam_MEMORY_1_ConfigType,Re
 EXTMEM_MANAGER.RefParam_BOOT_enable=true
 EXTMEM_MANAGER.RefParam_BOOT_selection=XIP
 EXTMEM_MANAGER.RefParam_MEMORY_1_ConfigType=EXTMEM_LINK_CONFIG_1LINE
-ExtMemLoader.IPs=EXTMEM_LOADER\:I,EXTMEM_MANAGER\:I,GPIO,XSPI1,SBS
+ExtMemLoader.IPs=EXTMEM_LOADER\:I,EXTMEM_MANAGER\:I,GPIO\:I,XSPI1,SBS,GPDMA1,HPDMA1,LINKEDLIST
 File.Version=6
 GPIO.groupedBy=Group By Peripherals
 KeepUserPlacement=false
@@ -174,8 +174,8 @@ Mcu.PinsNb=24
 Mcu.ThirdPartyNb=0
 Mcu.UserConstants=
 Mcu.UserName=STM32H7S3Z8Tx
-MxCube.Version=6.14.1
-MxDb.Version=DB.6.0.141
+MxCube.Version=6.15.0
+MxDb.Version=DB.6.0.150
 NVIC1.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC1.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC1.ForceEnableDMAVector=true
