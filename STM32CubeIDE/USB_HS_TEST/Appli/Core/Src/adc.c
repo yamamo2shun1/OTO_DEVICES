@@ -61,7 +61,7 @@ void MX_ADC1_Init(void)
     hadc1.Init.ExternalTrigConvEdge     = ADC_EXTERNALTRIGCONVEDGE_NONE;
     hadc1.Init.SamplingMode             = ADC_SAMPLING_MODE_NORMAL;
     hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;
-    hadc1.Init.Overrun                  = ADC_OVR_DATA_PRESERVED;
+    hadc1.Init.Overrun                  = ADC_OVR_DATA_OVERWRITTEN;  // PRESERVED;
     hadc1.Init.OversamplingMode         = DISABLE;
     if (HAL_ADC_Init(&hadc1) != HAL_OK)
     {
