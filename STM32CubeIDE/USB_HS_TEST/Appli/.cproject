@@ -23,7 +23,7 @@
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.2090422424" name="Floating-point unit" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.fpu.value.fpv5-d16" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.205928506" name="Floating-point ABI" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.floatabi.value.hard" valueType="enumerated"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board.964835052" name="Board" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.target_board" useByScannerDiscovery="false" value="genericBoard" valueType="string"/>
-							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1577857912" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H7S3Z8Tx || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Drivers/STM32H7RSxx_HAL_Driver/Inc | ../../Drivers/STM32H7RSxx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Device/ST/STM32H7RSxx/Include | ../../Drivers/CMSIS/Include ||  ||  || USE_HAL_DRIVER | STM32H7S3xx ||  || Drivers | Core/Src | Core/Startup ||  ||  || ${workspace_loc:/${ProjName}/STM32H7S3Z8TX_default.ld} || true || NonSecure ||  || secure_nsclib.o ||  || None ||  ||  || " valueType="string"/>
+							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults.1577857912" name="Defaults" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.defaults" useByScannerDiscovery="false" value="com.st.stm32cube.ide.common.services.build.inputs.revA.1.0.6 || Debug || true || Executable || com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace || STM32H7S3Z8Tx || 0 || 0 || arm-none-eabi- || ${gnu_tools_for_stm32_compiler_path} || ../Core/Inc | ../../Drivers/STM32H7RSxx_HAL_Driver/Inc | ../../Drivers/STM32H7RSxx_HAL_Driver/Inc/Legacy | ../../Drivers/CMSIS/Device/ST/STM32H7RSxx/Include | ../../Drivers/CMSIS/Include | ../USBPD/App | ../USBPD/Target | ../../Middlewares/ST/STM32_USBPD_Library/Core/inc | ../../Middlewares/ST/STM32_USBPD_Library/Devices/STM32H7RSXX/inc ||  ||  || USE_HAL_DRIVER | STM32H7S3xx | USE_FULL_LL_DRIVER | USBPD_PORT_COUNT=1 | _SNK | USBPDCORE_LIB_NO_PD ||  || Drivers | Core/Src | Core/Startup | USBPD | Middlewares ||  || ../../Middlewares/ST/STM32_USBPD_Library/Core/lib/USBPDCORE_NOPD_CM7_wc32.a || ${workspace_loc:/${ProjName}/STM32H7S3Z8TX_default.ld} || true || NonSecure ||  || secure_nsclib.o ||  || None ||  ||  || " valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.debug.option.cpuclock.663763041" name="Cpu clock frequence" superClass="com.st.stm32cube.ide.mcu.debug.option.cpuclock" useByScannerDiscovery="false" value="-0" valueType="string"/>
 							<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.2032240210" name="Toolchain" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain" useByScannerDiscovery="false" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.option.toolchain.value.workspace" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform.349550500" isAbstract="false" osList="all" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.targetplatform"/>
@@ -60,6 +60,7 @@
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_USBPD_Library/Devices/STM32H7RSXX/inc"/>
 									<listOptionValue builtIn="false" value="../tinyusb/src"/>
 								</option>
+								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.756123898" name="Language standard" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard" useByScannerDiscovery="true" value="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.languagestandard.value.gnu18" valueType="enumerated"/>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.322356373" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
 							<tool id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.39135048" name="MCU/MPU G++ Compiler" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler">
@@ -71,8 +72,8 @@
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.directories.1981025899" name="Library search path (-L)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.directories" valueType="libPaths">
 									<listOptionValue builtIn="false" value="../../Middlewares/ST/STM32_USBPD_Library/Core/lib"/>
 								</option>
-								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.libraries.388042663" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.libraries" valueType="libs">
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value=":USBPDCORE_NOPD_CM7_wc32.a"/>
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.libraries.388042663" name="Libraries (-l)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.option.libraries" valueType="libs">
+									<listOptionValue builtIn="false" value=":USBPDCORE_NOPD_CM7_wc32.a"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input.1974926374" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -92,10 +93,10 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="USBPD"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="tinyusb/src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
