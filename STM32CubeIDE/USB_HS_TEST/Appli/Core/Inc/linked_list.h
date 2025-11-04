@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    gpdma.h
-  * @brief   This file contains all the function prototypes for
-  *          the gpdma.c file
+  * File Name          : linked_list.h
+  * Description        : This file provides code for the configuration
+  *                      of the LinkedList.
   ******************************************************************************
   * @attention
   *
@@ -17,38 +17,26 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GPDMA_H__
-#define __GPDMA_H__
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 #ifdef __cplusplus
-extern "C" {
+ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "extmemloader_init.h"
+#include "main.h"
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
-
-extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
-
-void MX_GPDMA1_Init(void);
-
-/* USER CODE BEGIN Prototypes */
-
-/* USER CODE END Prototypes */
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+HAL_StatusTypeDef MX_List_GPDMA1_Channel2_Config(void);
+HAL_StatusTypeDef MX_List_GPDMA1_Channel3_Config(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GPDMA_H__ */
+#endif /* LINKED_LIST_H */
 

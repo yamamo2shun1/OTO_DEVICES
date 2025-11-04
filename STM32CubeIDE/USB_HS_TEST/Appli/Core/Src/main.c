@@ -36,6 +36,8 @@
 #include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
+
+#include "linked_list.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,15 +61,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern DMA_NodeTypeDef Node_GPDMA1_Channel2;   // TXノード
-extern DMA_QListTypeDef List_GPDMA1_Channel2;  // TXキュー
-
-extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
-extern DMA_QListTypeDef List_GPDMA1_Channel3;
-
 extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
+
+extern DMA_QListTypeDef List_GPDMA1_Channel2;
+extern DMA_QListTypeDef List_GPDMA1_Channel3;
 
 static inline void clean_ll_cache(void* p, size_t sz)
 {
@@ -110,13 +109,18 @@ enum
 int8_t mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];     // +1 for master channel 0
 int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channel 0
 
+__IO uint32_t ch2TransferCompleteDetected = 0U;
+__IO uint32_t ch2TransferErrorDetected    = 0U;
+__IO uint32_t ch3TransferCompleteDetected = 0U;
+__IO uint32_t ch3TransferErrorDetected    = 0U;
+
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
 
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 __attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
-__IO __attribute__((section(".dma_nc_init"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__IO __attribute__((section(".dma_nc_init"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -127,10 +131,10 @@ uint8_t current_resolution;
 
 bool is_sr_changed = false;
 
-__IO __attribute__((section(".dma_nc_init"), aligned(32))) uint16_t adc_val[7] = {0};
-__attribute__((section(".RAM_D1"), aligned(32))) uint16_t pot_val[8]           = {0};
-__attribute__((section(".RAM_D1"), aligned(32))) uint16_t mag_val[6]           = {0};
-uint8_t pot_ch                                                                 = 0;
+__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) uint16_t adc_val[7] = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) uint16_t pot_val[8]                   = {0};
+__attribute__((section(".RAM_D1"), aligned(32))) uint16_t mag_val[6]                   = {0};
+uint8_t pot_ch                                                                         = 0;
 
 #define RGB            3
 #define COL_BITS       8
@@ -218,11 +222,6 @@ void start_adc(void)
     HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
     pot_ch = 1;
 
-    // SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_HPDMA1_Channel0), CACHE_ALIGN_UP(sizeof(Node_HPDMA1_Channel0)));
-    // SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_HPDMA1_Channel0), CACHE_ALIGN_UP(sizeof(List_HPDMA1_Channel0)));
-    clean_ll_cache(&Node_HPDMA1_Channel0, sizeof(Node_HPDMA1_Channel0));
-    clean_ll_cache(&List_HPDMA1_Channel0, sizeof(List_HPDMA1_Channel0));
-
     if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
     {
         /* Calibration Error */
@@ -234,6 +233,14 @@ void start_adc(void)
         /* ADC conversion start error */
         Error_Handler();
     }
+
+    uint32_t ctr1 = handle_HPDMA1_Channel0.Instance->CTR1;
+    uint32_t ctr2 = handle_HPDMA1_Channel0.Instance->CTR2;
+    uint32_t csr  = handle_HPDMA1_Channel0.Instance->CSR;
+    uint32_t bndt = handle_HPDMA1_Channel0.Instance->CBR1 & 0x1FFFFu;
+    printf("CTR1=0x%08lX CTR2=0x%08lX CSR=0x%08lX BNDT=%lu\n", ctr1, ctr2, csr, bndt);
+
+    printf("ISR=0x%08lX\n", ADC1->ISR);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
@@ -310,15 +317,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
 {
-    // printf("errorCode -> %X\n", hadc->ErrorCode);
+    printf("errorCode -> %lX\n", hadc->ErrorCode);
 }
 
 void start_sai(void)
 {
-    // 1) LLI(ノード/キュー) を Clean（DMAが構造体を読む）
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
-
+    MX_List_GPDMA1_Channel2_Config();
+    HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel2, &List_GPDMA1_Channel2);
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
@@ -330,9 +335,8 @@ void start_sai(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
-    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
-    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
-
+    MX_List_GPDMA1_Channel3_Config();
+    HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel3, &List_GPDMA1_Channel3);
     if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
@@ -549,18 +553,11 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     MX_SAI1_Init();
     MX_SAI2_Init();
 
-    /* Ensure DMA linked-list descriptors are clean in D-Cache before enabling DMA */
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&Node_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(Node_GPDMA1_Channel2)));
-    SCB_CleanDCache_by_Addr(CACHE_ALIGN_PTR(&List_GPDMA1_Channel2), CACHE_ALIGN_UP(sizeof(List_GPDMA1_Channel2)));
-
     /* Restart circular DMA on both directions (sizes are #words) */
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
-
-    clean_ll_cache(&Node_GPDMA1_Channel3, sizeof(Node_GPDMA1_Channel3));
-    clean_ll_cache(&List_GPDMA1_Channel3, sizeof(List_GPDMA1_Channel3));
 
     if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
     {
@@ -950,6 +947,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
             break;
         }
         renew();
+
+        if (mag_val[0] > 1000)
+        {
+            printf("mag0 is on!(%d)\n", mag_val[0]);
+        }
 #endif
     }
 }
@@ -1020,12 +1022,12 @@ int main(void)
     start_sai();
     HAL_Delay(100);
 
-    start_adc();
+    // start_adc();
     printf("hadc1.DMA_Handle=%p handle_HPDMA1_Channel0=%p\n", (void*) hadc1.DMA_Handle, (void*) &handle_HPDMA1_Channel0);
     HAL_Delay(100);
 
-    set_led(0, 0, 0, 0);
-    renew();
+    // set_led(0, 0, 0, 0);
+    // renew();
     HAL_Delay(100);
 
     HAL_TIM_Base_Start_IT(&htim6);

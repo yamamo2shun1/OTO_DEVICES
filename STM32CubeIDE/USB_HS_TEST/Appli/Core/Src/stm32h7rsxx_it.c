@@ -63,17 +63,13 @@ void TCPP0203_PORT0_FLG_EXTI_IRQHANDLER(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
+extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
 extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-extern DMA_NodeTypeDef Node_GPDMA1_Channel3;
-extern DMA_QListTypeDef List_GPDMA1_Channel3;
-extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
-extern DMA_NodeTypeDef Node_GPDMA1_Channel2;
-extern DMA_QListTypeDef List_GPDMA1_Channel2;
-extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
 extern SAI_HandleTypeDef hsai_BlockA1;
 extern SAI_HandleTypeDef hsai_BlockA2;
 extern DMA_HandleTypeDef handle_GPDMA1_Channel4;

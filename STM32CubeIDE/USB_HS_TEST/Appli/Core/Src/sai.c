@@ -24,16 +24,13 @@
 /* USER CODE BEGIN 0 */
 extern uint32_t hpout_buf[];   // RX バッファ（main.c）
 extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
+
+extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
+extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
 /* USER CODE END 0 */
 
 SAI_HandleTypeDef hsai_BlockA1;
 SAI_HandleTypeDef hsai_BlockA2;
-DMA_NodeTypeDef Node_GPDMA1_Channel3;
-DMA_QListTypeDef List_GPDMA1_Channel3;
-DMA_HandleTypeDef handle_GPDMA1_Channel3;
-DMA_NodeTypeDef Node_GPDMA1_Channel2;
-DMA_QListTypeDef List_GPDMA1_Channel2;
-DMA_HandleTypeDef handle_GPDMA1_Channel2;
 
 /* SAI1 init function */
 void MX_SAI1_Init(void)
@@ -77,7 +74,7 @@ void MX_SAI1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SAI1_Init 2 */
-
+  __HAL_LINKDMA(&hsai_BlockA1, hdmarx, handle_GPDMA1_Channel3);
   /* USER CODE END SAI1_Init 2 */
 
 }
@@ -123,7 +120,7 @@ void MX_SAI2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SAI2_Init 2 */
-
+  __HAL_LINKDMA(&hsai_BlockA2, hdmatx, handle_GPDMA1_Channel2);
   /* USER CODE END SAI2_Init 2 */
 
 }
@@ -134,7 +131,6 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
-  DMA_NodeConfTypeDef NodeConfig;
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 /* SAI1 */
     if(saiHandle->Instance==SAI1_Block_A)
@@ -171,66 +167,6 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF6_SAI1;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-    /* Peripheral DMA init*/
-
-    NodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;
-    NodeConfig.Init.Request = GPDMA1_REQUEST_SAI1_A;
-    NodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    NodeConfig.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    NodeConfig.Init.SrcInc = DMA_SINC_FIXED;
-    NodeConfig.Init.DestInc = DMA_DINC_INCREMENTED;
-    NodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    NodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    NodeConfig.Init.SrcBurstLength = 1;
-    NodeConfig.Init.DestBurstLength = 1;
-    NodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT1;
-    NodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    NodeConfig.Init.Mode = DMA_NORMAL;
-    NodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;
-    NodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
-    NodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
-    NodeConfig.SrcAddress = (uint32_t) &SAI1_Block_A->DR;
-    NodeConfig.DstAddress = (uint32_t) hpout_buf;
-    NodeConfig.DataSize = SAI_BUF_SIZE;
-
-    if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel3) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_InsertNode(&List_GPDMA1_Channel3, NULL, &Node_GPDMA1_Channel3) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_SetCircularMode(&List_GPDMA1_Channel3) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    handle_GPDMA1_Channel3.Instance = GPDMA1_Channel3;
-    handle_GPDMA1_Channel3.InitLinkedList.Priority = DMA_HIGH_PRIORITY;
-    handle_GPDMA1_Channel3.InitLinkedList.LinkStepMode = DMA_LSM_FULL_EXECUTION;
-    handle_GPDMA1_Channel3.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT1;
-    handle_GPDMA1_Channel3.InitLinkedList.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel3.InitLinkedList.LinkedListMode = DMA_LINKEDLIST_CIRCULAR;
-    if (HAL_DMAEx_List_Init(&handle_GPDMA1_Channel3) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel3, &List_GPDMA1_Channel3) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(saiHandle, hdmarx, handle_GPDMA1_Channel3);
-
-    if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel3, DMA_CHANNEL_NPRIV) != HAL_OK)
-    {
-      Error_Handler();
-    }
 
     }
 /* SAI2 */
@@ -276,66 +212,6 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
     GPIO_InitStruct.Alternate = GPIO_AF8_SAI2;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-    /* Peripheral DMA init*/
-
-    NodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;
-    NodeConfig.Init.Request = GPDMA1_REQUEST_SAI2_A;
-    NodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    NodeConfig.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    NodeConfig.Init.SrcInc = DMA_SINC_INCREMENTED;
-    NodeConfig.Init.DestInc = DMA_DINC_FIXED;
-    NodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    NodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    NodeConfig.Init.SrcBurstLength = 1;
-    NodeConfig.Init.DestBurstLength = 1;
-    NodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;
-    NodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    NodeConfig.Init.Mode = DMA_NORMAL;
-    NodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;
-    NodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
-    NodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
-    NodeConfig.SrcAddress = (uint32_t) sai_tx_buf;
-    NodeConfig.DstAddress = (uint32_t) &SAI2_Block_A->DR;
-    NodeConfig.DataSize = SAI_BUF_SIZE;
-
-    if (HAL_DMAEx_List_BuildNode(&NodeConfig, &Node_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_InsertNode(&List_GPDMA1_Channel2, NULL, &Node_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_SetCircularMode(&List_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    handle_GPDMA1_Channel2.Instance = GPDMA1_Channel2;
-    handle_GPDMA1_Channel2.InitLinkedList.Priority = DMA_HIGH_PRIORITY;
-    handle_GPDMA1_Channel2.InitLinkedList.LinkStepMode = DMA_LSM_FULL_EXECUTION;
-    handle_GPDMA1_Channel2.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT1;
-    handle_GPDMA1_Channel2.InitLinkedList.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    handle_GPDMA1_Channel2.InitLinkedList.LinkedListMode = DMA_LINKEDLIST_CIRCULAR;
-    if (HAL_DMAEx_List_Init(&handle_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel2, &List_GPDMA1_Channel2) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    __HAL_LINKDMA(saiHandle, hdmatx, handle_GPDMA1_Channel2);
-
-    if (HAL_DMA_ConfigChannelAttributes(&handle_GPDMA1_Channel2, DMA_CHANNEL_NPRIV) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
     }
 }
 
@@ -360,7 +236,6 @@ void HAL_SAI_MspDeInit(SAI_HandleTypeDef* saiHandle)
     */
     HAL_GPIO_DeInit(GPIOE, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
 
-    HAL_DMA_DeInit(saiHandle->hdmarx);
     }
 /* SAI2 */
     if(saiHandle->Instance==SAI2_Block_A)
@@ -380,7 +255,6 @@ void HAL_SAI_MspDeInit(SAI_HandleTypeDef* saiHandle)
     */
     HAL_GPIO_DeInit(GPIOD, GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13);
 
-    HAL_DMA_DeInit(saiHandle->hdmatx);
     }
 }
 
