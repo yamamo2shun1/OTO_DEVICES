@@ -29,10 +29,6 @@
     #include "stdio.h"
 #endif /* _TRACE */
 /* USER CODE BEGIN Includes */
-#include "sai.h"
-#include "stdbool.h"
-#include "string.h"
-#include "usbd_audio_if.h" /* リングAPIを使用（①） */
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
@@ -45,7 +41,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN Private_Typedef */
-
 /* USER CODE END Private_Typedef */
 
 /* Private define ------------------------------------------------------------*/
@@ -80,8 +75,7 @@
     #define DPM_USER_DEBUG_TRACE(_PORT_, ...)
 #endif /* _TRACE */
 /* USER CODE BEGIN Private_Macro */
-/* halfの定義：1 half = SAI_BUF_SIZE words（L/R=2 words/1frame） */
-#define HALF_FRAMES (SAI_BUF_SIZE / 2u)
+
 /* USER CODE END Private_Macro */
 /**
  * @}
@@ -93,15 +87,7 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-extern uint8_t g_rx_pending;   // bit0: 前半, bit1: 後半 が溜まっている
-extern uint8_t g_tx_safe;      // 1: 前半に書いてOK, 2: 後半に書いてOK
-extern uint32_t sai_buf[];     // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
 
-extern uint32_t g_sai_ovrudr_count;
-
-uint32_t led_toggle_counter0 = 0;
-uint32_t led_toggle_counter1 = 0;
 /* USER CODE END Private_Variables */
 /**
  * @}
@@ -170,24 +156,7 @@ void USBPD_DPM_WaitForTime(uint32_t Time)
  */
 void USBPD_DPM_UserExecute(void const* argument)
 {
-    /* USER CODE BEGIN USBPD_DPM_UserExecute */
-    static uint8_t tx_safe_prev = 0;
-
-    if (led_toggle_counter0 == 0)
-    {
-        if (led_toggle_counter1 == 0)
-        {
-            HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-            HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-            HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-
-            // printf("beep on\n");
-            // AUDIO_StartBeep(1000, 500, 80);
-        }
-        led_toggle_counter1 = (led_toggle_counter1 + 1) % 128;
-    }
-    led_toggle_counter0 = (led_toggle_counter0 + 1) % 65536;
-
+/* USER CODE BEGIN USBPD_DPM_UserExecute */
 #if 0
     // クリティカル区間でフラグを取り出してクリア（競合回避）
     uint8_t pend;
@@ -208,16 +177,17 @@ void USBPD_DPM_UserExecute(void const* argument)
     }
 #endif
 
-#if 1
-    if (g_tx_safe != tx_safe_prev)
+    tud_task();
+
+    if (get_sr_changed_state())
     {
-        uint32_t* dst = (g_tx_safe == 1) ? &sai_tx_buf[0] : &sai_tx_buf[HALF_WORDS];
-        size_t done   = AUDIO_RxQ_PopTo(dst, HALF_FRAMES); /* ← 内部でプリロール＆不足ミュート済み */
-        AUDIO_AddOutFrames((uint32_t) done);
-        __DMB();
-        tx_safe_prev = g_tx_safe;
+        AUDIO_SAI_Reset_ForNewRate();
+        reset_sr_changed_state();
     }
-#endif
+    else
+    {
+        audio_task();
+    }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 

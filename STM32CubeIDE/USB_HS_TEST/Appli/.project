@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>LED_BLINK_APP_Appli</name>
+	<name>USB_HS_TEST_Appli</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -154,6 +154,16 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_spi_ex.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32H7RSxx_HAL_Driver/stm32h7rsxx_hal_tim.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_tim.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H7RSxx_HAL_Driver/stm32h7rsxx_hal_tim_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_tim_ex.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32H7RSxx_HAL_Driver/stm32h7rsxx_ll_dma.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_ll_dma.c</locationURI>
@@ -223,25 +233,11 @@
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USBPD_Library/Core/src/usbpd_trace.c</locationURI>
 		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_audio.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/AUDIO/Src/usbd_audio.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_core.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_ctlreq.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_ioreq.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c</locationURI>
-		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/USB_HS_TEST</value>
+		</variable>
+	</variableList>
 </projectDescription>

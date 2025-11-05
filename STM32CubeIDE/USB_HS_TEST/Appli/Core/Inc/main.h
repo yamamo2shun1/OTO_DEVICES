@@ -45,6 +45,9 @@ extern "C"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
+
+#include "tusb.h"
+#include "usb_descriptors.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -54,7 +57,8 @@ extern "C"
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define SAI_BUF_SIZE 2048
+#define SAI_BUF_SIZE 4096
+
     /* USER CODE END EC */
 
     /* Exported macro ------------------------------------------------------------*/
@@ -65,23 +69,34 @@ extern "C"
     /* Exported functions prototypes ---------------------------------------------*/
     void Error_Handler(void);
 
-/* USER CODE BEGIN EFP */
-
+    /* USER CODE BEGIN EFP */
+    bool get_sr_changed_state(void);
+    void reset_sr_changed_state(void);
+    void AUDIO_SAI_Reset_ForNewRate(void);
+    void audio_task(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define DSP_RESET_Pin       GPIO_PIN_1
-#define DSP_RESET_GPIO_Port GPIOH
-#define SW2_Pin             GPIO_PIN_14
-#define SW2_GPIO_Port       GPIOD
-#define SW1_Pin             GPIO_PIN_15
-#define SW1_GPIO_Port       GPIOD
-#define LED2_Pin            GPIO_PIN_0
-#define LED2_GPIO_Port      GPIOD
-#define LED1_Pin            GPIO_PIN_1
-#define LED1_GPIO_Port      GPIOD
-#define LED0_Pin            GPIO_PIN_2
-#define LED0_GPIO_Port      GPIOD
+#define DSP_RESET_Pin         GPIO_PIN_1
+#define DSP_RESET_GPIO_Port   GPIOH
+#define S0_Pin                GPIO_PIN_8
+#define S0_GPIO_Port          GPIOD
+#define S1_Pin                GPIO_PIN_9
+#define S1_GPIO_Port          GPIOD
+#define S2_Pin                GPIO_PIN_10
+#define S2_GPIO_Port          GPIOD
+#define CODEC_RESET_Pin       GPIO_PIN_13
+#define CODEC_RESET_GPIO_Port GPIOB
+#define SW2_Pin               GPIO_PIN_14
+#define SW2_GPIO_Port         GPIOD
+#define SW1_Pin               GPIO_PIN_15
+#define SW1_GPIO_Port         GPIOD
+#define LED2_Pin              GPIO_PIN_0
+#define LED2_GPIO_Port        GPIOD
+#define LED1_Pin              GPIO_PIN_1
+#define LED1_GPIO_Port        GPIOD
+#define LED0_Pin              GPIO_PIN_2
+#define LED0_GPIO_Port        GPIOD
 
 /* USER CODE BEGIN Private defines */
 #define FRAMES             (SAI_BUF_SIZE)

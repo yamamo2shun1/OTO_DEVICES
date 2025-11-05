@@ -196,14 +196,22 @@ SECTIONS
     . = ALIGN(32);
   } >RAM_D1 AT>RAM_D1
 
-  .dma_nocache (NOLOAD) :
+  .dma_nc_init :
   {
     . = ALIGN(32);
-    __dma_nocache_start__ = .;
-    *(.dma_nocache) *(.dma_nocache.*)
+    *(.dma_nc_init)
+    *(.dma_nc_init.*)
     . = ALIGN(32);
-    __dma_nocache_end__ = .;
-  } > NC_SRAM3
+  } >NC_SRAM3 AT>NC_SRAM3
+
+  .noncacheable_buffer (NOLOAD) :
+  {
+    . = ALIGN(32);
+    __noncacheable_buffer_start__ = .;
+    *(.noncacheable_buffer) *(.noncacheable_buffer.*)
+    . = ALIGN(32);
+    __noncacheable_buffer_end__ = .;
+  } > NC_SRAM3 AT>NC_SRAM3
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

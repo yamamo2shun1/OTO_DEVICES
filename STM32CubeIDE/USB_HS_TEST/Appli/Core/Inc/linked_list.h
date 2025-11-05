@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           usbd_desc.h
-  * @author         MCD Application Team
-  * @brief          Header for usbd_desc.c file.
+  * File Name          : linked_list.h
+  * Description        : This file provides code for the configuration
+  *                      of the LinkedList.
   ******************************************************************************
   * @attention
   *
@@ -17,24 +17,27 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
+
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USBD_DESC_H
-#define __USBD_DESC_H
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_def.h"
+#include "main.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-#define         DEVICE_ID1          (UID_BASE)
-#define         DEVICE_ID2          (UID_BASE + 0x4)
-#define         DEVICE_ID3          (UID_BASE + 0x8)
+HAL_StatusTypeDef MX_List_GPDMA1_Channel2_Config(void);
+HAL_StatusTypeDef MX_List_GPDMA1_Channel3_Config(void);
+HAL_StatusTypeDef MX_List_HPDMA1_Channel0_Config(void);
 
-#define  USB_SIZ_STRING_SERIAL       0x1A
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
+#ifdef __cplusplus
+}
+#endif
 
-extern USBD_DescriptorsTypeDef AUDIO_Desc;
-
-#endif /* __USBD_DESC_H */
+#endif /* LINKED_LIST_H */
 

@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -29,6 +29,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7rsxx_hal.h"
 
+#include "stm32h7rsxx_ll_ucpd.h"
 #include "stm32h7rsxx_ll_bus.h"
 #include "stm32h7rsxx_ll_cortex.h"
 #include "stm32h7rsxx_ll_rcc.h"
@@ -68,6 +69,14 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define DSP_RESET_Pin GPIO_PIN_1
 #define DSP_RESET_GPIO_Port GPIOH
+#define S0_Pin GPIO_PIN_8
+#define S0_GPIO_Port GPIOD
+#define S1_Pin GPIO_PIN_9
+#define S1_GPIO_Port GPIOD
+#define S2_Pin GPIO_PIN_10
+#define S2_GPIO_Port GPIOD
+#define CODEC_RESET_Pin GPIO_PIN_13
+#define CODEC_RESET_GPIO_Port GPIOB
 #define SW2_Pin GPIO_PIN_14
 #define SW2_GPIO_Port GPIOD
 #define SW1_Pin GPIO_PIN_15

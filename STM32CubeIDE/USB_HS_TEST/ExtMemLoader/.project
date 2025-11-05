@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>LED_BLINK_APP_ExtMemLoader</name>
+	<name>USB_HS_TEST_ExtMemLoader</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -178,4 +178,10 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_ExtMem_Manager/user/stm32_user_driver.c</locationURI>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-1-PROJECT_LOC%7D/USB_HS_TEST</value>
+		</variable>
+	</variableList>
 </projectDescription>

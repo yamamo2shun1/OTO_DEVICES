@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    gpdma.h
+  * @file    hpdma.h
   * @brief   This file contains all the function prototypes for
-  *          the gpdma.c file
+  *          the hpdma.c file
   ******************************************************************************
   * @attention
   *
@@ -18,29 +18,27 @@
   */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __GPDMA_H__
-#define __GPDMA_H__
+#ifndef __HPDMA_H__
+#define __HPDMA_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "extmemloader_init.h"
+#include "main.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern DMA_HandleTypeDef handle_GPDMA1_Channel3;
-
-extern DMA_HandleTypeDef handle_GPDMA1_Channel2;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void MX_GPDMA1_Init(void);
+void MX_HPDMA1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
@@ -50,5 +48,5 @@ void MX_GPDMA1_Init(void);
 }
 #endif
 
-#endif /* __GPDMA_H__ */
+#endif /* __HPDMA_H__ */
 
