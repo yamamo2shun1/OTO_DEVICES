@@ -33,6 +33,7 @@
 /* Exported constants --------------------------------------------------------*/
 HAL_StatusTypeDef MX_List_GPDMA1_Channel2_Config(void);
 HAL_StatusTypeDef MX_List_GPDMA1_Channel3_Config(void);
+HAL_StatusTypeDef MX_List_HPDMA1_Channel0_Config(void);
 
 #ifdef __cplusplus
 }

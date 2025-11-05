@@ -217,6 +217,9 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 
 void start_adc(void)
 {
+    MX_List_HPDMA1_Channel0_Config();
+    HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0);
+
     HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
     HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
     HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
@@ -233,14 +236,6 @@ void start_adc(void)
         /* ADC conversion start error */
         Error_Handler();
     }
-
-    uint32_t ctr1 = handle_HPDMA1_Channel0.Instance->CTR1;
-    uint32_t ctr2 = handle_HPDMA1_Channel0.Instance->CTR2;
-    uint32_t csr  = handle_HPDMA1_Channel0.Instance->CSR;
-    uint32_t bndt = handle_HPDMA1_Channel0.Instance->CBR1 & 0x1FFFFu;
-    printf("CTR1=0x%08lX CTR2=0x%08lX CSR=0x%08lX BNDT=%lu\n", ctr1, ctr2, csr, bndt);
-
-    printf("ISR=0x%08lX\n", ADC1->ISR);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
@@ -1022,12 +1017,11 @@ int main(void)
     start_sai();
     HAL_Delay(100);
 
-    // start_adc();
-    printf("hadc1.DMA_Handle=%p handle_HPDMA1_Channel0=%p\n", (void*) hadc1.DMA_Handle, (void*) &handle_HPDMA1_Channel0);
+    start_adc();
     HAL_Delay(100);
 
-    // set_led(0, 0, 0, 0);
-    // renew();
+    set_led(0, 0, 0, 0);
+    renew();
     HAL_Delay(100);
 
     HAL_TIM_Base_Start_IT(&htim6);

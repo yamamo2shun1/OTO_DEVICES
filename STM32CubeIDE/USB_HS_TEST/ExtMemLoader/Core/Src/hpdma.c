@@ -24,6 +24,8 @@
 
 /* USER CODE END 0 */
 
+DMA_HandleTypeDef handle_HPDMA1_Channel0;
+
 /* HPDMA1 init function */
 void MX_HPDMA1_Init(void)
 {
@@ -35,6 +37,20 @@ void MX_HPDMA1_Init(void)
   /* USER CODE BEGIN HPDMA1_Init 1 */
 
   /* USER CODE END HPDMA1_Init 1 */
+  handle_HPDMA1_Channel0.Instance = HPDMA1_Channel0;
+  handle_HPDMA1_Channel0.InitLinkedList.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
+  handle_HPDMA1_Channel0.InitLinkedList.LinkStepMode = DMA_LSM_FULL_EXECUTION;
+  handle_HPDMA1_Channel0.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT0;
+  handle_HPDMA1_Channel0.InitLinkedList.TransferEventMode = DMA_TCEM_LAST_LL_ITEM_TRANSFER;
+  handle_HPDMA1_Channel0.InitLinkedList.LinkedListMode = DMA_LINKEDLIST_CIRCULAR;
+  if (HAL_DMAEx_List_Init(&handle_HPDMA1_Channel0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_DMA_ConfigChannelAttributes(&handle_HPDMA1_Channel0, DMA_CHANNEL_NPRIV) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN HPDMA1_Init 2 */
 
   /* USER CODE END HPDMA1_Init 2 */
