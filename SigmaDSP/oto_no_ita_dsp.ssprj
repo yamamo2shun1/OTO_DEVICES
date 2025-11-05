@@ -2564,8 +2564,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 600.0,
-                          "Y": 300.0
+                          "X": 607.0,
+                          "Y": 384.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2599,8 +2599,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 611.0,
-                          "Y": 507.0
+                          "X": 607.0,
+                          "Y": 468.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2650,7 +2650,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 98.0,
-                          "Y": 300.0
+                          "Y": 312.24338624338623
                         },
                         "Size": {
                           "Height": 424.0,
@@ -2693,7 +2693,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 402.0,
-                          "Y": 334.0
+                          "Y": 332.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -2742,8 +2742,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 752.0,
-                          "Y": 60.0
+                          "X": 759.5,
+                          "Y": 121.0
                         },
                         "Size": {
                           "Height": 424.0,
@@ -2825,6 +2825,158 @@
                         "WriteableLinks": [],
                         "AltShapes": [],
                         "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.UserComment_v1.0.0.0",
+                        "Name": "Comment",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "UserComment_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
+                          "ResetSize": false,
+                          "RestrictResize": true
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 747.5,
+                          "Y": 57.976666666666645
+                        },
+                        "Size": {
+                          "Height": 55.569999999999993,
+                          "Width": 100.0
+                        },
+                        "Label": "UserComment_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.UserComment_v1.0.0.0",
+                        "Name": "Comment",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "UserComment_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
+                          "ResetSize": true,
+                          "RestrictResize": true
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 86.0,
+                          "Y": 248.47666666666666
+                        },
+                        "Size": {
+                          "Height": 55.569999999999993,
+                          "Width": 100.0
+                        },
+                        "Label": "UserComment_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.UserComment_v1.0.0.0",
+                        "Name": "Comment",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "UserComment_2",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
+                          "ResetSize": true,
+                          "RestrictResize": true
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 600.0,
+                          "Y": 319.47666666666669
+                        },
+                        "Size": {
+                          "Height": 55.569999999999993,
+                          "Width": 100.0
+                        },
+                        "Label": "UserComment_2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.UserComment_v1.0.0.0",
+                        "Name": "Comment",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "UserComment_3",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
+                          "ResetSize": false,
+                          "RestrictResize": true
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 921.0,
+                          "Y": 57.976666666666659
+                        },
+                        "Size": {
+                          "Height": 55.569999999999993,
+                          "Width": 100.0
+                        },
+                        "Label": "UserComment_3",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
                       }
                     ],
                     "WriteableLinks": [
@@ -2835,16 +2987,7 @@
                         "TargetUid": "SingleVolumeControl_1",
                         "TargetPinName": "Input0",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 392.0,
-                            "Y": 403.7566
-                          },
-                          {
-                            "X": 392.0,
-                            "Y": 417.5
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_13",
@@ -2853,16 +2996,7 @@
                         "TargetUid": "Output_2",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 576.0,
-                            "Y": 417.5
-                          },
-                          {
-                            "X": 576.0,
-                            "Y": 332.0
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_14",
@@ -2871,16 +3005,7 @@
                         "TargetUid": "Output_3",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 587.0,
-                            "Y": 501.5
-                          },
-                          {
-                            "X": 587.0,
-                            "Y": 539.0
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_16",
@@ -2891,12 +3016,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 378.0,
-                            "Y": 426.1905
+                            "X": 392.0,
+                            "Y": 438.4339
                           },
                           {
-                            "X": 378.0,
-                            "Y": 501.5
+                            "X": 392.0,
+                            "Y": 500.0
                           }
                         ]
                       },
@@ -2909,11 +3034,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 904.0,
-                            "Y": 118.3889
+                            "X": 918.0,
+                            "Y": 179.8889
                           },
                           {
-                            "X": 904.0,
+                            "X": 918.0,
                             "Y": 153.0
                           }
                         ]
@@ -2927,11 +3052,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 888.0,
-                            "Y": 140.8228
+                            "X": 918.0,
+                            "Y": 202.3228
                           },
                           {
-                            "X": 888.0,
+                            "X": 918.0,
                             "Y": 248.0
                           }
                         ]
