@@ -73,7 +73,8 @@ void MX_EXTMEM_MANAGER_Init(void)
   EXTMEM_Init(EXTMEMORY_1, HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI1));
 
   /* USER CODE BEGIN MX_EXTMEM_Init_PostTreatment */
-    // extmem_list_config[0].ConfigType = EXTMEM_LINK_CONFIG_8LINES;
-    // EXTMEM_Init(EXTMEMORY_1, HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI1));
+  /* ReInit XSPI1 to 8lines as not possible on CubeMX side */
+  extmem_list_config[0].ConfigType = EXTMEM_LINK_CONFIG_8LINES;
+  EXTMEM_Init(EXTMEMORY_1, HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_XSPI1));
   /* USER CODE END MX_EXTMEM_Init_PostTreatment */
 }
