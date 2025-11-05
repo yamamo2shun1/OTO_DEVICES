@@ -301,7 +301,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
         pot_val[pot_ch] = adc_val[6];
         pot_ch          = (pot_ch + 1) % 8;
 
-#if 1
+#if 0
         if (pot_ch == 0)
         {
             printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
@@ -562,7 +562,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     /* 任意: デバッグ用に一言（SWO等） */
     printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
 
-    __DMB();
+    //__DMB();
     prev_hz = new_hz;
 }
 
