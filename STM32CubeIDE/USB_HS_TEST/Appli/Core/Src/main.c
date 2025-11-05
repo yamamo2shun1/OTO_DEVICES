@@ -42,7 +42,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define RESET_FROM_FW
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -423,12 +423,12 @@ void AUDIO_Init_AK4619(uint32_t hz)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // ADC Input Setting
-    sndData[0] = 0x55;  // 01 01 01 01
+    sndData[0] = 0x55;  // 01 01 01 01 (AIN1L, AIN1R, AIN4L, AIN4R)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x0B, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // DAC Input Select Setting
     // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
-    sndData[0] = 0x00;  // 00 00 00 00 (SDIN1 -> DAC1, SDIN2 -> DAC2)
+    sndData[0] = 0x04;  // 00 00 01 00 (SDIN2 -> DAC2, SDIN1 -> DAC1)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x12, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // Power Management
@@ -473,7 +473,9 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     update_pointer     = -1;
 
     AUDIO_Init_AK4619(new_hz);
+#ifdef RESET_FROM_FW
     AUDIO_Init_ADAU1466();
+#endif
 
     uint8_t data[2] = {0x00, 0x00};
     if (new_hz == USBD_AUDIO_FREQ)
@@ -1008,7 +1010,9 @@ int main(void)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
     AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
+#ifdef RESET_FROM_FW
     AUDIO_Init_ADAU1466();
+#endif
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
