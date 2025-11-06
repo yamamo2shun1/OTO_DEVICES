@@ -271,6 +271,7 @@ void renew_led_color(void)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
     HAL_TIM_PWM_Stop_DMA(htim, TIM_CHANNEL_3);
+    __DSB();
 }
 
 void start_adc(void)
@@ -353,8 +354,8 @@ void change_pot_ch(void)
         HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
         break;
     }
-    __DSB();
-    __ISB();
+    __DMB();
+
     for (int i = 0; i < 6; i++)
     {
         mag_val[i] = adc_val[i];
@@ -456,7 +457,7 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-    	__DMB();
+        __DMB();
     }
 }
 
@@ -464,7 +465,7 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-    	__DMB();
+        __DMB();
     }
 }
 
@@ -569,12 +570,13 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         return;
 
     __disable_irq();
-    __DMB();
+    __DSB();
     __enable_irq();
 
     /* Stop DMA first (if running) to avoid FIFO churn while reconfiguring SAI */
     (void) HAL_SAI_DMAStop(&hsai_BlockA2); /* TX */
     (void) HAL_SAI_DMAStop(&hsai_BlockA1); /* RX */
+    __DSB();
 
     /* Fully re-init SAI blocks so FIFOs/flags are reset as well */
     (void) HAL_SAI_DeInit(&hsai_BlockA2);
@@ -948,6 +950,7 @@ void copybuf_sai2codec(void)
         while (update_pointer == -1)
         {
         }
+        __DMB();
 
         const int16_t index0 = update_pointer;
         update_pointer       = -1;
@@ -973,7 +976,7 @@ void audio_task(void)
 {
     const uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
     spk_data_size         = tud_audio_read(spk_buf, length);
-    __DSB();
+    __DMB();
 
     if (spk_data_size == 0 && hpout_clear_count < 100)
     {
