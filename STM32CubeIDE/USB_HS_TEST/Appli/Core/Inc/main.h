@@ -70,6 +70,10 @@ extern "C"
     void Error_Handler(void);
 
     /* USER CODE BEGIN EFP */
+    void start_audio_control(void);
+    void change_pot_ch(void);
+    void renew_led_color(void);
+
     bool get_sr_changed_state(void);
     void reset_sr_changed_state(void);
     void AUDIO_SAI_Reset_ForNewRate(void);

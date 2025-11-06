@@ -42,7 +42,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define RESET_FROM_FW
+#define RESET_FROM_FW 1
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -114,13 +114,12 @@ __IO uint32_t ch2TransferErrorDetected    = 0U;
 __IO uint32_t ch3TransferCompleteDetected = 0U;
 __IO uint32_t ch3TransferErrorDetected    = 0U;
 
-__attribute__((section(".RAM_D1"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
+int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
+int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
-__attribute__((section(".RAM_D1"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
-__attribute__((section(".RAM_D1"), aligned(32))) int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
-
-__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -129,12 +128,14 @@ const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_
 // Current resolution, update on format change
 uint8_t current_resolution;
 
-bool is_sr_changed = false;
+bool is_sr_changed          = false;
+bool is_start_audio_control = false;
 
-__IO __attribute__((section(".noncacheable_buffer"), aligned(32))) uint16_t adc_val[7] = {0};
-__attribute__((section(".RAM_D1"), aligned(32))) uint16_t pot_val[8]                   = {0};
-__attribute__((section(".RAM_D1"), aligned(32))) uint16_t mag_val[6]                   = {0};
-uint8_t pot_ch                                                                         = 0;
+__attribute__((section("noncacheable_buffer"))) uint16_t adc_val[7] = {0};
+
+uint16_t pot_val[8] = {0};
+uint16_t mag_val[6] = {0};
+uint8_t pot_ch      = 0;
 
 #define RGB            3
 #define COL_BITS       8
@@ -145,8 +146,12 @@ uint8_t pot_ch                                                                  
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
 
-__attribute__((section(".RAM_D1"), aligned(32))) uint8_t grb[LED_NUMS][RGB]              = {0};
-__IO __attribute__((section(".dma_nc_init"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+uint8_t grb[LED_NUMS][RGB] = {0};
+
+__attribute__((section("noncacheable_buffer"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+
+bool is_adc_complete = false;
+bool is_color_update = false;
 
 uint16_t test = 0;
 
@@ -184,6 +189,11 @@ void reset_sr_changed_state(void)
     is_sr_changed = false;
 }
 
+void start_audio_control(void)
+{
+    is_start_audio_control = true;
+}
+
 void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
     grb[index][0] = green;
@@ -208,6 +218,52 @@ void renew(void)
     led_buf[DMA_BUF_SIZE - 1] = 0x00;
 
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
+}
+
+void renew_led_color(void)
+{
+    if (is_color_update)
+    {
+        HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+
+        switch (test)
+        {
+        case 0:
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 255, 0, 0);
+            }
+            test = 1;
+            break;
+        case 1:
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 255, 0);
+            }
+            test = 2;
+            break;
+        case 2:
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 0, 255);
+            }
+            test = 3;
+            break;
+        case 3:
+        default:
+            for (int i = 0; i < LED_NUMS; i++)
+            {
+                set_led(i, 0, 0, 0);
+            }
+            test = 0;
+            break;
+        }
+        renew();
+
+        is_color_update = false;
+    }
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
@@ -238,75 +294,125 @@ void start_adc(void)
     }
 }
 
+float xfade      = 1.0f;
+float xfade_prev = 1.0f;
+void change_pot_ch(void)
+{
+    if (!is_start_audio_control)
+    {
+        return;
+    }
+
+    switch (pot_ch)
+    {
+    case 0:  // RV1
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 1:  // RV3
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 2:  // RV5
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 3:  // RV7
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 4:  // RV2
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 5:  // RV4
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 6:  // RV6
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 7:  // RV8
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    default:
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    }
+    for (int i = 0; i < 6; i++)
+    {
+        mag_val[i] = adc_val[i];
+    }
+#if 0
+    printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+#endif
+
+    pot_val[pot_ch] = adc_val[6];
+    pot_ch          = (pot_ch + 1) % 8;
+
+#if 0
+    if (pot_ch == 0)
+    {
+        printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+        //  printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+    }
+#endif
+
+#if 1
+    __DMB();
+    uint8_t dc_array[4] = {0x00};
+    if (mag_val[0] < 950)
+    {
+        xfade = 1.0f;
+    }
+    else if (mag_val[0] >= 950 && mag_val[0] <= 1550)
+    {
+        xfade = 1.0f - ((float) (mag_val[0] - 950) / 600.0f);
+    }
+    else if (mag_val[0] > 1550)
+    {
+        xfade = 0.0f;
+    }
+
+    if (fabs(xfade - xfade_prev) > 0.05f)
+    {
+        dc_array[0] = ((uint32_t) ((xfade) *pow(2, 23)) >> 24) & 0x000000FF;
+        dc_array[1] = ((uint32_t) ((xfade) *pow(2, 23)) >> 16) & 0x000000FF;
+        dc_array[2] = ((uint32_t) ((xfade) *pow(2, 23)) >> 8) & 0x000000FF;
+        dc_array[3] = (uint32_t) ((xfade) *pow(2, 23)) & 0x000000FF;
+
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+
+        dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
+        dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
+        dc_array[2] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 8) & 0x000000FF;
+        dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
+
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+    }
+    xfade_prev = xfade;
+#endif
+
+    is_adc_complete = false;
+}
+
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
     if (hadc == &hadc1)
     {
-        switch (pot_ch)
-        {
-        case 0:  // RV1
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-            break;
-        case 1:  // RV3
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-            break;
-        case 2:  // RV5
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-            break;
-        case 3:  // RV7
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-            break;
-        case 4:  // RV2
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-            break;
-        case 5:  // RV4
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-            break;
-        case 6:  // RV6
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-            break;
-        case 7:  // RV8
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-            break;
-        default:
-            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-            break;
-        }
-        for (int i = 0; i < 6; i++)
-        {
-            mag_val[i] = adc_val[i];
-        }
-#if 0
-        printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
-#endif
-
-        pot_val[pot_ch] = adc_val[6];
-        pot_ch          = (pot_ch + 1) % 8;
-
-#if 0
-        if (pot_ch == 0)
-        {
-            printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
-        }
-#endif
+        is_adc_complete = true;
     }
 }
 
@@ -473,7 +579,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     update_pointer     = -1;
 
     AUDIO_Init_AK4619(new_hz);
-#ifdef RESET_FROM_FW
+#if RESET_FROM_FW
     AUDIO_Init_ADAU1466();
 #endif
 
@@ -561,8 +667,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         Error_Handler();
     }
 
-    /* 任意: デバッグ用に一言（SWO等） */
-    printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
+    // printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
 
     //__DMB();
     prev_hz = new_hz;
@@ -906,50 +1011,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim == &htim6)
     {
-        HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-        HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-
-#if 1
-        switch (test)
-        {
-        case 0:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 255, 0, 0);
-            }
-            test = 1;
-            break;
-        case 1:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 255, 0);
-            }
-            test = 2;
-            break;
-        case 2:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 255);
-            }
-            test = 3;
-            break;
-        case 3:
-        default:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 0);
-            }
-            test = 0;
-            break;
-        }
-        renew();
-
-        if (mag_val[0] > 1000)
-        {
-            printf("mag0 is on!(%d)\n", mag_val[0]);
-        }
-#endif
+        is_color_update = true;
     }
 }
 /* USER CODE END 0 */
@@ -1010,7 +1072,7 @@ int main(void)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
     AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
-#ifdef RESET_FROM_FW
+#if RESET_FROM_FW
     AUDIO_Init_ADAU1466();
 #endif
 

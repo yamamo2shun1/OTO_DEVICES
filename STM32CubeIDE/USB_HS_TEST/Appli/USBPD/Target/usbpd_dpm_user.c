@@ -87,7 +87,7 @@
  */
 
 /* USER CODE BEGIN Private_Variables */
-
+uint8_t step = 0;
 /* USER CODE END Private_Variables */
 /**
  * @}
@@ -183,10 +183,28 @@ void USBPD_DPM_UserExecute(void const* argument)
     {
         AUDIO_SAI_Reset_ForNewRate();
         reset_sr_changed_state();
+        start_audio_control();
     }
     else
     {
-        audio_task();
+        switch (step)
+        {
+        case 0:
+            audio_task();
+            step = 1;
+            break;
+        case 1:
+            change_pot_ch();
+            step = 2;
+            break;
+        case 2:
+            renew_led_color();
+            step = 0;
+            break;
+        default:
+            step = 0;
+            break;
+        }
     }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
