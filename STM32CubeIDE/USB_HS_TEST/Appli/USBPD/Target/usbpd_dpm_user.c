@@ -178,6 +178,8 @@ void USBPD_DPM_UserExecute(void const* argument)
 #endif
 
     tud_task();
+    __DSB();
+    __ISB();
 
     if (get_sr_changed_state())
     {

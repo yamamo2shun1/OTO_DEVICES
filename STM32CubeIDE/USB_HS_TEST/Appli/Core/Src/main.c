@@ -77,10 +77,10 @@ static inline void clean_ll_cache(void* p, size_t sz)
 
 #define SAI_RNG_BUF_SIZE 32768
 
-int16_t hpout_clear_count   = 0;
-uint32_t sai_buf_index      = 0;
-uint32_t sai_transmit_index = 0;
-int16_t update_pointer      = -1;
+volatile int16_t hpout_clear_count   = 0;
+volatile uint32_t sai_buf_index      = 0;
+volatile uint32_t sai_transmit_index = 0;
+volatile int16_t update_pointer      = -1;
 
 const uint32_t sample_rates[] = {48000, 96000};
 
@@ -187,11 +187,13 @@ bool get_sr_changed_state(void)
 void reset_sr_changed_state(void)
 {
     is_sr_changed = false;
+    __DMB();
 }
 
 void start_audio_control(void)
 {
     is_start_audio_control = true;
+    __DMB();
 }
 
 void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
@@ -216,7 +218,7 @@ void renew(void)
         }
     }
     led_buf[DMA_BUF_SIZE - 1] = 0x00;
-
+    __DSB();
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
 
@@ -351,6 +353,8 @@ void change_pot_ch(void)
         HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
         break;
     }
+    __DSB();
+    __ISB();
     for (int i = 0; i < 6; i++)
     {
         mag_val[i] = adc_val[i];
@@ -371,7 +375,6 @@ void change_pot_ch(void)
 #endif
 
 #if 1
-    __DMB();
     uint8_t dc_array[4] = {0x00};
     if (mag_val[0] < 950)
     {
@@ -394,6 +397,7 @@ void change_pot_ch(void)
         dc_array[3] = (uint32_t) ((xfade) *pow(2, 23)) & 0x000000FF;
 
         SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+        __DSB();
 
         dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
         dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
@@ -401,11 +405,13 @@ void change_pot_ch(void)
         dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
 
         SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+        __DSB();
     }
     xfade_prev = xfade;
 #endif
 
     is_adc_complete = false;
+    __DMB();
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
@@ -413,6 +419,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     if (hadc == &hadc1)
     {
         is_adc_complete = true;
+        __DMB();
     }
 }
 
@@ -449,7 +456,7 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        __DMB();
+    	__DMB();
     }
 }
 
@@ -457,7 +464,7 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        __DMB();
+    	__DMB();
     }
 }
 
@@ -646,11 +653,11 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     data[1] = 0x00;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
 
+    __DSB();
+
     // PLL_ENABLE
     data[1] = 0x01;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
-
-    //__DMB();
 
     /* Reconfigure peripherals + DMA linked-lists (generated init) */
     MX_SAI1_Init();
@@ -669,7 +676,6 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     // printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
 
-    //__DMB();
     prev_hz = new_hz;
 }
 
@@ -945,12 +951,14 @@ void copybuf_sai2codec(void)
 
         const int16_t index0 = update_pointer;
         update_pointer       = -1;
+        __DMB();
 
         // printf("st_index = %d -> ", sai_transmit_index);
 
         const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
         memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
+        __DMB();
 
         // printf(" %d\n", sai_transmit_index);
 
@@ -965,6 +973,7 @@ void audio_task(void)
 {
     const uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
     spk_data_size         = tud_audio_read(spk_buf, length);
+    __DSB();
 
     if (spk_data_size == 0 && hpout_clear_count < 100)
     {
@@ -1012,6 +1021,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim == &htim6)
     {
         is_color_update = true;
+        __DMB();
     }
 }
 /* USER CODE END 0 */
