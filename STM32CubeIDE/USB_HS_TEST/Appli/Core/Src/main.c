@@ -1098,7 +1098,7 @@ int main(void)
 
     tusb_rhport_init_t dev_init = {
         .role  = TUSB_ROLE_DEVICE,
-        .speed = TUSB_SPEED_AUTO};
+        .speed = TUSB_SPEED_HIGH};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
     printf("Hello from SWO.\n");
