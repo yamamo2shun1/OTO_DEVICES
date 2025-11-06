@@ -362,7 +362,7 @@ void SAI2_A_IRQHandler(void)
   /* USER CODE BEGIN SAI2_A_IRQn 0 */
 
   /* USER CODE END SAI2_A_IRQn 0 */
-  HAL_SAI_IRQHandler(&hsai_BlockA2);
+  HAL_SAI_IRQHandler(&hsai_BlockA1);
   /* USER CODE BEGIN SAI2_A_IRQn 1 */
 
   /* USER CODE END SAI2_A_IRQn 1 */
