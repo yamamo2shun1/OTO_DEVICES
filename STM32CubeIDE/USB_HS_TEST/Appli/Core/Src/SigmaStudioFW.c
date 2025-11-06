@@ -21,7 +21,7 @@ void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t l
     {
         data[i + 3] = pData[i];
     }
-    HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 10000);
+    HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 100);
 #if 1
     if (status != HAL_OK)
     {
@@ -42,7 +42,7 @@ void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_
     {
         data[i + 3] = pData[i];
     }
-    HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 10000);
+    HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 100);
 }
 
 void SIGMA_WRITE_DELAY(uint8_t devAddress, uint16_t dataAddress, uint16_t length, uint8_t* pData)
