@@ -27,6 +27,8 @@
 #include "tusb.h"
 #include "usb_descriptors.h"
 
+#include "stm32h7rsxx_hal.h"
+
 /* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
  * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
  *
@@ -69,44 +71,34 @@ uint8_t const* tud_descriptor_device_cb(void)
     return (uint8_t const*) &desc_device;
 }
 
+tusb_desc_device_qualifier_t const desc_device_qualifier =
+    {
+        .bLength         = sizeof(tusb_desc_device_qualifier_t),
+        .bDescriptorType = TUSB_DESC_DEVICE,
+        .bcdUSB          = 0x0200,
+
+        .bDeviceClass    = TUSB_CLASS_MISC,
+        .bDeviceSubClass = MISC_SUBCLASS_COMMON,
+        .bDeviceProtocol = MISC_PROTOCOL_IAD,
+
+        .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
+        .bNumConfigurations = 0x01,
+        .bReserved          = 0x00};
+
+uint8_t const* tud_descriptor_device_qualifier_cb(void)
+{
+    return (uint8_t const*) &desc_device_qualifier;
+}
+
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 #define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_HEADSET_STEREO_DESC_LEN)
 
-#if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
-    // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
-    // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In etc ...
-    #define EPNUM_AUDIO_IN  0x03
-    #define EPNUM_AUDIO_OUT 0x03
-    #define EPNUM_AUDIO_INT 0x01
-
-#elif CFG_TUSB_MCU == OPT_MCU_CXD56
-// CXD56 USB driver has fixed endpoint type (bulk/interrupt/iso) and direction (IN/OUT) by its number
-// 0 control (IN/OUT), 1 Bulk (IN), 2 Bulk (OUT), 3 In (IN), 4 Bulk (IN), 5 Bulk (OUT), 6 In (IN)
-// #define EPNUM_AUDIO_IN    0x01
-// #define EPNUM_AUDIO_OUT   0x02
-// #define EPNUM_AUDIO_INT   0x03
-
-#elif CFG_TUSB_MCU == OPT_MCU_NRF5X
-    // ISO endpoints for NRF5x are fixed to 0x08 (0x88)
-    #define EPNUM_AUDIO_IN  0x08
-    #define EPNUM_AUDIO_OUT 0x08
-    #define EPNUM_AUDIO_INT 0x01
-
-#elif defined(TUD_ENDPOINT_ONE_DIRECTION_ONLY)
-    // MCUs that don't support a same endpoint number with different direction IN and OUT defined in tusb_mcu.h
-    //    e.g EP1 OUT & EP1 IN cannot exist together
-    #define EPNUM_AUDIO_IN  0x01
-    #define EPNUM_AUDIO_OUT 0x02
-    #define EPNUM_AUDIO_INT 0x03
-
-#else
-    #define EPNUM_AUDIO_IN  0x01
-    #define EPNUM_AUDIO_OUT 0x01
-    #define EPNUM_AUDIO_FB  0x01
-    #define EPNUM_AUDIO_INT 0x02
-#endif
+#define EPNUM_AUDIO_IN  0x01
+#define EPNUM_AUDIO_OUT 0x01
+#define EPNUM_AUDIO_FB  0x01
+#define EPNUM_AUDIO_INT 0x02
 
 uint8_t const desc_configuration[] =
     {
@@ -166,7 +158,19 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
         break;
 
     case STRID_SERIAL:
-        chr_count = 0;  // board_usb_get_serial(_desc_str + 1, 32);
+        char sstr[30] = "";
+        sprintf(sstr, "%X-%X-%X", HAL_GetUIDw0(), HAL_GetUIDw1(), HAL_GetUIDw2());
+        chr_count = (uint8_t) strlen(sstr);
+        if (chr_count > 31)
+        {
+            chr_count = 31;
+        }
+
+        // Convert ASCII string into UTF-16
+        for (uint8_t i = 0; i < chr_count; i++)
+        {
+            _desc_str[1 + i] = sstr[i];
+        }
         break;
 
     default:
