@@ -94,7 +94,6 @@ uint32_t current_sample_rate  = sample_rates[0];
 
 int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
 int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
-int32_t sai_buf[SAI_RNG_BUF_SIZE]                          = {0};
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
@@ -460,49 +459,18 @@ void copybuf_usb2sai(void)
     {
         if (sai_buf_index + array_size != sai_transmit_index)
         {
-            const int32_t val                               = spk_buf[i];
-            sai_buf[sai_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
+            const int32_t val                             = spk_buf[i];
+            hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = val;
             sai_buf_index++;
         }
     }
     // printf(" %d\n", sai_buf_index);
 }
 
-void copybuf_sai2codec(void)
-{
-    if (sai_buf_index - sai_transmit_index >= SAI_BUF_SIZE / 2)
-    {
-        while (update_pointer == -1)
-        {
-            __NOP();
-        }
-        __DMB();
-
-        const int16_t index0 = update_pointer;
-        update_pointer       = -1;
-        __DMB();
-
-        // printf("st_index = %d -> ", sai_transmit_index);
-
-        const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-        memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
-        sai_transmit_index += SAI_BUF_SIZE / 2;
-        __DMB();
-
-        // printf(" %d\n", sai_transmit_index);
-
-        if (update_pointer != -1)
-        {
-            // printf("buffer update too long...\n");
-        }
-    }
-}
-
 void audio_task(void)
 {
     const uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
     spk_data_size         = tud_audio_read(spk_buf, length);
-    __DMB();
 
     if (spk_data_size == 0 && hpout_clear_count < 100)
     {
@@ -520,7 +488,6 @@ void audio_task(void)
     }
 
     copybuf_usb2sai();
-    copybuf_sai2codec();
 
 #if 0
     if (spk_data_size)
@@ -876,52 +843,52 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* Enable the CPU Cache */
+    /* Enable the CPU Cache */
 
-  /* Enable I-Cache---------------------------------------------------------*/
-  SCB_EnableICache();
+    /* Enable I-Cache---------------------------------------------------------*/
+    SCB_EnableICache();
 
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
+    /* Enable D-Cache---------------------------------------------------------*/
+    SCB_EnableDCache();
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Update SystemCoreClock variable according to RCC registers values. */
-  SystemCoreClockUpdate();
+    /* Update SystemCoreClock variable according to RCC registers values. */
+    SystemCoreClockUpdate();
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_GPDMA1_Init();
-  MX_UCPD1_Init();
-  MX_USB_OTG_HS_PCD_Init();
-  MX_I2C3_Init();
-  MX_SPI5_Init();
-  MX_TIM6_Init();
-  MX_SAI1_Init();
-  MX_SAI2_Init();
-  MX_TIM1_Init();
-  /* USER CODE BEGIN 2 */
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_GPDMA1_Init();
+    MX_UCPD1_Init();
+    MX_USB_OTG_HS_PCD_Init();
+    MX_I2C3_Init();
+    MX_SPI5_Init();
+    MX_TIM6_Init();
+    MX_SAI1_Init();
+    MX_SAI2_Init();
+    MX_TIM1_Init();
+    /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
@@ -955,21 +922,21 @@ int main(void)
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_HIGH};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
-  /* USER CODE END 2 */
+    /* USER CODE END 2 */
 
-  /* USBPD initialisation ---------------------------------*/
-  MX_USBPD_Init();
+    /* USBPD initialisation ---------------------------------*/
+    MX_USBPD_Init();
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
     while (1)
     {
-    /* USER CODE END WHILE */
-    USBPD_DPM_Run();
+        /* USER CODE END WHILE */
+        USBPD_DPM_Run();
 
-    /* USER CODE BEGIN 3 */
+        /* USER CODE BEGIN 3 */
     }
-  /* USER CODE END 3 */
+    /* USER CODE END 3 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -977,32 +944,32 @@ int main(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
+    /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1)
     {
     }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t *file, uint32_t line)
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
+void assert_failed(uint8_t* file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
+    /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
