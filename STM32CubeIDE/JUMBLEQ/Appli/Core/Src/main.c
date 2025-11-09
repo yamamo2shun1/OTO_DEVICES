@@ -18,7 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
 #include "gpdma.h"
+#include "hpdma.h"
 #include "i2c.h"
 #include "sai.h"
 #include "spi.h"
@@ -71,6 +73,9 @@
 /* USER CODE BEGIN PV */
 extern DMA_QListTypeDef List_GPDMA1_Channel2;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
+
+float xfade      = 1.0f;
+float xfade_prev = 1.0f;
 
 __attribute__((section("noncacheable_buffer"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
@@ -740,6 +745,159 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     prev_hz = new_hz;
 }
 
+void start_adc(void)
+{
+    MX_List_HPDMA1_Channel0_Config();
+    HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0);
+
+    HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+    HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+    HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+    pot_ch = 1;
+
+    if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
+    {
+        /* Calibration Error */
+        Error_Handler();
+    }
+
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 7) != HAL_OK)
+    {
+        /* ADC conversion start error */
+        Error_Handler();
+    }
+}
+
+void change_pot_ch(void)
+{
+    if (!is_start_audio_control)
+    {
+        return;
+    }
+
+    switch (pot_ch)
+    {
+    case 0:  // RV1
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 1:  // RV3
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 2:  // RV5
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 3:  // RV7
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 4:  // RV2
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 5:  // RV4
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    case 6:  // RV6
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    case 7:  // RV8
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+        break;
+    default:
+        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+        break;
+    }
+    __DMB();
+
+    for (int i = 0; i < 6; i++)
+    {
+        mag_val[i] = adc_val[i];
+    }
+#if 0
+    printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+#endif
+
+    pot_val[pot_ch] = adc_val[6];
+    pot_ch          = (pot_ch + 1) % 8;
+
+#if 0
+    if (pot_ch == 0)
+    {
+        printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+        //  printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+    }
+#endif
+
+#if 1
+    uint8_t dc_array[4] = {0x00};
+    if (mag_val[0] < 950)
+    {
+        xfade = 1.0f;
+    }
+    else if (mag_val[0] >= 950 && mag_val[0] <= 1550)
+    {
+        xfade = 1.0f - ((float) (mag_val[0] - 950) / 600.0f);
+    }
+    else if (mag_val[0] > 1550)
+    {
+        xfade = 0.0f;
+    }
+
+    if (fabs(xfade - xfade_prev) > 0.05f)
+    {
+        dc_array[0] = ((uint32_t) ((xfade) *pow(2, 23)) >> 24) & 0x000000FF;
+        dc_array[1] = ((uint32_t) ((xfade) *pow(2, 23)) >> 16) & 0x000000FF;
+        dc_array[2] = ((uint32_t) ((xfade) *pow(2, 23)) >> 8) & 0x000000FF;
+        dc_array[3] = (uint32_t) ((xfade) *pow(2, 23)) & 0x000000FF;
+
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+        __DSB();
+
+        dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
+        dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
+        dc_array[2] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 8) & 0x000000FF;
+        dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
+
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+        __DSB();
+    }
+    xfade_prev = xfade;
+#endif
+
+    is_adc_complete = false;
+    __DMB();
+}
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    if (hadc == &hadc1)
+    {
+        is_adc_complete = true;
+        __DMB();
+    }
+}
+
+void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
+{
+    printf("errorCode -> %lX\n", hadc->ErrorCode);
+}
+
 //--------------------------------------------------------------------+
 // BLINKING TASK
 //--------------------------------------------------------------------+
@@ -777,7 +935,7 @@ void renew(void)
         }
     }
     led_buf[DMA_BUF_SIZE - 1] = 0x00;
-    __DSB();
+
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
 
@@ -837,7 +995,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim == &htim6)
     {
         is_color_update = true;
-        __DMB();
     }
 }
 /* USER CODE END 0 */
@@ -880,14 +1037,17 @@ int main(void)
     /* Initialize all configured peripherals */
     MX_GPIO_Init();
     MX_GPDMA1_Init();
+    MX_HPDMA1_Init();
     MX_UCPD1_Init();
     MX_USB_OTG_HS_PCD_Init();
     MX_I2C3_Init();
     MX_SPI5_Init();
     MX_TIM6_Init();
     MX_SAI1_Init();
-    MX_SAI2_Init();
     MX_TIM1_Init();
+    MX_ADC1_Init();
+    MX_ADC2_Init();
+    MX_SAI2_Init();
     /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
@@ -905,7 +1065,7 @@ int main(void)
     start_sai();
     HAL_Delay(100);
 
-    // start_adc();
+    start_adc();
     HAL_Delay(100);
 
     set_led(0, 0, 0, 0);
