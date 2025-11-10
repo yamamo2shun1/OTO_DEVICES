@@ -31,14 +31,15 @@ void MX_HPDMA1_Init(void)
 {
 
   /* USER CODE BEGIN HPDMA1_Init 0 */
-
+  __HAL_RCC_HPDMA1_CLK_ENABLE();
   /* USER CODE END HPDMA1_Init 0 */
 
   /* USER CODE BEGIN HPDMA1_Init 1 */
-
+  HAL_NVIC_SetPriority(HPDMA1_Channel0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(HPDMA1_Channel0_IRQn);
   /* USER CODE END HPDMA1_Init 1 */
   handle_HPDMA1_Channel0.Instance = HPDMA1_Channel0;
-  handle_HPDMA1_Channel0.InitLinkedList.Priority = DMA_LOW_PRIORITY_LOW_WEIGHT;
+  handle_HPDMA1_Channel0.InitLinkedList.Priority = DMA_LOW_PRIORITY_MID_WEIGHT;
   handle_HPDMA1_Channel0.InitLinkedList.LinkStepMode = DMA_LSM_FULL_EXECUTION;
   handle_HPDMA1_Channel0.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT0;
   handle_HPDMA1_Channel0.InitLinkedList.TransferEventMode = DMA_TCEM_LAST_LL_ITEM_TRANSFER;

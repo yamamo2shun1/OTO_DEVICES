@@ -166,7 +166,7 @@ HAL_StatusTypeDef MX_List_HPDMA1_Channel0_Config(void)
   pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
   pNodeConfig.SrcAddress = (uint32_t) &ADC1->DR;
   pNodeConfig.DstAddress = (uint32_t) adc_val;
-  pNodeConfig.DataSize = 7 * 2;
+  pNodeConfig.DataSize = 8 * 2;
 
   /* Build Node_HPDMA1_Channel0 Node */
   ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_HPDMA1_Channel0);

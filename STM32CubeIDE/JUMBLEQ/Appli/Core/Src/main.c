@@ -73,6 +73,11 @@
 /* USER CODE BEGIN PV */
 extern DMA_QListTypeDef List_GPDMA1_Channel2;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
+extern DMA_QListTypeDef List_HPDMA1_Channel0;
+
+extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
+extern DMA_QListTypeDef List_HPDMA1_Channel0;
+extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 float xfade      = 1.0f;
 float xfade_prev = 1.0f;
@@ -88,6 +93,12 @@ uint16_t test = 0;
 
 bool is_sr_changed          = false;
 bool is_start_audio_control = false;
+
+__attribute__((section("noncacheable_buffer"))) uint16_t adc_val[8] = {0};
+
+uint16_t pot_val[8] = {0};
+uint16_t mag_val[6] = {0};
+uint8_t pot_ch      = 0;
 
 volatile int16_t hpout_clear_count   = 0;
 volatile uint32_t sai_buf_index      = 0;
@@ -761,14 +772,14 @@ void start_adc(void)
         Error_Handler();
     }
 
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 7) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 8) != HAL_OK)
     {
         /* ADC conversion start error */
         Error_Handler();
     }
 }
 
-void change_pot_ch(void)
+void ui_control_task(void)
 {
     if (!is_start_audio_control)
     {
@@ -823,7 +834,6 @@ void change_pot_ch(void)
         HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
         break;
     }
-    __DMB();
 
     for (int i = 0; i < 6; i++)
     {
@@ -1000,55 +1010,54 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
 
-    /* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 
-    /* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-    /* Enable the CPU Cache */
+  /* Enable the CPU Cache */
 
-    /* Enable I-Cache---------------------------------------------------------*/
-    SCB_EnableICache();
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
 
-    /* Enable D-Cache---------------------------------------------------------*/
-    SCB_EnableDCache();
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
-    /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-    /* Update SystemCoreClock variable according to RCC registers values. */
-    SystemCoreClockUpdate();
+  /* Update SystemCoreClock variable according to RCC registers values. */
+  SystemCoreClockUpdate();
 
-    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-    HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-    /* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-    /* USER CODE END Init */
+  /* USER CODE END Init */
 
-    /* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-    /* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-    /* Initialize all configured peripherals */
-    MX_GPIO_Init();
-    MX_GPDMA1_Init();
-    MX_HPDMA1_Init();
-    MX_UCPD1_Init();
-    MX_USB_OTG_HS_PCD_Init();
-    MX_I2C3_Init();
-    MX_SPI5_Init();
-    MX_TIM6_Init();
-    MX_SAI1_Init();
-    MX_TIM1_Init();
-    MX_ADC1_Init();
-    MX_ADC2_Init();
-    MX_SAI2_Init();
-    /* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_GPDMA1_Init();
+  MX_HPDMA1_Init();
+  MX_UCPD1_Init();
+  MX_USB_OTG_HS_PCD_Init();
+  MX_I2C3_Init();
+  MX_SPI5_Init();
+  MX_TIM6_Init();
+  MX_SAI1_Init();
+  MX_TIM1_Init();
+  MX_SAI2_Init();
+  MX_ADC1_Init();
+  /* USER CODE BEGIN 2 */
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
@@ -1062,10 +1071,10 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
-    start_sai();
+    start_adc();
     HAL_Delay(100);
 
-    start_adc();
+    start_sai();
     HAL_Delay(100);
 
     set_led(0, 0, 0, 0);
@@ -1082,21 +1091,21 @@ int main(void)
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_HIGH};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
-    /* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-    /* USBPD initialisation ---------------------------------*/
-    MX_USBPD_Init();
+  /* USBPD initialisation ---------------------------------*/
+  MX_USBPD_Init();
 
-    /* Infinite loop */
-    /* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
     while (1)
     {
-        /* USER CODE END WHILE */
-        USBPD_DPM_Run();
+    /* USER CODE END WHILE */
+    USBPD_DPM_Run();
 
-        /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
     }
-    /* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -1104,32 +1113,32 @@ int main(void)
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
-    /* USER CODE BEGIN Error_Handler_Debug */
+  /* USER CODE BEGIN Error_Handler_Debug */
     /* User can add his own implementation to report the HAL error return state */
     __disable_irq();
     while (1)
     {
     }
-    /* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
-void assert_failed(uint8_t* file, uint32_t line)
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
 {
-    /* USER CODE BEGIN 6 */
+  /* USER CODE BEGIN 6 */
     /* User can add his own implementation to report the file name and line number,
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-    /* USER CODE END 6 */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

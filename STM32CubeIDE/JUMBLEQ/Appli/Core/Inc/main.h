@@ -68,6 +68,8 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+    void ui_control_task(void);
+
     void led_blinking_task(void);
     void audio_task(void);
 
