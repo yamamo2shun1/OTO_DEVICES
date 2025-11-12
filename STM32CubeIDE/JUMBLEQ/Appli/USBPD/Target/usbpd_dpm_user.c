@@ -143,8 +143,11 @@ void USBPD_DPM_UserExecute(void const* argument)
     tud_task();
 
     audio_task();
+
     led_blinking_task();
     rgb_led_task();
+
+    ui_control_task();
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 
