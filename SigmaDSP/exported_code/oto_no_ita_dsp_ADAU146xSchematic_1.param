@@ -333,33 +333,33 @@ Parameter Data :
 Module Name			= SingleVolumeControl_3
 Parameter Name		= Gain
 Parameter Address	= 59
-Parameter Value		= 6.30957344480193
+Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x06, 0x4F, 0x40, 0x35, 
+0x0F, 0xD9, 0x53, 0x9A, 
 
 
 
 Module Name			= SingleSlewExtVol_0
 Parameter Name		= slew_mode
 Parameter Address	= 24592
-Parameter Value		= 8320
+Parameter Value		= 8330
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x80, 
+0x00, 0x00, 0x20, 0x8A, 
 
 
 
 Module Name			= DCInput_1
 Parameter Name		= DCValue
 Parameter Address	= 56
-Parameter Value		= 0
+Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x00, 
+0x01, 0x00, 0x00, 0x00, 
 
 
 
