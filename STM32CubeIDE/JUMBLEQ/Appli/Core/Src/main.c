@@ -131,6 +131,8 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
+    reset_audio_buffer();
+
     AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
 #if RESET_FROM_FW
     AUDIO_Init_ADAU1466();

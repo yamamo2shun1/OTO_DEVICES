@@ -79,8 +79,7 @@ bool is_adc_complete        = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
-
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
@@ -96,6 +95,26 @@ uint8_t current_resolution;
 // Current states
 int8_t mute[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];     // +1 for master channel 0
 int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channel 0
+
+void reset_audio_buffer(void)
+{
+    for (uint32_t i = 0; i < 8; i++)
+    {
+        adc_val[i] = 0;
+    }
+
+    for (uint32_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4; i++)
+    {
+        mic_buf[i] = 0;
+        spk_buf[i] = 0;
+    }
+
+    for (uint32_t i = 0; i < SAI_BUF_SIZE; i++)
+    {
+        hpout_buf[i]  = 0;
+        sai_tx_buf[i] = 0;
+    }
+}
 
 uint32_t get_blink_interval_ms(void)
 {

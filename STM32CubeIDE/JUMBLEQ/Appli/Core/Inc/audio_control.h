@@ -10,6 +10,7 @@
 
 #include "main.h"
 
+void reset_audio_buffer(void);
 uint32_t get_blink_interval_ms(void);
 
 void AUDIO_Init_AK4619(uint32_t hz);
