@@ -29,7 +29,8 @@
     #include "stdio.h"
 #endif /* _TRACE */
 /* USER CODE BEGIN Includes */
-
+#include "audio_control.h"
+#include "led_control.h"
 /* USER CODE END Includes */
 
 /** @addtogroup STM32_USBPD_APPLICATION
@@ -140,14 +141,26 @@ void USBPD_DPM_WaitForTime(uint32_t Time)
 void USBPD_DPM_UserExecute(void const* argument)
 {
     /* USER CODE BEGIN USBPD_DPM_UserExecute */
+    static uint8_t step = 0;
+
     tud_task();
 
-    audio_task();
-
-    led_blinking_task();
-    rgb_led_task();
-
-    ui_control_task();
+    switch (step)
+    {
+    case 0:
+        audio_task();
+        step = 1;
+        break;
+    case 1:
+        led_blinking_task();
+        rgb_led_task();
+        step = 2;
+        break;
+    case 2:
+        ui_control_task();
+        step = 0;
+        break;
+    }
     /* USER CODE END USBPD_DPM_UserExecute */
 }
 

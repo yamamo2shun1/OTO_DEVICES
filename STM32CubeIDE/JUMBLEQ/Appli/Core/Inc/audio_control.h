@@ -1,0 +1,29 @@
+/*
+ * audio_control.h
+ *
+ *  Created on: Nov 13, 2025
+ *      Author: Shunichi Yamamoto
+ */
+
+#ifndef INC_AUDIO_CONTROL_H_
+#define INC_AUDIO_CONTROL_H_
+
+#include "main.h"
+
+uint32_t get_blink_interval_ms(void);
+
+void AUDIO_Init_AK4619(uint32_t hz);
+void AUDIO_Init_ADAU1466(void);
+
+void start_adc(void);
+void start_sai(void);
+
+void start_audio_control(void);
+bool is_started_audio_control(void);
+
+bool get_sr_changed_state(void);
+void reset_sr_changed_state(void);
+void AUDIO_SAI_Reset_ForNewRate(void);
+void audio_task(void);
+
+#endif /* INC_AUDIO_CONTROL_H_ */
