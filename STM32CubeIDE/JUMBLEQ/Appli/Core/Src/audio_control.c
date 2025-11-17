@@ -9,6 +9,7 @@
 
 #include "adc.h"
 #include "gpdma.h"
+#include "hpdma.h"
 #include "i2c.h"
 #include "linked_list.h"
 #include "sai.h"
@@ -21,15 +22,9 @@
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
 
-#define SAI_RNG_BUF_SIZE 32768
-
 extern DMA_QListTypeDef List_GPDMA1_Channel2;
 extern DMA_QListTypeDef List_GPDMA1_Channel3;
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
-
-extern DMA_NodeTypeDef Node_HPDMA1_Channel0;
-extern DMA_QListTypeDef List_HPDMA1_Channel0;
-extern DMA_HandleTypeDef handle_HPDMA1_Channel0;
 
 enum
 {
@@ -58,7 +53,7 @@ enum
 // Audio controls
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-__attribute__((section("noncacheable_buffer"))) uint16_t adc_val[8] = {0};
+volatile uint16_t adc_val[8] = {0};
 
 uint16_t pot_val[8] = {0};
 uint16_t mag_val[6] = {0};
@@ -67,23 +62,22 @@ uint8_t pot_ch      = 0;
 float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
-volatile int16_t hpout_clear_count   = 0;
-volatile uint32_t sai_buf_index      = 0;
-volatile uint32_t sai_transmit_index = 0;
-volatile int16_t update_pointer      = -1;
+int16_t hpout_clear_count       = 0;
+uint32_t sai_buf_index          = 0;
+volatile int16_t update_pointer = -1;
 
-bool is_sr_changed          = false;
-bool is_start_audio_control = false;
-bool is_adc_complete        = false;
+bool is_sr_changed            = false;
+bool is_start_audio_control   = false;
+volatile bool is_adc_complete = false;
 
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
+int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
+volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -98,18 +92,18 @@ int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channe
 
 void reset_audio_buffer(void)
 {
-    for (uint32_t i = 0; i < 8; i++)
+    for (uint16_t i = 0; i < 8; i++)
     {
         adc_val[i] = 0;
     }
 
-    for (uint32_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4; i++)
+    for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4; i++)
     {
         mic_buf[i] = 0;
         spk_buf[i] = 0;
     }
 
-    for (uint32_t i = 0; i < SAI_BUF_SIZE; i++)
+    for (uint16_t i = 0; i < SAI_BUF_SIZE; i++)
     {
         hpout_buf[i]  = 0;
         sai_tx_buf[i] = 0;
@@ -380,7 +374,11 @@ bool tud_audio_rx_done_isr(uint8_t rhport, uint16_t n_bytes_received, uint8_t fu
 void start_adc(void)
 {
     MX_List_HPDMA1_Channel0_Config();
-    HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0);
+    if (HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0) != HAL_OK)
+    {
+        /* Linking error */
+        Error_Handler();
+    }
 
     HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
     HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
@@ -402,7 +400,7 @@ void start_adc(void)
 
 void ui_control_task(void)
 {
-    if (!is_started_audio_control())
+    if (!is_started_audio_control() && !is_adc_complete)
     {
         return;
     }
@@ -590,7 +588,11 @@ void start_sai(void)
     // SAI2 -> Slave Transmit
     // USB -> STM32 -(SAI)-> ADAU1466
     MX_List_GPDMA1_Channel2_Config();
-    HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel2, &List_GPDMA1_Channel2);
+    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel2, &List_GPDMA1_Channel2) != HAL_OK)
+    {
+        /* DMA link list error */
+        Error_Handler();
+    }
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
@@ -605,7 +607,11 @@ void start_sai(void)
     // SAI1 -> Slave Receize
     // ADAU1466 -(SAI)-> STM32 -> USB
     MX_List_GPDMA1_Channel3_Config();
-    HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel3, &List_GPDMA1_Channel3);
+    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel3, &List_GPDMA1_Channel3) != HAL_OK)
+    {
+        /* DMA link list error */
+        Error_Handler();
+    }
     if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
@@ -617,21 +623,39 @@ void copybuf_usb2sai(void)
 {
     // printf("sb_index = %d -> ", sai_buf_index);
 
-    const uint16_t array_size = spk_data_size >> 2;
-    for (uint16_t i = 0; i < array_size; i++)
+    if (spk_data_size > 0)
     {
-        hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = spk_buf[i];
-        sai_buf_index++;
+        uint16_t array_size = spk_data_size >> 2;
+#if 1
+        const uint16_t array_size_max = sizeof(spk_buf) / sizeof(spk_buf[0]);
+        if (array_size > array_size_max)
+        {
+            array_size = array_size_max;
+        }
+#endif
+        for (uint16_t i = 0; i < array_size; i++)
+        {
+            hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = spk_buf[i];
+            sai_buf_index++;
+        }
     }
-
     // printf(" %d\n", sai_buf_index);
 }
 
 void audio_task(void)
 {
-    const uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
-    spk_data_size         = tud_audio_read(spk_buf, length);
+    // uint16_t length = (uint16_t) (current_sample_rate / 1000 * CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+    uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+#if 1
+    const uint16_t array_size_max = sizeof(spk_buf) / sizeof(spk_buf[0]);
+    if (length > array_size_max)
+    {
+        length = array_size_max;
+    }
+#endif
+    spk_data_size = tud_audio_read(spk_buf, length);
 
+#if 0
     if (spk_data_size == 0 && hpout_clear_count < 100)
     {
         hpout_clear_count++;
@@ -646,30 +670,9 @@ void audio_task(void)
     {
         hpout_clear_count = 0;
     }
+#endif
 
     copybuf_usb2sai();
-
-#if 0
-    if (spk_data_size)
-    {
-        if (current_resolution == 24)
-        {
-            int32_t* src   = spk_buf;
-            int32_t* limit = spk_buf + spk_data_size / 4;
-            // int32_t* dst   = mic_buf;
-            int32_t* dst = sai_tx_buf;
-            while (src < limit)
-            {
-                // Combine two channels into one
-                int32_t left  = *src++;
-                int32_t right = *src++;
-                *dst++        = (int32_t) ((uint32_t) ((left >> 1) + (right >> 1)) & 0xffffff00ul);
-            }
-            // tud_audio_write((uint8_t*) mic_buf, (uint16_t) (spk_data_size / 2));
-            spk_data_size = 0;
-        }
-    }
-#endif
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -799,10 +802,9 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     (void) HAL_SAI_DeInit(&hsai_BlockA2);
     (void) HAL_SAI_DeInit(&hsai_BlockA1);
 
-    hpout_clear_count  = 0;
-    sai_buf_index      = 0;
-    sai_transmit_index = 0;
-    update_pointer     = -1;
+    hpout_clear_count = 0;
+    sai_buf_index     = 0;
+    update_pointer    = -1;
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
