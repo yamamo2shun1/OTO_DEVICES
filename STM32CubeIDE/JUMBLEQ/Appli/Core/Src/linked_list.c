@@ -44,8 +44,8 @@ DMA_QListTypeDef List_HPDMA1_Channel0;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-extern uint32_t hpout_buf[];   // RX バッファ（main.c）
-extern uint32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern int32_t hpout_buf[];   // RX バッファ（main.c）
+extern int32_t sai_tx_buf[];  // TX バッファ（main.c）
 
 extern uint16_t adc_val[];
 /* USER CODE END PM */
@@ -80,7 +80,7 @@ HAL_StatusTypeDef MX_List_GPDMA1_Channel2_Config(void)
   pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
   pNodeConfig.SrcAddress = (uint32_t) hpout_buf;
   pNodeConfig.DstAddress = (uint32_t) &SAI2_Block_A->DR;
-  pNodeConfig.DataSize = SAI_BUF_SIZE * 4;
+  pNodeConfig.DataSize = SAI_BUF_SIZE * 4U;
 
   /* Build Node_GPDMA1_Channel2 Node */
   ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_GPDMA1_Channel2);
@@ -123,7 +123,7 @@ HAL_StatusTypeDef MX_List_GPDMA1_Channel3_Config(void)
   pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
   pNodeConfig.SrcAddress = (uint32_t) &SAI1_Block_A->DR;
   pNodeConfig.DstAddress = (uint32_t) sai_tx_buf;
-  pNodeConfig.DataSize = SAI_BUF_SIZE * 4;
+  pNodeConfig.DataSize = SAI_BUF_SIZE * 4U;
 
   /* Build Node_GPDMA1_Channel3 Node */
   ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_GPDMA1_Channel3);
@@ -166,7 +166,7 @@ HAL_StatusTypeDef MX_List_HPDMA1_Channel0_Config(void)
   pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
   pNodeConfig.SrcAddress = (uint32_t) &ADC1->DR;
   pNodeConfig.DstAddress = (uint32_t) adc_val;
-  pNodeConfig.DataSize = 8 * 2;
+  pNodeConfig.DataSize = 8U * 2U;
 
   /* Build Node_HPDMA1_Channel0 Node */
   ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_HPDMA1_Channel0);
