@@ -42,7 +42,9 @@ void led_blinking_task(void)
 
     // Blink every interval ms
     if (HAL_GetTick() - start_ms < get_blink_interval_ms())
+    {
         return;
+    }
     start_ms += get_blink_interval_ms();
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
