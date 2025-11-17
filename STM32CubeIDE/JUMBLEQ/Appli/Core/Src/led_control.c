@@ -20,11 +20,11 @@
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
 
-__attribute__((section("noncacheable_buffer"))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
 uint8_t grb[LED_NUMS][RGB] = {0};
 
-bool is_color_update = false;
+volatile bool is_color_update = false;
 
 uint16_t test = 0;
 
