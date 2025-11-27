@@ -67,13 +67,13 @@
 extern uint32_t g_aud_fct_guard1;
 
 // addr への「書き込み」を監視（COMP0 を使用）
-void dwt_watch_write(void *addr)
+void dwt_watch_write(void* addr)
 {
     // DWT/ITM 系有効化
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 
     // COMP0 に監視対象アドレスを設定
-    DWT->COMP0 = (uint32_t)addr;
+    DWT->COMP0 = (uint32_t) addr;
 
     // MASK0: 監視範囲
     //  0 → 4バイト(32bit)
@@ -198,8 +198,11 @@ int main(void)
         tud_task();
 
         led_blinking_task();
+        rgb_led_task();
 
-        //guard_check();
+        ui_control_task();
+
+        // guard_check();
         audio_task();
         /* USER CODE BEGIN 3 */
     }
