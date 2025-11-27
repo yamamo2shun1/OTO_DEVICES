@@ -47,7 +47,6 @@
 #include "stm32h7rsxx_hal.h"
 #include "stm32_extmem.h"
 #include "stm32_extmem_type.h"
-#include "boot/stm32_boot_xip.h"
 
 /* USER CODE BEGIN INCLUDE */
 
