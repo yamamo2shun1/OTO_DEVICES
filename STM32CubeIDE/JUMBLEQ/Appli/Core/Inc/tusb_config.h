@@ -34,6 +34,8 @@ extern "C"
 
 #include "usb_descriptors.h"
 
+#include "my_log.h"
+
 //--------------------------------------------------------------------+
 // Board Specific Configuration
 //--------------------------------------------------------------------+
@@ -43,13 +45,16 @@ extern "C"
 #define BOARD_TUD_MAX_SPEED       OPT_MODE_HIGH_SPEED
 #define BOARD_DEVICE_RHPORT_NUM   1
 #define BOARD_TUD_RHPORT          1
-#define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
+#define CFG_TUSB_RHPORT1_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 #define CFG_TUSB_DEBUG            0
+#define CFG_TUSB_DEBUG_PRINTF     my_printf
 
-#define CFG_TUD_DWC2_DMA_ENABLE   1
-#define CFG_TUD_MEM_DCACHE_ENABLE 1
-#define CFG_TUSB_MEM_SECTION      __attribute__((section("noncacheable_buffer")))
-#define CFG_TUSB_MEM_ALIGN        __attribute__((aligned(4)))
+// #define TUD_AUDIO_PREFER_RING_BUFFER 1
+// #define CFG_TUD_DWC2_SLAVE_ENABLE 0
+// #define CFG_TUD_DWC2_DMA_ENABLE   1
+//  #define CFG_TUD_MEM_DCACHE_ENABLE 1
+#define CFG_TUSB_MEM_SECTION __attribute__((section(".rtt")))
+    // #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
 
 #define USBD_AUDIO_FREQ     48000U
 #define USBD_AUDIO_FREQ_96K 96000U
