@@ -73,7 +73,9 @@ volatile bool is_adc_complete = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
+//__attribute__((section(".rtt")))
+int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
+//__attribute__((section(".rtt")))
 int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
 volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
@@ -625,18 +627,16 @@ void copybuf_usb2sai(void)
 
     if (spk_data_size > 0)
     {
-        uint16_t array_size = spk_data_size >> 2;
-#if 1
-        const uint16_t array_size_max = sizeof(spk_buf) / sizeof(spk_buf[0]);
-        if (array_size > array_size_max)
-        {
-            array_size = array_size_max;
-        }
-#endif
+        const uint16_t array_size = spk_data_size >> 2;
+
         for (uint16_t i = 0; i < array_size; i++)
         {
             hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = spk_buf[i];
             sai_buf_index++;
+            if(sai_buf_index >= SAI_BUF_SIZE * 100)
+			{
+				sai_buf_index = 0;
+			}
         }
     }
     // printf(" %d\n", sai_buf_index);
@@ -644,8 +644,8 @@ void copybuf_usb2sai(void)
 
 void audio_task(void)
 {
-    // uint16_t length = (uint16_t) (current_sample_rate / 1000 * CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
-    uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+    uint16_t length = (uint16_t) (current_sample_rate / 1000 * CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
+    // uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
 #if 1
     const uint16_t array_size_max = sizeof(spk_buf) / sizeof(spk_buf[0]);
     if (length > array_size_max)

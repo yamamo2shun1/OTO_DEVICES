@@ -49,12 +49,12 @@ extern "C"
 #define CFG_TUSB_DEBUG            0
 #define CFG_TUSB_DEBUG_PRINTF     my_printf
 
-// #define TUD_AUDIO_PREFER_RING_BUFFER 1
-// #define CFG_TUD_DWC2_SLAVE_ENABLE 0
-// #define CFG_TUD_DWC2_DMA_ENABLE   1
-//  #define CFG_TUD_MEM_DCACHE_ENABLE 1
-#define CFG_TUSB_MEM_SECTION __attribute__((section(".rtt")))
-    // #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
+    // #define TUD_AUDIO_PREFER_RING_BUFFER 1
+    // #define CFG_TUD_DWC2_SLAVE_ENABLE 0
+    // #define CFG_TUD_DWC2_DMA_ENABLE   1
+    //  #define CFG_TUD_MEM_DCACHE_ENABLE 1
+    // #define CFG_TUSB_MEM_SECTION __attribute__((section(".rtt")))
+    // #define CFG_TUSB_MEM_ALIGN   __attribute__((aligned(32)))
 
 #define USBD_AUDIO_FREQ     48000U
 #define USBD_AUDIO_FREQ_96K 96000U
