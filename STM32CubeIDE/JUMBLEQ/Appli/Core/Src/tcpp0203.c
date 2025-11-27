@@ -5,7 +5,7 @@
   * @brief   This file provides the TCPP02/03 Type-C port protection driver.
   ******************************************************************************
   * @attention
-  *
+ *
   * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
@@ -883,6 +883,6 @@ static int32_t TCPP0203_CheckReg0Reg1(TCPP0203_Object_t *pObj, uint8_t Reg0Expec
 
 /**
   * @}
-  */
+ */
 
 
