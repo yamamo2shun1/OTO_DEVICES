@@ -196,6 +196,11 @@ SECTIONS
     . = ALIGN(8);
   } >DTCM
 
+  .rtt (NOLOAD) :
+  {
+    *(.rtt)
+  } > DTCM  /* DTCM = 0x20000000 side */
+
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {
