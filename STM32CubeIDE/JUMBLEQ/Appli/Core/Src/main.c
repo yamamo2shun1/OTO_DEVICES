@@ -25,8 +25,6 @@
 #include "sai.h"
 #include "spi.h"
 #include "tim.h"
-#include "ucpd.h"
-#include "usbpd.h"
 #include "usb_otg.h"
 #include "gpio.h"
 
@@ -64,6 +62,32 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#include "core_cm7.h"  // もう入っていれば不要
+
+extern uint32_t g_aud_fct_guard1;
+
+// addr への「書き込み」を監視（COMP0 を使用）
+void dwt_watch_write(void *addr)
+{
+    // DWT/ITM 系有効化
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+
+    // COMP0 に監視対象アドレスを設定
+    DWT->COMP0 = (uint32_t)addr;
+
+    // MASK0: 監視範囲
+    //  0 → 4バイト(32bit)
+    //  1 → 8バイト
+    //  2 → 16バイト ...
+    DWT->MASK0 = 0;  // とりあえず 32bit ぴったり
+
+    // FUNCTION0:
+    //  5 = Write (書き込み監視)
+    //  6 = Read  (読み出し監視)
+    //  7 = Read/Write 両方
+    DWT->FUNCTION0 = (5u << DWT_FUNCTION_FUNCTION_Pos);  // 書き込み監視
+}
+
 int __io_putchar(uint8_t ch)
 {
     return ITM_SendChar(ch);
@@ -106,7 +130,7 @@ int main(void)
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-
+    dwt_watch_write(&g_aud_fct_guard1);
     /* USER CODE END Init */
 
     /* USER CODE BEGIN SysInit */
@@ -117,7 +141,6 @@ int main(void)
     MX_GPIO_Init();
     MX_GPDMA1_Init();
     MX_HPDMA1_Init();
-    MX_UCPD1_Init();
     MX_USB_OTG_HS_PCD_Init();
     MX_I2C3_Init();
     MX_SPI5_Init();
@@ -166,15 +189,18 @@ int main(void)
     /* USER CODE END 2 */
 
     /* USBPD initialisation ---------------------------------*/
-    MX_USBPD_Init();
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
         /* USER CODE END WHILE */
-        USBPD_DPM_Run();
+        tud_task();
 
+        led_blinking_task();
+
+        //guard_check();
+        audio_task();
         /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
