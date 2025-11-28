@@ -683,35 +683,38 @@ void copybuf_usb2sai(void)
 {
     // printf("sb_index = %d -> ", sai_buf_index);
 
-    if (spk_data_size > 0)
+    if (spk_data_size)
     {
         const uint16_t array_size = spk_data_size >> 2;
 
         for (uint16_t i = 0; i < array_size; i++)
         {
-            hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = spk_buf[i];
+            // hpout_buf[sai_buf_index & (SAI_BUF_SIZE - 1)] = spk_buf[i];
+            hpout_buf[sai_buf_index] = spk_buf[i];
             sai_buf_index++;
             if (sai_buf_index >= SAI_BUF_SIZE)
             {
                 sai_buf_index = 0;
             }
         }
+        spk_data_size = 0;
     }
     // printf(" %d\n", sai_buf_index);
 }
 
 void audio_task(void)
 {
-    uint16_t length = (uint16_t) (current_sample_rate / 1000 * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
-    // uint16_t length = TUD_AUDIO_EP_SIZE(current_sample_rate, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX);
-#if 1
-    const uint16_t array_size_max = sizeof(spk_buf) / sizeof(spk_buf[0]);
-    if (length > array_size_max)
+#if 0
+	static uint32_t start_ms = 0;
+    uint32_t curr_ms         = HAL_GetTick();
+    if (start_ms == curr_ms)
     {
-        length = array_size_max;
+        return;  // not enough time
     }
+    start_ms = curr_ms;
 #endif
-    spk_data_size = tud_audio_read(spk_buf, length);
+
+    spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
 
 #if 0
     if (spk_data_size == 0 && hpout_clear_count < 100)

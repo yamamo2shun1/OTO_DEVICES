@@ -62,7 +62,8 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#include "core_cm7.h"  // もう入っていれば不要
+#if 0
+    #include "core_cm7.h"  // もう入っていれば不要
 
 extern uint32_t g_aud_fct_guard1;
 
@@ -87,6 +88,7 @@ void dwt_watch_write(void* addr)
     //  7 = Read/Write 両方
     DWT->FUNCTION0 = (5u << DWT_FUNCTION_FUNCTION_Pos);  // 書き込み監視
 }
+#endif
 
 int __io_putchar(uint8_t ch)
 {
@@ -130,7 +132,7 @@ int main(void)
     HAL_Init();
 
     /* USER CODE BEGIN Init */
-    dwt_watch_write(&g_aud_fct_guard1);
+    // dwt_watch_write(&g_aud_fct_guard1);
     /* USER CODE END Init */
 
     /* USER CODE BEGIN SysInit */
@@ -188,13 +190,13 @@ int main(void)
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
     /* USER CODE END 2 */
 
-    /* USBPD initialisation ---------------------------------*/
-
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
         /* USER CODE END WHILE */
+
+        /* USER CODE BEGIN 3 */
         tud_task();
 
         led_blinking_task();
@@ -204,7 +206,6 @@ int main(void)
 
         // guard_check();
         audio_task();
-        /* USER CODE BEGIN 3 */
     }
     /* USER CODE END 3 */
 }
