@@ -237,7 +237,7 @@ static void MPU_Config(void)
     MPU_InitStruct.Number      = MPU_REGION_NUMBER2;
     MPU_InitStruct.BaseAddress = 0x24000000;
     MPU_InitStruct.Size        = MPU_REGION_SIZE_256KB;
-    // MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+    MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
 
     HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
