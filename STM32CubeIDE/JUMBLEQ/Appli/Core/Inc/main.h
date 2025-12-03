@@ -89,8 +89,8 @@ extern "C"
 #define LED0_Pin              GPIO_PIN_2
 #define LED0_GPIO_Port        GPIOD
 
-/* USER CODE BEGIN Private defines */
-#define SAI_BUF_SIZE 4096
+    /* USER CODE BEGIN Private defines */
+
     /* USER CODE END Private defines */
 
 #ifdef __cplusplus
