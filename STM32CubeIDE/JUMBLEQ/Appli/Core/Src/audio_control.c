@@ -66,6 +66,7 @@ int16_t hpout_clear_count       = 0;
 uint32_t sai_buf_index          = 0;
 uint32_t sai_transmit_index     = 0;
 volatile int16_t update_pointer = -1;
+volatile bool buffer_changed    = false;
 
 bool is_sr_changed            = false;
 bool is_start_audio_control   = false;
@@ -1237,7 +1238,22 @@ void audio_task(void)
     start_ms = curr_ms;
 #endif
 
-    //spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+#if 1
+    if (buffer_changed)
+    {
+        uint16_t avail = tud_audio_available();
+        if (avail > 0)
+        {
+            spk_data_size = tud_audio_read(spk_buf, avail);
+            buffer_changed = false;
+        }
+
+        copybuf_usb2sai();
+        copybuf_sai2codec();
+    }
+#else
+    spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+#endif
 
 #if 0
     if (spk_data_size == 0 && hpout_clear_count < 100)
@@ -1255,9 +1271,6 @@ void audio_task(void)
         hpout_clear_count = 0;
     }
 #endif
-
-    copybuf_usb2sai();
-    copybuf_sai2codec();
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -1281,8 +1294,9 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         update_pointer = 0;
+        buffer_changed = true;
         __DMB();
-        spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+        // spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
     }
 }
 
@@ -1291,8 +1305,9 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         update_pointer = SAI_BUF_SIZE / 2;
+        buffer_changed = true;
         __DMB();
-        spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+        // spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
     }
 }
 
