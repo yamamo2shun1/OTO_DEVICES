@@ -10,8 +10,8 @@
 
 #include "main.h"
 
-#define SAI_RNG_BUF_SIZE 16384
-#define SAI_BUF_SIZE     4096
+#define SAI_RNG_BUF_SIZE 8192
+#define SAI_BUF_SIZE     1024
 
 void reset_audio_buffer(void);
 uint32_t get_blink_interval_ms(void);
