@@ -317,13 +317,13 @@
               },
               {
                 "Name": "DM0 Data",
-                "Size": 100,
-                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+                "Size": 292,
+                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x34, 0x00, 0x00, 0x00, 0x34, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF4, 0x64, 0x38, 0xFE, 0x02, 0x1C, 0xC5, 0x01, 0x09, 0x7F, 0x75, 0xFF, 0x02, 0x1C, 0x53, 0x01, 0xFD, 0xE3, 0x3B, 0x00, 0x45, 0x02, 0x9C, 0x00, 0x94, 0xF8, 0xF0, 0x00, 0x67, 0x02, 0x22, 0x00, 0x53, 0xFB, 0x42, 0xFF, 0x6B, 0x07, 0x10, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0F, 0xD9, 0x53, 0x9A, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
               },
               {
                 "Name": "DM1 Data",
-                "Size": 80,
-                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+                "Size": 288,
+                "Data": "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x80, 0x00, 0xF5, 0x8B, 0xFB, 0xFE, 0x0D, 0x72, 0x33, 0x00, 0xFD, 0x12, 0x5E, 0xFF, 0x0D, 0x61, 0xA7, 0x01, 0xF2, 0x8D, 0xCD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x8A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
               },
               {
                 "Name": "KILL_CORE",
@@ -364,8 +364,8 @@
             "Program": [
               {
                 "Name": "Program Data",
-                "Size": 444,
-                "Data": "0x00, 0x00, 0x00, 0x02, 0x0C, 0x00, 0xDC, 0xDC, 0x0D, 0x00, 0xFF, 0xD2, 0x0D, 0x00, 0xFF, 0xD0, 0x0D, 0x00, 0xF4, 0x50, 0x0D, 0x00, 0xF4, 0x00, 0xC0, 0x00, 0x23, 0x80, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0x00, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0xC0, 0x80, 0x00, 0x00, 0x10, 0xC0, 0x00, 0x22, 0x00, 0x80, 0x00, 0x00, 0x00, 0x08, 0x80, 0xDC, 0xE0, 0x0C, 0x00, 0xDC, 0xDC, 0x0A, 0x21, 0x00, 0x12, 0x08, 0x00, 0x00, 0x10, 0x01, 0x00, 0x00, 0x14, 0x06, 0x40, 0x50, 0x10, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x27, 0x0D, 0x00, 0xFF, 0xC1, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x01, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x02, 0x0D, 0x00, 0xFF, 0xD1, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x00, 0xFF, 0xD2, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x9E, 0xDC, 0xE0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x4F, 0x00, 0x00, 0x08, 0x8A, 0xDC, 0xE0, 0x0A, 0x23, 0x00, 0x06, 0x0A, 0x2B, 0x00, 0x07, 0x00, 0x88, 0x20, 0x00, 0x0A, 0xA7, 0x00, 0x05, 0x00, 0x00, 0x00, 0x22, 0xC0, 0x00, 0x2D, 0x30, 0x80, 0x00, 0x50, 0x00, 0x30, 0x00, 0xB4, 0x6A, 0x00, 0x88, 0x20, 0x00, 0xC0, 0x00, 0x28, 0x70, 0x80, 0x00, 0x60, 0x00, 0x02, 0x09, 0x00, 0x47, 0x00, 0x8C, 0x11, 0x91, 0x00, 0x00, 0x00, 0x24, 0x00, 0x8C, 0x2A, 0x02, 0x30, 0x00, 0xBC, 0xE9, 0x00, 0x84, 0x0D, 0x9C, 0x00, 0x20, 0x0B, 0x2D, 0x00, 0x00, 0xC2, 0xF1, 0x01, 0x00, 0x00, 0x45, 0x06, 0x00, 0x50, 0x14, 0x36, 0x40, 0x50, 0x15, 0x26, 0x40, 0x40, 0x15, 0x09, 0x2B, 0x00, 0x06, 0x09, 0x2B, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0xFC, 0x40, 0x06, 0x40, 0x10, 0x1E, 0x0C, 0x00, 0xFC, 0x41, 0x06, 0x40, 0x10, 0x0E, 0x0C, 0x00, 0xFC, 0x50, 0x06, 0x40, 0x10, 0x6E, 0x0C, 0x00, 0xFC, 0x51, 0x06, 0x40, 0x10, 0x7E, 0x0C, 0x00, 0xFC, 0x52, 0x06, 0x40, 0x10, 0x2E, 0x0C, 0x00, 0xFC, 0x53, 0x06, 0x40, 0x10, 0x3E, 0x06, 0x00, 0x10, 0x0E, 0x0D, 0x00, 0xFC, 0xD1, 0x06, 0x00, 0x10, 0x1E, 0x0D, 0x00, 0xFC, 0xD0, 0x0C, 0x40, 0x00, 0x14, 0x06, 0x00, 0x10, 0x2E, 0x06, 0x00, 0x90, 0x3E, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x10, 0x5E, 0x05, 0x6C, 0x10, 0x4E, 0x06, 0x00, 0x10, 0x4E, 0x0D, 0x00, 0xFC, 0xC1, 0x06, 0x00, 0x10, 0x5E, 0x0D, 0x00, 0xFC, 0xC0, 0x08, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x00, 0x09, 0x9C, 0x00, 0x10, 0x00, 0x00, 0x00, 0x02, 0x0C, 0x10, 0xF4, 0x60, 0x02, 0xC2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
+                "Size": 1000,
+                "Data": "0x00, 0x00, 0x00, 0x02, 0x0C, 0x00, 0xDC, 0xDC, 0x0D, 0x00, 0xFF, 0xD2, 0x0D, 0x00, 0xFF, 0xD0, 0x0D, 0x00, 0xF4, 0x50, 0x0D, 0x00, 0xF4, 0x00, 0xC0, 0x00, 0x23, 0x80, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0x00, 0x80, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x23, 0xC0, 0x80, 0x00, 0x00, 0x10, 0xC0, 0x00, 0x22, 0x00, 0x80, 0x00, 0x00, 0x00, 0x08, 0x80, 0xDC, 0xE0, 0x0C, 0x00, 0xDC, 0xDC, 0x0A, 0x21, 0x00, 0x12, 0x08, 0x00, 0x00, 0x10, 0x01, 0x00, 0x00, 0x14, 0x06, 0x40, 0x40, 0x10, 0x0A, 0x21, 0x00, 0x16, 0x08, 0x00, 0x00, 0x14, 0x01, 0x00, 0x00, 0x18, 0x06, 0x40, 0x50, 0x10, 0x0A, 0x21, 0x00, 0x1A, 0x08, 0x00, 0x00, 0x18, 0x01, 0x00, 0x00, 0x1C, 0x06, 0x40, 0x50, 0x10, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x2F, 0x0D, 0x00, 0xFF, 0xC1, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x01, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x00, 0x0D, 0x00, 0xF4, 0x62, 0xC0, 0x00, 0x20, 0x00, 0x80, 0x00, 0x00, 0x02, 0x0D, 0x00, 0xFF, 0xD1, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x00, 0xFF, 0xD2, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x9E, 0xDC, 0xE0, 0x08, 0x9C, 0x00, 0x14, 0x08, 0x98, 0x00, 0x18, 0x08, 0x96, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x4F, 0x00, 0x00, 0x08, 0x8A, 0xDC, 0xE0, 0x0A, 0x23, 0x00, 0x06, 0x0A, 0x2B, 0x00, 0x07, 0x00, 0x88, 0x20, 0x00, 0x0A, 0xA7, 0x00, 0x05, 0x00, 0x00, 0x00, 0x22, 0xC0, 0x00, 0x2D, 0x30, 0x80, 0x00, 0x50, 0x00, 0x30, 0x00, 0xB4, 0x6A, 0x00, 0x88, 0x20, 0x00, 0xC0, 0x00, 0x28, 0x70, 0x80, 0x00, 0x60, 0x00, 0x02, 0x09, 0x00, 0x51, 0x00, 0x8C, 0x11, 0x91, 0x00, 0x00, 0x00, 0x24, 0x00, 0x8C, 0x2A, 0x02, 0x30, 0x00, 0xBC, 0xE9, 0x00, 0x84, 0x0D, 0x9C, 0x00, 0x20, 0x0B, 0x2D, 0x00, 0x00, 0xC2, 0xF1, 0x01, 0x00, 0x00, 0x4F, 0x06, 0x00, 0x50, 0x14, 0x36, 0x40, 0x50, 0x15, 0x26, 0x40, 0x40, 0x15, 0x09, 0x2B, 0x00, 0x06, 0x09, 0x2B, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x00, 0x38, 0x06, 0x40, 0x10, 0x3E, 0x0C, 0x00, 0x00, 0x39, 0x06, 0x40, 0x11, 0x3E, 0x0C, 0x00, 0xFC, 0x40, 0x06, 0x40, 0x10, 0x0E, 0x0C, 0x00, 0xFC, 0x41, 0x06, 0x40, 0x10, 0x1E, 0x0C, 0x00, 0xFC, 0x50, 0x06, 0x40, 0x10, 0x5E, 0x0C, 0x00, 0xFC, 0x51, 0x06, 0x40, 0x10, 0x6E, 0x0C, 0x00, 0xFC, 0x52, 0x06, 0x40, 0x11, 0xCE, 0x0C, 0x00, 0xFC, 0x53, 0x06, 0x40, 0x11, 0xDE, 0x0C, 0x40, 0x00, 0x3A, 0x06, 0x00, 0x10, 0x0E, 0x06, 0x00, 0x90, 0x1E, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x10, 0x4E, 0x05, 0x6C, 0x10, 0x2E, 0x06, 0x00, 0x10, 0x2E, 0x0D, 0x00, 0xFC, 0xD1, 0xC0, 0x00, 0x08, 0x1F, 0x8D, 0x80, 0x00, 0x09, 0x05, 0x0C, 0x10, 0x3E, 0x0B, 0x21, 0xFD, 0x84, 0xC0, 0x00, 0x08, 0x1F, 0x8D, 0x94, 0x00, 0x08, 0x06, 0x10, 0x10, 0x4E, 0x06, 0x10, 0x90, 0x2E, 0x0C, 0x00, 0xFD, 0xA0, 0x00, 0x10, 0x00, 0x08, 0x0D, 0x01, 0x00, 0x08, 0x05, 0x4C, 0x11, 0x9E, 0x05, 0x6C, 0x11, 0x6E, 0x06, 0x00, 0x10, 0x4E, 0x0D, 0x00, 0xFC, 0xD0, 0x06, 0x10, 0x10, 0x5E, 0x06, 0x10, 0x90, 0x6E, 0x0C, 0x10, 0x00, 0x26, 0x00, 0x10, 0x00, 0x08, 0x00, 0x10, 0x82, 0x49, 0x05, 0x4C, 0x10, 0xFE, 0x05, 0x6C, 0x11, 0x1E, 0x05, 0x4C, 0x90, 0x9E, 0x05, 0x6C, 0x90, 0xCE, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x0C, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x1B, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x6F, 0x00, 0x1C, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x7F, 0x00, 0x0A, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x2E, 0x00, 0x07, 0xC0, 0x00, 0x00, 0x00, 0x82, 0x3E, 0x00, 0x0A, 0xF8, 0x74, 0x80, 0x00, 0x80, 0x00, 0x81, 0xC3, 0xF9, 0x6C, 0x80, 0x09, 0x88, 0x00, 0xC1, 0xC2, 0xFC, 0x40, 0x00, 0x29, 0x8A, 0x02, 0x08, 0x00, 0xE0, 0x3A, 0x80, 0x07, 0x80, 0x80, 0x01, 0x24, 0xFA, 0x40, 0x28, 0x67, 0x81, 0x83, 0xC6, 0x00, 0xF6, 0x40, 0x4A, 0x41, 0x8F, 0x0B, 0xC4, 0x00, 0xFC, 0x74, 0x80, 0x23, 0x8B, 0x88, 0x01, 0xC3, 0xEA, 0xBA, 0x80, 0x07, 0x80, 0x82, 0x08, 0x20, 0xE0, 0x35, 0x20, 0x67, 0x81, 0x80, 0x01, 0x24, 0xE0, 0x00, 0x42, 0x49, 0x8F, 0x00, 0x00, 0x00, 0xFC, 0x6C, 0x80, 0x2B, 0x8B, 0x80, 0x01, 0xC2, 0xE8, 0xBA, 0x80, 0x07, 0x80, 0x82, 0x08, 0x20, 0xFA, 0x71, 0x28, 0x67, 0x81, 0x83, 0xC7, 0x24, 0xF6, 0x40, 0x4A, 0x41, 0x8F, 0x0B, 0xC4, 0x00, 0xEA, 0xB5, 0x00, 0x00, 0x80, 0x00, 0x00, 0x20, 0x05, 0x4D, 0x10, 0xDE, 0x05, 0x6D, 0x10, 0xEE, 0x0C, 0x40, 0x00, 0x3B, 0x06, 0x00, 0x10, 0xDE, 0x06, 0x00, 0x90, 0xEE, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0x0E, 0x05, 0x6C, 0x11, 0x2E, 0x0C, 0x10, 0x00, 0x3C, 0x06, 0x10, 0x10, 0xFE, 0x06, 0x10, 0x91, 0x0E, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0x4E, 0x0C, 0x10, 0x00, 0x3E, 0x06, 0x10, 0x11, 0x1E, 0x06, 0x10, 0x91, 0x2E, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0x5E, 0xC0, 0x00, 0x08, 0x1F, 0x8D, 0x80, 0x00, 0x10, 0x05, 0x0C, 0x11, 0x3E, 0x0B, 0x21, 0xFD, 0x84, 0xC0, 0x00, 0x08, 0x1F, 0x8D, 0x94, 0x00, 0x0F, 0x06, 0x10, 0x11, 0x4E, 0x06, 0x10, 0x91, 0x5E, 0x0C, 0x00, 0xFD, 0xA0, 0x00, 0x10, 0x00, 0x08, 0x0D, 0x01, 0x00, 0x0F, 0x05, 0x4C, 0x11, 0xAE, 0x05, 0x6C, 0x11, 0x7E, 0x0C, 0x10, 0x00, 0x40, 0x06, 0x10, 0x11, 0x6E, 0x06, 0x10, 0x91, 0x7E, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0x8E, 0x06, 0x00, 0x11, 0x8E, 0x0D, 0x00, 0xFC, 0xD3, 0x0C, 0x10, 0x00, 0x42, 0x06, 0x10, 0x11, 0x9E, 0x06, 0x10, 0x91, 0xAE, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0xBE, 0x06, 0x00, 0x11, 0xBE, 0x0D, 0x00, 0xFC, 0xD2, 0x0C, 0x40, 0x00, 0x44, 0x06, 0x00, 0x11, 0xCE, 0x06, 0x00, 0x91, 0xDE, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4C, 0x11, 0xFE, 0x05, 0x6C, 0x11, 0xEE, 0x06, 0x00, 0x11, 0xEE, 0x0D, 0x00, 0xFC, 0xC1, 0x06, 0x00, 0x11, 0xFE, 0x0D, 0x00, 0xFC, 0xC0, 0x08, 0x80, 0x00, 0x10, 0x08, 0x82, 0x00, 0x14, 0x08, 0x84, 0x00, 0x18, 0x00, 0x00, 0x20, 0x02, 0x00, 0x00, 0x21, 0x01, 0x00, 0x00, 0x22, 0x02, 0x09, 0x80, 0x00, 0x10, 0x09, 0x82, 0x00, 0x14, 0x09, 0x84, 0x00, 0x18, 0x00, 0x00, 0x00, 0x02, 0x0C, 0x10, 0xF4, 0x60, 0x02, 0xC2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00"
               }
             ],
             "Parameter": [],
@@ -642,7 +642,7 @@
                     "Type": "Numeric",
                     "DataType": "FixPoint8d24",
                     "Offset": 0,
-                    "Address": 20,
+                    "Address": 68,
                     "AddrIncr": 4,
                     "Value": 1.0,
                     "Size": 4,
@@ -730,16 +730,1958 @@
                 "Caption": "Output",
                 "ModuleParameter": [],
                 "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_6",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "Output_7",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Output",
+                "Address": 0,
+                "Caption": "Output",
+                "ModuleParameter": [],
+                "AbstractParameter": []
+              },
+              {
+                "AlgoName": "SingleVolumeControl_2",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "All inputs volumes are governed by one single volume slider. \nOptimum for simultaneous control of various channels within a single DSP",
+                "Address": 0,
+                "Caption": "Single Volume Control",
+                "ModuleParameter": [
+                  {
+                    "Name": "Gain",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 58,
+                    "AddrIncr": 4,
+                    "Value": 1.0,
+                    "Size": 4,
+                    "Data": "0x01, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FS",
+                    "Tunable": false,
+                    "Value": "48000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IsDBChosen",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType",
+                    "Tunable": false,
+                    "Value": "No Slew",
+                    "Type": "List"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "DCInput_0",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Use this control to test a DC voltage input",
+                "Address": 0,
+                "Caption": "DC Input",
+                "ModuleParameter": [
+                  {
+                    "Name": "DCValue",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 57,
+                    "AddrIncr": 4,
+                    "Value": 1.0,
+                    "Size": 4,
+                    "Data": "0x01, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "DCValue",
+                    "Tunable": false,
+                    "Value": "1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IntegerBits",
+                    "Tunable": false,
+                    "Value": "32",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "DecimalBits",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FormatX",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "Ln_Pn_SW",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.Switch2xN_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Allows selecting a stereo input value and route it into variable number of signal paths",
+                "Address": 0,
+                "Caption": "2xN Switch",
+                "ModuleParameter": [
+                  {
+                    "Name": "Index_Channel0",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 38,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "StereoSwitchNx2Slew",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Index_Channel1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 1,
+                    "Address": 39,
+                    "AddrIncr": 4,
+                    "Value": 1.0,
+                    "Size": 4,
+                    "Data": "0x01, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "StereoSwitchNx2Slew",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "NumStereoChannels",
+                    "Tunable": false,
+                    "Value": "2",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SelectedVal",
+                    "Tunable": false,
+                    "Value": "1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType",
+                    "Tunable": false,
+                    "Value": "No Slew",
+                    "Type": "List"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SignalMerger_0",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Automatically Lowers Levels Proportional to the number of Inputs",
+                "Address": 0,
+                "Caption": "Signal Merger",
+                "ModuleParameter": [
+                  {
+                    "Name": "gain",
+                    "Type": "NumericArray",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 60,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 8,
+                    "Data": "0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00",
+                    "IsTable": true,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "NumChannels",
+                    "Tunable": false,
+                    "Value": "2",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SignalMerger_1",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Automatically Lowers Levels Proportional to the number of Inputs",
+                "Address": 0,
+                "Caption": "Signal Merger",
+                "ModuleParameter": [
+                  {
+                    "Name": "gain",
+                    "Type": "NumericArray",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 62,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 8,
+                    "Data": "0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00",
+                    "IsTable": true,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "NumChannels",
+                    "Tunable": false,
+                    "Value": "2",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "Ph_EQ",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.ParametricEQ_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Allows to control EQ parameters in a graphical way.",
+                "Address": 0,
+                "Caption": "Graphical Parametric EQ",
+                "ModuleParameter": [
+                  {
+                    "Name": "Stage0_B2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 28,
+                    "AddrIncr": 4,
+                    "Value": 0.95465422707415248,
+                    "Size": 4,
+                    "Data": "0x00, 0xF4, 0x64, 0x38",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter0",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage0_B1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 29,
+                    "AddrIncr": 4,
+                    "Value": -1.9917484883795291,
+                    "Size": 4,
+                    "Data": "0xFE, 0x02, 0x1C, 0xC5",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter0",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage0_B0",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 30,
+                    "AddrIncr": 4,
+                    "Value": 1.0371010869393298,
+                    "Size": 4,
+                    "Data": "0x01, 0x09, 0x7F, 0x75",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter0",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage0_A2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 31,
+                    "AddrIncr": 4,
+                    "Value": -0.99175531401348227,
+                    "Size": 4,
+                    "Data": "0xFF, 0x02, 0x1C, 0x53",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter0",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage0_A1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 32,
+                    "AddrIncr": 4,
+                    "Value": 1.9917484883795291,
+                    "Size": 4,
+                    "Data": "0x01, 0xFD, 0xE3, 0x3B",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter0",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage1_B2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 24586,
+                    "AddrIncr": 4,
+                    "Value": 0.95916717985082556,
+                    "Size": 4,
+                    "Data": "0x00, 0xF5, 0x8B, 0xFB",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter1",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage1_B1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 24587,
+                    "AddrIncr": 4,
+                    "Value": -1.947476231265701,
+                    "Size": 4,
+                    "Data": "0xFE, 0x0D, 0x72, 0x33",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter1",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage1_B0",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 24588,
+                    "AddrIncr": 4,
+                    "Value": 0.98856150210770932,
+                    "Size": 4,
+                    "Data": "0x00, 0xFD, 0x12, 0x5E",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter1",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage1_A2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 24589,
+                    "AddrIncr": 4,
+                    "Value": -0.94772868195853477,
+                    "Size": 4,
+                    "Data": "0xFF, 0x0D, 0x61, 0xA7",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter1",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage1_A1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 24590,
+                    "AddrIncr": 4,
+                    "Value": 1.9474762312657008,
+                    "Size": 4,
+                    "Data": "0x01, 0xF2, 0x8D, 0xCD",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter1",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage2_B2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 33,
+                    "AddrIncr": 4,
+                    "Value": 0.26957105939467046,
+                    "Size": 4,
+                    "Data": "0x00, 0x45, 0x02, 0x9C",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter2",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage2_B1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 34,
+                    "AddrIncr": 4,
+                    "Value": 0.58192350170784046,
+                    "Size": 4,
+                    "Data": "0x00, 0x94, 0xF8, 0xF0",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter2",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage2_B0",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 35,
+                    "AddrIncr": 4,
+                    "Value": 0.40237632132291218,
+                    "Size": 4,
+                    "Data": "0x00, 0x67, 0x02, 0x22",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter2",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage2_A2",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 36,
+                    "AddrIncr": 4,
+                    "Value": 0.32805261928241741,
+                    "Size": 4,
+                    "Data": "0x00, 0x53, 0xFB, 0x42",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter2",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "Name": "Stage2_A1",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 37,
+                    "AddrIncr": 4,
+                    "Value": -0.58192350170784046,
+                    "Size": 4,
+                    "Data": "0xFF, 0x6B, 0x07, 0x10",
+                    "IsTable": false,
+                    "IsSafeLoad": true,
+                    "SafeLoadGroup": "Filter2",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "FS",
+                    "Tunable": false,
+                    "Value": "48000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "BlockSize",
+                    "Tunable": false,
+                    "Value": "64",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "NumFilters",
+                    "Tunable": false,
+                    "Value": "3",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency1_Filter0",
+                    "Tunable": false,
+                    "Value": "20",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency2_Filter0",
+                    "Tunable": false,
+                    "Value": "1000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Boost_Filter0",
+                    "Tunable": false,
+                    "Value": "20",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain1_Filter0",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain2_Filter0",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "QFactor_Filter0",
+                    "Tunable": false,
+                    "Value": "0.1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Ripple_Filter0",
+                    "Tunable": false,
+                    "Value": "0.1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FilterType_Filter0",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType1_Filter0",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType2_Filter0",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active1_Filter0",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active2_Filter0",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Bypass_Filter0",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "View_Filter0",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IIRCoefficients_Filter0",
+                    "Tunable": false,
+                    "Value": "{1, 0, 0, 0, 0}",
+                    "Type": "NumericArray"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency1_Filter1",
+                    "Tunable": false,
+                    "Value": "123",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency2_Filter1",
+                    "Tunable": false,
+                    "Value": "1000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Boost_Filter1",
+                    "Tunable": false,
+                    "Value": "-5",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain1_Filter1",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain2_Filter1",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "QFactor_Filter1",
+                    "Tunable": false,
+                    "Value": "0.4",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Ripple_Filter1",
+                    "Tunable": false,
+                    "Value": "0.1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FilterType_Filter1",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType1_Filter1",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType2_Filter1",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active1_Filter1",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active2_Filter1",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Bypass_Filter1",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "View_Filter1",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IIRCoefficients_Filter1",
+                    "Tunable": false,
+                    "Value": "{1, 0, 0, 0, 0}",
+                    "Type": "NumericArray"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency1_Filter2",
+                    "Tunable": false,
+                    "Value": "20000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Frequency2_Filter2",
+                    "Tunable": false,
+                    "Value": "1000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Boost_Filter2",
+                    "Tunable": false,
+                    "Value": "-20",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain1_Filter2",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain2_Filter2",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "QFactor_Filter2",
+                    "Tunable": false,
+                    "Value": "0.4",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Ripple_Filter2",
+                    "Tunable": false,
+                    "Value": "0.1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FilterType_Filter2",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType1_Filter2",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SubType2_Filter2",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active1_Filter2",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Active2_Filter2",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Bypass_Filter2",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "View_Filter2",
+                    "Tunable": false,
+                    "Value": "False",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IIRCoefficients_Filter2",
+                    "Tunable": false,
+                    "Value": "{1, 0, 0, 0, 0}",
+                    "Type": "NumericArray"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SingleVolumeControl_3",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "All inputs volumes are governed by one single volume slider. \nOptimum for simultaneous control of various channels within a single DSP",
+                "Address": 0,
+                "Caption": "Single Volume Control",
+                "ModuleParameter": [
+                  {
+                    "Name": "Gain",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 59,
+                    "AddrIncr": 4,
+                    "Value": 15.848931924611133,
+                    "Size": 4,
+                    "Data": "0x0F, 0xD9, 0x53, 0x9A",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "Gain",
+                    "Tunable": false,
+                    "Value": "24",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FS",
+                    "Tunable": false,
+                    "Value": "48000",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IsDBChosen",
+                    "Tunable": false,
+                    "Value": "True",
+                    "Type": "Boolean"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType",
+                    "Tunable": false,
+                    "Value": "No Slew",
+                    "Type": "List"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SingleSlewExtVol_0",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "External Control of the Volume Gain",
+                "Address": 0,
+                "Caption": "External Volume Control (Slew)",
+                "ModuleParameter": [
+                  {
+                    "Name": "slew_mode",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24592,
+                    "AddrIncr": 4,
+                    "Value": 8330.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x20, 0x8A",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType1",
+                    "Tunable": false,
+                    "Value": "RC Slew",
+                    "Type": "List"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType2",
+                    "Tunable": false,
+                    "Value": "RC Slew",
+                    "Type": "List"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Index1",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Index2",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "DCInput_1",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Use this control to test a DC voltage input",
+                "Address": 0,
+                "Caption": "DC Input",
+                "ModuleParameter": [
+                  {
+                    "Name": "DCValue",
+                    "Type": "Numeric",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 56,
+                    "AddrIncr": 4,
+                    "Value": 1.0,
+                    "Size": 4,
+                    "Data": "0x01, 0x00, 0x00, 0x00",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "DCValue",
+                    "Tunable": false,
+                    "Value": "1",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "IntegerBits",
+                    "Tunable": false,
+                    "Value": "32",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "DecimalBits",
+                    "Tunable": false,
+                    "Value": "0",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "FormatX",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SingleSlewExtVol_1",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "External Control of the Volume Gain",
+                "Address": 0,
+                "Caption": "External Volume Control (Slew)",
+                "ModuleParameter": [
+                  {
+                    "Name": "slew_mode",
+                    "Type": "Numeric",
+                    "DataType": "Integer32",
+                    "Offset": 0,
+                    "Address": 24585,
+                    "AddrIncr": 4,
+                    "Value": 8320.0,
+                    "Size": 4,
+                    "Data": "0x00, 0x00, 0x20, 0x80",
+                    "IsTable": false,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 2
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType1",
+                    "Tunable": false,
+                    "Value": "Linear Slew",
+                    "Type": "List"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "SlewType2",
+                    "Tunable": false,
+                    "Value": "Linear Slew",
+                    "Type": "List"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Index1",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  },
+                  {
+                    "SimpleName": null,
+                    "Name": "Index2",
+                    "Tunable": false,
+                    "Value": "8",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SignalMerger_2",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Automatically Lowers Levels Proportional to the number of Inputs",
+                "Address": 0,
+                "Caption": "Signal Merger",
+                "ModuleParameter": [
+                  {
+                    "Name": "gain",
+                    "Type": "NumericArray",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 66,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 8,
+                    "Data": "0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00",
+                    "IsTable": true,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "NumChannels",
+                    "Tunable": false,
+                    "Value": "2",
+                    "Type": "Numeric"
+                  }
+                ]
+              },
+              {
+                "AlgoName": "SignalMerger_3",
+                "SampleRate": 48000,
+                "ParameterComputeName": "",
+                "DetailedName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
+                "CoreID": 0,
+                "Description": "Automatically Lowers Levels Proportional to the number of Inputs",
+                "Address": 0,
+                "Caption": "Signal Merger",
+                "ModuleParameter": [
+                  {
+                    "Name": "gain",
+                    "Type": "NumericArray",
+                    "DataType": "FixPoint8d24",
+                    "Offset": 0,
+                    "Address": 64,
+                    "AddrIncr": 4,
+                    "Value": 0.0,
+                    "Size": 8,
+                    "Data": "0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00",
+                    "IsTable": true,
+                    "IsSafeLoad": false,
+                    "SafeLoadGroup": "",
+                    "AddressInfoProperties": [
+                      {
+                        "Name": "Data Memory",
+                        "Description": "",
+                        "Value": 1
+                      },
+                      {
+                        "Name": "Mem Page",
+                        "Description": "",
+                        "Value": 0
+                      }
+                    ]
+                  }
+                ],
+                "AbstractParameter": [
+                  {
+                    "SimpleName": null,
+                    "Name": "NumChannels",
+                    "Tunable": false,
+                    "Value": "2",
+                    "Type": "Numeric"
+                  }
+                ]
               }
             ],
             "AddressMap": {
-              "SingleVolumeControl_1Gain": {
-                "Address": 20,
+              "ParametricEQ_0Stage0_B2": {
+                "Address": 28,
                 "AddressProperties": [
                   {
                     "Name": "Data Memory",
                     "Description": "",
                     "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage0_B1": {
+                "Address": 29,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage0_B0": {
+                "Address": 30,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage0_A2": {
+                "Address": 31,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage0_A1": {
+                "Address": 32,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage2_B2": {
+                "Address": 33,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage2_B1": {
+                "Address": 34,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage2_B0": {
+                "Address": 35,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage2_A2": {
+                "Address": 36,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage2_A1": {
+                "Address": 37,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Switch2xN_0Index_Channel0": {
+                "Address": 38,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "Switch2xN_0Index_Channel1": {
+                "Address": 39,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0state1": {
+                "Address": 40,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0stateOut1": {
+                "Address": 52,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "DCInput_1DCValue": {
+                "Address": 56,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "DCInput_0DCValue": {
+                "Address": 57,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleVolumeControl_2Gain": {
+                "Address": 58,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleVolumeControl_3Gain": {
+                "Address": 59,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SignalMerger_0gain": {
+                "Address": 60,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SignalMerger_1gain": {
+                "Address": 62,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SignalMerger_3gain": {
+                "Address": 64,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SignalMerger_2gain": {
+                "Address": 66,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleVolumeControl_1Gain": {
+                "Address": 68,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 1
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleSlewExtVol_1current": {
+                "Address": 24584,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleSlewExtVol_1slew_mode": {
+                "Address": 24585,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage1_B2": {
+                "Address": 24586,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage1_B1": {
+                "Address": 24587,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage1_B0": {
+                "Address": 24588,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage1_A2": {
+                "Address": 24589,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0Stage1_A1": {
+                "Address": 24590,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleSlewExtVol_0current": {
+                "Address": 24591,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "SingleSlewExtVol_0slew_mode": {
+                "Address": 24592,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0state0": {
+                "Address": 24628,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
+                  },
+                  {
+                    "Name": "Mem Page",
+                    "Description": "",
+                    "Value": 0
+                  }
+                ]
+              },
+              "ParametricEQ_0stateOut0": {
+                "Address": 24640,
+                "AddressProperties": [
+                  {
+                    "Name": "Data Memory",
+                    "Description": "",
+                    "Value": 2
                   },
                   {
                     "Name": "Mem Page",
