@@ -59,3 +59,5 @@ STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_OEMiROT_Appli.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_default.ld
 
 KiCad/OTO_NO_ITA/jlcpcb/project.db
+
+*.bak
