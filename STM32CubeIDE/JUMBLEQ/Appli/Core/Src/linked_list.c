@@ -44,8 +44,8 @@ DMA_QListTypeDef List_HPDMA1_Channel0;
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-extern int32_t hpout_buf[];   // RX バッファ（main.c）
-extern int32_t sai_tx_buf[];  // TX バッファ（main.c）
+extern int32_t stereo_out_buf[];  // RX バッファ（main.c）
+extern int32_t stereo_in_buf[];   // TX バッファ（main.c）
 
 extern uint16_t adc_val[];
 /* USER CODE END PM */
@@ -62,25 +62,25 @@ HAL_StatusTypeDef MX_List_GPDMA1_Channel2_Config(void)
     DMA_NodeConfTypeDef pNodeConfig;
 
     /* Set node configuration ################################################*/
-    pNodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;
-    pNodeConfig.Init.Request = GPDMA1_REQUEST_SAI2_A;
-    pNodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    pNodeConfig.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    pNodeConfig.Init.SrcInc = DMA_SINC_INCREMENTED;
-    pNodeConfig.Init.DestInc = DMA_DINC_FIXED;
-    pNodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    pNodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    pNodeConfig.Init.SrcBurstLength = 1;
-    pNodeConfig.Init.DestBurstLength = 1;
-  pNodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT0;
-    pNodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    pNodeConfig.Init.Mode = DMA_NORMAL;
-    pNodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;
-    pNodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
+    pNodeConfig.NodeType                         = DMA_GPDMA_LINEAR_NODE;
+    pNodeConfig.Init.Request                     = GPDMA1_REQUEST_SAI2_A;
+    pNodeConfig.Init.BlkHWRequest                = DMA_BREQ_SINGLE_BURST;
+    pNodeConfig.Init.Direction                   = DMA_MEMORY_TO_PERIPH;
+    pNodeConfig.Init.SrcInc                      = DMA_SINC_INCREMENTED;
+    pNodeConfig.Init.DestInc                     = DMA_DINC_FIXED;
+    pNodeConfig.Init.SrcDataWidth                = DMA_SRC_DATAWIDTH_WORD;
+    pNodeConfig.Init.DestDataWidth               = DMA_DEST_DATAWIDTH_WORD;
+    pNodeConfig.Init.SrcBurstLength              = 1;
+    pNodeConfig.Init.DestBurstLength             = 1;
+    pNodeConfig.Init.TransferAllocatedPort       = DMA_SRC_ALLOCATED_PORT0 | DMA_DEST_ALLOCATED_PORT0;
+    pNodeConfig.Init.TransferEventMode           = DMA_TCEM_BLOCK_TRANSFER;
+    pNodeConfig.Init.Mode                        = DMA_NORMAL;
+    pNodeConfig.TriggerConfig.TriggerPolarity    = DMA_TRIG_POLARITY_MASKED;
+    pNodeConfig.DataHandlingConfig.DataExchange  = DMA_EXCHANGE_NONE;
     pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
-    pNodeConfig.SrcAddress = (uint32_t) hpout_buf;
-    pNodeConfig.DstAddress = (uint32_t) &SAI2_Block_A->DR;
-    pNodeConfig.DataSize = SAI_BUF_SIZE * 4U;
+    pNodeConfig.SrcAddress                       = (uint32_t) stereo_out_buf;
+    pNodeConfig.DstAddress                       = (uint32_t) &SAI2_Block_A->DR;
+    pNodeConfig.DataSize                         = SAI_BUF_SIZE * 4U;
 
     /* Build Node_GPDMA1_Channel2 Node */
     ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_GPDMA1_Channel2);
@@ -105,25 +105,25 @@ HAL_StatusTypeDef MX_List_GPDMA1_Channel3_Config(void)
     DMA_NodeConfTypeDef pNodeConfig;
 
     /* Set node configuration ################################################*/
-    pNodeConfig.NodeType = DMA_GPDMA_LINEAR_NODE;
-    pNodeConfig.Init.Request = GPDMA1_REQUEST_SAI1_A;
-    pNodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    pNodeConfig.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    pNodeConfig.Init.SrcInc = DMA_SINC_FIXED;
-    pNodeConfig.Init.DestInc = DMA_DINC_INCREMENTED;
-    pNodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_WORD;
-    pNodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_WORD;
-    pNodeConfig.Init.SrcBurstLength = 1;
-    pNodeConfig.Init.DestBurstLength = 1;
-    pNodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT0|DMA_DEST_ALLOCATED_PORT0;
-    pNodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    pNodeConfig.Init.Mode = DMA_NORMAL;
-    pNodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;
-    pNodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
+    pNodeConfig.NodeType                         = DMA_GPDMA_LINEAR_NODE;
+    pNodeConfig.Init.Request                     = GPDMA1_REQUEST_SAI1_A;
+    pNodeConfig.Init.BlkHWRequest                = DMA_BREQ_SINGLE_BURST;
+    pNodeConfig.Init.Direction                   = DMA_PERIPH_TO_MEMORY;
+    pNodeConfig.Init.SrcInc                      = DMA_SINC_FIXED;
+    pNodeConfig.Init.DestInc                     = DMA_DINC_INCREMENTED;
+    pNodeConfig.Init.SrcDataWidth                = DMA_SRC_DATAWIDTH_WORD;
+    pNodeConfig.Init.DestDataWidth               = DMA_DEST_DATAWIDTH_WORD;
+    pNodeConfig.Init.SrcBurstLength              = 1;
+    pNodeConfig.Init.DestBurstLength             = 1;
+    pNodeConfig.Init.TransferAllocatedPort       = DMA_SRC_ALLOCATED_PORT0 | DMA_DEST_ALLOCATED_PORT0;
+    pNodeConfig.Init.TransferEventMode           = DMA_TCEM_BLOCK_TRANSFER;
+    pNodeConfig.Init.Mode                        = DMA_NORMAL;
+    pNodeConfig.TriggerConfig.TriggerPolarity    = DMA_TRIG_POLARITY_MASKED;
+    pNodeConfig.DataHandlingConfig.DataExchange  = DMA_EXCHANGE_NONE;
     pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
-    pNodeConfig.SrcAddress = (uint32_t) &SAI1_Block_A->DR;
-    pNodeConfig.DstAddress = (uint32_t) sai_tx_buf;
-    pNodeConfig.DataSize = SAI_BUF_SIZE * 4U;
+    pNodeConfig.SrcAddress                       = (uint32_t) &SAI1_Block_A->DR;
+    pNodeConfig.DstAddress                       = (uint32_t) stereo_in_buf;
+    pNodeConfig.DataSize                         = SAI_BUF_SIZE * 4U;
 
     /* Build Node_GPDMA1_Channel3 Node */
     ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_GPDMA1_Channel3);
@@ -148,25 +148,25 @@ HAL_StatusTypeDef MX_List_HPDMA1_Channel0_Config(void)
     DMA_NodeConfTypeDef pNodeConfig;
 
     /* Set node configuration ################################################*/
-    pNodeConfig.NodeType = DMA_HPDMA_LINEAR_NODE;
-    pNodeConfig.Init.Request = HPDMA1_REQUEST_ADC1;
-    pNodeConfig.Init.BlkHWRequest = DMA_BREQ_SINGLE_BURST;
-    pNodeConfig.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    pNodeConfig.Init.SrcInc = DMA_SINC_FIXED;
-    pNodeConfig.Init.DestInc = DMA_DINC_INCREMENTED;
-    pNodeConfig.Init.SrcDataWidth = DMA_SRC_DATAWIDTH_HALFWORD;
-    pNodeConfig.Init.DestDataWidth = DMA_DEST_DATAWIDTH_HALFWORD;
-    pNodeConfig.Init.SrcBurstLength = 1;
-    pNodeConfig.Init.DestBurstLength = 1;
-    pNodeConfig.Init.TransferAllocatedPort = DMA_SRC_ALLOCATED_PORT1|DMA_DEST_ALLOCATED_PORT0;
-    pNodeConfig.Init.TransferEventMode = DMA_TCEM_BLOCK_TRANSFER;
-    pNodeConfig.Init.Mode = DMA_NORMAL;
-    pNodeConfig.TriggerConfig.TriggerPolarity = DMA_TRIG_POLARITY_MASKED;
-    pNodeConfig.DataHandlingConfig.DataExchange = DMA_EXCHANGE_NONE;
+    pNodeConfig.NodeType                         = DMA_HPDMA_LINEAR_NODE;
+    pNodeConfig.Init.Request                     = HPDMA1_REQUEST_ADC1;
+    pNodeConfig.Init.BlkHWRequest                = DMA_BREQ_SINGLE_BURST;
+    pNodeConfig.Init.Direction                   = DMA_PERIPH_TO_MEMORY;
+    pNodeConfig.Init.SrcInc                      = DMA_SINC_FIXED;
+    pNodeConfig.Init.DestInc                     = DMA_DINC_INCREMENTED;
+    pNodeConfig.Init.SrcDataWidth                = DMA_SRC_DATAWIDTH_HALFWORD;
+    pNodeConfig.Init.DestDataWidth               = DMA_DEST_DATAWIDTH_HALFWORD;
+    pNodeConfig.Init.SrcBurstLength              = 1;
+    pNodeConfig.Init.DestBurstLength             = 1;
+    pNodeConfig.Init.TransferAllocatedPort       = DMA_SRC_ALLOCATED_PORT1 | DMA_DEST_ALLOCATED_PORT0;
+    pNodeConfig.Init.TransferEventMode           = DMA_TCEM_BLOCK_TRANSFER;
+    pNodeConfig.Init.Mode                        = DMA_NORMAL;
+    pNodeConfig.TriggerConfig.TriggerPolarity    = DMA_TRIG_POLARITY_MASKED;
+    pNodeConfig.DataHandlingConfig.DataExchange  = DMA_EXCHANGE_NONE;
     pNodeConfig.DataHandlingConfig.DataAlignment = DMA_DATA_RIGHTALIGN_ZEROPADDED;
-    pNodeConfig.SrcAddress = (uint32_t) &ADC1->DR;
-    pNodeConfig.DstAddress = (uint32_t) adc_val;
-    pNodeConfig.DataSize = 8U * 2U;
+    pNodeConfig.SrcAddress                       = (uint32_t) &ADC1->DR;
+    pNodeConfig.DstAddress                       = (uint32_t) adc_val;
+    pNodeConfig.DataSize                         = 8U * 2U;
 
     /* Build Node_HPDMA1_Channel0 Node */
     ret |= HAL_DMAEx_List_BuildNode(&pNodeConfig, &Node_HPDMA1_Channel0);

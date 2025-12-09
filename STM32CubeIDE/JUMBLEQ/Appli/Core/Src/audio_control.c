@@ -80,8 +80,8 @@ int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
 int32_t sai_buf[SAI_RNG_BUF_SIZE] = {0};
 
-volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t hpout_buf[SAI_BUF_SIZE]  = {0};
-volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_buf[SAI_BUF_SIZE] = {0};
+volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_BUF_SIZE] = {0};
+volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_BUF_SIZE]  = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -1155,7 +1155,7 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
         Error_Handler();
@@ -1174,7 +1174,7 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
         Error_Handler();
@@ -1214,7 +1214,7 @@ void copybuf_sai2codec(void)
         // SEGGER_RTT_printf(0, "st_index = %d -> ", sai_transmit_index);
 
         const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-        memcpy(hpout_buf + index0, sai_buf + index1, sizeof(hpout_buf) / 2);
+        memcpy(stereo_out_buf + index0, sai_buf + index1, sizeof(stereo_out_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
 
         // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
@@ -1388,7 +1388,6 @@ void AUDIO_Init_ADAU1466(void)
     default_download_ADAU146XSCHEMATIC_1();
 }
 
-#if 0
 void AUDIO_SAI_Reset_ForNewRate(void)
 {
     static uint32_t prev_hz = 0;
@@ -1415,12 +1414,11 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     update_pointer    = -1;
 
     AUDIO_Init_AK4619(new_hz);
-    #if RESET_FROM_FW
+#if RESET_FROM_FW
     AUDIO_Init_ADAU1466();
-    #endif
+#endif
 
     uint8_t data[2] = {0x00, 0x00};
-    // if (new_hz == USBD_AUDIO_FREQ)
     if (new_hz == 48000)
     {
         // SERIAL_BYTE_0_1
@@ -1450,8 +1448,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         data[1] = 0x05;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
     }
-    #if 0
-    else if (new_hz == USBD_AUDIO_FREQ_96K)
+    else if (new_hz == 96000)
     {
         // SERIAL_BYTE_0_1
         data[1] = 0x03;
@@ -1480,7 +1477,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         data[1] = 0x07;
         SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
     }
-    #endif
+
     // PLL_ENABLE
     data[1] = 0x00;
     SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
@@ -1496,12 +1493,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     MX_SAI2_Init();
 
     /* Restart circular DMA on both directions (sizes are #words) */
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) hpout_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
 
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) sai_tx_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
@@ -1510,4 +1507,3 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     prev_hz = new_hz;
 }
-#endif
