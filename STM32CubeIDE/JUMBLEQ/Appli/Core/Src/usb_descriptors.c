@@ -23,20 +23,11 @@
  * THE SOFTWARE.
  *
  */
-
+#include "stm32h7rsxx_hal.h"
 #include "tusb.h"
 #include "usb_descriptors.h"
 
-#include "stm32h7rsxx_hal.h"
-
-/* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
- * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
- *
- * Auto ProductID layout's Bitmap:
- *   [MSB]     AUDIO | MIDI | HID | MSC | CDC          [LSB]
- */
-#define _PID_MAP(itf, n) ((CFG_TUD_##itf) << (n))
-#define USB_PID          0x0011  //(0x4000 | _PID_MAP(CDC, 0) | _PID_MAP(MSC, 1) | _PID_MAP(HID, 2) | _PID_MAP(MIDI, 3) | _PID_MAP(AUDIO, 4) | _PID_MAP(VENDOR, 5))
+#define USB_PID 0x0011
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -74,14 +65,56 @@ uint8_t const* tud_descriptor_device_cb(void)
 //--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
-#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO20_HEADSET_STEREO_DESC_LEN)
+#define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + CFG_TUD_AUDIO * TUD_AUDIO_AUDIOIF_STEREO_DESC_LEN)
 
-#define EPNUM_AUDIO_IN  0x01
-#define EPNUM_AUDIO_OUT 0x01
-#define EPNUM_AUDIO_FB  0x01
-#define EPNUM_AUDIO_INT 0x02
+#if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
+    // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
+    // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In etc ...
+    #define EPNUM_AUDIO_IN  0x03
+    #define EPNUM_AUDIO_OUT 0x03
+    #define EPNUM_AUDIO_INT 0x01
 
-#define CONFIG_UAC2_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO20_HEADSET_STEREO_DESC_LEN)
+#elif CFG_TUSB_MCU == OPT_MCU_CXD56
+    // CXD56 USB driver has fixed endpoint type (bulk/interrupt/iso) and direction (IN/OUT) by its number
+    // 0 control (IN/OUT), 1 Bulk (IN), 2 Bulk (OUT), 3 In (IN), 4 Bulk (IN), 5 Bulk (OUT), 6 In (IN)
+    #define EPNUM_AUDIO_IN  0x01
+    #define EPNUM_AUDIO_OUT 0x02
+    #define EPNUM_AUDIO_INT 0x03
+
+#elif CFG_TUSB_MCU == OPT_MCU_NRF5X
+    // ISO endpoints for NRF5x are fixed to 0x08 (0x88)
+    #define EPNUM_AUDIO_IN  0x08
+    #define EPNUM_AUDIO_OUT 0x08
+    #define EPNUM_AUDIO_INT 0x01
+
+#elif defined(TUD_ENDPOINT_ONE_DIRECTION_ONLY)
+    // MCUs that don't support a same endpoint number with different direction IN and OUT defined in tusb_mcu.h
+    //    e.g EP1 OUT & EP1 IN cannot exist together
+    #define EPNUM_AUDIO_IN  0x01
+    #define EPNUM_AUDIO_OUT 0x02
+    #define EPNUM_AUDIO_INT 0x03
+
+#else
+    #define EPNUM_AUDIO_IN  0x01
+    #define EPNUM_AUDIO_OUT 0x01
+    #define EPNUM_AUDIO_INT 0x02
+#endif
+
+#define CONFIG_UAC1_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO10_AUDIOIF_STEREO_DESC_LEN(2))
+
+uint8_t const desc_uac1_configuration[] =
+    {
+        // Config number, interface count, string index, total length, attribute, power in mA
+        TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_UAC1_TOTAL_LEN, 0x00, 100),
+
+        // Interface number, string index, bytes per sample RX/TX, bits used per sample RX/TX, EP Out & EP In address, EP sizes, sample rate
+        TUD_AUDIO10_AUDIOIF_STEREO_DESCRIPTOR(ITF_NUM_AUDIO_CONTROL, 4, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX, EPNUM_AUDIO_OUT, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, EPNUM_AUDIO_IN | 0x80, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, 44100, 48000)};
+
+TU_VERIFY_STATIC(sizeof(desc_uac1_configuration) == CONFIG_UAC1_TOTAL_LEN, "Incorrect size");
+
+#if TUD_OPT_HIGH_SPEED
+
+    #define CONFIG_UAC2_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO20_AUDIOIF_STEREO_DESC_LEN)
 
 uint8_t const desc_uac2_configuration[] =
     {
@@ -89,8 +122,7 @@ uint8_t const desc_uac2_configuration[] =
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_UAC2_TOTAL_LEN, 0x00, 100),
 
         // String index, EP Out & EP In address, EP Interrupt address
-        TUD_AUDIO20_HEADSET_STEREO_DESCRIPTOR(ITF_NUM_AUDIO_CONTROL, 2, CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_RESOLUTION_RX, EPNUM_AUDIO_OUT, CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_HS, EPNUM_AUDIO_IN | 0x80, CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_HS, EPNUM_AUDIO_INT | 0x80, EPNUM_AUDIO_FB | 0x80, 4),
-};
+        TUD_AUDIO20_AUDIOIF_STEREO_DESCRIPTOR(5, EPNUM_AUDIO_OUT, EPNUM_AUDIO_IN | 0x80, EPNUM_AUDIO_INT | 0x80)};
 
 TU_VERIFY_STATIC(sizeof(desc_uac2_configuration) == CONFIG_UAC2_TOTAL_LEN, "Incorrect size");
 
@@ -126,8 +158,9 @@ uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index)
     (void) index;  // for multiple configurations
 
     // if link speed is high return fullspeed config, and vice versa
-    return desc_uac2_configuration;
+    return (tud_speed_get() == TUSB_SPEED_HIGH) ? desc_uac1_configuration : desc_uac2_configuration;
 }
+#endif
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
 // Application return pointer to descriptor
@@ -136,7 +169,15 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 {
     (void) index;  // for multiple configurations
 #if TUD_OPT_HIGH_SPEED
-    return desc_uac2_configuration;
+    // Although we are highspeed, host may be fullspeed.
+    if (tud_speed_get() == TUSB_SPEED_FULL)
+    {
+        return desc_uac1_configuration;
+    }
+    else
+    {
+        return desc_uac2_configuration;
+    }
 #else
     return desc_uac1_configuration;
 #endif
@@ -156,14 +197,14 @@ enum
 };
 
 // array of pointer to string descriptors
-char const* string_desc_arr[] =
+static char const* string_desc_arr[] =
     {
         (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
         "Yamamoto Works Ltd.", // 1: Manufacturer
         "JUMBLEQ", // 2: Product
         NULL, // 3: Serials will use unique ID if possible
-        "JUMBLEQ Stereo Out", // 4: Audio Interface
-        "JUMBLEQ Stereo In", // 5: Audio Interface
+        "JUMBLEQ Stereo OUT", // 4: Function
+        "JUMBLEQ Stereo IN", // 5: Function
 };
 
 static uint16_t _desc_str[32 + 1];

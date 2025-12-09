@@ -537,7 +537,7 @@ static bool audio10_set_req_entity(tusb_control_request_t const* p_request, uint
     uint8_t entityID   = TU_U16_HIGH(p_request->wIndex);
 
     // If request is for our speaker feature unit
-    if (entityID == UAC1_ENTITY_SPK_FEATURE_UNIT)
+    if (entityID == UAC1_ENTITY_STEREO_OUT_FEATURE_UNIT)
     {
         switch (ctrlSel)
         {
@@ -590,7 +590,7 @@ static bool audio10_get_req_entity(uint8_t rhport, tusb_control_request_t const*
     uint8_t entityID   = TU_U16_HIGH(p_request->wIndex);
 
     // If request is for our speaker feature unit
-    if (entityID == UAC1_ENTITY_SPK_FEATURE_UNIT)
+    if (entityID == UAC1_ENTITY_STEREO_OUT_FEATURE_UNIT)
     {
         switch (ctrlSel)
         {
@@ -726,7 +726,7 @@ static bool audio20_clock_set_request(uint8_t rhport, audio20_control_request_t 
 // Helper for feature unit get requests
 static bool audio20_feature_unit_get_request(uint8_t rhport, audio20_control_request_t const* request)
 {
-    TU_ASSERT(request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT);
+    TU_ASSERT(request->bEntityID == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT);
 
     if (request->bControlSelector == AUDIO20_FU_CTRL_MUTE && request->bRequest == AUDIO20_CS_REQ_CUR)
     {
@@ -762,7 +762,7 @@ static bool audio20_feature_unit_set_request(uint8_t rhport, audio20_control_req
 {
     (void) rhport;
 
-    TU_ASSERT(request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT);
+    TU_ASSERT(request->bEntityID == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT);
     TU_VERIFY(request->bRequest == AUDIO20_CS_REQ_CUR);
 
     if (request->bControlSelector == AUDIO20_FU_CTRL_MUTE)
@@ -798,7 +798,7 @@ static bool audio20_get_req_entity(uint8_t rhport, tusb_control_request_t const*
 
     if (request->bEntityID == UAC2_ENTITY_CLOCK)
         return audio20_clock_get_request(rhport, request);
-    if (request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT)
+    if (request->bEntityID == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT)
         return audio20_feature_unit_get_request(rhport, request);
     else
     {
@@ -811,7 +811,7 @@ static bool audio20_set_req_entity(uint8_t rhport, tusb_control_request_t const*
 {
     audio20_control_request_t const* request = (audio20_control_request_t const*) p_request;
 
-    if (request->bEntityID == UAC2_ENTITY_SPK_FEATURE_UNIT)
+    if (request->bEntityID == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT)
         return audio20_feature_unit_set_request(rhport, request, buf);
     if (request->bEntityID == UAC2_ENTITY_CLOCK)
         return audio20_clock_set_request(rhport, request, buf);
@@ -902,7 +902,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
     uint8_t const itf = tu_u16_low(tu_le16toh(p_request->wIndex));
     uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
-    if (ITF_NUM_AUDIO_STREAMING_SPK == itf && alt == 0)
+    if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt == 0)
     {
         blink_interval_ms = BLINK_MOUNTED;
     }
@@ -917,7 +917,7 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     uint8_t const alt = tu_u16_low(tu_le16toh(p_request->wValue));
 
     TU_LOG2("Set interface %d alt %d\r\n", itf, alt);
-    if (ITF_NUM_AUDIO_STREAMING_SPK == itf && alt != 0)
+    if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt != 0)
     {
         blink_interval_ms = BLINK_STREAMING;
     }
@@ -1244,7 +1244,7 @@ void audio_task(void)
         uint16_t avail = tud_audio_available();
         if (avail > 0)
         {
-            spk_data_size = tud_audio_read(spk_buf, avail);
+            spk_data_size  = tud_audio_read(spk_buf, avail);
             buffer_changed = false;
         }
 
