@@ -55,9 +55,11 @@ static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
 volatile __attribute__((section("noncacheable_buffer"), aligned(32))) uint16_t adc_val[8] = {0};
 
-uint16_t pot_val[8] = {0};
-uint16_t mag_val[6] = {0};
-uint8_t pot_ch      = 0;
+uint16_t pot_val[8]      = {0};
+uint16_t pot_val_prev[8] = {0};
+uint16_t mag_val[6]      = {0};
+uint8_t pot_ch           = 0;
+uint8_t pot_ch_counter   = 0;
 
 float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
@@ -621,6 +623,24 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     return true;
 }
 
+void send_master_gain(const uint16_t master_val)
+{
+    const double c_curve_val = 1038.0 * tanh((double) master_val / 448.0);
+    const double master_db   = (135.0 / 1023.0) * c_curve_val - 120.0;
+
+    const double master_rate = pow(10.0, master_db / 20.0);
+
+    uint8_t master_gain_array[4] = {0x00};
+    master_gain_array[0]         = ((uint32_t) (master_rate * pow(2, 23)) >> 24) & 0x000000FF;
+    master_gain_array[1]         = ((uint32_t) (master_rate * pow(2, 23)) >> 16) & 0x000000FF;
+    master_gain_array[2]         = ((uint32_t) (master_rate * pow(2, 23)) >> 8) & 0x000000FF;
+    master_gain_array[3]         = (uint32_t) (master_rate * pow(2, 23)) & 0x000000FF;
+#if 0
+    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", master_val, master_gain_array[0], master_gain_array[1], master_gain_array[2], master_gain_array[3]);
+#endif
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SINGLEVOLUMECONTROL_5_GAIN_ADDR, 4, master_gain_array);
+}
+
 void start_adc(void)
 {
     MX_List_HPDMA1_Channel0_Config();
@@ -655,53 +675,90 @@ void ui_control_task(void)
         return;
     }
 
-    switch (pot_ch)
+    if (pot_ch_counter < 10)
     {
-    case 0:  // RV1
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-        break;
-    case 1:  // RV3
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-        break;
-    case 2:  // RV5
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-        break;
-    case 3:  // RV7
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-        break;
-    case 4:  // RV2
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-        break;
-    case 5:  // RV4
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-        break;
-    case 6:  // RV6
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-        break;
-    case 7:  // RV8
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
-        break;
-    default:
-        HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
-        HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
-        HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-        break;
+        switch (pot_ch)
+        {
+        case 0:  // RV1
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 1:  // RV3
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 2:  // RV5
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 3:  // RV7
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 4:  // RV2
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 5:  // RV4
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        case 6:  // RV6
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        case 7:  // RV8
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 1);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 1);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 1);
+            break;
+        default:
+            HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
+            HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
+            HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
+            break;
+        }
+        pot_ch_counter++;
+    }
+    else if (pot_ch_counter >= 10)
+    {
+        /*
+         * 0 1 4 5
+         * 2 3 6 7
+         */
+        pot_val[pot_ch] = adc_val[6] >> 2;
+
+        switch (pot_ch)
+        {
+        case 7:
+            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+            {
+                send_master_gain(pot_val[pot_ch]);
+            }
+            break;
+        default:
+            break;
+        }
+
+        pot_val_prev[pot_ch] = pot_val[pot_ch];
+
+        pot_ch         = (pot_ch + 1) % 8;
+        pot_ch_counter = 0;
+
+#if 0
+        if (pot_ch == 0)
+        {
+            printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
+            //  printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
+        }
+#endif
     }
 
     for (int i = 0; i < 6; i++)
@@ -710,17 +767,6 @@ void ui_control_task(void)
     }
 #if 0
     printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
-#endif
-
-    pot_val[pot_ch] = adc_val[6];
-    pot_ch          = (pot_ch + 1) % 8;
-
-#if 0
-    if (pot_ch == 0)
-    {
-        printf("mag = (%d, %d, %d, %d, %d, %d)\n", mag_val[0], mag_val[1], mag_val[2], mag_val[3], mag_val[4], mag_val[5]);
-        //  printf("pot = (%d, %d, %d, %d, %d, %d, %d, %d)\n", pot_val[0], pot_val[1], pot_val[2], pot_val[3], pot_val[4], pot_val[5], pot_val[6], pot_val[7]);
-    }
 #endif
 
 #if 1
