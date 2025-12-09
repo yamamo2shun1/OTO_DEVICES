@@ -20,7 +20,7 @@
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
+volatile __attribute__((section("noncacheable_buffer"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
 uint8_t grb[LED_NUMS][RGB] = {0};
 
@@ -124,5 +124,5 @@ void rgb_led_task(void)
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef* htim)
 {
     HAL_TIM_PWM_Stop_DMA(htim, TIM_CHANNEL_3);
-    //__DSB();
+    __DSB();
 }
