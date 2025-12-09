@@ -173,6 +173,7 @@ static bool audio10_set_req_ep(tusb_control_request_t const* p_request, uint8_t*
             TU_VERIFY(p_request->wLength == 3);
 
             current_sample_rate = tu_unaligned_read32(pBuff) & 0x00FFFFFF;
+            is_sr_changed       = true;
 
             TU_LOG2("EP set current freq: %" PRIu32 "\r\n", current_sample_rate);
 
@@ -398,6 +399,7 @@ static bool audio20_clock_set_request(uint8_t rhport, audio20_control_request_t 
         TU_VERIFY(request->wLength == sizeof(audio20_control_cur_4_t));
 
         current_sample_rate = (uint32_t) ((audio20_control_cur_4_t const*) buf)->bCur;
+        is_sr_changed       = true;
 
         TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
 
@@ -924,39 +926,43 @@ void audio_task(void)
     start_ms = curr_ms;
 #endif
 
-#if 1
-    if (buffer_changed)
+    if (is_sr_changed)
     {
-        uint16_t avail = tud_audio_available();
-        if (avail > 0)
-        {
-            spk_data_size  = tud_audio_read(usb_in_buf, avail);
-            buffer_changed = false;
-        }
-
-        copybuf_usb2sai();
-        copybuf_sai2codec();
-    }
-#else
-    spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
-#endif
-
-#if 0
-    if (spk_data_size == 0 && hpout_clear_count < 100)
-    {
-        hpout_clear_count++;
-
-        if (hpout_clear_count == 100)
-        {
-            memset(hpout_buf, 0, sizeof(hpout_buf));
-            hpout_clear_count = 101;
-        }
+        AUDIO_SAI_Reset_ForNewRate();
+        is_sr_changed = false;
     }
     else
     {
-        hpout_clear_count = 0;
-    }
+        if (buffer_changed)
+        {
+            uint16_t avail = tud_audio_available();
+            if (avail > 0)
+            {
+                spk_data_size  = tud_audio_read(usb_in_buf, avail);
+                buffer_changed = false;
+            }
+
+            copybuf_usb2sai();
+            copybuf_sai2codec();
+        }
+
+#if 0
+        if (spk_data_size == 0 && hpout_clear_count < 100)
+        {
+            hpout_clear_count++;
+
+            if (hpout_clear_count == 100)
+            {
+                memset(hpout_buf, 0, sizeof(hpout_buf));
+                hpout_clear_count = 101;
+            }
+        }
+        else
+        {
+            hpout_clear_count = 0;
+        }
 #endif
+    }
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
@@ -1076,11 +1082,13 @@ void AUDIO_Init_ADAU1466(void)
 
 void AUDIO_SAI_Reset_ForNewRate(void)
 {
-    static uint32_t prev_hz = 0;
+    static uint32_t prev_hz = 48000;
     const uint32_t new_hz   = current_sample_rate;
 
     if (new_hz == prev_hz)
+    {
         return;
+    }
 
     __disable_irq();
     __DSB();
