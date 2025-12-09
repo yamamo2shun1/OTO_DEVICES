@@ -75,8 +75,8 @@ volatile bool is_adc_complete = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-int32_t mic_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4]  = {0};
-int32_t spk_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
+int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
 int32_t sai_buf[SAI_RNG_BUF_SIZE] = {0};
 
@@ -103,15 +103,17 @@ void reset_audio_buffer(void)
 
     for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4; i++)
     {
-        mic_buf[i] = 0;
-        spk_buf[i] = 0;
+        usb_out_buf[i] = 0;
+        usb_in_buf[i]  = 0;
     }
 
     for (uint16_t i = 0; i < SAI_BUF_SIZE; i++)
     {
-        // hpout_buf[i]  = 0;
-        // sai_tx_buf[i] = 0;
+        stereo_out_buf[i] = 0;
+        stereo_in_buf[i]  = 0;
     }
+
+    __DSB();
 }
 
 uint32_t get_blink_interval_ms(void)
@@ -1114,7 +1116,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     if (hadc == &hadc1)
     {
         is_adc_complete = true;
-        __DMB();
+        __DSB();
     }
 }
 
@@ -1191,7 +1193,7 @@ void copybuf_usb2sai(void)
     {
         if (sai_buf_index + array_size != sai_transmit_index)
         {
-            const int32_t val = spk_buf[i];
+            const int32_t val = usb_in_buf[i];
 
             sai_buf[sai_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
             sai_buf_index++;
@@ -1244,7 +1246,7 @@ void audio_task(void)
         uint16_t avail = tud_audio_available();
         if (avail > 0)
         {
-            spk_data_size  = tud_audio_read(spk_buf, avail);
+            spk_data_size  = tud_audio_read(usb_in_buf, avail);
             buffer_changed = false;
         }
 
