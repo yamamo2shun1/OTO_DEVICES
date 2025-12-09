@@ -49,9 +49,9 @@ extern "C"
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define CFG_TUSB_MEM_SECTION   __attribute__((section("noncacheable_buffer")))
 // #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
-#define CFG_TUSB_DEBUG        3
-#define CFG_TUD_LOG_LEVEL     3
-#define CFG_TUSB_DEBUG_PRINTF my_printf
+// #define CFG_TUSB_DEBUG        0
+// #define CFG_TUD_LOG_LEVEL     0
+// #define CFG_TUSB_DEBUG_PRINTF my_printf
 
 // RHPort number used for device can be defined by board.mk, default to port 0
 #ifndef BOARD_TUD_RHPORT
