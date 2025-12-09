@@ -1,3 +1,6 @@
 [submodule "STM32CubeIDE/USB_HS_TEST/Appli/tinyusb"]
 	path = STM32CubeIDE/USB_HS_TEST/Appli/tinyusb
 	url = https://github.com/hathach/tinyusb
+[submodule "STM32CubeIDE/JUMBLEQ/Appli/tinyusb"]
+	path = STM32CubeIDE/JUMBLEQ/Appli/tinyusb
+	url = https://github.com/hathach/tinyusb
