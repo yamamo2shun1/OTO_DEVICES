@@ -41,7 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RESET_FROM_FW 1
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -130,7 +130,6 @@ int main(void)
 
     reset_audio_buffer();
 
-    // AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
     AUDIO_Init_AK4619(48000);
 #if RESET_FROM_FW
     AUDIO_Init_ADAU1466();
@@ -170,14 +169,20 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
+        //uint32_t basepri = __get_BASEPRI();
+        //__set_BASEPRI(1);
         tud_task();
+        //__set_BASEPRI(basepri);
+
+        //basepri = __get_BASEPRI();
+        //__set_BASEPRI(5);
+        audio_task();
+        //__set_BASEPRI(basepri);
 
         led_blinking_task();
         rgb_led_task();
 
         ui_control_task();
-
-        audio_task();
     }
     /* USER CODE END 3 */
 }

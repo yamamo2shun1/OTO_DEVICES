@@ -53,7 +53,7 @@ extern "C"
 
     /* Exported macro ------------------------------------------------------------*/
     /* USER CODE BEGIN EM */
-
+#define RESET_FROM_FW 1
     /* USER CODE END EM */
 
     /* Exported functions prototypes ---------------------------------------------*/
