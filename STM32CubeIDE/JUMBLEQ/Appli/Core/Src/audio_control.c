@@ -638,7 +638,7 @@ void send_master_gain(const uint16_t master_val)
 #if 0
     SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", master_val, master_gain_array[0], master_gain_array[1], master_gain_array[2], master_gain_array[3]);
 #endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SINGLEVOLUMECONTROL_5_GAIN_ADDR, 4, master_gain_array);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, master_gain_array);
 }
 
 void start_adc(void)
@@ -740,7 +740,9 @@ void ui_control_task(void)
         case 7:
             if (pot_val[pot_ch] != pot_val_prev[pot_ch])
             {
+#if RESET_FROM_FW
                 send_master_gain(pot_val[pot_ch]);
+#endif
             }
             break;
         default:
@@ -821,7 +823,9 @@ void ui_control_task(void)
         dc_array[2]    = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
         dc_array[3]    = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
+    #if RESET_FROM_FW
         SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+    #endif
 
     #if 0
         xfade       = 0.0f;
@@ -974,7 +978,9 @@ void audio_task(void)
 
     if (is_sr_changed)
     {
+#if RESET_FROM_FW
         AUDIO_SAI_Reset_ForNewRate();
+#endif
         is_sr_changed = false;
     }
     else
@@ -1088,17 +1094,14 @@ void AUDIO_Init_AK4619(uint32_t hz)
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // System Clock Setting
-    // if (hz == USBD_AUDIO_FREQ)
     if (hz == 48000)
     {
         sndData[0] = 0x00;  // 00000 000 (48kHz)
     }
-#if 0
-    else if (hz == USBD_AUDIO_FREQ_96K)
+    else if (hz == 96000)
     {
         sndData[0] = 0x01;  // 00000 001 (96kHz)
     }
-#endif
     HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
 
     // ADC Input Setting
