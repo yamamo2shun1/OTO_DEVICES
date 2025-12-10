@@ -132,7 +132,12 @@ int main(void)
 
     AUDIO_Init_AK4619(48000);
 #if RESET_FROM_FW
+    /* もし、SigmaStudio+からUSBi経由で書き込み、デバッグを行う場合は
+     * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
+     * SigmaStudio+からダウンロードを実行すること。
+     */
     AUDIO_Init_ADAU1466();
+    HAL_Delay(500);
 #endif
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
@@ -169,15 +174,12 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        //uint32_t basepri = __get_BASEPRI();
-        //__set_BASEPRI(1);
         tud_task();
-        //__set_BASEPRI(basepri);
 
-        //basepri = __get_BASEPRI();
-        //__set_BASEPRI(5);
+        uint32_t basepri = __get_BASEPRI();
+        __set_BASEPRI(4);
         audio_task();
-        //__set_BASEPRI(basepri);
+        __set_BASEPRI(basepri);
 
         led_blinking_task();
         rgb_led_task();
