@@ -47,6 +47,7 @@ extern "C"
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
+#define TUD_AUDIO_PREFER_RING_BUFFER 1
 // #define CFG_TUSB_MEM_SECTION   __attribute__((section("noncacheable_buffer")))
 // #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
 // #define CFG_TUSB_DEBUG        0
