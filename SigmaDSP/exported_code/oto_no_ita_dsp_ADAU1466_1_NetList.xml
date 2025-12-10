@@ -25,12 +25,7 @@
         <Link pin="Ch17_out" dir="out" link="Link_46" id="Link_46" />
         <Link pin="Ch16_out" dir="out" link="Link_74" id="Link_74" />
       </Algorithm>
-      <Algorithm name="SingleVolumeControl_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
-        <Link pin="Input0" dir="in" link="Link_11" id="Link_11" />
-        <Link pin="Input1" dir="in" link="Link_16" id="Link_16" />
-        <Link pin="Output0" dir="out" link="Link_19" id="Link_19" />
-        <Link pin="Output1" dir="out" link="Link_21" id="Link_21" />
-      </Algorithm>
+      <Algorithm name="input_from_ch2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
         <Link pin="Ch0_out" dir="out" link="Link_41" id="Link_41" />
         <Link pin="Ch1_out" dir="out" link="Link_42" id="Link_42" />
@@ -47,12 +42,7 @@
       <Algorithm name="Output_7" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_82" id="Link_82" />
       </Algorithm>
-      <Algorithm name="SingleVolumeControl_2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
-        <Link pin="Input0" dir="in" link="Link_41" id="Link_41" />
-        <Link pin="Input1" dir="in" link="Link_42" id="Link_42" />
-        <Link pin="Output0" dir="out" link="Link_61" id="Link_61" />
-        <Link pin="Output1" dir="out" link="Link_62" id="Link_62" />
-      </Algorithm>
+      <Algorithm name="input_from_usb" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="DCInput_0" friendlyname="Use this control to test a DC voltage input">
         <Link pin="Output" dir="out" link="Link_38" id="Link_38" />
       </Algorithm>
@@ -101,18 +91,8 @@
         <Link pin="Input1" dir="in" link="Link_71" id="Link_71" />
         <Link pin="Output" dir="out" link="Link_80" id="Link_80" />
       </Algorithm>
-      <Algorithm name="SingleVolumeControl_4" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
-        <Link pin="Input0" dir="in" link="Link_75" id="Link_75" />
-        <Link pin="Input1" dir="in" link="Link_76" id="Link_76" />
-        <Link pin="Output0" dir="out" link="Link_77" id="Link_77" />
-        <Link pin="Output1" dir="out" link="Link_78" id="Link_78" />
-      </Algorithm>
-      <Algorithm name="SingleVolumeControl_5" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
-        <Link pin="Input0" dir="in" link="Link_79" id="Link_79" />
-        <Link pin="Input1" dir="in" link="Link_80" id="Link_80" />
-        <Link pin="Output0" dir="out" link="Link_81" id="Link_81" />
-        <Link pin="Output1" dir="out" link="Link_82" id="Link_82" />
-      </Algorithm>
+      <Algorithm name="input_from_ch1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="master_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
     </Schematic>
   </Core>
 </IC>

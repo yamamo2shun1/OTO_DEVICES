@@ -86,7 +86,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleVolumeControl_1
+Module Name			= input_from_ch2
 Parameter Name		= Gain
 Parameter Address	= 97
 Parameter Value		= 1
@@ -97,7 +97,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleVolumeControl_2
+Module Name			= input_from_usb
 Parameter Name		= Gain
 Parameter Address	= 85
 Parameter Value		= 1
@@ -344,11 +344,11 @@ Parameter Data :
 Module Name			= SingleSlewExtVol_0
 Parameter Name		= slew_mode
 Parameter Address	= 24592
-Parameter Value		= 8330
+Parameter Value		= 8320
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x8A, 
+0x00, 0x00, 0x20, 0x80, 
 
 
 
@@ -366,11 +366,11 @@ Parameter Data :
 Module Name			= SingleSlewExtVol_1
 Parameter Name		= slew_mode
 Parameter Address	= 24585
-Parameter Value		= 8330
+Parameter Value		= 8320
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x8A, 
+0x00, 0x00, 0x20, 0x80, 
 
 
 
@@ -398,7 +398,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleVolumeControl_4
+Module Name			= input_from_ch1
 Parameter Name		= Gain
 Parameter Address	= 91
 Parameter Value		= 1
@@ -409,7 +409,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleVolumeControl_5
+Module Name			= master_output
 Parameter Name		= Gain
 Parameter Address	= 96
 Parameter Value		= 1

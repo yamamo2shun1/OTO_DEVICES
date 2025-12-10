@@ -2750,7 +2750,7 @@
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "SingleVolumeControl_1",
+                        "Label": "input_from_ch2",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -3120,8 +3120,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1903.9999999999996,
-                          "Y": -28.666666666666629
+                          "X": 1904.0,
+                          "Y": -29.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3155,8 +3155,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1903.9999999999996,
-                          "Y": 55.333333333333371
+                          "X": 1904.0,
+                          "Y": 55.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3205,7 +3205,7 @@
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "SingleVolumeControl_2",
+                        "Label": "input_from_usb",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -3314,7 +3314,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 1011.0,
-                          "Y": 213.66666666666674
+                          "Y": 214.0
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3350,7 +3350,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 1011.0,
-                          "Y": 297.66666666666674
+                          "Y": 298.0
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3610,11 +3610,11 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumChannels": 2,
-                          "SlewType1": 2,
-                          "SlewType2": 2,
+                          "SlewType1": 0,
+                          "SlewType2": 0,
                           "Index1": 8,
                           "Index2": 8,
-                          "IndexMax1": 63.0,
+                          "IndexMax1": 15.0,
                           "IndexMax2": 15.0,
                           "SetTunable": false
                         },
@@ -3692,11 +3692,11 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumChannels": 2,
-                          "SlewType1": 2,
-                          "SlewType2": 2,
+                          "SlewType1": 0,
+                          "SlewType2": 0,
                           "Index1": 8,
                           "Index2": 8,
-                          "IndexMax1": 63.0,
+                          "IndexMax1": 15.0,
                           "IndexMax2": 15.0,
                           "SetTunable": false
                         },
@@ -3817,14 +3817,14 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1130.2104761904764,
-                          "Y": 160.66666666666674
+                          "X": 1130.0,
+                          "Y": 161.0
                         },
                         "Size": {
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "SingleVolumeControl_4",
+                        "Label": "input_from_ch1",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -3855,8 +3855,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1896.9999999999996,
-                          "Y": -93.569999999999965
+                          "X": 1897.0,
+                          "Y": -94.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3898,14 +3898,14 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1717.6666666666665,
-                          "Y": -80.666666666666629
+                          "X": 1718.0,
+                          "Y": -81.0
                         },
                         "Size": {
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "SingleVolumeControl_5",
+                        "Label": "master_output",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
