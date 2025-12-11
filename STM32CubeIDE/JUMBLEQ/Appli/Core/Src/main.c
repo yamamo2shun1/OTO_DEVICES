@@ -176,10 +176,7 @@ int main(void)
         /* USER CODE BEGIN 3 */
         tud_task();
 
-        uint32_t basepri = __get_BASEPRI();
-        __set_BASEPRI(4);
         audio_task();
-        __set_BASEPRI(basepri);
 
         led_blinking_task();
         rgb_led_task();
