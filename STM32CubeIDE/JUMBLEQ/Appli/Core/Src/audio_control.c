@@ -865,11 +865,11 @@ void ui_control_task(void)
         {
             xfade[i] = 1.0f;
         }
-        else if (mag_val[i] >= 950 && mag_val[i] <= 1500)
+        else if (mag_val[i] >= 950 && mag_val[i] <= 1400)
         {
-            xfade[i] = 1.0f - ((float) (mag_val[i] - 950) / (float) (1500 - 950));
+            xfade[i] = 1.0f - ((float) (mag_val[i] - 950) / (float) (1400 - 950));
         }
-        else if (mag_val[i] > 1500)
+        else if (mag_val[i] > 1400)
         {
             xfade[i] = 0.0f;
         }
@@ -878,7 +878,7 @@ void ui_control_task(void)
     bool xfade_changed = false;
     for (int i = 0; i < 6; i++)
     {
-        if (fabs(xfade[i] - xfade_prev[i]) > 0.05f)
+        if (fabs(xfade[i] - xfade_prev[i]) > 0.02f)
         {
             xfade_changed = true;
             break;
