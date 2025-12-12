@@ -64,11 +64,15 @@ uint8_t pot_ch_counter   = 0;
 float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
-int16_t hpout_clear_count       = 0;
-uint32_t sai_buf_index          = 0;
-uint32_t sai_transmit_index     = 0;
-volatile int16_t update_pointer = -1;
-volatile bool buffer_changed    = false;
+int16_t hpout_clear_count          = 0;
+uint32_t sai_tx_rng_buf_index      = 0;
+uint32_t sai_rx_rng_buf_index      = 0;
+uint32_t sai_transmit_index        = 0;
+uint32_t sai_receive_index         = 0;
+volatile int16_t update_pointer_tx = -1;
+volatile int16_t update_pointer_rx = -1;
+volatile bool tx_buffer_changed    = false;
+volatile bool rx_buffer_changed    = false;
 
 bool is_sr_changed            = false;
 bool is_start_audio_control   = false;
@@ -80,7 +84,8 @@ uint32_t current_sample_rate  = sample_rates[0];
 int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
 int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
-int32_t sai_buf[SAI_RNG_BUF_SIZE] = {0};
+int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
+int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
 
 volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_BUF_SIZE] = {0};
 volatile __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_BUF_SIZE]  = {0};
@@ -997,12 +1002,12 @@ void copybuf_usb2sai(void)
 
     for (uint16_t i = 0; i < array_size; i++)
     {
-        if (sai_buf_index + array_size != sai_transmit_index)
+        if (sai_tx_rng_buf_index + array_size != sai_transmit_index)
         {
             const int32_t val = usb_in_buf[i];
 
-            sai_buf[sai_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
-            sai_buf_index++;
+            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = val;  // val << 16 | val >> 16;
+            sai_tx_rng_buf_index++;
         }
     }
     // SEGGER_RTT_printf(0, " %d\n", sai_buf_index);
@@ -1010,24 +1015,24 @@ void copybuf_usb2sai(void)
 
 void copybuf_sai2codec(void)
 {
-    if (sai_buf_index - sai_transmit_index >= SAI_BUF_SIZE / 2)
+    if (sai_tx_rng_buf_index - sai_transmit_index >= SAI_BUF_SIZE / 2)
     {
-        while (update_pointer == -1)
+        while (update_pointer_tx == -1)
         {
         }
 
-        const int16_t index0 = update_pointer;
-        update_pointer       = -1;
+        const int16_t index0 = update_pointer_tx;
+        update_pointer_tx    = -1;
 
         // SEGGER_RTT_printf(0, "st_index = %d -> ", sai_transmit_index);
 
         const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-        memcpy(stereo_out_buf + index0, sai_buf + index1, sizeof(stereo_out_buf) / 2);
+        memcpy(stereo_out_buf + index0, sai_tx_rng_buf + index1, sizeof(stereo_out_buf) / 2);
         sai_transmit_index += SAI_BUF_SIZE / 2;
 
         // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
 
-        if (update_pointer != -1)
+        if (update_pointer_tx != -1)
         {
             SEGGER_RTT_printf(0, "buffer update too long...\n");
         }
@@ -1055,7 +1060,7 @@ void audio_task(void)
     }
     else
     {
-        if (buffer_changed)
+        if (tx_buffer_changed)
         {
             uint32_t basepri = __get_BASEPRI();
             __set_BASEPRI(2);
@@ -1063,8 +1068,8 @@ void audio_task(void)
             uint16_t avail = tud_audio_available();
             if (avail > 0)
             {
-                spk_data_size  = tud_audio_read(usb_in_buf, avail);
-                buffer_changed = false;
+                spk_data_size     = tud_audio_read(usb_in_buf, avail);
+                tx_buffer_changed = false;
             }
 
             __set_BASEPRI(basepri);
@@ -1096,7 +1101,8 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        //__DMB();
+        update_pointer_rx = 0;
+        rx_buffer_changed = true;
     }
 }
 
@@ -1104,7 +1110,8 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        //__DMB();
+        update_pointer_rx = SAI_BUF_SIZE / 2;
+        rx_buffer_changed = true;
     }
 }
 
@@ -1112,10 +1119,8 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        update_pointer = 0;
-        buffer_changed = true;
-        __DMB();
-        // spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+        update_pointer_tx = 0;
+        tx_buffer_changed = true;
     }
 }
 
@@ -1123,10 +1128,8 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        update_pointer = SAI_BUF_SIZE / 2;
-        buffer_changed = true;
-        __DMB();
-        // spk_data_size = tud_audio_read(spk_buf, sizeof(spk_buf));
+        update_pointer_tx = SAI_BUF_SIZE / 2;
+        tx_buffer_changed = true;
     }
 }
 
@@ -1227,9 +1230,13 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     (void) HAL_SAI_DeInit(&hsai_BlockA2);
     (void) HAL_SAI_DeInit(&hsai_BlockA1);
 
-    hpout_clear_count = 0;
-    sai_buf_index     = 0;
-    update_pointer    = -1;
+    hpout_clear_count    = 0;
+    sai_tx_rng_buf_index = 0;
+    sai_rx_rng_buf_index = 0;
+    update_pointer_tx    = -1;
+    update_pointer_rx    = -1;
+    tx_buffer_changed    = false;
+    rx_buffer_changed    = false;
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
