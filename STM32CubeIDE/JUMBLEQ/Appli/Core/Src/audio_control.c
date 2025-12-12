@@ -1060,7 +1060,6 @@ void copybuf_sai2codec(void)
             memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
         }
         sai_transmit_index += n;
-#endif
 
         // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
 
