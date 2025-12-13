@@ -152,7 +152,7 @@
                 },
                 "IsEnabled": true,
                 "ChannelName": "AnalogDevices.Plugins.Channels.ControlChannel_v1.0.0.0",
-                "type": "AnalogDevices.TypeDefinitions.Plugins.ICommChannel, TypeDefinitions, Version=2.4.0.0, Culture=neutral, PublicKeyToken=null",
+                "type": "AnalogDevices.TypeDefinitions.Plugins.ICommChannel, TypeDefinitions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=null",
                 "TransferFunction": null,
                 "Label": ""
               }
@@ -2611,7 +2611,8 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch0"
+                          "SelectedOPChannel": "Ch0",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2646,7 +2647,8 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch1"
+                          "SelectedOPChannel": "Ch1",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2676,8 +2678,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "96000",
-                          "FSOut": 96000,
+                          "FS": "48000",
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2696,7 +2698,8 @@
                           "InUseCh28": false,
                           "InUseCh29": false,
                           "InUseCh30": false,
-                          "InUseCh31": false
+                          "InUseCh31": false,
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2726,8 +2729,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2769,8 +2772,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "96000",
-                          "FSOut": 96000,
+                          "FS": "48000",
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2789,7 +2792,8 @@
                           "InUseCh12": false,
                           "InUseCh13": false,
                           "InUseCh14": false,
-                          "InUseCh15": false
+                          "InUseCh15": false,
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2798,7 +2802,7 @@
                         },
                         "Size": {
                           "Height": 424.0,
-                          "Width": 76.0
+                          "Width": 77.0
                         },
                         "Label": "Input0to15_0",
                         "WritableChannels": [],
@@ -2824,7 +2828,8 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch16"
+                          "SelectedOPChannel": "Ch16",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2859,7 +2864,8 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch17"
+                          "SelectedOPChannel": "Ch17",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -2896,7 +2902,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -2934,7 +2940,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -2972,7 +2978,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3010,7 +3016,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3111,12 +3117,13 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch18"
+                          "SelectedOPChannel": "Ch18",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -3146,12 +3153,13 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "SelectedOPChannel": "Ch19"
+                          "SelectedOPChannel": "Ch19",
+                          "DataFormat": "Default (8.24 Format)"
                         },
                         "Angle": 0.0,
                         "Position": {
@@ -3181,8 +3189,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3224,8 +3232,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "96000",
-                          "FSOut": 96000,
+                          "FS": "48000",
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3264,8 +3272,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3303,8 +3311,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3339,8 +3347,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3375,8 +3383,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3491,8 +3499,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3604,8 +3612,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3646,8 +3654,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "96000",
-                          "FSOut": 96000,
+                          "FS": "48000",
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3686,8 +3694,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3728,8 +3736,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3764,8 +3772,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3800,8 +3808,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3850,7 +3858,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3881,8 +3889,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
+                          "FS": 48000,
+                          "FSOut": 48000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3995,12 +4003,16 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 715.5,
+                            "X": 724.99999999999989,
                             "Y": -183.1111
                           },
                           {
-                            "X": 715.5,
-                            "Y": -284.0
+                            "X": 724.99999999999989,
+                            "Y": -258.777775
+                          },
+                          {
+                            "X": 749.0,
+                            "Y": -258.777775
                           }
                         ]
                       },
