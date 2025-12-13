@@ -1002,7 +1002,7 @@ void start_sai(void)
 
 void copybuf_usb2sai(void)
 {
-    // SEGGER_RTT_printf(0, "sb_index = %d -> ", sai_buf_index);
+    SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
     uint32_t n = spk_data_size / sizeof(int32_t);
 
@@ -1029,50 +1029,54 @@ void copybuf_usb2sai(void)
         sai_tx_rng_buf_index++;
     }
 
-    // SEGGER_RTT_printf(0, " %d\n", sai_buf_index);
+    SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
 void copybuf_sai2codec(void)
 {
-    if (sai_tx_rng_buf_index - sai_transmit_index >= SAI_BUF_SIZE / 2)
+    // signedで扱って、逆転(wrap)時に巨大値扱いにならないようにする
+    int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    if (used < 0)
     {
-        while (update_pointer_tx == -1)
-        {
-            __NOP();
-        }
+        // アンダーラン/リセット等で逆転したら同期を取り直す
+        sai_transmit_index = sai_tx_rng_buf_index;
+        return;
+    }
 
-        const int16_t index0 = update_pointer_tx;
-        update_pointer_tx    = -1;
+    const uint32_t n = (SAI_BUF_SIZE / 2);
+    if (used < (int32_t) n)
+        return;
 
-        // SEGGER_RTT_printf(0, "st_index = %d -> ", sai_transmit_index);
+    // busy-waitしない（来てなければ今回は何もしない）
+    const int16_t index0 = update_pointer_tx;
+    if (index0 < 0)
+        return;
+    if ((uint32_t) index0 >= SAI_BUF_SIZE)
+        return;  // 念のため
+    update_pointer_tx = -1;
+    __DMB();
 
-        const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-        uint32_t first        = SAI_RNG_BUF_SIZE - index1;
-        const uint32_t n      = SAI_BUF_SIZE / 2;
-        if (first > n)
-        {
-            first = n;
-        }
+    const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
+    uint32_t first        = SAI_RNG_BUF_SIZE - index1;
+    if (first > n)
+        first = n;
 
-        memcpy(stereo_out_buf + index0, sai_tx_rng_buf + index1, first * sizeof(int32_t));
-        if (first < n)
-        {
-            memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
-        }
-        sai_transmit_index += n;
+    memcpy(stereo_out_buf + index0, sai_tx_rng_buf + index1, first * sizeof(int32_t));
+    if (first < n)
+    {
+        memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
+    }
+    sai_transmit_index += n;
 
-        // SEGGER_RTT_printf(0, " %d\n", sai_transmit_index);
-
-        if (update_pointer_tx != -1)
-        {
-            SEGGER_RTT_printf(0, "buffer update too long...\n");
-        }
+    if (update_pointer_tx != -1)
+    {
+        SEGGER_RTT_printf(0, "buffer update too long.\n");
     }
 }
 
 void audio_task(void)
 {
-#if 0
+#if 1
     static uint32_t start_ms = 0;
     uint32_t curr_ms         = HAL_GetTick();
     if (start_ms == curr_ms)
@@ -1099,6 +1103,7 @@ void audio_task(void)
         {
             avail = sizeof(usb_in_buf);
         }
+        SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
         if (avail > 0)
         {
             spk_data_size = tud_audio_read(usb_in_buf, avail);
