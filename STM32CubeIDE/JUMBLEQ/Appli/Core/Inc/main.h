@@ -39,21 +39,21 @@ extern "C"
 
 #include "SEGGER_RTT.h"
 #include "my_log.h"
-    /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-    /* Exported types ------------------------------------------------------------*/
-    /* USER CODE BEGIN ET */
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 
-    /* USER CODE END ET */
+/* USER CODE END ET */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
 
-    /* USER CODE END EC */
+/* USER CODE END EC */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
-
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
+#define RESET_FROM_FW 1
     /* USER CODE END EM */
 
     /* Exported functions prototypes ---------------------------------------------*/

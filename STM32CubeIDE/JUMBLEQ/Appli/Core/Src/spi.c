@@ -106,6 +106,9 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     GPIO_InitStruct.Alternate = GPIO_AF5_SPI5;
     HAL_GPIO_Init(GPIOM, &GPIO_InitStruct);
 
+    /* SPI5 interrupt Init */
+    HAL_NVIC_SetPriority(SPI5_IRQn, 6, 0);
+    HAL_NVIC_EnableIRQ(SPI5_IRQn);
   /* USER CODE BEGIN SPI5_MspInit 1 */
 
   /* USER CODE END SPI5_MspInit 1 */
@@ -131,6 +134,8 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
     */
     HAL_GPIO_DeInit(GPIOM, GPIO_PIN_12|GPIO_PIN_11|GPIO_PIN_14|GPIO_PIN_13);
 
+    /* SPI5 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(SPI5_IRQn);
   /* USER CODE BEGIN SPI5_MspDeInit 1 */
 
   /* USER CODE END SPI5_MspDeInit 1 */
