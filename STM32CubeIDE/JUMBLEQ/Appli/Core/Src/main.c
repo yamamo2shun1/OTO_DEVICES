@@ -41,7 +41,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RESET_FROM_FW 1
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -130,10 +130,14 @@ int main(void)
 
     reset_audio_buffer();
 
-    // AUDIO_Init_AK4619(USBD_AUDIO_FREQ);
     AUDIO_Init_AK4619(48000);
 #if RESET_FROM_FW
+    /* もし、SigmaStudio+からUSBi経由で書き込み、デバッグを行う場合は
+     * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
+     * SigmaStudio+からダウンロードを実行すること。
+     */
     AUDIO_Init_ADAU1466();
+    HAL_Delay(500);
 #endif
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
@@ -172,12 +176,12 @@ int main(void)
         /* USER CODE BEGIN 3 */
         tud_task();
 
+        audio_task();
+
         led_blinking_task();
         rgb_led_task();
 
         ui_control_task();
-
-        audio_task();
     }
     /* USER CODE END 3 */
 }
