@@ -1264,11 +1264,9 @@ void audio_task(void)
         copybuf_usb2ring();
         copybuf_ring2sai();
 
-#if 0
         // SAI -> USB
         copybuf_sai2ring();
         copybuf_ring2usb_and_send();
-#endif
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
