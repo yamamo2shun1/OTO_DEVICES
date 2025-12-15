@@ -72,6 +72,9 @@ uint32_t sai_receive_index         = 0;
 volatile int16_t update_pointer_tx = -1;
 volatile int16_t update_pointer_rx = -1;
 
+bool s_streaming_out = false;
+bool s_streaming_in  = false;
+
 bool is_sr_changed            = false;
 bool is_start_audio_control   = false;
 volatile bool is_adc_complete = false;
@@ -85,8 +88,8 @@ int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
 int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_BUF_SIZE] = {0};
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_BUF_SIZE]  = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_TX_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_RX_BUF_SIZE]  = {0};
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
@@ -122,10 +125,14 @@ void reset_audio_buffer(void)
         sai_rx_rng_buf[i] = 0;
     }
 
-    for (uint16_t i = 0; i < SAI_BUF_SIZE; i++)
+    for (uint16_t i = 0; i < SAI_TX_BUF_SIZE; i++)
     {
         stereo_out_buf[i] = 0;
-        stereo_in_buf[i]  = 0;
+    }
+
+    for (uint16_t i = 0; i < SAI_RX_BUF_SIZE; i++)
+    {
+        stereo_in_buf[i] = 0;
     }
 
     __DSB();
@@ -608,7 +615,18 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt == 0)
     {
-        blink_interval_ms = BLINK_MOUNTED;
+        blink_interval_ms    = BLINK_MOUNTED;
+        s_streaming_out      = false;
+        spk_data_size        = 0;
+        sai_tx_rng_buf_index = 0;
+        sai_transmit_index   = 0;
+    }
+
+    if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt == 0)
+    {
+        s_streaming_in       = false;
+        sai_rx_rng_buf_index = 0;
+        sai_receive_index    = 0;
     }
 
     return true;
@@ -624,6 +642,14 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt != 0)
     {
         blink_interval_ms = BLINK_STREAMING;
+
+        s_streaming_out = true;
+        spk_data_size   = 0;
+    }
+
+    if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt != 0)
+    {
+        s_streaming_in = true;
     }
 
     // Clear buffer when streaming format is changed
@@ -945,7 +971,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 
 void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
 {
-    printf("errorCode -> %lX\n", hadc->ErrorCode);
+    SEGGER_RTT_printf(0, "errorCode -> %lX\n", hadc->ErrorCode);
 }
 
 bool get_sr_changed_state(void)
@@ -980,7 +1006,7 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_TX_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
         Error_Handler();
@@ -999,7 +1025,7 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_RX_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
         Error_Handler();
@@ -1012,7 +1038,7 @@ void start_sai(void)
 
 void copybuf_usb2ring(void)
 {
-    SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
+    // SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
     uint32_t n = spk_data_size / sizeof(int32_t);
 
@@ -1039,7 +1065,7 @@ void copybuf_usb2ring(void)
         sai_tx_rng_buf_index++;
     }
 
-    SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
+    // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
 void copybuf_ring2sai(void)
@@ -1053,7 +1079,7 @@ void copybuf_ring2sai(void)
         return;
     }
 
-    const uint32_t n = (SAI_BUF_SIZE / 2);
+    const uint32_t n = (SAI_TX_BUF_SIZE / 2);
     if (used < (int32_t) n)
         return;
 
@@ -1061,10 +1087,10 @@ void copybuf_ring2sai(void)
     const int16_t index0 = update_pointer_tx;
     if (index0 < 0)
         return;
-    if ((uint32_t) index0 >= SAI_BUF_SIZE)
+    if ((uint32_t) index0 >= SAI_TX_BUF_SIZE)
         return;  // 念のため
     update_pointer_tx = -1;
-    __DMB();
+    //__DMB();
 
     const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
     uint32_t first        = SAI_RNG_BUF_SIZE - index1;
@@ -1087,12 +1113,23 @@ void copybuf_ring2sai(void)
 // ==============================
 // SAI(RX) -> Ring -> USB(IN) path
 // ==============================
+static inline uint16_t tud_audio_write_atomic(void const* buf, uint16_t len)
+{
+    // TinyUSB 内部FIFOが USB IRQ 側でも触られる環境だと破壊→HardFault になり得るので、
+    // 最小区間だけ割り込み禁止で保護する。
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    uint16_t w = tud_audio_write(buf, len);
+    __set_PRIMASK(primask);
+    return w;
+}
+
 static void copybuf_sai2ring(void)
 {
     const int16_t index0 = update_pointer_rx;
     if (index0 < 0)
         return;
-    if ((uint32_t) index0 >= SAI_BUF_SIZE)
+    if ((uint32_t) index0 >= SAI_RX_BUF_SIZE)
     {
         update_pointer_rx = -1;
         return;
@@ -1101,7 +1138,7 @@ static void copybuf_sai2ring(void)
     update_pointer_rx = -1;
     __DMB();
 
-    const uint32_t n = (SAI_BUF_SIZE / 2);  // 半分ぶん（word数）
+    const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
     int32_t used     = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     if (used < 0)
     {
@@ -1147,6 +1184,13 @@ static void copybuf_ring2usb_and_send(void)
     if (!tud_audio_mounted())
         return;
 
+    // IN(録音)側が streaming していないなら送らない
+    if (!s_streaming_in)
+        return;
+
+    if (tud_audio_get_ep_in_ff() == NULL)
+        return;
+
     const uint32_t want_words = audio_words_per_ms();  // 96 or 192 words (48k/96k, stereo, 32bit slot想定)
     const uint32_t want_bytes = want_words * sizeof(int32_t);
 
@@ -1179,6 +1223,8 @@ static void copybuf_ring2usb_and_send(void)
 
     // 書けた分だけ読みポインタを進める（途中までしか入らないケースも潰す）
     uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
+    if (written_words > want_words)
+        written_words = want_words;
     sai_receive_index += written_words;
 }
 
@@ -1203,6 +1249,8 @@ void audio_task(void)
     }
     else
     {
+        spk_data_size = 0;
+
         // uint32_t basepri = __get_BASEPRI();
         //__set_BASEPRI(2);
 
@@ -1211,7 +1259,7 @@ void audio_task(void)
         {
             avail = sizeof(usb_in_buf);
         }
-        SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
+        // SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
         if (avail > 0)
         {
             spk_data_size = tud_audio_read(usb_in_buf, avail);
@@ -1223,9 +1271,11 @@ void audio_task(void)
         copybuf_usb2ring();
         copybuf_ring2sai();
 
+#if 0
         // SAI -> USB
         copybuf_sai2ring();
         copybuf_ring2usb_and_send();
+#endif
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
@@ -1251,6 +1301,7 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA1)
     {
         update_pointer_rx = 0;
+        __DMB();
     }
 }
 
@@ -1258,7 +1309,8 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        update_pointer_rx = SAI_BUF_SIZE / 2;
+        update_pointer_rx = SAI_RX_BUF_SIZE / 2;
+        __DMB();
     }
 }
 
@@ -1267,6 +1319,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
     if (hsai == &hsai_BlockA2)
     {
         update_pointer_tx = 0;
+        __DMB();
     }
 }
 
@@ -1274,7 +1327,8 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        update_pointer_tx = SAI_BUF_SIZE / 2;
+        update_pointer_tx = SAI_TX_BUF_SIZE / 2;
+        __DMB();
     }
 }
 
@@ -1463,12 +1517,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     MX_SAI2_Init();
 
     /* Restart circular DMA on both directions (sizes are #words) */
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_TX_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
 
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_BUF_SIZE) != HAL_OK)
+    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_RX_BUF_SIZE) != HAL_OK)
     {
         Error_Handler();
     }
