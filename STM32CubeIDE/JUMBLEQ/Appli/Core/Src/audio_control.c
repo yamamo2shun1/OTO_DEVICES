@@ -116,6 +116,12 @@ void reset_audio_buffer(void)
         usb_in_buf[i] = 0;
     }
 
+    for (uint16_t i = 0; i < SAI_RNG_BUF_SIZE; i++)
+    {
+        sai_tx_rng_buf[i] = 0;
+        sai_rx_rng_buf[i] = 0;
+    }
+
     for (uint16_t i = 0; i < SAI_BUF_SIZE; i++)
     {
         stereo_out_buf[i] = 0;
@@ -1000,7 +1006,11 @@ void start_sai(void)
     }
 }
 
-void copybuf_usb2sai(void)
+// ==============================
+// USB(OUT) path -> Ring -> SAI(TX)
+// ==============================
+
+void copybuf_usb2ring(void)
 {
     SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
@@ -1032,7 +1042,7 @@ void copybuf_usb2sai(void)
     SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
-void copybuf_sai2codec(void)
+void copybuf_ring2sai(void)
 {
     // signedで扱って、逆転(wrap)時に巨大値扱いにならないようにする
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
@@ -1074,6 +1084,104 @@ void copybuf_sai2codec(void)
     }
 }
 
+// ==============================
+// SAI(RX) -> Ring -> USB(IN) path
+// ==============================
+static void copybuf_sai2ring(void)
+{
+    const int16_t index0 = update_pointer_rx;
+    if (index0 < 0)
+        return;
+    if ((uint32_t) index0 >= SAI_BUF_SIZE)
+    {
+        update_pointer_rx = -1;
+        return;
+    }
+
+    update_pointer_rx = -1;
+    __DMB();
+
+    const uint32_t n = (SAI_BUF_SIZE / 2);  // 半分ぶん（word数）
+    int32_t used     = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+    if (used < 0)
+    {
+        sai_receive_index = sai_rx_rng_buf_index;
+        used              = 0;
+    }
+
+    int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
+
+    // freeが足りないなら「古いデータを捨てて」空きを作る（書き過ぎ防止）
+    if (free < (int32_t) n)
+    {
+        uint32_t drop = (uint32_t) ((int32_t) n - free);
+        sai_receive_index += drop;
+    }
+
+    uint32_t w     = sai_rx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1);
+    uint32_t first = SAI_RNG_BUF_SIZE - w;
+    if (first > n)
+        first = n;
+
+    for (uint32_t i = 0; i < first; i++)
+    {
+        sai_rx_rng_buf[w + i] = stereo_in_buf[index0 + i];
+    }
+
+    for (uint32_t i = first; i < n; i++)
+    {
+        sai_rx_rng_buf[i - first] = stereo_in_buf[index0 + i];
+    }
+
+    sai_rx_rng_buf_index += n;
+}
+
+static uint32_t audio_words_per_ms(void)
+{
+    // 例: 48kHz -> 48 frames/ms, stereo -> *2 words/frame
+    return (current_sample_rate / 1000u) * 2;
+}
+
+static void copybuf_ring2usb_and_send(void)
+{
+    if (!tud_audio_mounted())
+        return;
+
+    const uint32_t want_words = audio_words_per_ms();  // 96 or 192 words (48k/96k, stereo, 32bit slot想定)
+    const uint32_t want_bytes = want_words * sizeof(int32_t);
+
+    // 安全: usb_out_buf が足りない設定なら絶対に書かない（ここで落ちるのを防ぐ）
+    if (want_bytes > sizeof(usb_out_buf))
+        return;
+
+    int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+    if (used < 0)
+    {
+        sai_receive_index = sai_rx_rng_buf_index;
+        return;
+    }
+    if (used < (int32_t) want_words)
+        return;  // 足りないなら今回は送らない
+
+    uint32_t r     = sai_receive_index & (SAI_RNG_BUF_SIZE - 1);
+    uint32_t first = SAI_RNG_BUF_SIZE - r;
+    if (first > want_words)
+        first = want_words;
+
+    memcpy(usb_out_buf, sai_rx_rng_buf + r, first * sizeof(int32_t));
+    if (first < want_words)
+        memcpy(usb_out_buf + first, sai_rx_rng_buf, (want_words - first) * sizeof(int32_t));
+
+    // TinyUSB: lenはバイト、戻り値は実際に入ったバイト数 :contentReference[oaicite:1]{index=1}
+    uint16_t written = tud_audio_write(usb_out_buf, (uint16_t) want_bytes);
+    if (written == 0)
+        return;
+
+    // 書けた分だけ読みポインタを進める（途中までしか入らないケースも潰す）
+    uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
+    sai_receive_index += written_words;
+}
+
 void audio_task(void)
 {
 #if 1
@@ -1111,8 +1219,13 @@ void audio_task(void)
 
         //__set_BASEPRI(basepri);
 
-        copybuf_usb2sai();
-        copybuf_sai2codec();
+        // USB -> SAI
+        copybuf_usb2ring();
+        copybuf_ring2sai();
+
+        // SAI -> USB
+        copybuf_sai2ring();
+        copybuf_ring2usb_and_send();
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
