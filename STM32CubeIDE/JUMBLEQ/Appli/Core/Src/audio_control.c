@@ -1238,16 +1238,6 @@ static void copybuf_ring2usb_and_send(void)
 
 void audio_task(void)
 {
-#if 0
-    static uint32_t start_ms = 0;
-    uint32_t curr_ms         = HAL_GetTick();
-    if (start_ms == curr_ms)
-    {
-        return;
-    }
-    start_ms = curr_ms;
-#endif
-
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
