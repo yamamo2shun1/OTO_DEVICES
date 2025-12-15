@@ -64,13 +64,14 @@ uint8_t pot_ch_counter   = 0;
 float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
-int16_t hpout_clear_count          = 0;
-uint32_t sai_tx_rng_buf_index      = 0;
-uint32_t sai_rx_rng_buf_index      = 0;
-uint32_t sai_transmit_index        = 0;
-uint32_t sai_receive_index         = 0;
-volatile int16_t update_pointer_tx = -1;
-volatile int16_t update_pointer_rx = -1;
+int16_t hpout_clear_count     = 0;
+uint32_t sai_tx_rng_buf_index = 0;
+uint32_t sai_rx_rng_buf_index = 0;
+uint32_t sai_transmit_index   = 0;
+uint32_t sai_receive_index    = 0;
+
+static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
+volatile int16_t update_pointer_rx      = -1;
 
 bool s_streaming_out = false;
 bool s_streaming_in  = false;
@@ -1068,29 +1069,26 @@ void copybuf_usb2ring(void)
     // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
-void copybuf_ring2sai(void)
+static inline void fill_tx_half(uint32_t index0)
 {
-    // signedで扱って、逆転(wrap)時に巨大値扱いにならないようにする
+    const uint32_t n = (SAI_TX_BUF_SIZE / 2);
+
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
     if (used < 0)
     {
-        // アンダーラン/リセット等で逆転したら同期を取り直す
+        // 同期ズレは捨てて合わせ直す
+        sai_transmit_index = sai_tx_rng_buf_index;
+        used               = 0;
+    }
+
+    // データ不足ならノイズより「無音」を優先（バッファサイズ変更時の破綻を抑える）
+    if (used < (int32_t) n)
+    {
+        memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
+        // ここで追いつく（溜まり具合が不正なら切り捨て）
         sai_transmit_index = sai_tx_rng_buf_index;
         return;
     }
-
-    const uint32_t n = (SAI_TX_BUF_SIZE / 2);
-    if (used < (int32_t) n)
-        return;
-
-    // busy-waitしない（来てなければ今回は何もしない）
-    const int16_t index0 = update_pointer_tx;
-    if (index0 < 0)
-        return;
-    if ((uint32_t) index0 >= SAI_TX_BUF_SIZE)
-        return;  // 念のため
-    update_pointer_tx = -1;
-    //__DMB();
 
     const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
     uint32_t first        = SAI_RNG_BUF_SIZE - index1;
@@ -1099,15 +1097,25 @@ void copybuf_ring2sai(void)
 
     memcpy(stereo_out_buf + index0, sai_tx_rng_buf + index1, first * sizeof(int32_t));
     if (first < n)
-    {
         memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
-    }
-    sai_transmit_index += n;
 
-    if (update_pointer_tx != -1)
-    {
-        SEGGER_RTT_printf(0, "buffer update too long.\n");
-    }
+    sai_transmit_index += n;
+}
+
+void copybuf_ring2sai(void)
+{
+    // ISRから立つ「更新要求」を取り出して、該当halfだけ1回更新する
+    uint8_t mask;
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    mask            = tx_pending_mask;
+    tx_pending_mask = 0;
+    __set_PRIMASK(primask);
+
+    if (mask & 0x01)
+        fill_tx_half(0);
+    if (mask & 0x02)
+        fill_tx_half(SAI_TX_BUF_SIZE / 2);
 }
 
 // ==============================
@@ -1230,7 +1238,7 @@ static void copybuf_ring2usb_and_send(void)
 
 void audio_task(void)
 {
-#if 1
+#if 0
     static uint32_t start_ms = 0;
     uint32_t curr_ms         = HAL_GetTick();
     if (start_ms == curr_ms)
@@ -1318,7 +1326,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        update_pointer_tx = 0;
+        tx_pending_mask |= 0x01;
         __DMB();
     }
 }
@@ -1327,7 +1335,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA2)
     {
-        update_pointer_tx = SAI_TX_BUF_SIZE / 2;
+        tx_pending_mask |= 0x02;
         __DMB();
     }
 }
@@ -1434,7 +1442,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     sai_rx_rng_buf_index = 0;
     sai_transmit_index   = 0;
     sai_receive_index    = 0;
-    update_pointer_tx    = -1;
+    tx_pending_mask      = 0;
     update_pointer_rx    = -1;
 
     AUDIO_Init_AK4619(new_hz);
