@@ -71,7 +71,7 @@ uint32_t sai_transmit_index   = 0;
 uint32_t sai_receive_index    = 0;
 
 static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
-volatile int16_t update_pointer_rx      = -1;
+static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 
 bool s_streaming_out = false;
 bool s_streaming_in  = false;
@@ -1132,22 +1132,11 @@ static inline uint16_t tud_audio_write_atomic(void const* buf, uint16_t len)
     return w;
 }
 
-static void copybuf_sai2ring(void)
+static inline void fill_rx_half(uint32_t index0)
 {
-    const int16_t index0 = update_pointer_rx;
-    if (index0 < 0)
-        return;
-    if ((uint32_t) index0 >= SAI_RX_BUF_SIZE)
-    {
-        update_pointer_rx = -1;
-        return;
-    }
-
-    update_pointer_rx = -1;
-    __DMB();
-
     const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
-    int32_t used     = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+
+    int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     if (used < 0)
     {
         sai_receive_index = sai_rx_rng_buf_index;
@@ -1155,12 +1144,10 @@ static void copybuf_sai2ring(void)
     }
 
     int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
-
-    // freeが足りないなら「古いデータを捨てて」空きを作る（書き過ぎ防止）
     if (free < (int32_t) n)
     {
-        uint32_t drop = (uint32_t) ((int32_t) n - free);
-        sai_receive_index += drop;
+        // 追いつけないなら古いデータを捨てて空きを作る
+        sai_receive_index += (uint32_t) ((int32_t) n - free);
     }
 
     uint32_t w     = sai_rx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1);
@@ -1168,17 +1155,27 @@ static void copybuf_sai2ring(void)
     if (first > n)
         first = n;
 
-    for (uint32_t i = 0; i < first; i++)
-    {
-        sai_rx_rng_buf[w + i] = stereo_in_buf[index0 + i];
-    }
-
-    for (uint32_t i = first; i < n; i++)
-    {
-        sai_rx_rng_buf[i - first] = stereo_in_buf[index0 + i];
-    }
+    memcpy(sai_rx_rng_buf + w, stereo_in_buf + index0, first * sizeof(int32_t));
+    if (first < n)
+        memcpy(sai_rx_rng_buf, stereo_in_buf + index0 + first, (n - first) * sizeof(int32_t));
 
     sai_rx_rng_buf_index += n;
+}
+
+static void copybuf_sai2ring(void)
+{
+    uint8_t mask;
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    mask            = rx_pending_mask;
+    rx_pending_mask = 0;
+    __set_PRIMASK(primask);
+
+    // 順序：half→cplt の順で処理（両方溜まっていた場合）
+    if (mask & 0x01)
+        fill_rx_half(0);
+    if (mask & 0x02)
+        fill_rx_half(SAI_RX_BUF_SIZE / 2);
 }
 
 static uint32_t audio_words_per_ms(void)
@@ -1291,7 +1288,7 @@ void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        update_pointer_rx = 0;
+        rx_pending_mask |= 0x01;
         __DMB();
     }
 }
@@ -1300,7 +1297,7 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
 {
     if (hsai == &hsai_BlockA1)
     {
-        update_pointer_rx = SAI_RX_BUF_SIZE / 2;
+        rx_pending_mask |= 0x02;
         __DMB();
     }
 }
@@ -1426,7 +1423,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     sai_transmit_index   = 0;
     sai_receive_index    = 0;
     tx_pending_mask      = 0;
-    update_pointer_rx    = -1;
+    rx_pending_mask      = 0;
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
