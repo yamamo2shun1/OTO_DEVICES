@@ -1249,9 +1249,6 @@ void audio_task(void)
     {
         spk_data_size = 0;
 
-        // uint32_t basepri = __get_BASEPRI();
-        //__set_BASEPRI(2);
-
         uint16_t avail = tud_audio_available();
         if (avail > sizeof(usb_in_buf))
         {
@@ -1262,8 +1259,6 @@ void audio_task(void)
         {
             spk_data_size = tud_audio_read(usb_in_buf, avail);
         }
-
-        //__set_BASEPRI(basepri);
 
         // USB -> SAI
         copybuf_usb2ring();
