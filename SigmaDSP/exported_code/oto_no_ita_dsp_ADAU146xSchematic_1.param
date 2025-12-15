@@ -88,7 +88,7 @@ Parameter Data :
 
 Module Name			= input_from_ch2
 Parameter Name		= Gain
-Parameter Address	= 95
+Parameter Address	= 70
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -99,7 +99,7 @@ Parameter Data :
 
 Module Name			= input_from_usb
 Parameter Name		= Gain
-Parameter Address	= 83
+Parameter Address	= 58
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -110,7 +110,7 @@ Parameter Data :
 
 Module Name			= DCInput_0
 Parameter Name		= DCValue
-Parameter Address	= 82
+Parameter Address	= 57
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -121,7 +121,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW
 Parameter Name		= Index_Channel0
-Parameter Address	= 80
+Parameter Address	= 38
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -132,7 +132,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW
 Parameter Name		= Index_Channel1
-Parameter Address	= 81
+Parameter Address	= 39
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -143,7 +143,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_0
 Parameter Name		= gain
-Parameter Address	= 85
+Parameter Address	= 60
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -155,7 +155,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1
 Parameter Name		= gain
-Parameter Address	= 87
+Parameter Address	= 62
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -332,7 +332,7 @@ Parameter Data :
 
 Module Name			= SingleVolumeControl_3
 Parameter Name		= Gain
-Parameter Address	= 84
+Parameter Address	= 59
 Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
@@ -354,7 +354,7 @@ Parameter Data :
 
 Module Name			= DCInput_1
 Parameter Name		= DCValue
-Parameter Address	= 63
+Parameter Address	= 56
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -376,7 +376,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 92
+Parameter Address	= 67
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -388,7 +388,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 90
+Parameter Address	= 65
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -400,7 +400,7 @@ Parameter Data :
 
 Module Name			= input_from_ch1
 Parameter Name		= Gain
-Parameter Address	= 89
+Parameter Address	= 64
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -411,7 +411,7 @@ Parameter Data :
 
 Module Name			= master_output
 Parameter Name		= Gain
-Parameter Address	= 94
+Parameter Address	= 69
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
