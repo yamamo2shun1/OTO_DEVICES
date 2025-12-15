@@ -6,6 +6,8 @@ Datasheets/
 KiCad/OTO_NO_ITA/fp-info-cache
 KiCad/OTO_NO_ITA/jlcpcb/production_files/
 KiCad/OTO_NO_ITA/jlcpcb/gerber/
+KiCad/OTO_NO_DEIRI/jlcpcb/
+KiCad/OTO_NO_TE/jlcpcb/gerber/
 
 ### STM32CubeIDE
 .metadata
@@ -21,43 +23,16 @@ Debug
 *.list
 *.map
 *.cyclo
-
-STM32CubeIDE/CORTEX_MPU/
-
-STM32CubeIDE/GPIO_IOToggle/
-
-STM32CubeIDE/H7S3-test2/
-
-STM32CubeIDE/H7S3-test/
-
-STM32CubeIDE/GPIO_InfiniteLedToggling_Init/
-
-STM32CubeIDE/USB_TEST/
-
-KiCad/OTO_NO_DEIRI/jlcpcb/
-
 *.log
-
 *.step
-
-KiCad/OTO_NO_TE/jlcpcb/gerber/
-
-STM32CubeIDE/NUCLEO_TEST/
+*.bak
 
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_STiROT_Appli.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_sram.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_ROMxspi2.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_ROMxspi1_RAMxspi2.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_RAMxspi1_ROMxspi2.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_OEMiROT_Appli.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_default.ld
 
 KiCad/OTO_NO_ITA/jlcpcb/project.db
-
-*.bak
