@@ -54,7 +54,7 @@ enum
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 
-volatile __attribute__((section("noncacheable_buffer"), aligned(32))) uint16_t adc_val[8] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[8] = {0};
 
 uint16_t pot_val[8]      = {0};
 uint16_t pot_val_prev[8] = {0};
@@ -748,6 +748,13 @@ void control_master_out_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
 }
 
+static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    is_adc_complete = true;
+    __DSB();
+}
+
 void start_adc(void)
 {
     MX_List_HPDMA1_Channel0_Config();
@@ -768,11 +775,29 @@ void start_adc(void)
         Error_Handler();
     }
 
+    // ADC DMA request enable（ビット名はヘッダに合わせて）
+    SET_BIT(hadc1.Instance->CFGR, ADC_CFGR_DMAEN);
+    SET_BIT(hadc1.Instance->CFGR, ADC_CFGR_DMACFG);  // circularにしたいなら
+
+    handle_HPDMA1_Channel0.XferCpltCallback = dma_adc_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_HPDMA1_Channel0) != HAL_OK)
+    {
+        /* Start Error */
+        Error_Handler();
+    }
+
+    if (HAL_ADC_Start(&hadc1) != HAL_OK)
+    {
+        /* ADC conversion start error */
+        Error_Handler();
+    }
+#if 0
     if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 8) != HAL_OK)
     {
         /* ADC conversion start error */
         Error_Handler();
     }
+#endif
 }
 
 void ui_control_task(void)
@@ -1010,6 +1035,32 @@ bool is_started_audio_control(void)
     return is_start_audio_control;
 }
 
+static void dma_sai2_tx_half(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    tx_pending_mask |= 0x01;
+    __DMB();
+}
+static void dma_sai2_tx_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    tx_pending_mask |= 0x02;
+    __DMB();
+}
+
+static void dma_sai1_rx_half(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    rx_pending_mask |= 0x01;
+    __DMB();
+}
+static void dma_sai1_rx_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    rx_pending_mask |= 0x02;
+    __DMB();
+}
+
 void start_sai(void)
 {
     // SAI2 -> Slave Transmit
@@ -1020,11 +1071,22 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
+    handle_GPDMA1_Channel2.XferHalfCpltCallback = dma_sai2_tx_half;
+    handle_GPDMA1_Channel2.XferCpltCallback     = dma_sai2_tx_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel2) != HAL_OK)
+    {
+        /* DMA start error */
+        Error_Handler();
+    }
+#if 0
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_TX_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
         Error_Handler();
     }
+#endif
+    hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;  // ← ここが「DMAリクエスト有効化」
+    __HAL_SAI_ENABLE(&hsai_BlockA2);
 
     HAL_Delay(500);
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
@@ -1039,11 +1101,22 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
+    handle_GPDMA1_Channel3.XferHalfCpltCallback = dma_sai1_rx_half;
+    handle_GPDMA1_Channel3.XferCpltCallback     = dma_sai1_rx_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel3) != HAL_OK)
+    {
+        /* DMA start error */
+        Error_Handler();
+    }
+#if 0
     if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_RX_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
         Error_Handler();
     }
+#endif
+    hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;  // ← ここが「DMAリクエスト有効化」
+    __HAL_SAI_ENABLE(&hsai_BlockA1);
 }
 
 // ==============================
@@ -1104,7 +1177,7 @@ static inline void fill_tx_half(uint32_t index0)
     }
 
     const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-    uint32_t first        = SAI_RNG_BUF_SIZE - index1;
+    uint32_t first = SAI_RNG_BUF_SIZE - index1;
     if (first > n)
         first = n;
 
@@ -1246,12 +1319,48 @@ static void copybuf_ring2usb_and_send(void)
     sai_receive_index += written_words;
 }
 
+#define USB_IRQn OTG_HS_IRQn
+
+static inline uint32_t usb_irq_save(void)
+{
+    uint32_t enabled =
+        (NVIC->ISER[USB_IRQn >> 5] & (1u << (USB_IRQn & 31))) ? 1u : 0u;
+    NVIC_DisableIRQ(USB_IRQn);
+    __DSB();
+    __ISB();
+    return enabled;
+}
+
+static inline void usb_irq_restore(uint32_t enabled)
+{
+    if (enabled)
+        NVIC_EnableIRQ(USB_IRQn);
+    __DSB();
+    __ISB();
+}
+
+static inline uint16_t tud_audio_read_usb_locked(void* buf, uint16_t len)
+{
+    uint32_t en = usb_irq_save();
+    uint16_t r  = tud_audio_read(buf, len);
+    usb_irq_restore(en);
+    return r;
+}
+
+static inline uint16_t tud_audio_available_usb_locked(void)
+{
+    uint32_t en = usb_irq_save();
+    uint16_t a  = tud_audio_available();
+    usb_irq_restore(en);
+    return a;
+}
+
 void audio_task(void)
 {
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
-        AUDIO_SAI_Reset_ForNewRate();
+        // AUDIO_SAI_Reset_ForNewRate();
 #endif
         is_sr_changed = false;
     }
@@ -1259,7 +1368,7 @@ void audio_task(void)
     {
         spk_data_size = 0;
 
-        uint16_t avail = tud_audio_available();
+        uint16_t avail = tud_audio_available_usb_locked();
         if (avail > sizeof(usb_in_buf))
         {
             avail = sizeof(usb_in_buf);
@@ -1267,7 +1376,7 @@ void audio_task(void)
         // SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
         if (avail > 0)
         {
-            spk_data_size = tud_audio_read(usb_in_buf, avail);
+            spk_data_size = tud_audio_read_usb_locked(usb_in_buf, avail);
         }
 
         // USB -> SAI
