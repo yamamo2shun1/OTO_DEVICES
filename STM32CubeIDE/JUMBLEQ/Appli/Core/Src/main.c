@@ -178,7 +178,8 @@ int main(void)
 
         audio_task();
 
-        led_blinking_task();
+        led_tx_blinking_task();
+        led_rx_blinking_task();
         rgb_led_task();
 
         ui_control_task();

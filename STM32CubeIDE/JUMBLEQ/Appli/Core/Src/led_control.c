@@ -36,18 +36,32 @@ void update_color_state(void)
 //--------------------------------------------------------------------+
 // BLINKING TASK
 //--------------------------------------------------------------------+
-void led_blinking_task(void)
+void led_tx_blinking_task(void)
 {
     static uint32_t start_ms = 0;
 
     // Blink every interval ms
-    if (HAL_GetTick() - start_ms < get_blink_interval_ms())
+    if (HAL_GetTick() - start_ms < get_tx_blink_interval_ms())
     {
         return;
     }
-    start_ms += get_blink_interval_ms();
+    start_ms += get_tx_blink_interval_ms();
 
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+}
+
+void led_rx_blinking_task(void)
+{
+    static uint32_t start_ms = 0;
+
+    // Blink every interval ms
+    if (HAL_GetTick() - start_ms < get_rx_blink_interval_ms())
+    {
+        return;
+    }
+    start_ms += get_rx_blink_interval_ms();
+
+    HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 }
 
 void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
@@ -81,7 +95,6 @@ void rgb_led_task(void)
     if (is_color_update)
     {
         HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-        HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
         switch (test)
         {

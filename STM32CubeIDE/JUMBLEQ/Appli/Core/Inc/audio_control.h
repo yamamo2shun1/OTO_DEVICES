@@ -15,12 +15,15 @@
 #define SAI_RX_BUF_SIZE  1024
 
 void reset_audio_buffer(void);
-uint32_t get_blink_interval_ms(void);
+uint32_t get_tx_blink_interval_ms(void);
+uint32_t get_rx_blink_interval_ms(void);
 
 void AUDIO_Init_AK4619(uint32_t hz);
 void AUDIO_Init_ADAU1466(void);
 
 void start_adc(void);
+void ui_control_task(void);
+
 void start_sai(void);
 
 void start_audio_control(void);

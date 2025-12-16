@@ -51,7 +51,8 @@ enum
 };
 
 // Audio controls
-static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
+static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
+static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 
 volatile __attribute__((section("noncacheable_buffer"), aligned(32))) uint16_t adc_val[8] = {0};
 
@@ -139,9 +140,14 @@ void reset_audio_buffer(void)
     __DSB();
 }
 
-uint32_t get_blink_interval_ms(void)
+uint32_t get_tx_blink_interval_ms(void)
 {
-    return blink_interval_ms;
+    return tx_blink_interval_ms;
+}
+
+uint32_t get_rx_blink_interval_ms(void)
+{
+    return rx_blink_interval_ms;
 }
 
 //--------------------------------------------------------------------+
@@ -151,13 +157,15 @@ uint32_t get_blink_interval_ms(void)
 // Invoked when device is mounted
 void tud_mount_cb(void)
 {
-    blink_interval_ms = BLINK_MOUNTED;
+    tx_blink_interval_ms = BLINK_MOUNTED;
+    rx_blink_interval_ms = BLINK_MOUNTED;
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
-    blink_interval_ms = BLINK_NOT_MOUNTED;
+    tx_blink_interval_ms = BLINK_NOT_MOUNTED;
+    rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 }
 
 // Invoked when usb bus is suspended
@@ -166,13 +174,15 @@ void tud_umount_cb(void)
 void tud_suspend_cb(bool remote_wakeup_en)
 {
     (void) remote_wakeup_en;
-    blink_interval_ms = BLINK_SUSPENDED;
+    tx_blink_interval_ms = BLINK_SUSPENDED;
+    rx_blink_interval_ms = BLINK_SUSPENDED;
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
-    blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
+    tx_blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
+    rx_blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
 }
 
 //--------------------------------------------------------------------+
@@ -616,7 +626,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt == 0)
     {
-        blink_interval_ms    = BLINK_MOUNTED;
+        tx_blink_interval_ms = BLINK_MOUNTED;
         s_streaming_out      = false;
         spk_data_size        = 0;
         sai_tx_rng_buf_index = 0;
@@ -625,6 +635,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt == 0)
     {
+        rx_blink_interval_ms = BLINK_MOUNTED;
         s_streaming_in       = false;
         sai_rx_rng_buf_index = 0;
         sai_receive_index    = 0;
@@ -642,7 +653,7 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     TU_LOG2("Set interface %d alt %d\r\n", itf, alt);
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt != 0)
     {
-        blink_interval_ms = BLINK_STREAMING;
+        tx_blink_interval_ms = BLINK_STREAMING;
 
         s_streaming_out = true;
         spk_data_size   = 0;
@@ -650,6 +661,8 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt != 0)
     {
+        rx_blink_interval_ms = BLINK_STREAMING;
+
         s_streaming_in = true;
     }
 
