@@ -11,6 +11,7 @@
 #include "main.h"
 
 void update_color_state(void);
+void reset_led_buffer(void);
 
 void led_tx_blinking_task(void);
 void led_rx_blinking_task(void);

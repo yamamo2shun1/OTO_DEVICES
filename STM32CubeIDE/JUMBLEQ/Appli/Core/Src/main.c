@@ -129,6 +129,7 @@ int main(void)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
     reset_audio_buffer();
+    reset_led_buffer();
 
     AUDIO_Init_AK4619(48000);
 #if RESET_FROM_FW
