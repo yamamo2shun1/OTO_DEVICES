@@ -114,9 +114,19 @@ extern "C"
 #define CFG_TUD_CDC    0
 #define CFG_TUD_MSC    0
 #define CFG_TUD_HID    0
-#define CFG_TUD_MIDI   0
+#define CFG_TUD_MIDI   1
 #define CFG_TUD_AUDIO  1
 #define CFG_TUD_VENDOR 0
+
+
+// MIDI Endpoint/FIFO sizes
+#if CFG_TUD_MIDI
+  // Bulk endpoints: 64 bytes (FS) / 512 bytes (HS)
+  #define CFG_TUD_MIDI_EP_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
+  // FIFO size for tud_midi_{read,write} (bytes)
+  #define CFG_TUD_MIDI_RX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
+  #define CFG_TUD_MIDI_TX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
+#endif
 
 //--------------------------------------------------------------------
 // AUDIO CLASS DRIVER CONFIGURATION
