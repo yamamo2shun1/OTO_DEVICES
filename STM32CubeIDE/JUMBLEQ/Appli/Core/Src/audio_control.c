@@ -1177,7 +1177,7 @@ static inline void fill_tx_half(uint32_t index0)
     }
 
     const uint32_t index1 = sai_transmit_index & (SAI_RNG_BUF_SIZE - 1);
-    uint32_t first = SAI_RNG_BUF_SIZE - index1;
+    uint32_t first        = SAI_RNG_BUF_SIZE - index1;
     if (first > n)
         first = n;
 
@@ -1341,10 +1341,20 @@ static inline void usb_irq_restore(uint32_t enabled)
 
 static inline uint16_t tud_audio_read_usb_locked(void* buf, uint16_t len)
 {
+#if 0
     uint32_t en = usb_irq_save();
     uint16_t r  = tud_audio_read(buf, len);
     usb_irq_restore(en);
     return r;
+#else
+    uint32_t en    = usb_irq_save();  // ← 方針AのUSB IRQ disable
+    uint16_t avail = tud_audio_available();
+    // uint16_t n     = (avail > chunk) ? chunk : avail;
+    uint16_t n = avail;
+    uint16_t r = (n ? tud_audio_read(buf, n) : 0);
+    usb_irq_restore(en);
+    return r;
+#endif
 }
 
 static inline uint16_t tud_audio_available_usb_locked(void)
@@ -1368,6 +1378,7 @@ void audio_task(void)
     {
         spk_data_size = 0;
 
+#if 0
         uint16_t avail = tud_audio_available_usb_locked();
         if (avail > sizeof(usb_in_buf))
         {
@@ -1375,8 +1386,9 @@ void audio_task(void)
         }
         // SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
         if (avail > 0)
+#endif
         {
-            spk_data_size = tud_audio_read_usb_locked(usb_in_buf, avail);
+            spk_data_size = tud_audio_read_usb_locked(usb_in_buf, 384);
         }
 
         // USB -> SAI
