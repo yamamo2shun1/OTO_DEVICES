@@ -28,11 +28,22 @@
 
 enum
 {
+    // UAC2 Audio Function (AC + 2x AS)
     ITF_NUM_AUDIO_CONTROL = 0,
     ITF_NUM_AUDIO_STREAMING_STEREO_OUT,
     ITF_NUM_AUDIO_STREAMING_STEREO_IN,
+
+// USB-MIDI (Audio Class, MIDIStreaming). TinyUSB MIDI uses 2 interfaces.
+#if 1  // CFG_TUD_MIDI
+    ITF_NUM_MIDI,
+    ITF_NUM_MIDI_STREAMING,
+#endif
+
     ITF_NUM_TOTAL
 };
+
+// Number of interfaces that belong to the UAC2 Audio Function above (IAD scope)
+#define ITF_NUM_AUDIO_FUNC_1_N_ITF 3
 
 //--------------------------------------------------------------------+
 // UAC2 DESCRIPTOR TEMPLATES
@@ -58,7 +69,7 @@ enum
 
 #define TUD_AUDIO20_AUDIOIF_STEREO_DESCRIPTOR(_stridx, _epout, _epin, _epint)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \
     /* Standard Interface Association Descriptor (IAD) */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      \
-    TUD_AUDIO20_DESC_IAD(/*_firstitf*/ ITF_NUM_AUDIO_CONTROL, /*_nitfs*/ ITF_NUM_TOTAL, /*_stridx*/ 0x00),                                                                                                                                                                                                                                                                                                                                                                                                                                                        /* Standard AC Interface Descriptor(4.7.1) */                                \
+    TUD_AUDIO20_DESC_IAD(/*_firstitf*/ ITF_NUM_AUDIO_CONTROL, /*_nitfs*/ ITF_NUM_AUDIO_FUNC_1_N_ITF, /*_stridx*/ 0x00),                                                                                                                                                                                                                                                                                                                                                                                                                                           /* Standard AC Interface Descriptor(4.7.1) */                                \
         TUD_AUDIO20_DESC_STD_AC(/*_itfnum*/ ITF_NUM_AUDIO_CONTROL, /*_nEPs*/ 0x01, /*_stridx*/ _stridx),                                                                                                                                                                                                                                                                                                                                                                                                                                                          /* Class-Specific AC Interface Header Descriptor(4.7.2) */                   \
         TUD_AUDIO20_DESC_CS_AC(/*_bcdADC*/ 0x0200, /*_category*/ AUDIO20_FUNC_MUSICAL_INSTRUMENT, /*_totallen*/ TUD_AUDIO20_DESC_CLK_SRC_LEN + TUD_AUDIO20_DESC_FEATURE_UNIT_LEN(2) + TUD_AUDIO20_DESC_INPUT_TERM_LEN + TUD_AUDIO20_DESC_OUTPUT_TERM_LEN + TUD_AUDIO20_DESC_INPUT_TERM_LEN + TUD_AUDIO20_DESC_OUTPUT_TERM_LEN, /*_ctrl*/ AUDIO20_CS_AS_INTERFACE_CTRL_LATENCY_POS),                                                                                                                                                                               /* Clock Source Descriptor(4.7.2.1) */                                       \
         TUD_AUDIO20_DESC_CLK_SRC(/*_clkid*/ UAC2_ENTITY_CLOCK, /*_attr*/ 3, /*_ctrl*/ 7, /*_assocTerm*/ 0x00, /*_stridx*/ 0x00),                                                                                                                                                                                                                                                                                                                                                                                                                                  /* Input Terminal Descriptor(4.7.2.4) */                                     \
