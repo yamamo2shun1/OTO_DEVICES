@@ -999,20 +999,6 @@ void ui_control_task(void)
     is_adc_complete = false;
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    if (hadc == &hadc1)
-    {
-        is_adc_complete = true;
-        __DSB();
-    }
-}
-
-void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
-{
-    SEGGER_RTT_printf(0, "errorCode -> %lX\n", hadc->ErrorCode);
-}
-
 bool get_sr_changed_state(void)
 {
     return is_sr_changed;
@@ -1415,58 +1401,6 @@ void audio_task(void)
             hpout_clear_count = 0;
         }
 #endif
-    }
-}
-
-void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA1)
-    {
-        rx_pending_mask |= 0x01;
-        __DMB();
-    }
-}
-
-void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA1)
-    {
-        rx_pending_mask |= 0x02;
-        __DMB();
-    }
-}
-
-void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA2)
-    {
-        tx_pending_mask |= 0x01;
-        __DMB();
-    }
-}
-
-void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA2)
-    {
-        tx_pending_mask |= 0x02;
-        __DMB();
-    }
-}
-
-void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
-{
-    volatile uint32_t saiErr = hsai->ErrorCode;                                 // HAL_SAI_ERROR_*
-    volatile uint32_t dmaErr = hsai->hdmarx ? hsai->hdmarx->ErrorCode : 0;      // HAL_DMA_ERROR_*
-    volatile uint32_t csr    = hsai->hdmarx ? hsai->hdmarx->Instance->CSR : 0;  // DTEF/ULEF/USEF/TOF 等
-
-    (void) saiErr;
-    (void) dmaErr;
-    (void) csr;  // ブレークして値を見る
-
-    if (__HAL_SAI_GET_FLAG(hsai, SAI_FLAG_OVRUDR) != RESET)
-    {
-        __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
     }
 }
 
