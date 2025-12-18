@@ -244,7 +244,7 @@ static void MPU_Config(void)
      */
     MPU_InitStruct.Number      = MPU_REGION_NUMBER3;
     MPU_InitStruct.BaseAddress = 0x24040000;
-    MPU_InitStruct.Size        = MPU_REGION_SIZE_128KB;
+    MPU_InitStruct.Size        = MPU_REGION_SIZE_256KB;
     // MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
     MPU_InitStruct.IsCacheable  = MPU_ACCESS_NOT_CACHEABLE;
     MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
