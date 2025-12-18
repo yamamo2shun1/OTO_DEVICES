@@ -46,10 +46,14 @@ extern "C"
 #define BOARD_DEVICE_RHPORT_NUM   1
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
+
+// DWC2 DMA mode - Slaveモードを無効にし、DMAモードを有効にする
+// DMAモードではUSB FIFOへのアクセスがDMAで行われ、CPU競合が減る
+#define CFG_TUD_DWC2_SLAVE_ENABLE 0
+#define CFG_TUD_DWC2_DMA_ENABLE   1
+
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define TUD_AUDIO_PREFER_RING_BUFFER 1
-// #define CFG_TUSB_MEM_SECTION   __attribute__((section("noncacheable_buffer")))
-// #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
 // #define CFG_TUSB_DEBUG        0
 // #define CFG_TUD_LOG_LEVEL     0
 // #define CFG_TUSB_DEBUG_PRINTF my_printf
@@ -94,13 +98,9 @@ extern "C"
  * - CFG_TUSB_MEM SECTION : __attribute__ (( section(".usb_ram") ))
  * - CFG_TUSB_MEM_ALIGN   : __attribute__ ((aligned(4)))
  */
-#ifndef CFG_TUSB_MEM_SECTION
-    #define CFG_TUSB_MEM_SECTION
-#endif
-
-#ifndef CFG_TUSB_MEM_ALIGN
-    #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(4)))
-#endif
+// DMAモードでも通常RAMを使用（noncacheableは他のDMAに影響する）
+#define CFG_TUSB_MEM_SECTION
+#define CFG_TUSB_MEM_ALIGN   __attribute__((aligned(32)))
 
     //--------------------------------------------------------------------
     // DEVICE CONFIGURATION
