@@ -39,7 +39,7 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(DTCM) + LENGTH(DTCM); /* end of "DTCM" Ram type memory */
 
 _Min_Heap_Size = 0x200; /* required amount of heap */
-_Min_Stack_Size = 0x400; /* required amount of stack */
+_Min_Stack_Size = 0x1000; /* required amount of stack - 4KB */
 
 __FLASH_BEGIN  = 0x90000000;
 __FLASH_SIZE   = 0x08000000;
