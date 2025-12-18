@@ -1022,15 +1022,15 @@ void ui_control_task(void)
         {
             for (int i = 1; i < 5; i++)
             {
-                if (mag_val[i] < mag_offset[i])
+                if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
                 {
                     xfade[i] = 1.0f;
                 }
-                else if (mag_val[i] >= mag_offset[i] && mag_val[i] <= mag_offset[i] + 500)
+                else if (mag_val[i] >= mag_offset[i] + MAG_XFADE_CUTOFF && mag_val[i] <= mag_offset[i] + MAG_XFADE_RANGE)
                 {
-                    xfade[i] = 1.0f - ((float) (mag_val[i] - mag_offset[i]) / (float) 500);
+                    xfade[i] = 1.0f - ((float) (mag_val[i] - mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE);
                 }
-                else if (mag_val[i] > mag_offset[i] + 500)
+                else if (mag_val[i] > mag_offset[i] + MAG_XFADE_RANGE)
                 {
                     xfade[i] = 0.0f;
                 }
