@@ -224,24 +224,14 @@ void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
     // TinyUSB is already initialized in main.c with tusb_init()
-    uint32_t loop_count = 0;
+    (void)argument;
 
     /* Infinite loop */
     for (;;)
     {
         dbg_usb_task_count++;
         tud_task();
-        
-        // 100回に1回だけ1ms待機して低優先度タスクに実行機会を与える
-        if (++loop_count >= 100)
-        {
-            loop_count = 0;
-            osDelay(1);
-        }
-        else
-        {
-            taskYIELD();
-        }
+        osDelay(1);  // 毎回1ms待機してUSBとAudioのバランスを取る
     }
     /* USER CODE END StartUSBTask */
 }
@@ -256,25 +246,14 @@ void StartUSBTask(void* argument)
 void StartAudioTask(void* argument)
 {
     /* USER CODE BEGIN StartAudioTask */
-    extern volatile uint32_t dbg_audio_task_count;
-    uint32_t loop_count = 0;
+    (void)argument;
     
     /* Infinite loop */
     for (;;)
     {
         dbg_audio_task_count++;
         audio_task();
-        
-        // 100回に1回だけ1ms待機して低優先度タスクに実行機会を与える
-        if (++loop_count >= 100)
-        {
-            loop_count = 0;
-            osDelay(1);
-        }
-        else
-        {
-            taskYIELD();
-        }
+        osDelay(1);  // 毎回1ms待機してUSBとAudioのバランスを取る
     }
     /* USER CODE END StartAudioTask */
 }
