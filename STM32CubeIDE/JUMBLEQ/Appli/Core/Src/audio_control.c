@@ -66,10 +66,10 @@ float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
 int16_t hpout_clear_count     = 0;
-uint32_t sai_tx_rng_buf_index = 0;
-uint32_t sai_rx_rng_buf_index = 0;
-uint32_t sai_transmit_index   = 0;
-uint32_t sai_receive_index    = 0;
+volatile uint32_t sai_tx_rng_buf_index = 0;
+volatile uint32_t sai_rx_rng_buf_index = 0;
+volatile uint32_t sai_transmit_index   = 0;
+volatile uint32_t sai_receive_index    = 0;
 
 static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
@@ -84,11 +84,11 @@ volatile bool is_adc_complete = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
-int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
-int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
-int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_TX_BUF_SIZE] = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_RX_BUF_SIZE]  = {0};
@@ -631,6 +631,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
         spk_data_size        = 0;
         sai_tx_rng_buf_index = 0;
         sai_transmit_index   = 0;
+        tx_pending_mask      = 0;  // DMAフラグをクリア
     }
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt == 0)
@@ -639,6 +640,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
         s_streaming_in       = false;
         sai_rx_rng_buf_index = 0;
         sai_receive_index    = 0;
+        rx_pending_mask      = 0;  // DMAフラグをクリア
     }
 
     return true;
@@ -675,6 +677,8 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
     return true;
 }
+
+// tud_audio_rx_done_isr を削除してデフォルト（weak）に戻す
 
 void control_input_from_usb_gain(const uint16_t adc_val)
 {
@@ -1145,6 +1149,12 @@ static inline void fill_tx_half(uint32_t index0)
 {
     const uint32_t n = (SAI_TX_BUF_SIZE / 2);
 
+    // index0のバウンドチェック
+    if (index0 >= SAI_TX_BUF_SIZE) {
+        // 不正な値 - 無音で埋める
+        return;
+    }
+
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
     if (used < 0)
     {
@@ -1159,6 +1169,14 @@ static inline void fill_tx_half(uint32_t index0)
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         // ここで追いつく（溜まり具合が不正なら切り捨て）
         sai_transmit_index = sai_tx_rng_buf_index;
+        return;
+    }
+
+    // usedが大きすぎる場合も異常（オーバーフロー等）
+    if (used > (int32_t)SAI_RNG_BUF_SIZE) {
+        // リセットして無音で埋める
+        sai_transmit_index = sai_tx_rng_buf_index;
+        memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         return;
     }
 
@@ -1208,11 +1226,22 @@ static inline void fill_rx_half(uint32_t index0)
 {
     const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
 
+    // index0のバウンドチェック
+    if (index0 >= SAI_RX_BUF_SIZE) {
+        return;
+    }
+
     int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     if (used < 0)
     {
         sai_receive_index = sai_rx_rng_buf_index;
         used              = 0;
+    }
+
+    // usedが大きすぎる場合も異常（オーバーフロー等）
+    if (used > (int32_t)SAI_RNG_BUF_SIZE) {
+        sai_receive_index = sai_rx_rng_buf_index;
+        used = 0;
     }
 
     int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
@@ -1256,6 +1285,20 @@ static uint32_t audio_words_per_ms(void)
     return (current_sample_rate / 1000u) * 2;
 }
 
+// USB IRQ個別制御から、全割り込み禁止に変更
+// NVICの個別制御は状態不整合を起こす可能性があるため
+static inline uint32_t usb_irq_save(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+static inline void usb_irq_restore(uint32_t primask)
+{
+    __set_PRIMASK(primask);
+}
+
 static void copybuf_ring2usb_and_send(void)
 {
     if (!tud_audio_mounted())
@@ -1293,54 +1336,38 @@ static void copybuf_ring2usb_and_send(void)
     if (first < want_words)
         memcpy(usb_out_buf + first, sai_rx_rng_buf, (want_words - first) * sizeof(int32_t));
 
-    // TinyUSB: lenはバイト、戻り値は実際に入ったバイト数 :contentReference[oaicite:1]{index=1}
+    // TinyUSB FIFOは内部でスレッドセーフな実装
     uint16_t written = tud_audio_write(usb_out_buf, (uint16_t) want_bytes);
+    
     if (written == 0)
         return;
 
-    // 書けた分だけ読みポインタを進める（途中までしか入らないケースも潰す）
+    // 書けた分だけ読みポインタを進める
+    // 4バイト境界に丸める（int32_t単位のため）
     uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
+    // 安全チェック：want_wordsを超えないように
     if (written_words > want_words)
         written_words = want_words;
+    // 安全チェック：0の場合は何もしない
+    if (written_words == 0)
+        return;
     sai_receive_index += written_words;
 }
 
 #define USB_IRQn OTG_HS_IRQn
 
-static inline uint32_t usb_irq_save(void)
-{
-    uint32_t enabled =
-        (NVIC->ISER[USB_IRQn >> 5] & (1u << (USB_IRQn & 31))) ? 1u : 0u;
-    NVIC_DisableIRQ(USB_IRQn);
-    __DSB();
-    __ISB();
-    return enabled;
-}
-
-static inline void usb_irq_restore(uint32_t enabled)
-{
-    if (enabled)
-        NVIC_EnableIRQ(USB_IRQn);
-    __DSB();
-    __ISB();
-}
-
 static inline uint16_t tud_audio_read_usb_locked(void* buf, uint16_t len)
 {
-#if 0
-    uint32_t en = usb_irq_save();
-    uint16_t r  = tud_audio_read(buf, len);
-    usb_irq_restore(en);
-    return r;
-#else
-    uint32_t en    = usb_irq_save();  // ← 方針AのUSB IRQ disable
-    uint16_t avail = tud_audio_available();
-    // uint16_t n     = (avail > chunk) ? chunk : avail;
-    uint16_t n = avail;
-    uint16_t r = (n ? tud_audio_read(buf, n) : 0);
-    usb_irq_restore(en);
-    return r;
-#endif
+    // 4バイト境界にアライメント
+    len &= (uint16_t)~3u;
+    
+    if (len == 0) {
+        return 0;
+    }
+    
+    // TinyUSB FIFOは内部でスレッドセーフな実装
+    // USB IRQ禁止はエンドポイントの状態遷移を妨げるため使用しない
+    return tud_audio_read(buf, len);
 }
 
 static inline uint16_t tud_audio_available_usb_locked(void)
@@ -1351,8 +1378,29 @@ static inline uint16_t tud_audio_available_usb_locked(void)
     return a;
 }
 
+// audio_task()呼び出し頻度計測用
+static volatile uint32_t audio_task_call_count = 0;
+static volatile uint32_t audio_task_last_tick = 0;
+static volatile uint32_t audio_task_frequency = 0;  // 呼び出し回数/秒
+
+// デバッグ用：無音化時の状態を保存
+static volatile uint16_t dbg_last_avail = 0;
+static volatile uint16_t dbg_last_read = 0;
+static volatile uint32_t dbg_zero_count = 0;  // avail=0の連続回数
+static volatile bool dbg_streaming_out = false;
+static volatile bool dbg_mounted = false;
+
 void audio_task(void)
 {
+    // 呼び出し頻度計測
+    audio_task_call_count++;
+    uint32_t now = HAL_GetTick();
+    if (now - audio_task_last_tick >= 1000) {
+        audio_task_frequency = audio_task_call_count;
+        audio_task_call_count = 0;
+        audio_task_last_tick = now;
+    }
+    
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
@@ -1362,21 +1410,13 @@ void audio_task(void)
     }
     else
     {
-        spk_data_size = 0;
-
-#if 0
-        uint16_t avail = tud_audio_available_usb_locked();
-        if (avail > sizeof(usb_in_buf))
-        {
-            avail = sizeof(usb_in_buf);
-        }
-        // SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
-        if (avail > 0)
-#endif
-        {
-            spk_data_size = tud_audio_read_usb_locked(usb_in_buf, 384);
-        }
-
+        // デバッグ情報を更新
+        dbg_streaming_out = s_streaming_out;
+        dbg_mounted = tud_audio_mounted();
+        
+        // FIFOから読み取り（IRQ禁止なし - 競合の可能性あり）
+        spk_data_size = tud_audio_read_usb_locked(usb_in_buf, 96);
+        
         // USB -> SAI
         copybuf_usb2ring();
         copybuf_ring2sai();
