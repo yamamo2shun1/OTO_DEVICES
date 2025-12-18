@@ -40,7 +40,7 @@ extern "C"
 // Board Specific Configuration
 //--------------------------------------------------------------------+
 #define CFG_TUSB_MCU              OPT_MCU_STM32H7RS
-#define CFG_TUSB_OS               OPT_OS_NONE
+#define CFG_TUSB_OS               OPT_OS_FREERTOS
 #define BOARD_DEVICE_RHPORT_SPEED OPT_MODE_HIGH_SPEED
 #define BOARD_TUD_MAX_SPEED       OPT_MODE_HIGH_SPEED
 #define BOARD_DEVICE_RHPORT_NUM   1
@@ -51,6 +51,16 @@ extern "C"
 // DMAモードではUSB FIFOへのアクセスがDMAで行われ、CPU競合が減る
 #define CFG_TUD_DWC2_SLAVE_ENABLE 0
 #define CFG_TUD_DWC2_DMA_ENABLE   1
+
+// DMAモード + DCacheが有効なMCUでは、キャッシュ管理が必須
+// TinyUSBがDMA転送後にキャッシュをインバリデートするようになる
+#define CFG_TUD_MEM_DCACHE_ENABLE 1
+#define CFG_TUD_MEM_DCACHE_LINE_SIZE 32
+
+// noncacheable_buffer領域をuncached regionsに追加
+// (0x24040000 - 0x2405FFFF: 128KB noncacheable section)
+//#define CFG_DWC2_MEM_UNCACHED_REGIONS \
+  {.start = 0x24040000, .end = 0x2405FFFF},
 
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define TUD_AUDIO_PREFER_RING_BUFFER 1

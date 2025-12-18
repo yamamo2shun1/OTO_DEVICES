@@ -1,0 +1,325 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+
+/* Includes ------------------------------------------------------------------*/
+#include "FreeRTOS.h"
+#include "task.h"
+#include "main.h"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "tusb.h"
+#include "audio_control.h"
+#include "led_control.h"
+#include "adc.h"
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+/* USER CODE BEGIN Variables */
+
+/* USER CODE END Variables */
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+    .name       = "defaultTask",
+    .stack_size = 128 * 4,
+    .priority   = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for usbTask */
+osThreadId_t usbTaskHandle;
+const osThreadAttr_t usbTask_attributes = {
+    .name       = "usbTask",
+    .stack_size = 512 * 4,
+    .priority   = (osPriority_t) osPriorityHigh,  // AboveNormalからHighに変更
+};
+/* Definitions for audioTask */
+osThreadId_t audioTaskHandle;
+const osThreadAttr_t audioTask_attributes = {
+    .name       = "audioTask",
+    .stack_size = 512 * 4,
+    .priority   = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for ledTask */
+osThreadId_t ledTaskHandle;
+const osThreadAttr_t ledTask_attributes = {
+    .name       = "ledTask",
+    .stack_size = 256 * 4,
+    .priority   = (osPriority_t) osPriorityNormal,  // BelowNormalからNormalに変更
+};
+/* Definitions for adcTask */
+osThreadId_t adcTaskHandle;
+const osThreadAttr_t adcTask_attributes = {
+    .name       = "adcTask",
+    .stack_size = 512 * 4,
+    .priority   = (osPriority_t) osPriorityAboveNormal,  // HighからAboveNormalに変更（USB/Audioより低く）
+};
+
+/* Private function prototypes -----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
+
+/* USER CODE END FunctionPrototypes */
+
+void StartDefaultTask(void* argument);
+void StartUSBTask(void* argument);
+void StartAudioTask(void* argument);
+void StartLEDTask(void* argument);
+void StartADCTask(void* argument);
+
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+
+/* Hook prototypes */
+void vApplicationStackOverflowHook(xTaskHandle xTask, char* pcTaskName);
+void vApplicationMallocFailedHook(void);
+
+/* USER CODE BEGIN 4 */
+void vApplicationStackOverflowHook(xTaskHandle xTask, char* pcTaskName)
+{
+    /* Run time stack overflow checking is performed if
+    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+    called if a stack overflow is detected. */
+    (void) xTask;
+    (void) pcTaskName;
+    __BKPT(0);  // Stack overflow detected - break here
+    for (;;)
+        ;
+}
+/* USER CODE END 4 */
+
+/* USER CODE BEGIN 5 */
+void vApplicationMallocFailedHook(void)
+{
+    /* vApplicationMallocFailedHook() will only be called if
+    configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h. It is a hook
+    function that will get called if a call to pvPortMalloc() fails.
+    pvPortMalloc() is called internally by the kernel whenever a task, queue,
+    timer or semaphore is created. It is also called by various parts of the
+    demo application. If heap_1.c or heap_2.c are used, then the size of the
+    heap available to pvPortMalloc() is defined by configTOTAL_HEAP_SIZE in
+    FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
+    to query the size of free heap space that remains (although it does not
+    provide information on how the remaining heap might be fragmented). */
+    __BKPT(0);  // Malloc failed - break here
+    for (;;)
+        ;
+}
+/* USER CODE END 5 */
+
+/**
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
+    /* USER CODE BEGIN Init */
+
+    /* USER CODE END Init */
+
+    /* USER CODE BEGIN RTOS_MUTEX */
+    /* add mutexes, ... */
+    /* USER CODE END RTOS_MUTEX */
+
+    /* USER CODE BEGIN RTOS_SEMAPHORES */
+    /* add semaphores, ... */
+    /* USER CODE END RTOS_SEMAPHORES */
+
+    /* USER CODE BEGIN RTOS_TIMERS */
+    /* start timers, add new ones, ... */
+    /* USER CODE END RTOS_TIMERS */
+
+    /* USER CODE BEGIN RTOS_QUEUES */
+    /* add queues, ... */
+    /* USER CODE END RTOS_QUEUES */
+
+    /* Create the thread(s) */
+    /* creation of defaultTask */
+    defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+    /* creation of usbTask */
+    usbTaskHandle = osThreadNew(StartUSBTask, NULL, &usbTask_attributes);
+
+    /* creation of audioTask */
+    audioTaskHandle = osThreadNew(StartAudioTask, NULL, &audioTask_attributes);
+
+    /* creation of ledTask */
+    ledTaskHandle = osThreadNew(StartLEDTask, NULL, &ledTask_attributes);
+
+    /* creation of adcTask */
+    adcTaskHandle = osThreadNew(StartADCTask, NULL, &adcTask_attributes);
+
+    /* USER CODE BEGIN RTOS_THREADS */
+    /* add threads, ... */
+    /* USER CODE END RTOS_THREADS */
+
+    /* USER CODE BEGIN RTOS_EVENTS */
+    /* add events, ... */
+    /* USER CODE END RTOS_EVENTS */
+}
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void* argument)
+{
+    /* USER CODE BEGIN StartDefaultTask */
+    /* Infinite loop */
+    for (;;)
+    {
+        update_color_state();
+        osDelay(1000);
+    }
+    /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_StartUSBTask */
+/**
+ * @brief Function implementing the usbTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartUSBTask */
+
+// デバッグ用カウンタ
+volatile uint32_t dbg_usb_task_count   = 0;
+volatile uint32_t dbg_audio_task_count = 0;
+
+void StartUSBTask(void* argument)
+{
+    /* USER CODE BEGIN StartUSBTask */
+    // TinyUSB is already initialized in main.c with tusb_init()
+    uint32_t loop_count = 0;
+
+    /* Infinite loop */
+    for (;;)
+    {
+        dbg_usb_task_count++;
+        tud_task();
+        
+        // 100回に1回だけ1ms待機して低優先度タスクに実行機会を与える
+        if (++loop_count >= 100)
+        {
+            loop_count = 0;
+            osDelay(1);
+        }
+        else
+        {
+            taskYIELD();
+        }
+    }
+    /* USER CODE END StartUSBTask */
+}
+
+/* USER CODE BEGIN Header_StartAudioTask */
+/**
+ * @brief Function implementing the audioTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartAudioTask */
+void StartAudioTask(void* argument)
+{
+    /* USER CODE BEGIN StartAudioTask */
+    extern volatile uint32_t dbg_audio_task_count;
+    uint32_t loop_count = 0;
+    
+    /* Infinite loop */
+    for (;;)
+    {
+        dbg_audio_task_count++;
+        audio_task();
+        
+        // 100回に1回だけ1ms待機して低優先度タスクに実行機会を与える
+        if (++loop_count >= 100)
+        {
+            loop_count = 0;
+            osDelay(1);
+        }
+        else
+        {
+            taskYIELD();
+        }
+    }
+    /* USER CODE END StartAudioTask */
+}
+
+/* USER CODE BEGIN Header_StartLEDTask */
+/**
+ * @brief Function implementing the ledTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartLEDTask */
+void StartLEDTask(void* argument)
+{
+    /* USER CODE BEGIN StartLEDTask */
+    /* Infinite loop */
+    for (;;)
+    {
+        led_tx_blinking_task();
+        led_rx_blinking_task();
+        rgb_led_task();
+        osDelay(10);  // LED更新は10ms間隔で十分
+    }
+    /* USER CODE END StartLEDTask */
+}
+
+/* USER CODE BEGIN Header_StartADCTask */
+/**
+ * @brief Function implementing the adcTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartADCTask */
+void StartADCTask(void* argument)
+{
+    /* USER CODE BEGIN StartADCTask */
+    /* Infinite loop */
+    for (;;)
+    {
+        ui_control_task();
+        osDelay(1);
+    }
+    /* USER CODE END StartADCTask */
+}
+
+/* Private application code --------------------------------------------------*/
+/* USER CODE BEGIN Application */
+
+/* USER CODE END Application */

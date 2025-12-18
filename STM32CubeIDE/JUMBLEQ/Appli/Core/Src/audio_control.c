@@ -74,6 +74,17 @@ volatile uint32_t sai_receive_index    = 0;
 static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 
+// Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
+volatile uint32_t dbg_tx_half_count = 0;
+volatile uint32_t dbg_tx_cplt_count = 0;
+volatile uint32_t dbg_fill_tx_count = 0;
+volatile uint32_t dbg_usb2ring_bytes = 0;  // copybuf_usb2ringでコピーされたバイト数
+volatile int32_t dbg_ring_used = 0;        // リングバッファの使用量
+volatile uint32_t dbg_fill_underrun = 0;   // データ不足でスキップした回数
+volatile uint32_t dbg_fill_copied = 0;     // 正常にコピーできた回数
+volatile uint32_t dbg_usb2ring_count = 0;  // copybuf_usb2ring呼び出し回数
+volatile uint32_t dbg_usb2ring_total = 0;  // USBから読んだ累積バイト数
+
 bool s_streaming_out = false;
 bool s_streaming_in  = false;
 
@@ -1029,12 +1040,14 @@ static void dma_sai2_tx_half(DMA_HandleTypeDef* hdma)
 {
     (void) hdma;
     tx_pending_mask |= 0x01;
+    dbg_tx_half_count++;
     __DMB();
 }
 static void dma_sai2_tx_cplt(DMA_HandleTypeDef* hdma)
 {
     (void) hdma;
     tx_pending_mask |= 0x02;
+    dbg_tx_cplt_count++;
     __DMB();
 }
 
@@ -1053,6 +1066,17 @@ static void dma_sai1_rx_cplt(DMA_HandleTypeDef* hdma)
 
 void start_sai(void)
 {
+    // ========================================
+    // リングバッファをプリフィル（無音で初期化）
+    // SAI DMAが開始直後にHalf割り込みを発生させた時、
+    // リングバッファにデータがないとアンダーランになるため、
+    // SAI_TX_BUF_SIZE分の無音データを事前に投入しておく
+    // ========================================
+    memset(sai_tx_rng_buf, 0, SAI_TX_BUF_SIZE * sizeof(int32_t));
+    sai_tx_rng_buf_index = SAI_TX_BUF_SIZE;  // プリフィル分を加算
+    sai_transmit_index = 0;
+    tx_pending_mask = 0;
+    
     // SAI2 -> Slave Transmit
     // USB -> STM32 -(SAI)-> ADAU1466
     MX_List_GPDMA1_Channel2_Config();
@@ -1115,11 +1139,16 @@ void start_sai(void)
 
 void copybuf_usb2ring(void)
 {
+    dbg_usb2ring_count++;  // 呼び出し回数カウント
+    
     // SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
     uint32_t n = spk_data_size / sizeof(int32_t);
+    dbg_usb2ring_total += spk_data_size;  // USBから読んだ累積バイト数
 
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    dbg_ring_used = used;  // デバッグ用
+    
     if (used < 0)
     {
         sai_transmit_index = sai_tx_rng_buf_index;
@@ -1141,12 +1170,15 @@ void copybuf_usb2ring(void)
         sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[i];
         sai_tx_rng_buf_index++;
     }
+    
+    dbg_usb2ring_bytes = n * sizeof(int32_t);  // コピーしたバイト数
 
     // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
 static inline void fill_tx_half(uint32_t index0)
 {
+    dbg_fill_tx_count++;
     const uint32_t n = (SAI_TX_BUF_SIZE / 2);
 
     // index0のバウンドチェック
@@ -1166,6 +1198,7 @@ static inline void fill_tx_half(uint32_t index0)
     // データ不足ならノイズより「無音」を優先（バッファサイズ変更時の破綻を抑える）
     if (used < (int32_t) n)
     {
+        dbg_fill_underrun++;  // アンダーラン発生
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         // ここで追いつく（溜まり具合が不正なら切り捨て）
         sai_transmit_index = sai_tx_rng_buf_index;
@@ -1190,6 +1223,7 @@ static inline void fill_tx_half(uint32_t index0)
         memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
 
     sai_transmit_index += n;
+    dbg_fill_copied++;  // 正常にコピー完了
 }
 
 void copybuf_ring2sai(void)
@@ -1414,8 +1448,8 @@ void audio_task(void)
         dbg_streaming_out = s_streaming_out;
         dbg_mounted = tud_audio_mounted();
         
-        // FIFOから読み取り（IRQ禁止なし - 競合の可能性あり）
-        spk_data_size = tud_audio_read_usb_locked(usb_in_buf, 96);
+        // FIFOから読み取り - バッファ全体を使用
+        spk_data_size = tud_audio_read_usb_locked(usb_in_buf, sizeof(usb_in_buf));
         
         // USB -> SAI
         copybuf_usb2ring();
