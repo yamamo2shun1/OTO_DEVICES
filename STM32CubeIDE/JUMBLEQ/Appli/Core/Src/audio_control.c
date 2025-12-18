@@ -64,9 +64,12 @@ uint32_t pot_val_ma[POT_NUM][ADC_MA_SIZE] = {0};
 uint16_t pot_val[POT_NUM]                 = {0};
 uint16_t pot_val_prev[POT_NUM]            = {0};
 
+uint16_t mag_calibration_count               = 0;
 uint16_t mag_ma_index[MAG_SW_NUM]            = {0};
 uint32_t mag_val_ma[MAG_SW_NUM][ADC_MA_SIZE] = {0};
 uint16_t mag_val[MAG_SW_NUM]                 = {0};
+uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
+uint16_t mag_offset[MAG_SW_NUM]              = {0};
 
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
@@ -129,24 +132,27 @@ void reset_audio_buffer(void)
     }
 
     for (uint16_t i = 0; i < POT_NUM; i++)
-	{
-		pot_ma_index[i] = 0;
-		pot_val[i]      = 0;
-		pot_val_prev[i] = 0;
-		for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
-		{
-			pot_val_ma[i][j] = 0;
-		}
-	}
+    {
+        pot_ma_index[i] = 0;
+        pot_val[i]      = 0;
+        pot_val_prev[i] = 0;
+        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        {
+            pot_val_ma[i][j] = 0;
+        }
+    }
 
+    mag_calibration_count = 0;
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
-    	mag_ma_index[i] = 0;
-    	mag_val[i]      = 0;
-    	for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
-		{
-			mag_val_ma[i][j] = 0;
-		}
+        mag_ma_index[i]   = 0;
+        mag_val[i]        = 0;
+        mag_offset_sum[i] = 0;
+        mag_offset[i]     = 0;
+        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        {
+            mag_val_ma[i][j] = 0;
+        }
     }
 
     for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4; i++)
@@ -962,7 +968,7 @@ void ui_control_task(void)
 #endif
     }
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < MAG_SW_NUM; i++)
     {
         mag_val_ma[i][mag_ma_index[i]] = adc_val[i];
         mag_ma_index[i]                = (mag_ma_index[i] + 1) % ADC_MA_SIZE;
@@ -973,10 +979,22 @@ void ui_control_task(void)
             mag_sum += mag_val_ma[i][j];
         }
         mag_val[i] = mag_sum / ADC_MA_SIZE;
+
+        if (mag_calibration_count < MAG_CALIBRATION_COUNT_MAX)
+        {
+            mag_offset_sum[i] += adc_val[i];
+        }
+        else if (mag_calibration_count == MAG_CALIBRATION_COUNT_MAX)
+        {
+            mag_offset[i] = mag_offset_sum[i] / MAG_CALIBRATION_COUNT_MAX;
+        }
+    }
+    if (mag_calibration_count <= MAG_CALIBRATION_COUNT_MAX)
+    {
+        mag_calibration_count++;
     }
 
-#if 1
-    #if 0
+#if 0
     if (mag_val[0] < 950)
     {
         xfade[0] = 0.0f;
@@ -989,56 +1007,58 @@ void ui_control_task(void)
     {
         xfade[0] = 1.0f;
     }
-    #endif
+#endif
 
-    if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
+    if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        for (int i = 1; i < 5; i++)
+        if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
         {
-            xfade[i] = 0.0f;
-        }
-    }
-    else
-    {
-        for (int i = 1; i < 5; i++)
-        {
-            if (mag_val[i] < 950)
-            {
-                xfade[i] = 1.0f;
-            }
-            else if (mag_val[i] >= 950 && mag_val[i] <= 1400)
-            {
-                xfade[i] = 1.0f - ((float) (mag_val[i] - 950) / (float) (1400 - 950));
-            }
-            else if (mag_val[i] > 1400)
+            for (int i = 1; i < 5; i++)
             {
                 xfade[i] = 0.0f;
             }
         }
-    }
-
-    bool xfade_changed = false;
-    for (int i = 0; i < 6; i++)
-    {
-        if (fabs(xfade[i] - xfade_prev[i]) > 0.02f)
+        else
         {
-            xfade_changed = true;
-            break;
+            for (int i = 1; i < 5; i++)
+            {
+                if (mag_val[i] < mag_offset[i])
+                {
+                    xfade[i] = 1.0f;
+                }
+                else if (mag_val[i] >= mag_offset[i] && mag_val[i] <= mag_offset[i] + 500)
+                {
+                    xfade[i] = 1.0f - ((float) (mag_val[i] - mag_offset[i]) / (float) 500);
+                }
+                else if (mag_val[i] > mag_offset[i] + 500)
+                {
+                    xfade[i] = 0.0f;
+                }
+            }
         }
-    }
 
-    if (xfade_changed)
-    {
-        const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
-        uint8_t dc_array[4] = {0x00};
-        dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
-        dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
-        dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
-        dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+        bool xfade_changed = false;
+        for (int i = 0; i < 6; i++)
+        {
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.02f)
+            {
+                xfade_changed = true;
+                break;
+            }
+        }
 
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+        if (xfade_changed)
+        {
+            const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
+            uint8_t dc_array[4] = {0x00};
+            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
+            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
+            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
+            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
-    #if 0
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+
+#if 0
         xfade       = 0.0f;
         dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
         dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1046,15 +1066,14 @@ void ui_control_task(void)
         dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
 
         SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
-    #endif
-    }
-
-    for (int i = 0; i < 6; i++)
-    {
-        xfade_prev[i] = xfade[i];
-    }
 #endif
+        }
 
+        for (int i = 0; i < 6; i++)
+        {
+            xfade_prev[i] = xfade[i];
+        }
+    }
     is_adc_complete = false;
 }
 
