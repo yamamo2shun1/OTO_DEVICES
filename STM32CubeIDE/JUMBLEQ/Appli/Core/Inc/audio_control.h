@@ -14,6 +14,11 @@
 #define SAI_TX_BUF_SIZE  1024
 #define SAI_RX_BUF_SIZE  1024
 
+#define ADC_NUM     8
+#define ADC_MA_SIZE 8  // 移動平均のサンプル数
+#define POT_NUM     8
+#define MAG_SW_NUM  6
+
 void reset_audio_buffer(void);
 uint32_t get_tx_blink_interval_ms(void);
 uint32_t get_rx_blink_interval_ms(void);

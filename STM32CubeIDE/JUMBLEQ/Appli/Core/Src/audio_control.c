@@ -54,18 +54,24 @@ enum
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[8] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
-uint16_t pot_val[8]      = {0};
-uint16_t pot_val_prev[8] = {0};
-uint16_t mag_val[6]      = {0};
-uint8_t pot_ch           = 0;
-uint8_t pot_ch_counter   = 0;
+uint8_t pot_ch         = 0;
+uint8_t pot_ch_counter = 0;
 
-float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+uint16_t pot_ma_index[POT_NUM]            = {0};
+uint32_t pot_val_ma[POT_NUM][ADC_MA_SIZE] = {0};
+uint16_t pot_val[POT_NUM]                 = {0};
+uint16_t pot_val_prev[POT_NUM]            = {0};
 
-int16_t hpout_clear_count     = 0;
+uint16_t mag_ma_index[MAG_SW_NUM]            = {0};
+uint32_t mag_val_ma[MAG_SW_NUM][ADC_MA_SIZE] = {0};
+uint16_t mag_val[MAG_SW_NUM]                 = {0};
+
+float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+int16_t hpout_clear_count              = 0;
 volatile uint32_t sai_tx_rng_buf_index = 0;
 volatile uint32_t sai_rx_rng_buf_index = 0;
 volatile uint32_t sai_transmit_index   = 0;
@@ -75,13 +81,13 @@ static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-
 static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 
 // Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
-volatile uint32_t dbg_tx_half_count = 0;
-volatile uint32_t dbg_tx_cplt_count = 0;
-volatile uint32_t dbg_fill_tx_count = 0;
+volatile uint32_t dbg_tx_half_count  = 0;
+volatile uint32_t dbg_tx_cplt_count  = 0;
+volatile uint32_t dbg_fill_tx_count  = 0;
 volatile uint32_t dbg_usb2ring_bytes = 0;  // copybuf_usb2ringでコピーされたバイト数
-volatile int32_t dbg_ring_used = 0;        // リングバッファの使用量
-volatile uint32_t dbg_fill_underrun = 0;   // データ不足でスキップした回数
-volatile uint32_t dbg_fill_copied = 0;     // 正常にコピーできた回数
+volatile int32_t dbg_ring_used       = 0;  // リングバッファの使用量
+volatile uint32_t dbg_fill_underrun  = 0;  // データ不足でスキップした回数
+volatile uint32_t dbg_fill_copied    = 0;  // 正常にコピーできた回数
 volatile uint32_t dbg_usb2ring_count = 0;  // copybuf_usb2ring呼び出し回数
 volatile uint32_t dbg_usb2ring_total = 0;  // USBから読んだ累積バイト数
 
@@ -117,9 +123,30 @@ int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channe
 
 void reset_audio_buffer(void)
 {
-    for (uint16_t i = 0; i < 8; i++)
+    for (uint16_t i = 0; i < ADC_NUM; i++)
     {
         adc_val[i] = 0;
+    }
+
+    for (uint16_t i = 0; i < POT_NUM; i++)
+	{
+		pot_ma_index[i] = 0;
+		pot_val[i]      = 0;
+		pot_val_prev[i] = 0;
+		for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+		{
+			pot_val_ma[i][j] = 0;
+		}
+	}
+
+    for (uint16_t i = 0; i < MAG_SW_NUM; i++)
+    {
+    	mag_ma_index[i] = 0;
+    	mag_val[i]      = 0;
+    	for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+		{
+			mag_val_ma[i][j] = 0;
+		}
     }
 
     for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4; i++)
@@ -807,7 +834,7 @@ void start_adc(void)
         Error_Handler();
     }
 #if 0
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 8) != HAL_OK)
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, ADC_NUM) != HAL_OK)
     {
         /* ADC conversion start error */
         Error_Handler();
@@ -822,7 +849,7 @@ void ui_control_task(void)
         return;
     }
 
-    if (pot_ch_counter < 10)
+    if (pot_ch_counter < 4)
     {
         switch (pot_ch)
         {
@@ -874,13 +901,22 @@ void ui_control_task(void)
         }
         pot_ch_counter++;
     }
-    else if (pot_ch_counter >= 10)
+    else if (pot_ch_counter >= 4)
     {
         /*
          * 0 1 4 5
          * 2 3 6 7
          */
-        pot_val[pot_ch] = adc_val[6] >> 2;
+        pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6];
+        pot_ma_index[pot_ch]                     = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
+
+        uint32_t pot_sum = 0;
+        for (int j = 0; j < ADC_MA_SIZE; j++)
+        {
+            pot_sum += pot_val_ma[pot_ch][j];
+        }
+        pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
+        pot_val[pot_ch] >>= 2;
 
         switch (pot_ch)
         {
@@ -914,7 +950,7 @@ void ui_control_task(void)
 
         pot_val_prev[pot_ch] = pot_val[pot_ch];
 
-        pot_ch         = (pot_ch + 1) % 8;
+        pot_ch         = (pot_ch + 1) % POT_NUM;
         pot_ch_counter = 0;
 
 #if 0
@@ -928,7 +964,15 @@ void ui_control_task(void)
 
     for (int i = 0; i < 6; i++)
     {
-        mag_val[i] = adc_val[i];
+        mag_val_ma[i][mag_ma_index[i]] = adc_val[i];
+        mag_ma_index[i]                = (mag_ma_index[i] + 1) % ADC_MA_SIZE;
+
+        uint32_t mag_sum = 0;
+        for (int j = 0; j < ADC_MA_SIZE; j++)
+        {
+            mag_sum += mag_val_ma[i][j];
+        }
+        mag_val[i] = mag_sum / ADC_MA_SIZE;
     }
 
 #if 1
@@ -1074,9 +1118,9 @@ void start_sai(void)
     // ========================================
     memset(sai_tx_rng_buf, 0, SAI_TX_BUF_SIZE * sizeof(int32_t));
     sai_tx_rng_buf_index = SAI_TX_BUF_SIZE;  // プリフィル分を加算
-    sai_transmit_index = 0;
-    tx_pending_mask = 0;
-    
+    sai_transmit_index   = 0;
+    tx_pending_mask      = 0;
+
     // SAI2 -> Slave Transmit
     // USB -> STM32 -(SAI)-> ADAU1466
     MX_List_GPDMA1_Channel2_Config();
@@ -1140,15 +1184,15 @@ void start_sai(void)
 void copybuf_usb2ring(void)
 {
     dbg_usb2ring_count++;  // 呼び出し回数カウント
-    
+
     // SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
     uint32_t n = spk_data_size / sizeof(int32_t);
     dbg_usb2ring_total += spk_data_size;  // USBから読んだ累積バイト数
 
-    int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    int32_t used  = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
     dbg_ring_used = used;  // デバッグ用
-    
+
     if (used < 0)
     {
         sai_transmit_index = sai_tx_rng_buf_index;
@@ -1170,7 +1214,7 @@ void copybuf_usb2ring(void)
         sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[i];
         sai_tx_rng_buf_index++;
     }
-    
+
     dbg_usb2ring_bytes = n * sizeof(int32_t);  // コピーしたバイト数
 
     // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
@@ -1182,7 +1226,8 @@ static inline void fill_tx_half(uint32_t index0)
     const uint32_t n = (SAI_TX_BUF_SIZE / 2);
 
     // index0のバウンドチェック
-    if (index0 >= SAI_TX_BUF_SIZE) {
+    if (index0 >= SAI_TX_BUF_SIZE)
+    {
         // 不正な値 - 無音で埋める
         return;
     }
@@ -1206,7 +1251,8 @@ static inline void fill_tx_half(uint32_t index0)
     }
 
     // usedが大きすぎる場合も異常（オーバーフロー等）
-    if (used > (int32_t)SAI_RNG_BUF_SIZE) {
+    if (used > (int32_t) SAI_RNG_BUF_SIZE)
+    {
         // リセットして無音で埋める
         sai_transmit_index = sai_tx_rng_buf_index;
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
@@ -1261,7 +1307,8 @@ static inline void fill_rx_half(uint32_t index0)
     const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
 
     // index0のバウンドチェック
-    if (index0 >= SAI_RX_BUF_SIZE) {
+    if (index0 >= SAI_RX_BUF_SIZE)
+    {
         return;
     }
 
@@ -1273,9 +1320,10 @@ static inline void fill_rx_half(uint32_t index0)
     }
 
     // usedが大きすぎる場合も異常（オーバーフロー等）
-    if (used > (int32_t)SAI_RNG_BUF_SIZE) {
+    if (used > (int32_t) SAI_RNG_BUF_SIZE)
+    {
         sai_receive_index = sai_rx_rng_buf_index;
-        used = 0;
+        used              = 0;
     }
 
     int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
@@ -1372,7 +1420,7 @@ static void copybuf_ring2usb_and_send(void)
 
     // TinyUSB FIFOは内部でスレッドセーフな実装
     uint16_t written = tud_audio_write(usb_out_buf, (uint16_t) want_bytes);
-    
+
     if (written == 0)
         return;
 
@@ -1393,12 +1441,13 @@ static void copybuf_ring2usb_and_send(void)
 static inline uint16_t tud_audio_read_usb_locked(void* buf, uint16_t len)
 {
     // 4バイト境界にアライメント
-    len &= (uint16_t)~3u;
-    
-    if (len == 0) {
+    len &= (uint16_t) ~3u;
+
+    if (len == 0)
+    {
         return 0;
     }
-    
+
     // TinyUSB FIFOは内部でスレッドセーフな実装
     // USB IRQ禁止はエンドポイントの状態遷移を妨げるため使用しない
     return tud_audio_read(buf, len);
@@ -1414,27 +1463,28 @@ static inline uint16_t tud_audio_available_usb_locked(void)
 
 // audio_task()呼び出し頻度計測用
 static volatile uint32_t audio_task_call_count = 0;
-static volatile uint32_t audio_task_last_tick = 0;
-static volatile uint32_t audio_task_frequency = 0;  // 呼び出し回数/秒
+static volatile uint32_t audio_task_last_tick  = 0;
+static volatile uint32_t audio_task_frequency  = 0;  // 呼び出し回数/秒
 
 // デバッグ用：無音化時の状態を保存
 static volatile uint16_t dbg_last_avail = 0;
-static volatile uint16_t dbg_last_read = 0;
+static volatile uint16_t dbg_last_read  = 0;
 static volatile uint32_t dbg_zero_count = 0;  // avail=0の連続回数
-static volatile bool dbg_streaming_out = false;
-static volatile bool dbg_mounted = false;
+static volatile bool dbg_streaming_out  = false;
+static volatile bool dbg_mounted        = false;
 
 void audio_task(void)
 {
     // 呼び出し頻度計測
     audio_task_call_count++;
     uint32_t now = HAL_GetTick();
-    if (now - audio_task_last_tick >= 1000) {
-        audio_task_frequency = audio_task_call_count;
+    if (now - audio_task_last_tick >= 1000)
+    {
+        audio_task_frequency  = audio_task_call_count;
         audio_task_call_count = 0;
-        audio_task_last_tick = now;
+        audio_task_last_tick  = now;
     }
-    
+
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
@@ -1446,11 +1496,11 @@ void audio_task(void)
     {
         // デバッグ情報を更新
         dbg_streaming_out = s_streaming_out;
-        dbg_mounted = tud_audio_mounted();
-        
+        dbg_mounted       = tud_audio_mounted();
+
         // FIFOから読み取り - バッファ全体を使用
         spk_data_size = tud_audio_read_usb_locked(usb_in_buf, sizeof(usb_in_buf));
-        
+
         // USB -> SAI
         copybuf_usb2ring();
         copybuf_ring2sai();
