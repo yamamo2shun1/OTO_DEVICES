@@ -1260,73 +1260,49 @@ void copybuf_usb2ring(void)
         return;
     }
 
-    // USBは4ch、SAIは2ch
+    // USBは4ch、SAIも4ch（そのままコピー）
     // USB: [L1][R1][L2][R2][L1][R1][L2][R2]...
-    // USE_USB_CH34=0: SAI: [L1][R1]... (ch1/2を抽出)
-    // USE_USB_CH34=1: SAI: [L2][R2]... (ch3/4を抽出)
-#define USE_USB_CH34 0  // 0: ch1/2, 1: ch3/4
+    // SAI: [L1][R1][L2][R2][L1][R1][L2][R2]...
 
-#if USE_USB_CH34
-    #define USB_CH_L 2
-    #define USB_CH_R 3
-#else
-    #define USB_CH_L 0
-    #define USB_CH_R 1
-#endif
-
-    uint32_t frames;     // フレーム数
-    uint32_t sai_words;  // SAIに書くword数（2ch分）
+    uint32_t sai_words;  // SAIに書くword数（4ch分）
 
     if (current_resolution == 16)
     {
         // 16bit: USBデータはint16_tとして詰まっている (4ch)
         int16_t* usb_in_buf_16 = (int16_t*) usb_in_buf;
         uint32_t usb_samples   = spk_data_size / sizeof(int16_t);  // 16bitサンプル数
-        frames                 = usb_samples / 4;                  // 1フレーム = 4 samples (4ch)
-        sai_words              = frames * 2;                       // SAIに書く2chデータのword数
+        sai_words              = usb_samples;                      // SAIに書く4chデータのword数
 
         if ((int32_t) sai_words > free)
         {
-            frames    = (uint32_t) free / 2;
-            sai_words = frames * 2;
+            sai_words = (uint32_t) free;
         }
 
-        // 4chから指定chを抽出し、16bit→32bit左詰め変換
-        for (uint32_t f = 0; f < frames; f++)
+        // 4ch全てコピー、16bit→32bit左詰め変換
+        for (uint32_t i = 0; i < sai_words; i++)
         {
-            int32_t L                                                     = ((int32_t) usb_in_buf_16[f * 4 + USB_CH_L]) << 16;
-            int32_t R                                                     = ((int32_t) usb_in_buf_16[f * 4 + USB_CH_R]) << 16;
-            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = L;
-            sai_tx_rng_buf_index++;
-            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = R;
+            int32_t sample32                                              = ((int32_t) usb_in_buf_16[i]) << 16;
+            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = sample32;
             sai_tx_rng_buf_index++;
         }
     }
     else
     {
-        // 24bit in 32bit slot: 4chから指定chを抽出
-        uint32_t usb_words = spk_data_size / sizeof(int32_t);
-        frames             = usb_words / 4;  // 1フレーム = 4 words (4ch)
-        sai_words          = frames * 2;     // SAIに書く2chデータのword数
+        // 24bit in 32bit slot: 4ch全てそのままコピー
+        sai_words = spk_data_size / sizeof(int32_t);
 
         if ((int32_t) sai_words > free)
         {
-            frames    = (uint32_t) free / 2;
-            sai_words = frames * 2;
+            sai_words = (uint32_t) free;
         }
 
-        // 4chから指定chを抽出
-        for (uint32_t f = 0; f < frames; f++)
+        // 4ch全てコピー
+        for (uint32_t i = 0; i < sai_words; i++)
         {
-            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[f * 4 + USB_CH_L];
-            sai_tx_rng_buf_index++;
-            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[f * 4 + USB_CH_R];
+            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[i];
             sai_tx_rng_buf_index++;
         }
     }
-
-#undef USB_CH_L
-#undef USB_CH_R
 
     dbg_usb2ring_bytes = sai_words * sizeof(int32_t);  // コピーしたバイト数（SAI側は常に32bit）
 
