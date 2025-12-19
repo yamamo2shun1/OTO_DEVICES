@@ -946,29 +946,29 @@ void ui_control_task(void)
 
         if (pot_val[pot_ch] != pot_val_prev[pot_ch])
         {
-            switch (pot_ch)
-            {
+        switch (pot_ch)
+        {
             case 0:
             case 1:
             case 2:
             case 3:
                 send_control_change(pot_ch, pot_val[pot_ch] >> 3, 0);
                 break;
-            case 4:
+        case 4:
                 control_input_from_ch2_gain(pot_val[pot_ch]);
-                break;
-            case 5:
+            break;
+        case 5:
                 control_master_out_gain(pot_val[pot_ch]);
-                break;
-            case 6:
+            break;
+        case 6:
                 control_input_from_ch1_gain(pot_val[pot_ch]);
-                break;
-            case 7:
+            break;
+        case 7:
                 control_input_from_usb_gain(pot_val[pot_ch]);
-                break;
-            default:
-                break;
-            }
+            break;
+        default:
+            break;
+        }
         }
 
         pot_val_prev[pot_ch] = pot_val[pot_ch];
@@ -1225,7 +1225,6 @@ void copybuf_usb2ring(void)
 
     // SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
-    uint32_t n = spk_data_size / sizeof(int32_t);
     dbg_usb2ring_total += spk_data_size;  // USBから読んだ累積バイト数
 
     int32_t used  = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
@@ -1242,18 +1241,46 @@ void copybuf_usb2ring(void)
         return;
     }
 
-    if ((int32_t) n > free)
+    uint32_t n;  // リングバッファに書くサンプル数（32bit単位）
+
+    if (current_resolution == 16)
     {
-        n = (uint32_t) free;
+        // 16bit: USBデータはint16_tとして詰まっている
+        // SAIは32bitスロットなので、16bit→32bit左詰め変換が必要
+        int16_t* usb_in_buf_16 = (int16_t*) usb_in_buf;
+        n = spk_data_size / sizeof(int16_t);  // 16bitサンプル数
+
+        if ((int32_t) n > free)
+        {
+            n = (uint32_t) free;
+        }
+
+        for (uint32_t i = 0; i < n; i++)
+        {
+            // 16bit → 32bit 左詰め変換
+            int32_t sample32 = ((int32_t) usb_in_buf_16[i]) << 16;
+            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = sample32;
+            sai_tx_rng_buf_index++;
+        }
+    }
+    else
+    {
+        // 24bit in 32bit slot: そのままコピー
+        n = spk_data_size / sizeof(int32_t);
+
+        if ((int32_t) n > free)
+        {
+            n = (uint32_t) free;
+        }
+
+        for (uint32_t i = 0; i < n; i++)
+        {
+            sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[i];
+            sai_tx_rng_buf_index++;
+        }
     }
 
-    for (uint32_t i = 0; i < n; i++)
-    {
-        sai_tx_rng_buf[sai_tx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1)] = usb_in_buf[i];
-        sai_tx_rng_buf_index++;
-    }
-
-    dbg_usb2ring_bytes = n * sizeof(int32_t);  // コピーしたバイト数
+    dbg_usb2ring_bytes = n * sizeof(int32_t);  // コピーしたバイト数（SAI側は常に32bit）
 
     // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
@@ -1278,13 +1305,13 @@ static inline void fill_tx_half(uint32_t index0)
         used               = 0;
     }
 
-    // データ不足ならノイズより「無音」を優先（バッファサイズ変更時の破綻を抑える）
+    // データ不足ならノイズより「無音」を優先
+    // リセットしない：バッファが溜まるのを待つ
     if (used < (int32_t) n)
     {
         dbg_fill_underrun++;  // アンダーラン発生
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
-        // ここで追いつく（溜まり具合が不正なら切り捨て）
-        sai_transmit_index = sai_tx_rng_buf_index;
+        // リセットしない - バッファが溜まるのを待つ
         return;
     }
 
@@ -1399,6 +1426,7 @@ static void copybuf_sai2ring(void)
         fill_rx_half(SAI_RX_BUF_SIZE / 2);
 }
 
+// 1msあたりのword数 (2ch stereo)
 static uint32_t audio_words_per_ms(void)
 {
     // 例: 48kHz -> 48 frames/ms, stereo -> *2 words/frame
@@ -1431,12 +1459,7 @@ static void copybuf_ring2usb_and_send(void)
     if (tud_audio_get_ep_in_ff() == NULL)
         return;
 
-    const uint32_t want_words = audio_words_per_ms();  // 96 or 192 words (48k/96k, stereo, 32bit slot想定)
-    const uint32_t want_bytes = want_words * sizeof(int32_t);
-
-    // 安全: usb_out_buf が足りない設定なら絶対に書かない（ここで落ちるのを防ぐ）
-    if (want_bytes > sizeof(usb_out_buf))
-        return;
+    const uint32_t want_words = audio_words_per_ms();  // 96 or 192 words (48k/96k, stereo)
 
     int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     if (used < 0)
@@ -1447,31 +1470,71 @@ static void copybuf_ring2usb_and_send(void)
     if (used < (int32_t) want_words)
         return;  // 足りないなら今回は送らない
 
-    uint32_t r     = sai_receive_index & (SAI_RNG_BUF_SIZE - 1);
-    uint32_t first = SAI_RNG_BUF_SIZE - r;
-    if (first > want_words)
-        first = want_words;
+    uint32_t usb_bytes;
+    uint16_t written;
 
-    memcpy(usb_out_buf, sai_rx_rng_buf + r, first * sizeof(int32_t));
-    if (first < want_words)
-        memcpy(usb_out_buf + first, sai_rx_rng_buf, (want_words - first) * sizeof(int32_t));
+    if (current_resolution == 16)
+    {
+        // 16bit: SAI(32bit) → USB(16bit) 変換
+        usb_bytes = want_words * sizeof(int16_t);
 
-    // TinyUSB FIFOは内部でスレッドセーフな実装
-    uint16_t written = tud_audio_write(usb_out_buf, (uint16_t) want_bytes);
+        // 安全: usb_out_buf が足りない設定なら絶対に書かない
+        if (usb_bytes > sizeof(usb_out_buf))
+            return;
 
-    if (written == 0)
-        return;
+        int16_t* usb_out_buf_16 = (int16_t*) usb_out_buf;
 
-    // 書けた分だけ読みポインタを進める
-    // 4バイト境界に丸める（int32_t単位のため）
-    uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
-    // 安全チェック：want_wordsを超えないように
-    if (written_words > want_words)
-        written_words = want_words;
-    // 安全チェック：0の場合は何もしない
-    if (written_words == 0)
-        return;
-    sai_receive_index += written_words;
+        for (uint32_t i = 0; i < want_words; i++)
+        {
+            uint32_t r = (sai_receive_index + i) & (SAI_RNG_BUF_SIZE - 1);
+            // 32bit → 16bit (上位16bitを取り出す)
+            usb_out_buf_16[i] = (int16_t)(sai_rx_rng_buf[r] >> 16);
+        }
+
+        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
+
+        if (written == 0)
+            return;
+
+        // 書けた分だけ読みポインタを進める
+        uint32_t written_samples = ((uint32_t) written) / sizeof(int16_t);
+        if (written_samples > want_words)
+            written_samples = want_words;
+        if (written_samples == 0)
+            return;
+        sai_receive_index += written_samples;
+    }
+    else
+    {
+        // 24bit in 32bit slot: そのままコピー
+        usb_bytes = want_words * sizeof(int32_t);
+
+        // 安全: usb_out_buf が足りない設定なら絶対に書かない
+        if (usb_bytes > sizeof(usb_out_buf))
+            return;
+
+        uint32_t r     = sai_receive_index & (SAI_RNG_BUF_SIZE - 1);
+        uint32_t first = SAI_RNG_BUF_SIZE - r;
+        if (first > want_words)
+            first = want_words;
+
+        memcpy(usb_out_buf, sai_rx_rng_buf + r, first * sizeof(int32_t));
+        if (first < want_words)
+            memcpy(usb_out_buf + first, sai_rx_rng_buf, (want_words - first) * sizeof(int32_t));
+
+        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
+
+        if (written == 0)
+            return;
+
+        // 書けた分だけ読みポインタを進める
+        uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
+        if (written_words > want_words)
+            written_words = want_words;
+        if (written_words == 0)
+            return;
+        sai_receive_index += written_words;
+    }
 }
 
 #define USB_IRQn OTG_HS_IRQn
@@ -1521,6 +1584,15 @@ void audio_task(void)
         audio_task_frequency  = audio_task_call_count;
         audio_task_call_count = 0;
         audio_task_last_tick  = now;
+        
+        // 1秒ごとにリングバッファ状態をログ出力
+        if (s_streaming_out)
+        {
+            // 最初の8サンプルをダンプ (4ch x 2frames)
+            SEGGER_RTT_printf(0, "spk=%d [%08X %08X %08X %08X]\n", 
+                spk_data_size,
+                usb_in_buf[0], usb_in_buf[1], usb_in_buf[2], usb_in_buf[3]);
+        }
     }
 
     if (is_sr_changed)
