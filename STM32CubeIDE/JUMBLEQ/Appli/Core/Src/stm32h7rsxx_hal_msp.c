@@ -68,6 +68,8 @@ void HAL_MspInit(void)
   /* USER CODE END MspInit 0 */
 
   /* System interrupt init*/
+  /* PendSV_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
 
   /* Enable USB Voltage detector */
   if(HAL_PWREx_EnableUSBVoltageDetector() != HAL_OK)

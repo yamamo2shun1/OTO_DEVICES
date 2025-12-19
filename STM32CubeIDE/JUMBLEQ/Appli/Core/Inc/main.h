@@ -59,12 +59,8 @@ extern "C"
     /* Exported functions prototypes ---------------------------------------------*/
     void Error_Handler(void);
 
-    /* USER CODE BEGIN EFP */
-    void ui_control_task(void);
+/* USER CODE BEGIN EFP */
 
-    void led_blinking_task(void);
-
-    void rgb_led_task(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

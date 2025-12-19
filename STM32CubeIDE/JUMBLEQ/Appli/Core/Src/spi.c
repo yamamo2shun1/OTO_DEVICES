@@ -107,7 +107,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
     HAL_GPIO_Init(GPIOM, &GPIO_InitStruct);
 
     /* SPI5 interrupt Init */
-    HAL_NVIC_SetPriority(SPI5_IRQn, 6, 0);
+    HAL_NVIC_SetPriority(SPI5_IRQn, 10, 0);
     HAL_NVIC_EnableIRQ(SPI5_IRQn);
   /* USER CODE BEGIN SPI5_MspInit 1 */
 

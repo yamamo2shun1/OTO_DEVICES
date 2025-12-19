@@ -51,27 +51,48 @@ enum
 };
 
 // Audio controls
-static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
+static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
+static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 
-volatile __attribute__((section("noncacheable_buffer"), aligned(32))) uint16_t adc_val[8] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
-uint16_t pot_val[8]      = {0};
-uint16_t pot_val_prev[8] = {0};
-uint16_t mag_val[6]      = {0};
-uint8_t pot_ch           = 0;
-uint8_t pot_ch_counter   = 0;
+uint8_t pot_ch         = 0;
+uint8_t pot_ch_counter = 0;
 
-float xfade[6]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-float xfade_prev[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+uint16_t pot_ma_index[POT_NUM]            = {0};
+uint32_t pot_val_ma[POT_NUM][ADC_MA_SIZE] = {0};
+uint16_t pot_val[POT_NUM]                 = {0};
+uint16_t pot_val_prev[POT_NUM]            = {0};
 
-int16_t hpout_clear_count     = 0;
-uint32_t sai_tx_rng_buf_index = 0;
-uint32_t sai_rx_rng_buf_index = 0;
-uint32_t sai_transmit_index   = 0;
-uint32_t sai_receive_index    = 0;
+uint16_t mag_calibration_count               = 0;
+uint16_t mag_ma_index[MAG_SW_NUM]            = {0};
+uint32_t mag_val_ma[MAG_SW_NUM][ADC_MA_SIZE] = {0};
+uint16_t mag_val[MAG_SW_NUM]                 = {0};
+uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
+uint16_t mag_offset[MAG_SW_NUM]              = {0};
+
+float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+int16_t hpout_clear_count              = 0;
+volatile uint32_t sai_tx_rng_buf_index = 0;
+volatile uint32_t sai_rx_rng_buf_index = 0;
+volatile uint32_t sai_transmit_index   = 0;
+volatile uint32_t sai_receive_index    = 0;
 
 static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
-volatile int16_t update_pointer_rx      = -1;
+static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
+
+// Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
+volatile uint32_t dbg_tx_half_count  = 0;
+volatile uint32_t dbg_tx_cplt_count  = 0;
+volatile uint32_t dbg_fill_tx_count  = 0;
+volatile uint32_t dbg_usb2ring_bytes = 0;  // copybuf_usb2ringでコピーされたバイト数
+volatile int32_t dbg_ring_used       = 0;  // リングバッファの使用量
+volatile uint32_t dbg_fill_underrun  = 0;  // データ不足でスキップした回数
+volatile uint32_t dbg_fill_copied    = 0;  // 正常にコピーできた回数
+volatile uint32_t dbg_usb2ring_count = 0;  // copybuf_usb2ring呼び出し回数
+volatile uint32_t dbg_usb2ring_total = 0;  // USBから読んだ累積バイト数
 
 bool s_streaming_out = false;
 bool s_streaming_in  = false;
@@ -83,11 +104,11 @@ volatile bool is_adc_complete = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
-int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
-int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
-int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_rx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_out_buf[SAI_TX_BUF_SIZE] = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_buf[SAI_RX_BUF_SIZE]  = {0};
@@ -105,9 +126,33 @@ int16_t volume[CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX + 1];  // +1 for master channe
 
 void reset_audio_buffer(void)
 {
-    for (uint16_t i = 0; i < 8; i++)
+    for (uint16_t i = 0; i < ADC_NUM; i++)
     {
         adc_val[i] = 0;
+    }
+
+    for (uint16_t i = 0; i < POT_NUM; i++)
+    {
+        pot_ma_index[i] = 0;
+        pot_val[i]      = 0;
+        pot_val_prev[i] = 0;
+        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        {
+            pot_val_ma[i][j] = 0;
+        }
+    }
+
+    mag_calibration_count = 0;
+    for (uint16_t i = 0; i < MAG_SW_NUM; i++)
+    {
+        mag_ma_index[i]   = 0;
+        mag_val[i]        = 0;
+        mag_offset_sum[i] = 0;
+        mag_offset[i]     = 0;
+        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        {
+            mag_val_ma[i][j] = 0;
+        }
     }
 
     for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4; i++)
@@ -139,9 +184,14 @@ void reset_audio_buffer(void)
     __DSB();
 }
 
-uint32_t get_blink_interval_ms(void)
+uint32_t get_tx_blink_interval_ms(void)
 {
-    return blink_interval_ms;
+    return tx_blink_interval_ms;
+}
+
+uint32_t get_rx_blink_interval_ms(void)
+{
+    return rx_blink_interval_ms;
 }
 
 //--------------------------------------------------------------------+
@@ -151,13 +201,15 @@ uint32_t get_blink_interval_ms(void)
 // Invoked when device is mounted
 void tud_mount_cb(void)
 {
-    blink_interval_ms = BLINK_MOUNTED;
+    tx_blink_interval_ms = BLINK_MOUNTED;
+    rx_blink_interval_ms = BLINK_MOUNTED;
 }
 
 // Invoked when device is unmounted
 void tud_umount_cb(void)
 {
-    blink_interval_ms = BLINK_NOT_MOUNTED;
+    tx_blink_interval_ms = BLINK_NOT_MOUNTED;
+    rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 }
 
 // Invoked when usb bus is suspended
@@ -166,13 +218,15 @@ void tud_umount_cb(void)
 void tud_suspend_cb(bool remote_wakeup_en)
 {
     (void) remote_wakeup_en;
-    blink_interval_ms = BLINK_SUSPENDED;
+    tx_blink_interval_ms = BLINK_SUSPENDED;
+    rx_blink_interval_ms = BLINK_SUSPENDED;
 }
 
 // Invoked when usb bus is resumed
 void tud_resume_cb(void)
 {
-    blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
+    tx_blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
+    rx_blink_interval_ms = tud_mounted() ? BLINK_MOUNTED : BLINK_NOT_MOUNTED;
 }
 
 //--------------------------------------------------------------------+
@@ -616,18 +670,21 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt == 0)
     {
-        blink_interval_ms    = BLINK_MOUNTED;
+        tx_blink_interval_ms = BLINK_MOUNTED;
         s_streaming_out      = false;
         spk_data_size        = 0;
         sai_tx_rng_buf_index = 0;
         sai_transmit_index   = 0;
+        tx_pending_mask      = 0;  // DMAフラグをクリア
     }
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt == 0)
     {
+        rx_blink_interval_ms = BLINK_MOUNTED;
         s_streaming_in       = false;
         sai_rx_rng_buf_index = 0;
         sai_receive_index    = 0;
+        rx_pending_mask      = 0;  // DMAフラグをクリア
     }
 
     return true;
@@ -642,7 +699,7 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     TU_LOG2("Set interface %d alt %d\r\n", itf, alt);
     if (ITF_NUM_AUDIO_STREAMING_STEREO_OUT == itf && alt != 0)
     {
-        blink_interval_ms = BLINK_STREAMING;
+        tx_blink_interval_ms = BLINK_STREAMING;
 
         s_streaming_out = true;
         spk_data_size   = 0;
@@ -650,6 +707,8 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt != 0)
     {
+        rx_blink_interval_ms = BLINK_STREAMING;
+
         s_streaming_in = true;
     }
 
@@ -662,6 +721,8 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
     return true;
 }
+
+// tud_audio_rx_done_isr を削除してデフォルト（weak）に戻す
 
 void control_input_from_usb_gain(const uint16_t adc_val)
 {
@@ -735,6 +796,13 @@ void control_master_out_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
 }
 
+static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    is_adc_complete = true;
+    __DSB();
+}
+
 void start_adc(void)
 {
     MX_List_HPDMA1_Channel0_Config();
@@ -755,10 +823,48 @@ void start_adc(void)
         Error_Handler();
     }
 
-    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, 8) != HAL_OK)
+    // ADC DMA request enable（ビット名はヘッダに合わせて）
+    SET_BIT(hadc1.Instance->CFGR, ADC_CFGR_DMAEN);
+    SET_BIT(hadc1.Instance->CFGR, ADC_CFGR_DMACFG);  // circularにしたいなら
+
+    handle_HPDMA1_Channel0.XferCpltCallback = dma_adc_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_HPDMA1_Channel0) != HAL_OK)
+    {
+        /* Start Error */
+        Error_Handler();
+    }
+
+    if (HAL_ADC_Start(&hadc1) != HAL_OK)
     {
         /* ADC conversion start error */
         Error_Handler();
+    }
+#if 0
+    if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_val, ADC_NUM) != HAL_OK)
+    {
+        /* ADC conversion start error */
+        Error_Handler();
+    }
+#endif
+}
+
+void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
+{
+    uint8_t control_change[3] = {0xB0 | channel, number, value};
+    tud_midi_stream_write(0, control_change, 3);
+}
+
+void send_note(uint8_t note, uint8_t velocity, uint8_t channel)
+{
+    if (velocity == 0)
+    {
+        uint8_t note_off[3] = {0x80 | channel, note, 0};
+        tud_midi_stream_write(0, note_off, 3);
+    }
+    else
+    {
+        uint8_t note_on[3] = {0x90 | channel, note, velocity};
+        tud_midi_stream_write(0, note_on, 3);
     }
 }
 
@@ -769,7 +875,7 @@ void ui_control_task(void)
         return;
     }
 
-    if (pot_ch_counter < 10)
+    if (pot_ch_counter < 4)
     {
         switch (pot_ch)
         {
@@ -821,47 +927,53 @@ void ui_control_task(void)
         }
         pot_ch_counter++;
     }
-    else if (pot_ch_counter >= 10)
+    else if (pot_ch_counter >= 4)
     {
         /*
          * 0 1 4 5
          * 2 3 6 7
          */
-        pot_val[pot_ch] = adc_val[6] >> 2;
+        pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6];
+        pot_ma_index[pot_ch]                     = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
 
-        switch (pot_ch)
+        uint32_t pot_sum = 0;
+        for (int j = 0; j < ADC_MA_SIZE; j++)
         {
-        case 4:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+            pot_sum += pot_val_ma[pot_ch][j];
+        }
+        pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
+        pot_val[pot_ch] >>= 2;
+
+        if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+        {
+            switch (pot_ch)
             {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                send_control_change(pot_ch, pot_val[pot_ch] >> 3, 0);
+                break;
+            case 4:
                 control_input_from_ch2_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 5:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 5:
                 control_master_out_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 6:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 6:
                 control_input_from_ch1_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 7:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 7:
                 control_input_from_usb_gain(pot_val[pot_ch]);
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
         }
 
         pot_val_prev[pot_ch] = pot_val[pot_ch];
 
-        pot_ch         = (pot_ch + 1) % 8;
+        pot_ch         = (pot_ch + 1) % POT_NUM;
         pot_ch_counter = 0;
 
 #if 0
@@ -873,13 +985,33 @@ void ui_control_task(void)
 #endif
     }
 
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < MAG_SW_NUM; i++)
     {
-        mag_val[i] = adc_val[i];
+        mag_val_ma[i][mag_ma_index[i]] = adc_val[i];
+        mag_ma_index[i]                = (mag_ma_index[i] + 1) % ADC_MA_SIZE;
+
+        uint32_t mag_sum = 0;
+        for (int j = 0; j < ADC_MA_SIZE; j++)
+        {
+            mag_sum += mag_val_ma[i][j];
+        }
+        mag_val[i] = mag_sum / ADC_MA_SIZE;
+
+        if (mag_calibration_count < MAG_CALIBRATION_COUNT_MAX)
+        {
+            mag_offset_sum[i] += adc_val[i];
+        }
+        else if (mag_calibration_count == MAG_CALIBRATION_COUNT_MAX)
+        {
+            mag_offset[i] = mag_offset_sum[i] / MAG_CALIBRATION_COUNT_MAX;
+        }
+    }
+    if (mag_calibration_count <= MAG_CALIBRATION_COUNT_MAX)
+    {
+        mag_calibration_count++;
     }
 
-#if 1
-    #if 0
+#if 0
     if (mag_val[0] < 950)
     {
         xfade[0] = 0.0f;
@@ -892,56 +1024,60 @@ void ui_control_task(void)
     {
         xfade[0] = 1.0f;
     }
-    #endif
+#endif
 
-    if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
+    if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        for (int i = 1; i < 5; i++)
+        if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
         {
-            xfade[i] = 0.0f;
-        }
-    }
-    else
-    {
-        for (int i = 1; i < 5; i++)
-        {
-            if (mag_val[i] < 950)
-            {
-                xfade[i] = 1.0f;
-            }
-            else if (mag_val[i] >= 950 && mag_val[i] <= 1400)
-            {
-                xfade[i] = 1.0f - ((float) (mag_val[i] - 950) / (float) (1400 - 950));
-            }
-            else if (mag_val[i] > 1400)
+            for (int i = 1; i < 5; i++)
             {
                 xfade[i] = 0.0f;
             }
         }
-    }
-
-    bool xfade_changed = false;
-    for (int i = 0; i < 6; i++)
-    {
-        if (fabs(xfade[i] - xfade_prev[i]) > 0.02f)
+        else
         {
-            xfade_changed = true;
-            break;
+            for (int i = 1; i < 5; i++)
+            {
+                if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
+                {
+                    xfade[i] = 1.0f;
+                }
+                else if (mag_val[i] >= mag_offset[i] + MAG_XFADE_CUTOFF && mag_val[i] <= mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = 1.0f - ((float) (mag_val[i] - mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE);
+                }
+                else if (mag_val[i] > mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = 0.0f;
+                }
+            }
         }
-    }
 
-    if (xfade_changed)
-    {
-        const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
-        uint8_t dc_array[4] = {0x00};
-        dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
-        dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
-        dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
-        dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+        bool xfade_changed = false;
+        for (int i = 0; i < 6; i++)
+        {
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f && fabs(xfade[i] - xfade_prev[i]) < 1.0f)
+            {
+                send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
 
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+                xfade_changed = true;
+                break;
+            }
+        }
 
-    #if 0
+        if (xfade_changed)
+        {
+            const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
+            uint8_t dc_array[4] = {0x00};
+            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
+            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
+            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
+            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+
+#if 0
         xfade       = 0.0f;
         dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
         dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
@@ -949,30 +1085,15 @@ void ui_control_task(void)
         dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
 
         SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
-    #endif
-    }
-
-    for (int i = 0; i < 6; i++)
-    {
-        xfade_prev[i] = xfade[i];
-    }
 #endif
+        }
 
-    is_adc_complete = false;
-}
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    if (hadc == &hadc1)
-    {
-        is_adc_complete = true;
-        __DSB();
+        for (int i = 0; i < 6; i++)
+        {
+            xfade_prev[i] = xfade[i];
+        }
     }
-}
-
-void HAL_ADC_ErrorCallback(ADC_HandleTypeDef* hadc)
-{
-    SEGGER_RTT_printf(0, "errorCode -> %lX\n", hadc->ErrorCode);
+    is_adc_complete = false;
 }
 
 bool get_sr_changed_state(void)
@@ -997,8 +1118,47 @@ bool is_started_audio_control(void)
     return is_start_audio_control;
 }
 
+static void dma_sai2_tx_half(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    tx_pending_mask |= 0x01;
+    dbg_tx_half_count++;
+    __DMB();
+}
+static void dma_sai2_tx_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    tx_pending_mask |= 0x02;
+    dbg_tx_cplt_count++;
+    __DMB();
+}
+
+static void dma_sai1_rx_half(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    rx_pending_mask |= 0x01;
+    __DMB();
+}
+static void dma_sai1_rx_cplt(DMA_HandleTypeDef* hdma)
+{
+    (void) hdma;
+    rx_pending_mask |= 0x02;
+    __DMB();
+}
+
 void start_sai(void)
 {
+    // ========================================
+    // リングバッファをプリフィル（無音で初期化）
+    // SAI DMAが開始直後にHalf割り込みを発生させた時、
+    // リングバッファにデータがないとアンダーランになるため、
+    // SAI_TX_BUF_SIZE分の無音データを事前に投入しておく
+    // ========================================
+    memset(sai_tx_rng_buf, 0, SAI_TX_BUF_SIZE * sizeof(int32_t));
+    sai_tx_rng_buf_index = SAI_TX_BUF_SIZE;  // プリフィル分を加算
+    sai_transmit_index   = 0;
+    tx_pending_mask      = 0;
+
     // SAI2 -> Slave Transmit
     // USB -> STM32 -(SAI)-> ADAU1466
     MX_List_GPDMA1_Channel2_Config();
@@ -1007,11 +1167,22 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
+    handle_GPDMA1_Channel2.XferHalfCpltCallback = dma_sai2_tx_half;
+    handle_GPDMA1_Channel2.XferCpltCallback     = dma_sai2_tx_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel2) != HAL_OK)
+    {
+        /* DMA start error */
+        Error_Handler();
+    }
+#if 0
     if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_TX_BUF_SIZE) != HAL_OK)
     {
         /* SAI transmit start error */
         Error_Handler();
     }
+#endif
+    hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;  // ← ここが「DMAリクエスト有効化」
+    __HAL_SAI_ENABLE(&hsai_BlockA2);
 
     HAL_Delay(500);
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
@@ -1026,11 +1197,22 @@ void start_sai(void)
         /* DMA link list error */
         Error_Handler();
     }
+    handle_GPDMA1_Channel3.XferHalfCpltCallback = dma_sai1_rx_half;
+    handle_GPDMA1_Channel3.XferCpltCallback     = dma_sai1_rx_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel3) != HAL_OK)
+    {
+        /* DMA start error */
+        Error_Handler();
+    }
+#if 0
     if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_RX_BUF_SIZE) != HAL_OK)
     {
         /* SAI receive start error */
         Error_Handler();
     }
+#endif
+    hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;  // ← ここが「DMAリクエスト有効化」
+    __HAL_SAI_ENABLE(&hsai_BlockA1);
 }
 
 // ==============================
@@ -1039,11 +1221,16 @@ void start_sai(void)
 
 void copybuf_usb2ring(void)
 {
+    dbg_usb2ring_count++;  // 呼び出し回数カウント
+
     // SEGGER_RTT_printf(0, "st = %d, sb_index = %d -> ", sai_transmit_index, sai_tx_rng_buf_index);
 
     uint32_t n = spk_data_size / sizeof(int32_t);
+    dbg_usb2ring_total += spk_data_size;  // USBから読んだ累積バイト数
 
-    int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    int32_t used  = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    dbg_ring_used = used;  // デバッグ用
+
     if (used < 0)
     {
         sai_transmit_index = sai_tx_rng_buf_index;
@@ -1066,12 +1253,22 @@ void copybuf_usb2ring(void)
         sai_tx_rng_buf_index++;
     }
 
+    dbg_usb2ring_bytes = n * sizeof(int32_t);  // コピーしたバイト数
+
     // SEGGER_RTT_printf(0, " %d\n", sai_tx_rng_buf_index);
 }
 
 static inline void fill_tx_half(uint32_t index0)
 {
+    dbg_fill_tx_count++;
     const uint32_t n = (SAI_TX_BUF_SIZE / 2);
+
+    // index0のバウンドチェック
+    if (index0 >= SAI_TX_BUF_SIZE)
+    {
+        // 不正な値 - 無音で埋める
+        return;
+    }
 
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
     if (used < 0)
@@ -1084,9 +1281,19 @@ static inline void fill_tx_half(uint32_t index0)
     // データ不足ならノイズより「無音」を優先（バッファサイズ変更時の破綻を抑える）
     if (used < (int32_t) n)
     {
+        dbg_fill_underrun++;  // アンダーラン発生
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         // ここで追いつく（溜まり具合が不正なら切り捨て）
         sai_transmit_index = sai_tx_rng_buf_index;
+        return;
+    }
+
+    // usedが大きすぎる場合も異常（オーバーフロー等）
+    if (used > (int32_t) SAI_RNG_BUF_SIZE)
+    {
+        // リセットして無音で埋める
+        sai_transmit_index = sai_tx_rng_buf_index;
+        memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         return;
     }
 
@@ -1100,6 +1307,7 @@ static inline void fill_tx_half(uint32_t index0)
         memcpy(stereo_out_buf + index0 + first, sai_tx_rng_buf, (n - first) * sizeof(int32_t));
 
     sai_transmit_index += n;
+    dbg_fill_copied++;  // 正常にコピー完了
 }
 
 void copybuf_ring2sai(void)
@@ -1132,35 +1340,35 @@ static inline uint16_t tud_audio_write_atomic(void const* buf, uint16_t len)
     return w;
 }
 
-static void copybuf_sai2ring(void)
+static inline void fill_rx_half(uint32_t index0)
 {
-    const int16_t index0 = update_pointer_rx;
-    if (index0 < 0)
-        return;
-    if ((uint32_t) index0 >= SAI_RX_BUF_SIZE)
+    const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
+
+    // index0のバウンドチェック
+    if (index0 >= SAI_RX_BUF_SIZE)
     {
-        update_pointer_rx = -1;
         return;
     }
 
-    update_pointer_rx = -1;
-    __DMB();
-
-    const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分ぶん（word数）
-    int32_t used     = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+    int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     if (used < 0)
     {
         sai_receive_index = sai_rx_rng_buf_index;
         used              = 0;
     }
 
-    int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
+    // usedが大きすぎる場合も異常（オーバーフロー等）
+    if (used > (int32_t) SAI_RNG_BUF_SIZE)
+    {
+        sai_receive_index = sai_rx_rng_buf_index;
+        used              = 0;
+    }
 
-    // freeが足りないなら「古いデータを捨てて」空きを作る（書き過ぎ防止）
+    int32_t free = (int32_t) (SAI_RNG_BUF_SIZE - 1) - used;
     if (free < (int32_t) n)
     {
-        uint32_t drop = (uint32_t) ((int32_t) n - free);
-        sai_receive_index += drop;
+        // 追いつけないなら古いデータを捨てて空きを作る
+        sai_receive_index += (uint32_t) ((int32_t) n - free);
     }
 
     uint32_t w     = sai_rx_rng_buf_index & (SAI_RNG_BUF_SIZE - 1);
@@ -1168,23 +1376,47 @@ static void copybuf_sai2ring(void)
     if (first > n)
         first = n;
 
-    for (uint32_t i = 0; i < first; i++)
-    {
-        sai_rx_rng_buf[w + i] = stereo_in_buf[index0 + i];
-    }
-
-    for (uint32_t i = first; i < n; i++)
-    {
-        sai_rx_rng_buf[i - first] = stereo_in_buf[index0 + i];
-    }
+    memcpy(sai_rx_rng_buf + w, stereo_in_buf + index0, first * sizeof(int32_t));
+    if (first < n)
+        memcpy(sai_rx_rng_buf, stereo_in_buf + index0 + first, (n - first) * sizeof(int32_t));
 
     sai_rx_rng_buf_index += n;
+}
+
+static void copybuf_sai2ring(void)
+{
+    uint8_t mask;
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    mask            = rx_pending_mask;
+    rx_pending_mask = 0;
+    __set_PRIMASK(primask);
+
+    // 順序：half→cplt の順で処理（両方溜まっていた場合）
+    if (mask & 0x01)
+        fill_rx_half(0);
+    if (mask & 0x02)
+        fill_rx_half(SAI_RX_BUF_SIZE / 2);
 }
 
 static uint32_t audio_words_per_ms(void)
 {
     // 例: 48kHz -> 48 frames/ms, stereo -> *2 words/frame
     return (current_sample_rate / 1000u) * 2;
+}
+
+// USB IRQ個別制御から、全割り込み禁止に変更
+// NVICの個別制御は状態不整合を起こす可能性があるため
+static inline uint32_t usb_irq_save(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
+}
+
+static inline void usb_irq_restore(uint32_t primask)
+{
+    __set_PRIMASK(primask);
 }
 
 static void copybuf_ring2usb_and_send(void)
@@ -1224,41 +1456,88 @@ static void copybuf_ring2usb_and_send(void)
     if (first < want_words)
         memcpy(usb_out_buf + first, sai_rx_rng_buf, (want_words - first) * sizeof(int32_t));
 
-    // TinyUSB: lenはバイト、戻り値は実際に入ったバイト数 :contentReference[oaicite:1]{index=1}
+    // TinyUSB FIFOは内部でスレッドセーフな実装
     uint16_t written = tud_audio_write(usb_out_buf, (uint16_t) want_bytes);
+
     if (written == 0)
         return;
 
-    // 書けた分だけ読みポインタを進める（途中までしか入らないケースも潰す）
+    // 書けた分だけ読みポインタを進める
+    // 4バイト境界に丸める（int32_t単位のため）
     uint32_t written_words = ((uint32_t) written) / sizeof(int32_t);
+    // 安全チェック：want_wordsを超えないように
     if (written_words > want_words)
         written_words = want_words;
+    // 安全チェック：0の場合は何もしない
+    if (written_words == 0)
+        return;
     sai_receive_index += written_words;
 }
 
+#define USB_IRQn OTG_HS_IRQn
+
+static inline uint16_t tud_audio_read_usb_locked(void* buf, uint16_t len)
+{
+    // 4バイト境界にアライメント
+    len &= (uint16_t) ~3u;
+
+    if (len == 0)
+    {
+        return 0;
+    }
+
+    // TinyUSB FIFOは内部でスレッドセーフな実装
+    // USB IRQ禁止はエンドポイントの状態遷移を妨げるため使用しない
+    return tud_audio_read(buf, len);
+}
+
+static inline uint16_t tud_audio_available_usb_locked(void)
+{
+    uint32_t en = usb_irq_save();
+    uint16_t a  = tud_audio_available();
+    usb_irq_restore(en);
+    return a;
+}
+
+// audio_task()呼び出し頻度計測用
+static volatile uint32_t audio_task_call_count = 0;
+static volatile uint32_t audio_task_last_tick  = 0;
+static volatile uint32_t audio_task_frequency  = 0;  // 呼び出し回数/秒
+
+// デバッグ用：無音化時の状態を保存
+static volatile uint16_t dbg_last_avail = 0;
+static volatile uint16_t dbg_last_read  = 0;
+static volatile uint32_t dbg_zero_count = 0;  // avail=0の連続回数
+static volatile bool dbg_streaming_out  = false;
+static volatile bool dbg_mounted        = false;
+
 void audio_task(void)
 {
+    // 呼び出し頻度計測
+    audio_task_call_count++;
+    uint32_t now = HAL_GetTick();
+    if (now - audio_task_last_tick >= 1000)
+    {
+        audio_task_frequency  = audio_task_call_count;
+        audio_task_call_count = 0;
+        audio_task_last_tick  = now;
+    }
+
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
-        AUDIO_SAI_Reset_ForNewRate();
+        // AUDIO_SAI_Reset_ForNewRate();
 #endif
         is_sr_changed = false;
     }
     else
     {
-        spk_data_size = 0;
+        // デバッグ情報を更新
+        dbg_streaming_out = s_streaming_out;
+        dbg_mounted       = tud_audio_mounted();
 
-        uint16_t avail = tud_audio_available();
-        if (avail > sizeof(usb_in_buf))
-        {
-            avail = sizeof(usb_in_buf);
-        }
-        // SEGGER_RTT_printf(0, "avail = %d(%d)\n", avail, avail / sizeof(int32_t));
-        if (avail > 0)
-        {
-            spk_data_size = tud_audio_read(usb_in_buf, avail);
-        }
+        // FIFOから読み取り - バッファ全体を使用
+        spk_data_size = tud_audio_read_usb_locked(usb_in_buf, sizeof(usb_in_buf));
 
         // USB -> SAI
         copybuf_usb2ring();
@@ -1284,58 +1563,6 @@ void audio_task(void)
             hpout_clear_count = 0;
         }
 #endif
-    }
-}
-
-void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA1)
-    {
-        update_pointer_rx = 0;
-        __DMB();
-    }
-}
-
-void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA1)
-    {
-        update_pointer_rx = SAI_RX_BUF_SIZE / 2;
-        __DMB();
-    }
-}
-
-void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA2)
-    {
-        tx_pending_mask |= 0x01;
-        __DMB();
-    }
-}
-
-void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef* hsai)
-{
-    if (hsai == &hsai_BlockA2)
-    {
-        tx_pending_mask |= 0x02;
-        __DMB();
-    }
-}
-
-void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
-{
-    volatile uint32_t saiErr = hsai->ErrorCode;                                 // HAL_SAI_ERROR_*
-    volatile uint32_t dmaErr = hsai->hdmarx ? hsai->hdmarx->ErrorCode : 0;      // HAL_DMA_ERROR_*
-    volatile uint32_t csr    = hsai->hdmarx ? hsai->hdmarx->Instance->CSR : 0;  // DTEF/ULEF/USEF/TOF 等
-
-    (void) saiErr;
-    (void) dmaErr;
-    (void) csr;  // ブレークして値を見る
-
-    if (__HAL_SAI_GET_FLAG(hsai, SAI_FLAG_OVRUDR) != RESET)
-    {
-        __HAL_SAI_CLEAR_FLAG(hsai, SAI_FLAG_OVRUDR);
     }
 }
 
@@ -1426,7 +1653,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     sai_transmit_index   = 0;
     sai_receive_index    = 0;
     tx_pending_mask      = 0;
-    update_pointer_rx    = -1;
+    rx_pending_mask      = 0;
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
