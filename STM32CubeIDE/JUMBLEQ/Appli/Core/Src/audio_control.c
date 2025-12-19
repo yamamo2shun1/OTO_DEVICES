@@ -848,6 +848,26 @@ void start_adc(void)
 #endif
 }
 
+void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
+{
+    uint8_t control_change[3] = {0xB0 | channel, number, value};
+    tud_midi_stream_write(0, control_change, 3);
+}
+
+void send_note(uint8_t note, uint8_t velocity, uint8_t channel)
+{
+    if (velocity == 0)
+    {
+        uint8_t note_off[3] = {0x80 | channel, note, 0};
+        tud_midi_stream_write(0, note_off, 3);
+    }
+    else
+    {
+        uint8_t note_on[3] = {0x90 | channel, note, velocity};
+        tud_midi_stream_write(0, note_on, 3);
+    }
+}
+
 void ui_control_task(void)
 {
     if (!is_started_audio_control() || !is_adc_complete)
@@ -924,34 +944,31 @@ void ui_control_task(void)
         pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
         pot_val[pot_ch] >>= 2;
 
-        switch (pot_ch)
+        if (pot_val[pot_ch] != pot_val_prev[pot_ch])
         {
-        case 4:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+            switch (pot_ch)
             {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                send_control_change(pot_ch, pot_val[pot_ch] >> 3, 0);
+                break;
+            case 4:
                 control_input_from_ch2_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 5:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 5:
                 control_master_out_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 6:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 6:
                 control_input_from_ch1_gain(pot_val[pot_ch]);
-            }
-            break;
-        case 7:
-            if (pot_val[pot_ch] != pot_val_prev[pot_ch])
-            {
+                break;
+            case 7:
                 control_input_from_usb_gain(pot_val[pot_ch]);
+                break;
+            default:
+                break;
             }
-            break;
-        default:
-            break;
         }
 
         pot_val_prev[pot_ch] = pot_val[pot_ch];
@@ -1040,8 +1057,10 @@ void ui_control_task(void)
         bool xfade_changed = false;
         for (int i = 0; i < 6; i++)
         {
-            if (fabs(xfade[i] - xfade_prev[i]) > 0.02f)
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f && fabs(xfade[i] - xfade_prev[i]) < 1.0f)
             {
+                send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+
                 xfade_changed = true;
                 break;
             }
