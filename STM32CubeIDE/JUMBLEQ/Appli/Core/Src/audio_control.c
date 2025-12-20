@@ -62,13 +62,13 @@ uint8_t pot_ch         = 0;
 uint8_t pot_ch_counter = 0;
 
 uint16_t pot_ma_index[POT_NUM]            = {0};
-uint32_t pot_val_ma[POT_NUM][ADC_MA_SIZE] = {0};
+uint32_t pot_val_ma[POT_NUM][POT_MA_SIZE] = {0};
 uint16_t pot_val[POT_NUM]                 = {0};
-uint16_t pot_val_prev[POT_NUM]            = {0};
+uint16_t pot_val_prev[POT_NUM][2]         = {0};
 
 uint16_t mag_calibration_count               = 0;
 uint16_t mag_ma_index[MAG_SW_NUM]            = {0};
-uint32_t mag_val_ma[MAG_SW_NUM][ADC_MA_SIZE] = {0};
+uint32_t mag_val_ma[MAG_SW_NUM][MAG_MA_SIZE] = {0};
 uint16_t mag_val[MAG_SW_NUM]                 = {0};
 uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
 uint16_t mag_offset[MAG_SW_NUM]              = {0};
@@ -82,9 +82,9 @@ volatile uint32_t sai_rx_rng_buf_index = 0;
 volatile uint32_t sai_transmit_index   = 0;
 volatile uint32_t sai_receive_index    = 0;
 
-static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
-static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
-static volatile bool usb_tx_pending = false;  // USB TX送信要求フラグ (ISR→Task通知用)
+static volatile uint8_t tx_pending_mask = 0;      // bit0: first-half, bit1: second-half
+static volatile uint8_t rx_pending_mask = 0;      // bit0: first-half, bit1: second-half
+static volatile bool usb_tx_pending     = false;  // USB TX送信要求フラグ (ISR→Task通知用)
 
 // Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
 volatile uint32_t dbg_tx_half_count  = 0;
@@ -150,10 +150,11 @@ void reset_audio_buffer(void)
 
     for (uint16_t i = 0; i < POT_NUM; i++)
     {
-        pot_ma_index[i] = 0;
-        pot_val[i]      = 0;
-        pot_val_prev[i] = 0;
-        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        pot_ma_index[i]    = 0;
+        pot_val[i]         = 0;
+        pot_val_prev[i][0] = 0;
+        pot_val_prev[i][1] = 0;
+        for (uint16_t j = 0; j < POT_MA_SIZE; j++)
         {
             pot_val_ma[i][j] = 0;
         }
@@ -166,7 +167,7 @@ void reset_audio_buffer(void)
         mag_val[i]        = 0;
         mag_offset_sum[i] = 0;
         mag_offset[i]     = 0;
-        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        for (uint16_t j = 0; j < MAG_MA_SIZE; j++)
         {
             mag_val_ma[i][j] = 0;
         }
@@ -892,7 +893,7 @@ void ui_control_task(void)
         return;
     }
 
-    if (pot_ch_counter < 4)
+    if (pot_ch_counter < POT_CH_SEL_WAIT)
     {
         switch (pot_ch)
         {
@@ -944,7 +945,7 @@ void ui_control_task(void)
         }
         pot_ch_counter++;
     }
-    else if (pot_ch_counter >= 4)
+    else if (pot_ch_counter >= POT_CH_SEL_WAIT)
     {
         /*
          * 0 1 4 5
@@ -967,16 +968,31 @@ void ui_control_task(void)
         default:
             break;
         }
-        pot_ma_index[pot_ch] = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
+        // SEGGER_RTT_printf(0, "ch=%d, adc=%d, ma=[%d, %d, %d, %d, %d, %d, %d, %d]\n", pot_ch, adc_val[6], pot_val_ma[pot_ch][0], pot_val_ma[pot_ch][1], pot_val_ma[pot_ch][2], pot_val_ma[pot_ch][3], pot_val_ma[pot_ch][4], pot_val_ma[pot_ch][5], pot_val_ma[pot_ch][6], pot_val_ma[pot_ch][7]);
+        pot_ma_index[pot_ch] = (pot_ma_index[pot_ch] + 1) % POT_MA_SIZE;
 
-        uint32_t pot_sum = 0;
-        for (int j = 0; j < ADC_MA_SIZE; j++)
+        float pot_sum = 0.0f;
+        for (int j = 0; j < POT_MA_SIZE; j++)
         {
-            pot_sum += pot_val_ma[pot_ch][j];
+            pot_sum += (float) pot_val_ma[pot_ch][j];
         }
-        pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
+        pot_val[pot_ch] = round(pot_sum / (float) POT_MA_SIZE);
 
-        if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+        uint8_t stable_count = 0;
+        if (pot_val[pot_ch] == pot_val_prev[pot_ch][0])
+        {
+            stable_count++;
+        }
+        if (pot_val[pot_ch] == pot_val_prev[pot_ch][1])
+        {
+            stable_count++;
+        }
+        if (pot_val_prev[pot_ch][0] == pot_val_prev[pot_ch][1])
+        {
+            stable_count++;
+        }
+
+        if (stable_count == 0)
         {
             switch (pot_ch)
             {
@@ -1003,7 +1019,8 @@ void ui_control_task(void)
             }
         }
 
-        pot_val_prev[pot_ch] = pot_val[pot_ch];
+        pot_val_prev[pot_ch][1] = pot_val_prev[pot_ch][0];
+        pot_val_prev[pot_ch][0] = pot_val[pot_ch];
 
         pot_ch         = (pot_ch + 1) % POT_NUM;
         pot_ch_counter = 0;
@@ -1020,14 +1037,14 @@ void ui_control_task(void)
     for (int i = 0; i < MAG_SW_NUM; i++)
     {
         mag_val_ma[i][mag_ma_index[i]] = adc_val[i];
-        mag_ma_index[i]                = (mag_ma_index[i] + 1) % ADC_MA_SIZE;
+        mag_ma_index[i]                = (mag_ma_index[i] + 1) % MAG_MA_SIZE;
 
-        uint32_t mag_sum = 0;
-        for (int j = 0; j < ADC_MA_SIZE; j++)
+        float mag_sum = 0.0f;
+        for (int j = 0; j < MAG_MA_SIZE; j++)
         {
-            mag_sum += mag_val_ma[i][j];
+            mag_sum += (float) mag_val_ma[i][j];
         }
-        mag_val[i] = mag_sum / ADC_MA_SIZE;
+        mag_val[i] = round(mag_sum / (float) MAG_MA_SIZE);
 
         if (mag_calibration_count < MAG_CALIBRATION_COUNT_MAX)
         {

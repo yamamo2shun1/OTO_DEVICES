@@ -14,8 +14,10 @@
 #define SAI_TX_BUF_SIZE  2048  // 4ch (USB->SAI)
 #define SAI_RX_BUF_SIZE  1024  // 2ch (SAI->USB)
 
+#define POT_CH_SEL_WAIT           1
 #define ADC_NUM                   8
-#define ADC_MA_SIZE               8  // 移動平均のサンプル数
+#define POT_MA_SIZE               8  // 移動平均のサンプル数
+#define MAG_MA_SIZE               8  // 移動平均のサンプル数
 #define POT_NUM                   8
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
