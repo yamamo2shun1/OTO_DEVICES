@@ -15,6 +15,8 @@
 #include "sai.h"
 #include "sai.h"
 
+#include "FreeRTOS.h"  // for xPortGetFreeHeapSize
+
 #include "SigmaStudioFW.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
@@ -1524,7 +1526,7 @@ static void copybuf_ring2usb_and_send(void)
             usb_out_buf_16[f * 4 + 3] = 0;                                      // R2 (無音)
         }
 
-        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
+        written = tud_audio_write_atomic(usb_out_buf, (uint16_t) usb_bytes);
 
         // デバッグ用カウンタ更新
         dbg_usb_write_total++;
@@ -1563,7 +1565,7 @@ static void copybuf_ring2usb_and_send(void)
             usb_out_buf[f * 4 + 3] = 0;                    // R2 (無音)
         }
 
-        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
+        written = tud_audio_write_atomic(usb_out_buf, (uint16_t) usb_bytes);
 
         // デバッグ用カウンタ更新
         dbg_usb_write_total++;
@@ -1632,6 +1634,11 @@ void audio_task(void)
         audio_task_frequency  = audio_task_call_count;
         audio_task_call_count = 0;
         audio_task_last_tick  = now;
+
+        // ヒープ残量を監視
+        size_t freeHeap = xPortGetFreeHeapSize();
+        size_t minHeap  = xPortGetMinimumEverFreeHeapSize();
+        SEGGER_RTT_printf(0, "heap: free=%d, min=%d\n", freeHeap, minHeap);
 
         // 1秒ごとにリングバッファ状態をログ出力
         if (s_streaming_out)
