@@ -44,7 +44,7 @@ void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t l
 
     if (status != HAL_OK)
     {
-        printf("[%X] spi write error\n", address);
+        SEGGER_RTT_printf(0, "[%X] spi write error\n", address);
     }
 }
 
@@ -69,7 +69,7 @@ void SIGMA_WRITE_REGISTER_BLOCK_IT(uint8_t devAddress, uint16_t address, uint16_
     if (status != HAL_OK)
     {
         spi_tx_complete = true;
-        printf("[%X] spi write error\n", address);
+        SEGGER_RTT_printf(0, "[%X] spi write error\n", address);
     }
 }
 
@@ -89,7 +89,7 @@ void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_
 
     if (status != HAL_OK)
     {
-        printf("SAFELOAD::[%X] spi write error\n", dataAddress);
+        SEGGER_RTT_printf("SAFELOAD::[%X] spi write error\n", dataAddress);
     }
 }
 

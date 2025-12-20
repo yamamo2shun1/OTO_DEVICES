@@ -21,6 +21,8 @@
 #include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
+#include "sr_48k_Modes.h"
+#include "sr_96k_Modes.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
 
@@ -62,16 +64,18 @@ uint8_t pot_ch         = 0;
 uint8_t pot_ch_counter = 0;
 
 uint16_t pot_ma_index[POT_NUM]            = {0};
-uint32_t pot_val_ma[POT_NUM][ADC_MA_SIZE] = {0};
+uint32_t pot_val_ma[POT_NUM][POT_MA_SIZE] = {0};
 uint16_t pot_val[POT_NUM]                 = {0};
-uint16_t pot_val_prev[POT_NUM]            = {0};
+uint16_t pot_val_prev[POT_NUM][2]         = {0};
 
 uint16_t mag_calibration_count               = 0;
 uint16_t mag_ma_index[MAG_SW_NUM]            = {0};
-uint32_t mag_val_ma[MAG_SW_NUM][ADC_MA_SIZE] = {0};
+uint32_t mag_val_ma[MAG_SW_NUM][MAG_MA_SIZE] = {0};
 uint16_t mag_val[MAG_SW_NUM]                 = {0};
 uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
 uint16_t mag_offset[MAG_SW_NUM]              = {0};
+
+bool thumb_enable = false;
 
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
@@ -82,8 +86,9 @@ volatile uint32_t sai_rx_rng_buf_index = 0;
 volatile uint32_t sai_transmit_index   = 0;
 volatile uint32_t sai_receive_index    = 0;
 
-static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
-static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
+static volatile uint8_t tx_pending_mask = 0;      // bit0: first-half, bit1: second-half
+static volatile uint8_t rx_pending_mask = 0;      // bit0: first-half, bit1: second-half
+static volatile bool usb_tx_pending     = false;  // USB TX送信要求フラグ (ISR→Task通知用)
 
 // Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
 volatile uint32_t dbg_tx_half_count  = 0;
@@ -149,10 +154,11 @@ void reset_audio_buffer(void)
 
     for (uint16_t i = 0; i < POT_NUM; i++)
     {
-        pot_ma_index[i] = 0;
-        pot_val[i]      = 0;
-        pot_val_prev[i] = 0;
-        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        pot_ma_index[i]    = 0;
+        pot_val[i]         = 0;
+        pot_val_prev[i][0] = 0;
+        pot_val_prev[i][1] = 0;
+        for (uint16_t j = 0; j < POT_MA_SIZE; j++)
         {
             pot_val_ma[i][j] = 0;
         }
@@ -165,7 +171,7 @@ void reset_audio_buffer(void)
         mag_val[i]        = 0;
         mag_offset_sum[i] = 0;
         mag_offset[i]     = 0;
-        for (uint16_t j = 0; j < ADC_MA_SIZE; j++)
+        for (uint16_t j = 0; j < MAG_MA_SIZE; j++)
         {
             mag_val_ma[i][j] = 0;
         }
@@ -891,7 +897,7 @@ void ui_control_task(void)
         return;
     }
 
-    if (pot_ch_counter < 4)
+    if (pot_ch_counter < POT_CH_SEL_WAIT)
     {
         switch (pot_ch)
         {
@@ -943,7 +949,7 @@ void ui_control_task(void)
         }
         pot_ch_counter++;
     }
-    else if (pot_ch_counter >= 4)
+    else if (pot_ch_counter >= POT_CH_SEL_WAIT)
     {
         /*
          * 0 1 4 5
@@ -966,16 +972,31 @@ void ui_control_task(void)
         default:
             break;
         }
-        pot_ma_index[pot_ch] = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
+        // SEGGER_RTT_printf(0, "ch=%d, adc=%d, ma=[%d, %d, %d, %d, %d, %d, %d, %d]\n", pot_ch, adc_val[6], pot_val_ma[pot_ch][0], pot_val_ma[pot_ch][1], pot_val_ma[pot_ch][2], pot_val_ma[pot_ch][3], pot_val_ma[pot_ch][4], pot_val_ma[pot_ch][5], pot_val_ma[pot_ch][6], pot_val_ma[pot_ch][7]);
+        pot_ma_index[pot_ch] = (pot_ma_index[pot_ch] + 1) % POT_MA_SIZE;
 
-        uint32_t pot_sum = 0;
-        for (int j = 0; j < ADC_MA_SIZE; j++)
+        float pot_sum = 0.0f;
+        for (int j = 0; j < POT_MA_SIZE; j++)
         {
-            pot_sum += pot_val_ma[pot_ch][j];
+            pot_sum += (float) pot_val_ma[pot_ch][j];
         }
-        pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
+        pot_val[pot_ch] = round(pot_sum / (float) POT_MA_SIZE);
 
-        if (pot_val[pot_ch] != pot_val_prev[pot_ch])
+        uint8_t stable_count = 0;
+        if (pot_val[pot_ch] == pot_val_prev[pot_ch][0])
+        {
+            stable_count++;
+        }
+        if (pot_val[pot_ch] == pot_val_prev[pot_ch][1])
+        {
+            stable_count++;
+        }
+        if (pot_val_prev[pot_ch][0] == pot_val_prev[pot_ch][1])
+        {
+            stable_count++;
+        }
+
+        if (stable_count == 0)
         {
             switch (pot_ch)
             {
@@ -1002,7 +1023,8 @@ void ui_control_task(void)
             }
         }
 
-        pot_val_prev[pot_ch] = pot_val[pot_ch];
+        pot_val_prev[pot_ch][1] = pot_val_prev[pot_ch][0];
+        pot_val_prev[pot_ch][0] = pot_val[pot_ch];
 
         pot_ch         = (pot_ch + 1) % POT_NUM;
         pot_ch_counter = 0;
@@ -1019,14 +1041,14 @@ void ui_control_task(void)
     for (int i = 0; i < MAG_SW_NUM; i++)
     {
         mag_val_ma[i][mag_ma_index[i]] = adc_val[i];
-        mag_ma_index[i]                = (mag_ma_index[i] + 1) % ADC_MA_SIZE;
+        mag_ma_index[i]                = (mag_ma_index[i] + 1) % MAG_MA_SIZE;
 
-        uint32_t mag_sum = 0;
-        for (int j = 0; j < ADC_MA_SIZE; j++)
+        float mag_sum = 0.0f;
+        for (int j = 0; j < MAG_MA_SIZE; j++)
         {
-            mag_sum += mag_val_ma[i][j];
+            mag_sum += (float) mag_val_ma[i][j];
         }
-        mag_val[i] = mag_sum / ADC_MA_SIZE;
+        mag_val[i] = round(mag_sum / (float) MAG_MA_SIZE);
 
         if (mag_calibration_count < MAG_CALIBRATION_COUNT_MAX)
         {
@@ -1059,12 +1081,13 @@ void ui_control_task(void)
 
     if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
+        if (mag_val[0] <= THUMB_THRESHOLD && mag_val[5] <= THUMB_THRESHOLD)
         {
             for (int i = 1; i < 5; i++)
             {
                 xfade[i] = 0.0f;
             }
+            thumb_enable = false;
         }
         else
         {
@@ -1083,14 +1106,19 @@ void ui_control_task(void)
                     xfade[i] = 0.0f;
                 }
             }
+
+            thumb_enable = true;
         }
 
         bool xfade_changed = false;
         for (int i = 0; i < 6; i++)
         {
-            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f && fabs(xfade[i] - xfade_prev[i]) < 1.0f)
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f)
             {
-                send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                if (thumb_enable)
+                {
+                    send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                }
 
                 xfade_changed = true;
                 break;
@@ -1636,7 +1664,7 @@ static void copybuf_ring2usb_and_send(void)
 }
 
 // TinyUSB TX完了コールバック - USB ISRコンテキストで呼ばれる
-// 前回のTX完了後に次のデータを準備する
+// ISR内でFIFO操作を行うとRX処理と競合するため、フラグのみ設定
 bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_id, uint8_t ep_in, uint8_t cur_alt_setting)
 {
     (void) rhport;
@@ -1645,7 +1673,8 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) ep_in;
     (void) cur_alt_setting;
 
-    copybuf_ring2usb_and_send();
+    // ISRではフラグを立てるだけ - 実際の送信はタスクコンテキストで行う
+    usb_tx_pending = true;
     return true;
 }
 
@@ -1757,9 +1786,15 @@ void audio_task(void)
         copybuf_usb2ring();
         copybuf_ring2sai();
 
-        // SAI -> USB (ring buffer側のみ更新、USB送信はtud_audio_tx_done_isrで行う)
+        // SAI -> USB
         copybuf_sai2ring();
-        // copybuf_ring2usb_and_send() は tud_audio_tx_done_isr() から呼ばれる
+
+        // USB TX送信 (ISRからのフラグ通知、またはストリーミング中は常に試行)
+        if (usb_tx_pending || s_streaming_in)
+        {
+            usb_tx_pending = false;
+            copybuf_ring2usb_and_send();
+        }
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
@@ -1828,7 +1863,7 @@ void AUDIO_Init_AK4619(uint32_t hz)
     // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
 }
 
-void AUDIO_Init_ADAU1466(void)
+void AUDIO_Init_ADAU1466(uint32_t hz)
 {
     // ADAU1466 HW Reset
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 0);
@@ -1836,6 +1871,16 @@ void AUDIO_Init_ADAU1466(void)
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
     HAL_Delay(500);
     default_download_ADAU146XSCHEMATIC_1();
+    HAL_Delay(100);
+
+    if (hz == 48000)
+    {
+        sr_48k_download();
+    }
+    else if (hz == 96000)
+    {
+        sr_96k_download();
+    }
 }
 
 void AUDIO_SAI_Reset_ForNewRate(void)
@@ -1871,7 +1916,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
-    AUDIO_Init_ADAU1466();
+    AUDIO_Init_ADAU1466(new_hz);
 #endif
 
     uint8_t data[2] = {0x00, 0x00};

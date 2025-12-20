@@ -14,20 +14,24 @@
 #define SAI_TX_BUF_SIZE  2048  // 4ch (USB->SAI)
 #define SAI_RX_BUF_SIZE  1024  // 2ch (SAI->USB)
 
+#define POT_CH_SEL_WAIT           1
 #define ADC_NUM                   8
-#define ADC_MA_SIZE               8  // 移動平均のサンプル数
+#define POT_MA_SIZE               8  // 移動平均のサンプル数
+#define MAG_MA_SIZE               8  // 移動平均のサンプル数
 #define POT_NUM                   8
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
 #define MAG_XFADE_RANGE           384
 
+#define THUMB_THRESHOLD 1200
+
 void reset_audio_buffer(void);
 uint32_t get_tx_blink_interval_ms(void);
 uint32_t get_rx_blink_interval_ms(void);
 
 void AUDIO_Init_AK4619(uint32_t hz);
-void AUDIO_Init_ADAU1466(void);
+void AUDIO_Init_ADAU1466(uint32_t hz);
 
 void start_adc(void);
 void ui_control_task(void);
