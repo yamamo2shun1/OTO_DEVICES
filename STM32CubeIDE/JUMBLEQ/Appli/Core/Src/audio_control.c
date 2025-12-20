@@ -84,6 +84,7 @@ volatile uint32_t sai_receive_index    = 0;
 
 static volatile uint8_t tx_pending_mask = 0;  // bit0: first-half, bit1: second-half
 static volatile uint8_t rx_pending_mask = 0;  // bit0: first-half, bit1: second-half
+static volatile bool usb_tx_pending = false;  // USB TX送信要求フラグ (ISR→Task通知用)
 
 // Debug counters for DMA callbacks (staticを外してデバッガから見えるようにする)
 volatile uint32_t dbg_tx_half_count  = 0;
@@ -1636,7 +1637,7 @@ static void copybuf_ring2usb_and_send(void)
 }
 
 // TinyUSB TX完了コールバック - USB ISRコンテキストで呼ばれる
-// 前回のTX完了後に次のデータを準備する
+// ISR内でFIFO操作を行うとRX処理と競合するため、フラグのみ設定
 bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_id, uint8_t ep_in, uint8_t cur_alt_setting)
 {
     (void) rhport;
@@ -1645,7 +1646,8 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) ep_in;
     (void) cur_alt_setting;
 
-    copybuf_ring2usb_and_send();
+    // ISRではフラグを立てるだけ - 実際の送信はタスクコンテキストで行う
+    usb_tx_pending = true;
     return true;
 }
 
@@ -1757,9 +1759,15 @@ void audio_task(void)
         copybuf_usb2ring();
         copybuf_ring2sai();
 
-        // SAI -> USB (ring buffer側のみ更新、USB送信はtud_audio_tx_done_isrで行う)
+        // SAI -> USB
         copybuf_sai2ring();
-        // copybuf_ring2usb_and_send() は tud_audio_tx_done_isr() から呼ばれる
+
+        // USB TX送信 (ISRからのフラグ通知、またはストリーミング中は常に試行)
+        if (usb_tx_pending || s_streaming_in)
+        {
+            usb_tx_pending = false;
+            copybuf_ring2usb_and_send();
+        }
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
