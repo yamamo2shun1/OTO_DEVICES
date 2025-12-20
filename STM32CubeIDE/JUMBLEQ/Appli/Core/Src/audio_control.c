@@ -1550,7 +1550,8 @@ static void copybuf_ring2usb_and_send(void)
             usb_out_buf_16[f * 4 + 3] = 0;                           // R2 (無音)
         }
 
-        written = tud_audio_write_atomic(usb_out_buf, (uint16_t) usb_bytes);
+        // ISRコンテキストから呼ばれるので通常版を使用
+        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
 
         // デバッグ用カウンタ更新
         dbg_usb_write_total++;
@@ -1592,7 +1593,8 @@ static void copybuf_ring2usb_and_send(void)
             usb_out_buf[f * 4 + 3] = 0;                    // R2 (無音)
         }
 
-        written = tud_audio_write_atomic(usb_out_buf, (uint16_t) usb_bytes);
+        // ISRコンテキストから呼ばれるので通常版を使用
+        written = tud_audio_write(usb_out_buf, (uint16_t) usb_bytes);
 
         // デバッグ用カウンタ更新
         dbg_usb_write_total++;
@@ -1615,6 +1617,21 @@ static void copybuf_ring2usb_and_send(void)
             return;
         sai_receive_index += written_frames * 2;  // SAIは2ch分
     }
+}
+
+// TinyUSB TX完了コールバック - USB ISRコンテキストで呼ばれる
+// 前回のTX完了後に次のデータを準備する
+bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_id, uint8_t ep_in, uint8_t cur_alt_setting)
+{
+    (void) rhport;
+    (void) n_bytes_sent;
+    (void) func_id;
+    (void) ep_in;
+    (void) cur_alt_setting;
+
+    // デバッグ: 一時的に無効化してスピーカー出力に影響があるか確認
+    // copybuf_ring2usb_and_send();
+    return true;
 }
 
 #define USB_IRQn OTG_HS_IRQn
@@ -1675,6 +1692,16 @@ void audio_task(void)
         {
             // 最初の8サンプルをダンプ (4ch x 2frames)
             SEGGER_RTT_printf(0, "spk=%d [%08X %08X %08X %08X]\n", spk_data_size, usb_in_buf[0], usb_in_buf[1], usb_in_buf[2], usb_in_buf[3]);
+            // TX側のデバッグ情報
+            int32_t tx_used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+            SEGGER_RTT_printf(0, "  tx: half=%d cplt=%d fill=%d under=%d copied=%d used=%d\n", dbg_tx_half_count, dbg_tx_cplt_count, dbg_fill_tx_count, dbg_fill_underrun, dbg_fill_copied, tx_used);
+            // SAI TX出力バッファの内容を確認
+            SEGGER_RTT_printf(0, "  sai_tx: [%08X %08X %08X %08X]\n", stereo_out_buf[0], stereo_out_buf[1], stereo_out_buf[2], stereo_out_buf[3]);
+            dbg_tx_half_count = 0;
+            dbg_tx_cplt_count = 0;
+            dbg_fill_tx_count = 0;
+            dbg_fill_underrun = 0;
+            dbg_fill_copied   = 0;
         }
         if (s_streaming_in)
         {
@@ -1715,9 +1742,9 @@ void audio_task(void)
         copybuf_usb2ring();
         copybuf_ring2sai();
 
-        // SAI -> USB
+        // SAI -> USB (ring buffer側のみ更新、USB送信はtud_audio_tx_done_isrで行う)
         copybuf_sai2ring();
-        copybuf_ring2usb_and_send();
+        // copybuf_ring2usb_and_send() は tud_audio_tx_done_isr() から呼ばれる
 
 #if 0
         if (spk_data_size == 0 && hpout_clear_count < 100)
