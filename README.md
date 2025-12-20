@@ -1,4 +1,4 @@
-# OTO_DEVICES
+# JUMBLEQ
 
 ![OTO_overall](https://github.com/user-attachments/assets/7e5d887a-9eaa-4ffe-a4b5-3ef646b3e20a)
 
