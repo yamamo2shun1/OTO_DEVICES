@@ -138,7 +138,7 @@ static volatile uint32_t dbg_ret_not_streaming = 0;  // s_streaming_in == false
 static volatile uint32_t dbg_ret_no_ep         = 0;  // EP NULL
 static volatile uint32_t dbg_ret_underrun      = 0;  // リングバッファ不足
 static volatile uint32_t dbg_ret_written_zero  = 0;  // written == 0
-static volatile int32_t  dbg_last_used         = 0;  // 最後のused値
+static volatile int32_t dbg_last_used          = 0;  // 最後のused値
 
 void reset_audio_buffer(void)
 {
@@ -949,7 +949,7 @@ void ui_control_task(void)
          * 0 1 4 5
          * 2 3 6 7
          */
-        pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6];
+        pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6] >> 5;
         pot_ma_index[pot_ch]                     = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
 
         uint32_t pot_sum = 0;
@@ -958,7 +958,6 @@ void ui_control_task(void)
             pot_sum += pot_val_ma[pot_ch][j];
         }
         pot_val[pot_ch] = pot_sum / ADC_MA_SIZE;
-        pot_val[pot_ch] >>= 2;
 
         if (pot_val[pot_ch] != pot_val_prev[pot_ch])
         {
@@ -968,7 +967,7 @@ void ui_control_task(void)
             case 1:
             case 2:
             case 3:
-                send_control_change(pot_ch, pot_val[pot_ch] >> 3, 0);
+                send_control_change(pot_ch, pot_val[pot_ch], 0);
                 break;
             case 4:
                 control_input_from_ch2_gain(pot_val[pot_ch]);
@@ -1505,7 +1504,7 @@ static void copybuf_ring2usb_and_send(void)
     const uint32_t frames    = audio_frames_per_ms();  // 48 or 96 frames/ms
     const uint32_t sai_words = frames * 2;             // SAIは2ch
 
-    int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+    int32_t used  = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
     dbg_last_used = used;  // デバッグ用
     if (used < 0)
     {
@@ -1543,12 +1542,12 @@ static void copybuf_ring2usb_and_send(void)
             uint32_t r_R = (sai_receive_index + f * 2 + 1) & (SAI_RNG_BUF_SIZE - 1);
             // 32bit → 16bit (上位16bitを取り出す)
             // SAIデータは符号付き32bitなので、算術右シフトで符号を保持
-            int32_t sample_L = sai_rx_rng_buf[r_L];
-            int32_t sample_R = sai_rx_rng_buf[r_R];
-            usb_out_buf_16[f * 4 + 0] = (int16_t)(sample_L >> 16);  // L1
-            usb_out_buf_16[f * 4 + 1] = (int16_t)(sample_R >> 16);  // R1
-            usb_out_buf_16[f * 4 + 2] = 0;                          // L2 (無音)
-            usb_out_buf_16[f * 4 + 3] = 0;                          // R2 (無音)
+            int32_t sample_L          = sai_rx_rng_buf[r_L];
+            int32_t sample_R          = sai_rx_rng_buf[r_R];
+            usb_out_buf_16[f * 4 + 0] = (int16_t) (sample_L >> 16);  // L1
+            usb_out_buf_16[f * 4 + 1] = (int16_t) (sample_R >> 16);  // R1
+            usb_out_buf_16[f * 4 + 2] = 0;                           // L2 (無音)
+            usb_out_buf_16[f * 4 + 3] = 0;                           // R2 (無音)
         }
 
         written = tud_audio_write_atomic(usb_out_buf, (uint16_t) usb_bytes);
@@ -1681,13 +1680,10 @@ void audio_task(void)
         {
             // USB書き込み状況をログ出力
             SEGGER_RTT_printf(0, "mic: res=%d, total=%d, used=%d\n", current_resolution, dbg_usb_write_total, dbg_last_used);
-            SEGGER_RTT_printf(0, "  ret: mount=%d strm=%d ep=%d under=%d w0=%d\n", 
-                dbg_ret_not_mounted, dbg_ret_not_streaming, dbg_ret_no_ep, dbg_ret_underrun, dbg_ret_written_zero);
+            SEGGER_RTT_printf(0, "  ret: mount=%d strm=%d ep=%d under=%d w0=%d\n", dbg_ret_not_mounted, dbg_ret_not_streaming, dbg_ret_no_ep, dbg_ret_underrun, dbg_ret_written_zero);
             // SAI RXバッファの内容を確認
             uint32_t idx = sai_receive_index & (SAI_RNG_BUF_SIZE - 1);
-            SEGGER_RTT_printf(0, "sai_rx[%d]: %08X %08X %08X %08X\n", idx, 
-                sai_rx_rng_buf[idx], sai_rx_rng_buf[(idx+1) & (SAI_RNG_BUF_SIZE-1)],
-                sai_rx_rng_buf[(idx+2) & (SAI_RNG_BUF_SIZE-1)], sai_rx_rng_buf[(idx+3) & (SAI_RNG_BUF_SIZE-1)]);
+            SEGGER_RTT_printf(0, "sai_rx[%d]: %08X %08X %08X %08X\n", idx, sai_rx_rng_buf[idx], sai_rx_rng_buf[(idx + 1) & (SAI_RNG_BUF_SIZE - 1)], sai_rx_rng_buf[(idx + 2) & (SAI_RNG_BUF_SIZE - 1)], sai_rx_rng_buf[(idx + 3) & (SAI_RNG_BUF_SIZE - 1)]);
             // カウンタリセット
             dbg_usb_write_partial = 0;
             dbg_usb_write_total   = 0;
