@@ -202,6 +202,9 @@ void StartDefaultTask(void* argument)
     /* Infinite loop */
     for (;;)
     {
+        size_t freeHeap = xPortGetFreeHeapSize();
+        SEGGER_RTT_printf(0, "Free heap: %d\n", freeHeap);
+
         update_color_state();
         osDelay(1000);
     }
@@ -224,7 +227,7 @@ void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
     // TinyUSB is already initialized in main.c with tusb_init()
-    (void)argument;
+    (void) argument;
 
     /* Infinite loop */
     for (;;)
@@ -246,8 +249,8 @@ void StartUSBTask(void* argument)
 void StartAudioTask(void* argument)
 {
     /* USER CODE BEGIN StartAudioTask */
-    (void)argument;
-    
+    (void) argument;
+
     /* Infinite loop */
     for (;;)
     {
