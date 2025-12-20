@@ -29,6 +29,22 @@
 
 #define USB_PID 0x0011
 
+// String Descriptor Index
+enum
+{
+    STRID_LANGID = 0,
+    STRID_MANUFACTURER,
+    STRID_PRODUCT,
+    STRID_SERIAL,
+
+    // Keep these indices aligned with string_desc_arr[] below
+    STRID_AUDIO_OUT,
+    STRID_AUDIO_IN,
+#if CFG_TUD_MIDI
+    STRID_MIDI,
+#endif
+};
+
 //--------------------------------------------------------------------+
 // Device Descriptors
 //--------------------------------------------------------------------+
@@ -100,29 +116,61 @@ uint8_t const* tud_descriptor_device_cb(void)
     #define EPNUM_AUDIO_INT 0x02
 #endif
 
-#define CONFIG_UAC1_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO10_AUDIOIF_STEREO_DESC_LEN(2))
+#if CFG_TUD_MIDI
+    // MIDI uses Bulk endpoints. Pick endpoint numbers that don't overlap with audio.
+    // Note: some MCUs cannot use same endpoint number for IN and OUT (TUD_ENDPOINT_ONE_DIRECTION_ONLY).
+    #if defined(TUD_ENDPOINT_ONE_DIRECTION_ONLY)
+        #define EPNUM_MIDI_OUT 0x04
+        #define EPNUM_MIDI_IN  0x05
+    #else
+        #define EPNUM_MIDI_OUT 0x04
+        #define EPNUM_MIDI_IN  0x04
+    #endif
+
+    // MIDI Bulk max packet size depends on speed: FS=64, HS=512.
+    #define MIDI_EP_SIZE_FS 64
+    #define MIDI_EP_SIZE_HS 512
+#endif
+
+#define CONFIG_UAC1_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO10_AUDIOIF_STEREO_DESC_LEN(2) + (CFG_TUD_MIDI ? TUD_MIDI_DESC_LEN : 0))
 
 uint8_t const desc_uac1_configuration[] =
     {
         // Config number, interface count, string index, total length, attribute, power in mA
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_UAC1_TOTAL_LEN, 0x00, 100),
 
-        // Interface number, string index, bytes per sample RX/TX, bits used per sample RX/TX, EP Out & EP In address, EP sizes, sample rate
-        TUD_AUDIO10_AUDIOIF_STEREO_DESCRIPTOR(ITF_NUM_AUDIO_CONTROL, 4, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX, EPNUM_AUDIO_OUT, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, EPNUM_AUDIO_IN | 0x80, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, 48000, 96000)};
+        // Interface number, string index OUT, string index IN, bytes per sample RX/TX, bits used per sample RX/TX, EP Out & EP In address, EP sizes, sample rate
+        TUD_AUDIO10_AUDIOIF_STEREO_DESCRIPTOR(ITF_NUM_AUDIO_CONTROL, STRID_AUDIO_OUT, STRID_AUDIO_IN, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX, EPNUM_AUDIO_OUT, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, EPNUM_AUDIO_IN | 0x80, CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, 48000, 96000),
+
+#if CFG_TUD_MIDI
+
+        // MIDI (Audio Class 1.0, MIDIStreaming)
+        TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, STRID_MIDI, EPNUM_MIDI_OUT, (uint8_t) (EPNUM_MIDI_IN | 0x80), MIDI_EP_SIZE_FS),
+
+#endif
+};
 
 TU_VERIFY_STATIC(sizeof(desc_uac1_configuration) == CONFIG_UAC1_TOTAL_LEN, "Incorrect size");
 
 #if TUD_OPT_HIGH_SPEED
 
-    #define CONFIG_UAC2_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO20_AUDIOIF_STEREO_DESC_LEN)
+    #define CONFIG_UAC2_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_AUDIO20_AUDIOIF_STEREO_DESC_LEN + (CFG_TUD_MIDI ? TUD_MIDI_DESC_LEN : 0))
 
 uint8_t const desc_uac2_configuration[] =
     {
         // Config number, interface count, string index, total length, attribute, power in mA
         TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_UAC2_TOTAL_LEN, 0x00, 100),
 
-        // String index, EP Out & EP In address, EP Interrupt address
-        TUD_AUDIO20_AUDIOIF_STEREO_DESCRIPTOR(5, EPNUM_AUDIO_OUT, EPNUM_AUDIO_IN | 0x80, EPNUM_AUDIO_INT | 0x80)};
+        // String index OUT, String index IN, EP Out & EP In address, EP Interrupt address
+        TUD_AUDIO20_AUDIOIF_STEREO_DESCRIPTOR(STRID_AUDIO_OUT, STRID_AUDIO_IN, EPNUM_AUDIO_OUT, EPNUM_AUDIO_IN | 0x80, EPNUM_AUDIO_INT | 0x80),
+
+    #if CFG_TUD_MIDI
+
+        // MIDI (Audio Class 1.0, MIDIStreaming)
+        TUD_MIDI_DESCRIPTOR(ITF_NUM_MIDI, STRID_MIDI, EPNUM_MIDI_OUT, (uint8_t) (EPNUM_MIDI_IN | 0x80), MIDI_EP_SIZE_HS),
+
+    #endif
+};
 
 TU_VERIFY_STATIC(sizeof(desc_uac2_configuration) == CONFIG_UAC2_TOTAL_LEN, "Incorrect size");
 
@@ -187,15 +235,6 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 // String Descriptors
 //--------------------------------------------------------------------+
 
-// String Descriptor Index
-enum
-{
-    STRID_LANGID = 0,
-    STRID_MANUFACTURER,
-    STRID_PRODUCT,
-    STRID_SERIAL,
-};
-
 // array of pointer to string descriptors
 static char const* string_desc_arr[] =
     {
@@ -205,6 +244,9 @@ static char const* string_desc_arr[] =
         NULL, // 3: Serials will use unique ID if possible
         "JUMBLEQ Stereo OUT", // 4: Function
         "JUMBLEQ Stereo IN", // 5: Function
+#if CFG_TUD_MIDI
+        "JUMBLEQ MIDI", // 6: Function
+#endif
 };
 
 static uint16_t _desc_str[32 + 1];

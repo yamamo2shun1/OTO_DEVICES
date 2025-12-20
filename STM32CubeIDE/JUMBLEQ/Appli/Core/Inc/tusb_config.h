@@ -40,16 +40,30 @@ extern "C"
 // Board Specific Configuration
 //--------------------------------------------------------------------+
 #define CFG_TUSB_MCU              OPT_MCU_STM32H7RS
-#define CFG_TUSB_OS               OPT_OS_NONE
+#define CFG_TUSB_OS               OPT_OS_FREERTOS
 #define BOARD_DEVICE_RHPORT_SPEED OPT_MODE_HIGH_SPEED
 #define BOARD_TUD_MAX_SPEED       OPT_MODE_HIGH_SPEED
 #define BOARD_DEVICE_RHPORT_NUM   1
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
+
+// DWC2 DMA mode - Slaveモードを無効にし、DMAモードを有効にする
+// DMAモードではUSB FIFOへのアクセスがDMAで行われ、CPU競合が減る
+#define CFG_TUD_DWC2_SLAVE_ENABLE 0
+#define CFG_TUD_DWC2_DMA_ENABLE   1
+
+// DMAモード + DCacheが有効なMCUでは、キャッシュ管理が必須
+// TinyUSBがDMA転送後にキャッシュをインバリデートするようになる
+#define CFG_TUD_MEM_DCACHE_ENABLE 1
+#define CFG_TUD_MEM_DCACHE_LINE_SIZE 32
+
+// noncacheable_buffer領域をuncached regionsに追加
+// (0x24040000 - 0x2405FFFF: 128KB noncacheable section)
+//#define CFG_DWC2_MEM_UNCACHED_REGIONS \
+  {.start = 0x24040000, .end = 0x2405FFFF},
+
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
-#define TUD_AUDIO_PREFER_RING_BUFFER 1
-// #define CFG_TUSB_MEM_SECTION   __attribute__((section("noncacheable_buffer")))
-// #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
+// #define TUD_AUDIO_PREFER_RING_BUFFER 1
 // #define CFG_TUSB_DEBUG        0
 // #define CFG_TUD_LOG_LEVEL     0
 // #define CFG_TUSB_DEBUG_PRINTF my_printf
@@ -94,13 +108,9 @@ extern "C"
  * - CFG_TUSB_MEM SECTION : __attribute__ (( section(".usb_ram") ))
  * - CFG_TUSB_MEM_ALIGN   : __attribute__ ((aligned(4)))
  */
-#ifndef CFG_TUSB_MEM_SECTION
-    #define CFG_TUSB_MEM_SECTION
-#endif
-
-#ifndef CFG_TUSB_MEM_ALIGN
-    #define CFG_TUSB_MEM_ALIGN __attribute__((aligned(4)))
-#endif
+// DMAモードでも通常RAMを使用（noncacheableは他のDMAに影響する）
+#define CFG_TUSB_MEM_SECTION
+#define CFG_TUSB_MEM_ALIGN   __attribute__((aligned(32)))
 
     //--------------------------------------------------------------------
     // DEVICE CONFIGURATION
@@ -114,9 +124,19 @@ extern "C"
 #define CFG_TUD_CDC    0
 #define CFG_TUD_MSC    0
 #define CFG_TUD_HID    0
-#define CFG_TUD_MIDI   0
+#define CFG_TUD_MIDI   1
 #define CFG_TUD_AUDIO  1
 #define CFG_TUD_VENDOR 0
+
+
+// MIDI Endpoint/FIFO sizes
+#if CFG_TUD_MIDI
+  // Bulk endpoints: 64 bytes (FS) / 512 bytes (HS)
+  #define CFG_TUD_MIDI_EP_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
+  // FIFO size for tud_midi_{read,write} (bytes)
+  #define CFG_TUD_MIDI_RX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
+  #define CFG_TUD_MIDI_TX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
+#endif
 
 //--------------------------------------------------------------------
 // AUDIO CLASS DRIVER CONFIGURATION
@@ -132,8 +152,8 @@ extern "C"
 /* 24bit/48kHz is the best quality for headset or 24bit/96kHz for 2ch speaker,
    high-speed is needed beyond this */
 #define CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE 96000
-#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   2
-#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   2
+#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   4
+#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   4
 
 // 16bit in 16bit slots
 #define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX 2

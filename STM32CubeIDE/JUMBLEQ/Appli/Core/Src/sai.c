@@ -103,14 +103,14 @@ void MX_SAI2_Init(void)
   hsai_BlockA2.Init.PdmInit.Activation = DISABLE;
   hsai_BlockA2.Init.PdmInit.MicPairsNbr = 0;
   hsai_BlockA2.Init.PdmInit.ClockEnable = SAI_PDM_CLOCK1_ENABLE;
-  hsai_BlockA2.FrameInit.FrameLength = 64;
+  hsai_BlockA2.FrameInit.FrameLength = 128;
   hsai_BlockA2.FrameInit.ActiveFrameLength = 32;
   hsai_BlockA2.FrameInit.FSDefinition = SAI_FS_STARTFRAME;
   hsai_BlockA2.FrameInit.FSPolarity = SAI_FS_ACTIVE_LOW;
   hsai_BlockA2.FrameInit.FSOffset = SAI_FS_FIRSTBIT;
   hsai_BlockA2.SlotInit.FirstBitOffset = 0;
   hsai_BlockA2.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
-  hsai_BlockA2.SlotInit.SlotNumber = 2;
+  hsai_BlockA2.SlotInit.SlotNumber = 4;
   hsai_BlockA2.SlotInit.SlotActive = 0x0000FFFF;
   if (HAL_SAI_Init(&hsai_BlockA2) != HAL_OK)
   {
@@ -148,7 +148,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
        __HAL_RCC_SAI1_CLK_ENABLE();
 
     /* Peripheral interrupt init*/
-    HAL_NVIC_SetPriority(SAI1_A_IRQn, 4, 0);
+    HAL_NVIC_SetPriority(SAI1_A_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(SAI1_A_IRQn);
     }
     SAI1_client ++;
@@ -185,7 +185,7 @@ void HAL_SAI_MspInit(SAI_HandleTypeDef* saiHandle)
        __HAL_RCC_SAI2_CLK_ENABLE();
 
     /* Peripheral interrupt init*/
-    HAL_NVIC_SetPriority(SAI2_A_IRQn, 4, 0);
+    HAL_NVIC_SetPriority(SAI2_A_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(SAI2_A_IRQn);
     }
     SAI2_client ++;

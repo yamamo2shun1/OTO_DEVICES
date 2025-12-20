@@ -18,6 +18,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "adc.h"
 #include "gpdma.h"
 #include "hpdma.h"
@@ -52,10 +54,22 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+// デバッグ用 - Watchウィンドウで確認するためのextern宣言
+extern volatile uint32_t dbg_usb_task_count;
+extern volatile uint32_t dbg_audio_task_count;
+extern volatile uint32_t dbg_tx_half_count;
+extern volatile uint32_t dbg_tx_cplt_count;
+extern volatile uint32_t dbg_fill_tx_count;
+extern volatile uint32_t dbg_usb2ring_bytes;
+extern volatile int32_t dbg_ring_used;
+extern volatile uint32_t dbg_fill_underrun;
+extern volatile uint32_t dbg_fill_copied;
+extern volatile uint32_t dbg_usb2ring_count;
+extern volatile uint32_t dbg_usb2ring_total;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -67,13 +81,6 @@ int __io_putchar(uint8_t ch)
     return ITM_SendChar(ch);
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-    if (htim == &htim6)
-    {
-        update_color_state();
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -118,7 +125,6 @@ int main(void)
     MX_USB_OTG_HS_PCD_Init();
     MX_I2C3_Init();
     MX_SPI5_Init();
-    MX_TIM6_Init();
     MX_SAI1_Init();
     MX_TIM1_Init();
     MX_SAI2_Init();
@@ -129,6 +135,7 @@ int main(void)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
     reset_audio_buffer();
+    reset_led_buffer();
 
     AUDIO_Init_AK4619(48000);
 #if RESET_FROM_FW
@@ -136,7 +143,7 @@ int main(void)
      * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
      * SigmaStudio+からダウンロードを実行すること。
      */
-    AUDIO_Init_ADAU1466();
+    AUDIO_Init_ADAU1466(48000);
     HAL_Delay(500);
 #endif
 
@@ -155,8 +162,6 @@ int main(void)
     renew();
     HAL_Delay(100);
 
-    HAL_TIM_Base_Start_IT(&htim6);
-
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
@@ -167,6 +172,15 @@ int main(void)
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
     /* USER CODE END 2 */
 
+    /* Init scheduler */
+    osKernelInitialize(); /* Call init function for freertos objects (in cmsis_os2.c) */
+    MX_FREERTOS_Init();
+
+    /* Start scheduler */
+    osKernelStart();
+
+    /* We should never get here as control is now taken by the scheduler */
+
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
@@ -174,14 +188,8 @@ int main(void)
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-        tud_task();
-
-        audio_task();
-
-        led_blinking_task();
-        rgb_led_task();
-
-        ui_control_task();
+        // FreeRTOS使用時はここに到達しない
+        // すべての処理はタスク（freertos.c）で実行される
     }
     /* USER CODE END 3 */
 }
@@ -189,6 +197,28 @@ int main(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/**
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM6 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim TIM handle
+ * @retval None
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
+{
+    /* USER CODE BEGIN Callback 0 */
+
+    /* USER CODE END Callback 0 */
+    if (htim->Instance == TIM6)
+    {
+        HAL_IncTick();
+    }
+    /* USER CODE BEGIN Callback 1 */
+
+    /* USER CODE END Callback 1 */
+}
 
 /**
  * @brief  This function is executed in case of error occurrence.

@@ -53,18 +53,14 @@ extern "C"
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define RESET_FROM_FW 1
+#define RESET_FROM_FW 1  // SigmaStudio+からのリセットを有効にする場合は0に設定
     /* USER CODE END EM */
 
     /* Exported functions prototypes ---------------------------------------------*/
     void Error_Handler(void);
 
-    /* USER CODE BEGIN EFP */
-    void ui_control_task(void);
+/* USER CODE BEGIN EFP */
 
-    void led_blinking_task(void);
-
-    void rgb_led_task(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
