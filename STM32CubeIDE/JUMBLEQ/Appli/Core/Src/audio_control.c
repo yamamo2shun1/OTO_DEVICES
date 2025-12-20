@@ -949,8 +949,24 @@ void ui_control_task(void)
          * 0 1 4 5
          * 2 3 6 7
          */
-        pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6] >> 5;
-        pot_ma_index[pot_ch]                     = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
+        switch (pot_ch)
+        {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6] >> 5;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            pot_val_ma[pot_ch][pot_ma_index[pot_ch]] = adc_val[6] >> 2;
+            break;
+        default:
+            break;
+        }
+        pot_ma_index[pot_ch] = (pot_ma_index[pot_ch] + 1) % ADC_MA_SIZE;
 
         uint32_t pot_sum = 0;
         for (int j = 0; j < ADC_MA_SIZE; j++)
@@ -1629,8 +1645,7 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) ep_in;
     (void) cur_alt_setting;
 
-    // デバッグ: 一時的に無効化してスピーカー出力に影響があるか確認
-    // copybuf_ring2usb_and_send();
+    copybuf_ring2usb_and_send();
     return true;
 }
 
