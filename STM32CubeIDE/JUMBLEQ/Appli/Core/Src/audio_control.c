@@ -73,6 +73,8 @@ uint16_t mag_val[MAG_SW_NUM]                 = {0};
 uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
 uint16_t mag_offset[MAG_SW_NUM]              = {0};
 
+bool thumb_enable = false;
+
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -1077,12 +1079,13 @@ void ui_control_task(void)
 
     if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        if (mag_val[0] <= 1200 && mag_val[5] <= 1200)
+        if (mag_val[0] <= THUMB_THRESHOLD && mag_val[5] <= THUMB_THRESHOLD)
         {
             for (int i = 1; i < 5; i++)
             {
                 xfade[i] = 0.0f;
             }
+            thumb_enable = false;
         }
         else
         {
@@ -1101,14 +1104,19 @@ void ui_control_task(void)
                     xfade[i] = 0.0f;
                 }
             }
+
+            thumb_enable = true;
         }
 
         bool xfade_changed = false;
         for (int i = 0; i < 6; i++)
         {
-            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f && fabs(xfade[i] - xfade_prev[i]) < 1.0f)
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f)
             {
-                send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                if (thumb_enable)
+                {
+                    send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                }
 
                 xfade_changed = true;
                 break;
