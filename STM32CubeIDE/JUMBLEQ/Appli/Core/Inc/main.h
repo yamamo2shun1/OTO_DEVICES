@@ -53,7 +53,7 @@ extern "C"
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-#define RESET_FROM_FW 1
+#define RESET_FROM_FW 1  // SigmaStudio+からのリセットを有効にする場合は1に設定
     /* USER CODE END EM */
 
     /* Exported functions prototypes ---------------------------------------------*/
