@@ -21,6 +21,8 @@
 #include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
+#include "sr_48k_Modes.h"
+#include "sr_96k_Modes.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
 
@@ -1861,7 +1863,7 @@ void AUDIO_Init_AK4619(uint32_t hz)
     // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
 }
 
-void AUDIO_Init_ADAU1466(void)
+void AUDIO_Init_ADAU1466(uint32_t hz)
 {
     // ADAU1466 HW Reset
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 0);
@@ -1869,6 +1871,16 @@ void AUDIO_Init_ADAU1466(void)
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
     HAL_Delay(500);
     default_download_ADAU146XSCHEMATIC_1();
+    HAL_Delay(100);
+
+    if (hz == 48000)
+    {
+        sr_48k_download();
+    }
+    else if (hz == 96000)
+    {
+        sr_96k_download();
+    }
 }
 
 void AUDIO_SAI_Reset_ForNewRate(void)
@@ -1904,7 +1916,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     AUDIO_Init_AK4619(new_hz);
 #if RESET_FROM_FW
-    AUDIO_Init_ADAU1466();
+    AUDIO_Init_ADAU1466(new_hz);
 #endif
 
     uint8_t data[2] = {0x00, 0x00};

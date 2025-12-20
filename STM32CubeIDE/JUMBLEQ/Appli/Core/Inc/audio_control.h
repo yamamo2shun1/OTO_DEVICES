@@ -31,7 +31,7 @@ uint32_t get_tx_blink_interval_ms(void);
 uint32_t get_rx_blink_interval_ms(void);
 
 void AUDIO_Init_AK4619(uint32_t hz);
-void AUDIO_Init_ADAU1466(void);
+void AUDIO_Init_ADAU1466(uint32_t hz);
 
 void start_adc(void);
 void ui_control_task(void);

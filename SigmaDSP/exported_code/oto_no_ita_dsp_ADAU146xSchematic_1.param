@@ -88,7 +88,7 @@ Parameter Data :
 
 Module Name			= input_from_ch2
 Parameter Name		= Gain
-Parameter Address	= 88
+Parameter Address	= 113
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -99,7 +99,7 @@ Parameter Data :
 
 Module Name			= input_from_usb
 Parameter Name		= Gain
-Parameter Address	= 82
+Parameter Address	= 107
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -110,18 +110,18 @@ Parameter Data :
 
 Module Name			= DCInput_0
 Parameter Name		= DCValue
-Parameter Address	= 81
-Parameter Value		= 1
+Parameter Address	= 106
+Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 
 
 
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel0
-Parameter Address	= 78
+Parameter Address	= 104
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -132,7 +132,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel1
-Parameter Address	= 79
+Parameter Address	= 105
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -143,7 +143,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1L
 Parameter Name		= gain
-Parameter Address	= 90
+Parameter Address	= 115
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -155,7 +155,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1R
 Parameter Name		= gain
-Parameter Address	= 92
+Parameter Address	= 117
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -332,7 +332,7 @@ Parameter Data :
 
 Module Name			= Ph_EQ_Gain_1
 Parameter Name		= Gain
-Parameter Address	= 89
+Parameter Address	= 114
 Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
@@ -354,7 +354,7 @@ Parameter Data :
 
 Module Name			= DCInput_1
 Parameter Name		= DCValue
-Parameter Address	= 80
+Parameter Address	= 75
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -376,7 +376,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 100
+Parameter Address	= 125
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -389,7 +389,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 95
+Parameter Address	= 120
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -402,7 +402,7 @@ Parameter Data :
 
 Module Name			= input_from_ch1
 Parameter Name		= Gain
-Parameter Address	= 94
+Parameter Address	= 119
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -413,7 +413,7 @@ Parameter Data :
 
 Module Name			= master_output
 Parameter Name		= Gain
-Parameter Address	= 103
+Parameter Address	= 128
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -424,7 +424,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel0
-Parameter Address	= 76
+Parameter Address	= 73
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -435,7 +435,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel1
-Parameter Address	= 77
+Parameter Address	= 74
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -446,7 +446,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2L
 Parameter Name		= gain
-Parameter Address	= 84
+Parameter Address	= 109
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -458,7 +458,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2R
 Parameter Name		= gain
-Parameter Address	= 86
+Parameter Address	= 111
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -635,7 +635,7 @@ Parameter Data :
 
 Module Name			= Ph_EQ_Gain_2
 Parameter Name		= Gain
-Parameter Address	= 83
+Parameter Address	= 108
 Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
@@ -646,7 +646,7 @@ Parameter Data :
 
 Module Name			= Snd_SW
 Parameter Name		= Index
-Parameter Address	= 98
+Parameter Address	= 123
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -657,7 +657,7 @@ Parameter Data :
 
 Module Name			= send_output
 Parameter Name		= Gain
-Parameter Address	= 99
+Parameter Address	= 124
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0

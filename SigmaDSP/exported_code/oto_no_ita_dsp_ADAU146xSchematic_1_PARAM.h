@@ -1,6 +1,6 @@
 /* 
- * File:	C:\Users\shuni\OTO_DEVICES\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h
- * Created:	Saturday, 20 December 2025 14:14 PM
+ * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h
+ * Created:	Sunday, 21 December 2025 7:10 AM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -44,7 +44,7 @@
 /* Module input_from_ch2 - Single Volume Control */
 #define MOD_INPUT_FROM_CH2_COUNT               1
 #define MOD_INPUT_FROM_CH2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_INPUT_FROM_CH2_GAIN_ADDR           88
+#define MOD_INPUT_FROM_CH2_GAIN_ADDR           113
 #define MOD_INPUT_FROM_CH2_GAIN_FIXPT          0x01000000
 #define MOD_INPUT_FROM_CH2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_INPUT_FROM_CH2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -61,7 +61,7 @@
 /* Module input_from_usb - Single Volume Control */
 #define MOD_INPUT_FROM_USB_COUNT               1
 #define MOD_INPUT_FROM_USB_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_INPUT_FROM_USB_GAIN_ADDR           82
+#define MOD_INPUT_FROM_USB_GAIN_ADDR           107
 #define MOD_INPUT_FROM_USB_GAIN_FIXPT          0x01000000
 #define MOD_INPUT_FROM_USB_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_INPUT_FROM_USB_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -73,9 +73,9 @@
 /* Module DCInput_0 - DC Input */
 #define MOD_DCINPUT_0_COUNT                  1
 #define MOD_DCINPUT_0_SCHEMATIC              "ADAU146xSchematic_1"
-#define MOD_DCINPUT_0_DCVALUE_ADDR           81
-#define MOD_DCINPUT_0_DCVALUE_FIXPT          0x01000000
-#define MOD_DCINPUT_0_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_DCINPUT_0_DCVALUE_ADDR           106
+#define MOD_DCINPUT_0_DCVALUE_FIXPT          0x00000000
+#define MOD_DCINPUT_0_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_DCINPUT_0_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
 #define MOD_DCINPUT_0_DCVALUE_DATA_MEMORY    "DM0"
 #define MOD_DCINPUT_0_DCVALUE_MEM_PAGE       0
@@ -85,7 +85,7 @@
 /* Module Ln_Pn_SW_1 - 2xN Switch */
 #define MOD_LN_PN_SW_1_COUNT                         2
 #define MOD_LN_PN_SW_1_SCHEMATIC                     "ADAU146xSchematic_1"
-#define MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR           78
+#define MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR           104
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_FIXPT          0x00000000
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_TYPE           SIGMASTUDIOTYPE_8_24
@@ -93,7 +93,7 @@
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_MEM_PAGE       0
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_DATA_MEMORY    "DM0"
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL0_MEM_PAGE       0
-#define MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR           79
+#define MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR           105
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL1_FIXPT          0x01000000
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL1_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_LN_PN_SW_1_INDEX_CHANNEL1_TYPE           SIGMASTUDIOTYPE_8_24
@@ -105,7 +105,7 @@
 /* Module SignalMerger_1L - Signal Merger */
 #define MOD_SIGNALMERGER_1L_COUNT               1
 #define MOD_SIGNALMERGER_1L_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_1L_GAIN_ADDR           90
+#define MOD_SIGNALMERGER_1L_GAIN_ADDR           115
 #define MOD_SIGNALMERGER_1L_GAIN_FIXPT          0x0080000000800000
 #define MOD_SIGNALMERGER_1L_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_1L_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -117,7 +117,7 @@
 /* Module SignalMerger_1R - Signal Merger */
 #define MOD_SIGNALMERGER_1R_COUNT               1
 #define MOD_SIGNALMERGER_1R_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_1R_GAIN_ADDR           92
+#define MOD_SIGNALMERGER_1R_GAIN_ADDR           117
 #define MOD_SIGNALMERGER_1R_GAIN_FIXPT          0x0080000000800000
 #define MOD_SIGNALMERGER_1R_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_1R_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -253,7 +253,7 @@
 /* Module Ph_EQ_Gain_1 - Single Volume Control */
 #define MOD_PH_EQ_GAIN_1_COUNT               1
 #define MOD_PH_EQ_GAIN_1_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_PH_EQ_GAIN_1_GAIN_ADDR           89
+#define MOD_PH_EQ_GAIN_1_GAIN_ADDR           114
 #define MOD_PH_EQ_GAIN_1_GAIN_FIXPT          0x0FD9539A
 #define MOD_PH_EQ_GAIN_1_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(15.8489319246111)
 #define MOD_PH_EQ_GAIN_1_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -277,7 +277,7 @@
 /* Module DCInput_1 - DC Input */
 #define MOD_DCINPUT_1_COUNT                  1
 #define MOD_DCINPUT_1_SCHEMATIC              "ADAU146xSchematic_1"
-#define MOD_DCINPUT_1_DCVALUE_ADDR           80
+#define MOD_DCINPUT_1_DCVALUE_ADDR           75
 #define MOD_DCINPUT_1_DCVALUE_FIXPT          0x01000000
 #define MOD_DCINPUT_1_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_DCINPUT_1_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
@@ -301,7 +301,7 @@
 /* Module SignalMerger_2 - Signal Merger */
 #define MOD_SIGNALMERGER_2_COUNT               1
 #define MOD_SIGNALMERGER_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_2_GAIN_ADDR           100
+#define MOD_SIGNALMERGER_2_GAIN_ADDR           125
 #define MOD_SIGNALMERGER_2_GAIN_FIXPT          0x005555550055555500555555
 #define MOD_SIGNALMERGER_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -313,7 +313,7 @@
 /* Module SignalMerger_3 - Signal Merger */
 #define MOD_SIGNALMERGER_3_COUNT               1
 #define MOD_SIGNALMERGER_3_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_3_GAIN_ADDR           95
+#define MOD_SIGNALMERGER_3_GAIN_ADDR           120
 #define MOD_SIGNALMERGER_3_GAIN_FIXPT          0x005555550055555500555555
 #define MOD_SIGNALMERGER_3_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_3_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -325,7 +325,7 @@
 /* Module input_from_ch1 - Single Volume Control */
 #define MOD_INPUT_FROM_CH1_COUNT               1
 #define MOD_INPUT_FROM_CH1_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_INPUT_FROM_CH1_GAIN_ADDR           94
+#define MOD_INPUT_FROM_CH1_GAIN_ADDR           119
 #define MOD_INPUT_FROM_CH1_GAIN_FIXPT          0x01000000
 #define MOD_INPUT_FROM_CH1_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_INPUT_FROM_CH1_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -337,7 +337,7 @@
 /* Module master_output - Single Volume Control */
 #define MOD_MASTER_OUTPUT_COUNT               1
 #define MOD_MASTER_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_MASTER_OUTPUT_GAIN_ADDR           103
+#define MOD_MASTER_OUTPUT_GAIN_ADDR           128
 #define MOD_MASTER_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_MASTER_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_MASTER_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -349,7 +349,7 @@
 /* Module Ln_Pn_SW_2 - 2xN Switch */
 #define MOD_LN_PN_SW_2_COUNT                         2
 #define MOD_LN_PN_SW_2_SCHEMATIC                     "ADAU146xSchematic_1"
-#define MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR           76
+#define MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR           73
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_FIXPT          0x01000000
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_TYPE           SIGMASTUDIOTYPE_8_24
@@ -357,7 +357,7 @@
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_MEM_PAGE       0
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_DATA_MEMORY    "DM0"
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL0_MEM_PAGE       0
-#define MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR           77
+#define MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR           74
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL1_FIXPT          0x00000000
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL1_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_LN_PN_SW_2_INDEX_CHANNEL1_TYPE           SIGMASTUDIOTYPE_8_24
@@ -369,7 +369,7 @@
 /* Module SignalMerger_2L - Signal Merger */
 #define MOD_SIGNALMERGER_2L_COUNT               1
 #define MOD_SIGNALMERGER_2L_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_2L_GAIN_ADDR           84
+#define MOD_SIGNALMERGER_2L_GAIN_ADDR           109
 #define MOD_SIGNALMERGER_2L_GAIN_FIXPT          0x0080000000800000
 #define MOD_SIGNALMERGER_2L_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_2L_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -381,7 +381,7 @@
 /* Module SignalMerger_2R - Signal Merger */
 #define MOD_SIGNALMERGER_2R_COUNT               1
 #define MOD_SIGNALMERGER_2R_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_2R_GAIN_ADDR           86
+#define MOD_SIGNALMERGER_2R_GAIN_ADDR           111
 #define MOD_SIGNALMERGER_2R_GAIN_FIXPT          0x0080000000800000
 #define MOD_SIGNALMERGER_2R_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_2R_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -517,7 +517,7 @@
 /* Module Ph_EQ_Gain_2 - Single Volume Control */
 #define MOD_PH_EQ_GAIN_2_COUNT               1
 #define MOD_PH_EQ_GAIN_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_PH_EQ_GAIN_2_GAIN_ADDR           83
+#define MOD_PH_EQ_GAIN_2_GAIN_ADDR           108
 #define MOD_PH_EQ_GAIN_2_GAIN_FIXPT          0x0FD9539A
 #define MOD_PH_EQ_GAIN_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(15.8489319246111)
 #define MOD_PH_EQ_GAIN_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -529,7 +529,7 @@
 /* Module Snd_SW - Nx2 Switch */
 #define MOD_SND_SW_COUNT                1
 #define MOD_SND_SW_SCHEMATIC            "ADAU146xSchematic_1"
-#define MOD_SND_SW_INDEX_ADDR           98
+#define MOD_SND_SW_INDEX_ADDR           123
 #define MOD_SND_SW_INDEX_FIXPT          0x00000000
 #define MOD_SND_SW_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(0)
 #define MOD_SND_SW_INDEX_TYPE           SIGMASTUDIOTYPE_INTEGER
@@ -541,7 +541,7 @@
 /* Module send_output - Single Volume Control */
 #define MOD_SEND_OUTPUT_COUNT               1
 #define MOD_SEND_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SEND_OUTPUT_GAIN_ADDR           99
+#define MOD_SEND_OUTPUT_GAIN_ADDR           124
 #define MOD_SEND_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_SEND_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_SEND_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24

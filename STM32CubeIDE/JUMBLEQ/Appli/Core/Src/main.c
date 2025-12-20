@@ -143,7 +143,7 @@ int main(void)
      * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
      * SigmaStudio+からダウンロードを実行すること。
      */
-    AUDIO_Init_ADAU1466();
+    AUDIO_Init_ADAU1466(48000);
     HAL_Delay(500);
 #endif
 
