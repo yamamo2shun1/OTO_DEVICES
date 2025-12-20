@@ -4195,7 +4195,7 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumChannels": 2,
-                          "Gain": 0,
+                          "Gain": 0.0,
                           "GainMax": 10.0,
                           "GainMin": -80,
                           "GainResolution": 1,
