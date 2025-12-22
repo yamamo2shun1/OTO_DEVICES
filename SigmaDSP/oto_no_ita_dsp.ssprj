@@ -2553,8 +2553,6 @@
                             "Link_78",
                             "Link_79",
                             "Link_80",
-                            "Link_81",
-                            "Link_82",
                             "Link_83",
                             "Link_84",
                             "Link_87",
@@ -2579,7 +2577,9 @@
                             "Link_116",
                             "Link_117",
                             "Link_118",
-                            "Link_119"
+                            "Link_119",
+                            "Link_124",
+                            "Link_125"
                           ]
                         }
                       },
@@ -2603,10 +2603,12 @@
                             "Link_104",
                             "Link_108",
                             "Link_109",
-                            "Link_120",
-                            "Link_121",
                             "Link_122",
-                            "Link_123"
+                            "Link_123",
+                            "Link_126",
+                            "Link_127",
+                            "Link_128",
+                            "Link_129"
                           ]
                         }
                       }
@@ -2851,8 +2853,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 931.0,
-                          "Y": -76.0
+                          "X": 2187.4444444444448,
+                          "Y": -292.88888888888891
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2887,8 +2889,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 931.0,
-                          "Y": 18.0
+                          "X": 2187.4444444444448,
+                          "Y": -198.88888888888891
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3039,8 +3041,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 931.0,
-                          "Y": -148.0
+                          "X": 2187.4444444444448,
+                          "Y": -364.88888888888891
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3075,8 +3077,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2075.0,
-                          "Y": -27.0
+                          "X": 2190.3333333333335,
+                          "Y": -28.333333333333371
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3111,8 +3113,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2075.0,
-                          "Y": 57.0
+                          "X": 2190.3333333333335,
+                          "Y": 55.666666666666629
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3741,8 +3743,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2068.0,
-                          "Y": -92.0
+                          "X": 2183.3333333333335,
+                          "Y": -93.3333333333334
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -4289,6 +4291,76 @@
                         "WriteableLinks": [],
                         "AltShapes": [],
                         "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
+                        "Name": "T-Connector",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "TConnector_6",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 2077.3333333333339,
+                          "Y": -6.0
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 24.020000000000003
+                        },
+                        "Label": "TConnector_1_1_2_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
+                        "Name": "T-Connector",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "TConnector_7",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 2077.3333333333339,
+                          "Y": 73.0
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 24.020000000000003
+                        },
+                        "Label": "TConnector_1_1_1_1_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
                       }
                     ],
                     "WriteableLinks": [
@@ -4651,24 +4723,6 @@
                             "Y": 88.8182
                           }
                         ]
-                      },
-                      {
-                        "Uid": "Link_81",
-                        "SourceUid": "SingleVolumeControl_5",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "Output_6",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_82",
-                        "SourceUid": "SingleVolumeControl_5",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "Output_7",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
                       },
                       {
                         "Uid": "Link_83",
@@ -5166,42 +5220,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_120",
-                        "SourceUid": "TConnector_4",
-                        "SourcePinName": "Output",
-                        "TargetUid": "Output_4",
-                        "TargetPinName": "Input",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 907.0,
-                            "Y": -25.8333
-                          },
-                          {
-                            "X": 907.0,
-                            "Y": -43.6667
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_121",
-                        "SourceUid": "TConnector_5",
-                        "SourcePinName": "Output",
-                        "TargetUid": "Output_5",
-                        "TargetPinName": "Input",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 907.0,
-                            "Y": 32.1667
-                          },
-                          {
-                            "X": 907.0,
-                            "Y": 50.3333
-                          }
-                        ]
-                      },
-                      {
                         "Uid": "Link_122",
                         "SourceUid": "TConnector_4",
                         "SourcePinName": "Output",
@@ -5250,6 +5268,102 @@
                           {
                             "X": 1620.0,
                             "Y": 142.3182
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_124",
+                        "SourceUid": "SingleVolumeControl_5",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "TConnector_6",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 2077.3333,
+                            "Y": 5.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_125",
+                        "SourceUid": "SingleVolumeControl_5",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "TConnector_7",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 2067.0,
+                            "Y": 89.0
+                          },
+                          {
+                            "X": 2067.0,
+                            "Y": 85.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_126",
+                        "SourceUid": "TConnector_7",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Output_7",
+                        "TargetPinName": "Input",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 2190.3333,
+                            "Y": 85.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_127",
+                        "SourceUid": "TConnector_6",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Output_6",
+                        "TargetPinName": "Input",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 2190.3333,
+                            "Y": 6.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_128",
+                        "SourceUid": "TConnector_6",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Output_4",
+                        "TargetPinName": "Input",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 2129.9999999999995,
+                            "Y": 5.9999999999999982
+                          },
+                          {
+                            "X": 2129.9999999999995,
+                            "Y": -260.8889
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_129",
+                        "SourceUid": "TConnector_7",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Output_5",
+                        "TargetPinName": "Input",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 2163.0,
+                            "Y": 85.0
+                          },
+                          {
+                            "X": 2163.0,
+                            "Y": -166.8889
                           }
                         ]
                       }

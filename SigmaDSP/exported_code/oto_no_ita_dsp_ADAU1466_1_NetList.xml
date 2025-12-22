@@ -33,16 +33,16 @@
         <Link pin="Ch2_out" dir="out" link="Link_119" id="Link_119" />
       </Algorithm>
       <Algorithm name="Output_4" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_119" id="Link_120" />
+        <Link pin="Input" dir="in" link="Link_124" id="Link_128" />
       </Algorithm>
       <Algorithm name="Output_5" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_118" id="Link_121" />
+        <Link pin="Input" dir="in" link="Link_125" id="Link_129" />
       </Algorithm>
       <Algorithm name="Output_6" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_81" id="Link_81" />
+        <Link pin="Input" dir="in" link="Link_124" id="Link_127" />
       </Algorithm>
       <Algorithm name="Output_7" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_82" id="Link_82" />
+        <Link pin="Input" dir="in" link="Link_125" id="Link_126" />
       </Algorithm>
       <Algorithm name="input_from_usb" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="DCInput_0" friendlyname="Use this control to test a DC voltage input">
