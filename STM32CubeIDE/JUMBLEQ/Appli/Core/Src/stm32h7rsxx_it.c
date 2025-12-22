@@ -41,7 +41,27 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+// HardFault情報を保存する構造体（リセット後も確認可能にBKPSRAMに配置することも可能）
+typedef struct {
+    uint32_t magic;        // 0xDEADBEEF なら有効なデータ
+    uint32_t cfsr;
+    uint32_t hfsr;
+    uint32_t mmfar;
+    uint32_t bfar;
+    uint32_t stacked_pc;
+    uint32_t stacked_lr;
+    uint32_t stacked_psr;
+    uint32_t stacked_r0;
+    uint32_t stacked_r1;
+    uint32_t stacked_r2;
+    uint32_t stacked_r3;
+    uint32_t stacked_r12;
+    uint32_t psp;
+    uint32_t msp;
+} HardFaultInfo_t;
 
+// noinit属性でリセット後も保持（デバッグ用）
+__attribute__((section(".noinit"))) volatile HardFaultInfo_t g_hardFaultInfo;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +114,80 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  // デバッグ用：フォールトの詳細情報を取得
+  volatile uint32_t cfsr = SCB->CFSR;    // Configurable Fault Status Register
+  volatile uint32_t hfsr = SCB->HFSR;    // Hard Fault Status Register
+  volatile uint32_t mmfar = SCB->MMFAR;  // MemManage Fault Address
+  volatile uint32_t bfar = SCB->BFAR;    // Bus Fault Address
+  volatile uint32_t afsr = SCB->AFSR;    // Auxiliary Fault Status Register
+  
+  // UFSR (Usage Fault Status Register) は CFSR の上位16ビット
+  volatile uint16_t ufsr = (cfsr >> 16) & 0xFFFF;
+  
+  // UNDEFINSTRビットをチェック (UFSR bit 0)
+  volatile uint8_t is_undefinstr = (ufsr & 0x0001) ? 1 : 0;
+  
+  // スタックポインタを取得
+  volatile uint32_t sp;
+  __asm volatile ("mov %0, sp" : "=r" (sp));
+  
+  // スタックフレームから例外発生時のレジスタを取得
+  // PSPまたはMSPのどちらが使われているかを確認
+  volatile uint32_t *fault_stack;
+  __asm volatile (
+    "TST lr, #4 \n"
+    "ITE EQ \n"
+    "MRSEQ %0, MSP \n"
+    "MRSNE %0, PSP \n"
+    : "=r" (fault_stack)
+  );
+  
+  // 例外スタックフレーム: R0, R1, R2, R3, R12, LR, PC, xPSR
+  volatile uint32_t stacked_r0  = fault_stack[0];
+  volatile uint32_t stacked_r1  = fault_stack[1];
+  volatile uint32_t stacked_r2  = fault_stack[2];
+  volatile uint32_t stacked_r3  = fault_stack[3];
+  volatile uint32_t stacked_r12 = fault_stack[4];
+  volatile uint32_t stacked_lr  = fault_stack[5];  // 戻りアドレス
+  volatile uint32_t stacked_pc  = fault_stack[6];  // フォールト発生時のPC ← 重要！
+  volatile uint32_t stacked_psr = fault_stack[7];
+  
+  // これらの変数はデバッガで確認できます
+  (void)cfsr;
+  (void)hfsr;
+  (void)mmfar;
+  (void)bfar;
+  (void)afsr;
+  (void)ufsr;
+  (void)is_undefinstr;
+  (void)sp;
+  (void)stacked_r0;
+  (void)stacked_r1;
+  (void)stacked_r2;
+  (void)stacked_r3;
+  (void)stacked_r12;
+  (void)stacked_lr;
+  (void)stacked_pc;
+  (void)stacked_psr;
+  
+  // グローバル変数に保存（リセット後も確認可能）
+  g_hardFaultInfo.magic = 0xDEADBEEF;
+  g_hardFaultInfo.cfsr = cfsr;
+  g_hardFaultInfo.hfsr = hfsr;
+  g_hardFaultInfo.mmfar = mmfar;
+  g_hardFaultInfo.bfar = bfar;
+  g_hardFaultInfo.stacked_pc = stacked_pc;
+  g_hardFaultInfo.stacked_lr = stacked_lr;
+  g_hardFaultInfo.stacked_psr = stacked_psr;
+  g_hardFaultInfo.stacked_r0 = stacked_r0;
+  g_hardFaultInfo.stacked_r1 = stacked_r1;
+  g_hardFaultInfo.stacked_r2 = stacked_r2;
+  g_hardFaultInfo.stacked_r3 = stacked_r3;
+  g_hardFaultInfo.stacked_r12 = stacked_r12;
+  __asm volatile ("MRS %0, PSP" : "=r" (g_hardFaultInfo.psp));
+  __asm volatile ("MRS %0, MSP" : "=r" (g_hardFaultInfo.msp));
+  
+  __BKPT(0);  // ここでブレーク（デバッガ接続時）
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
