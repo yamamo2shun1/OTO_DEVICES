@@ -252,6 +252,9 @@ void StartDefaultTask(void* argument)
 volatile uint32_t dbg_usb_task_count   = 0;
 volatile uint32_t dbg_audio_task_count = 0;
 
+// stm32h7rsxx_it.cで定義されたUSB ISRカウンタ
+extern volatile uint32_t dbg_usb_isr_count;
+
 void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
@@ -262,8 +265,9 @@ void StartUSBTask(void* argument)
     for (;;)
     {
         dbg_usb_task_count++;
-        tud_task();
-        osDelay(1);  // 毎回1ms待機してUSBとAudioのバランスを取る
+        // 短いタイムアウトを使用して無限ブロックを防ぐ
+        tud_task_ext(10, false);  // 10msタイムアウト
+        // osDelay(1) は不要（tud_task_ext内で待機するため）
     }
     /* USER CODE END StartUSBTask */
 }
