@@ -47,20 +47,25 @@ extern "C"
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 
-// DWC2 DMA mode - Slaveモードを無効にし、DMAモードを有効にする
-// DMAモードではUSB FIFOへのアクセスがDMAで行われ、CPU競合が減る
+// DWC2 DMA mode - DMAモードを有効化
+// Slaveモードでもハングが発生するため、DMAモードで再テスト
+// xfer_status, _dcd_dataはnoncacheable領域に配置済み
 #define CFG_TUD_DWC2_SLAVE_ENABLE 0
 #define CFG_TUD_DWC2_DMA_ENABLE   1
 
-// DMAモード + DCacheが有効なMCUでは、キャッシュ管理が必須
-// TinyUSBがDMA転送後にキャッシュをインバリデートするようになる
+// DCache有効、TinyUSBバッファはnoncacheable領域に配置
 #define CFG_TUD_MEM_DCACHE_ENABLE    1
 #define CFG_TUD_MEM_DCACHE_LINE_SIZE 32
 
+// TinyUSB内部のバッファをnoncacheable領域に配置
+#define CFG_TUD_MEM_SECTION __attribute__((section("noncacheable_buffer"), aligned(32)))
+#define CFG_TUD_MEM_ALIGN   TU_ATTR_ALIGNED(32)
+
 // noncacheable_buffer領域をuncached regionsに追加
-// (0x24040000 - 0x2405FFFF: 128KB noncacheable section)
-// #define CFG_DWC2_MEM_UNCACHED_REGIONS \
-  {.start = 0x24040000, .end = 0x2405FFFF},
+// リンカースクリプトに基づく: 0x24040000 - 0x24072000 (200KB)
+// TinyUSBのDCacheメンテナンスをスキップするための設定
+#define CFG_DWC2_MEM_UNCACHED_REGIONS \
+  {.start = 0x24040000, .end = 0x24080000},
 
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define TUD_AUDIO_PREFER_RING_BUFFER 1
@@ -81,6 +86,9 @@ extern "C"
 //--------------------------------------------------------------------
 // Common Configuration
 //--------------------------------------------------------------------
+
+// TinyUSB task queue size - increase for audio streaming
+#define CFG_TUD_TASK_QUEUE_SZ 64
 
 // defined by compiler flags for flexibility
 #ifndef CFG_TUSB_MCU
