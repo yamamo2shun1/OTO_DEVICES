@@ -202,7 +202,42 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  // MemManage Fault情報を収集
+  volatile uint32_t cfsr = SCB->CFSR;
+  volatile uint32_t mmfar = SCB->MMFAR;
+  volatile uint8_t mmfsr = cfsr & 0xFF;  // MMFSR は CFSR の下位8ビット
+  
+  // スタックフレームから例外発生時のレジスタを取得
+  volatile uint32_t *fault_stack;
+  __asm volatile (
+    "TST lr, #4 \n"
+    "ITE EQ \n"
+    "MRSEQ %0, MSP \n"
+    "MRSNE %0, PSP \n"
+    : "=r" (fault_stack)
+  );
+  
+  volatile uint32_t stacked_pc  = fault_stack[6];
+  volatile uint32_t stacked_lr  = fault_stack[5];
+  
+  // グローバル変数に保存
+  g_hardFaultInfo.magic = 0xDEADBEEF;
+  g_hardFaultInfo.cfsr = cfsr;
+  g_hardFaultInfo.mmfar = mmfar;
+  g_hardFaultInfo.stacked_pc = stacked_pc;
+  g_hardFaultInfo.stacked_lr = stacked_lr;
+  g_hardFaultInfo.stacked_r0 = fault_stack[0];
+  g_hardFaultInfo.stacked_r1 = fault_stack[1];
+  g_hardFaultInfo.stacked_r2 = fault_stack[2];
+  g_hardFaultInfo.stacked_r3 = fault_stack[3];
+  g_hardFaultInfo.stacked_r12 = fault_stack[4];
+  g_hardFaultInfo.stacked_psr = fault_stack[7];
+  
+  (void)mmfsr;
+  (void)stacked_pc;
+  (void)stacked_lr;
+  
+  __BKPT(0);  // デバッガでブレーク
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
