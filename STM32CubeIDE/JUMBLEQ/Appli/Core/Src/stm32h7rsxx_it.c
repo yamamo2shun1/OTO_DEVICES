@@ -425,9 +425,12 @@ void SAI2_A_IRQHandler(void)
 /**
   * @brief This function handles USB OTG HS interrupt.
   */
+volatile uint32_t dbg_usb_isr_count = 0;  // USB ISR呼び出し回数
+
 void OTG_HS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_HS_IRQn 0 */
+  dbg_usb_isr_count++;
   tusb_int_handler(BOARD_TUD_RHPORT, true);
   return;
   /* USER CODE END OTG_HS_IRQn 0 */
