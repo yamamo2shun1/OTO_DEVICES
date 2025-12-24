@@ -50,7 +50,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+// FreeRTOSヒープをnoncacheable領域に配置
+// configAPPLICATION_ALLOCATED_HEAP=1 で有効化
+__attribute__((section("noncacheable_buffer"), aligned(8)))
+uint8_t ucHeap[configTOTAL_HEAP_SIZE];
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -200,6 +203,7 @@ void MX_FREERTOS_Init(void)
 
 // スタック監視情報（デバッガのWatchウィンドウで確認可能）
 volatile uint32_t dbg_free_heap = 0;
+volatile uint32_t dbg_min_free_heap = 0xFFFFFFFF;  // ヒープ最小空き容量
 volatile uint32_t dbg_usb_stack_free = 0;
 volatile uint32_t dbg_audio_stack_free = 0;
 volatile uint32_t dbg_led_stack_free = 0;
@@ -215,6 +219,9 @@ void StartDefaultTask(void* argument)
     for (;;)
     {
         dbg_free_heap = xPortGetFreeHeapSize();
+        if (dbg_free_heap < dbg_min_free_heap) {
+            dbg_min_free_heap = dbg_free_heap;
+        }
         
         // 各タスクのスタック残量を監視（High Water Mark）
         dbg_usb_stack_free = uxTaskGetStackHighWaterMark(usbTaskHandle) * 4;
@@ -252,8 +259,10 @@ void StartDefaultTask(void* argument)
 volatile uint32_t dbg_usb_task_count   = 0;
 volatile uint32_t dbg_audio_task_count = 0;
 
-// stm32h7rsxx_it.cで定義されたUSB ISRカウンタ
+// stm32h7rsxx_it.cで定義されたUSB ISRカウンタとMSPモニター
 extern volatile uint32_t dbg_usb_isr_count;
+extern volatile uint32_t dbg_usb_isr_msp_min;
+extern volatile uint32_t dbg_usb_isr_msp_start;
 
 void StartUSBTask(void* argument)
 {
