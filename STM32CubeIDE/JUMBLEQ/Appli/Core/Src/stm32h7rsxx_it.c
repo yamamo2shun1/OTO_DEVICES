@@ -58,10 +58,19 @@ typedef struct {
     uint32_t stacked_r12;
     uint32_t psp;
     uint32_t msp;
+    // ISR関連のデバッグ情報
+    uint32_t usb_isr_count;     // クラッシュ時のISR呼び出し回数
+    uint32_t usb_isr_msp_min;   // ISR中のMSP最小値
+    uint32_t usb_isr_msp_start; // ISR開始時のMSP値
 } HardFaultInfo_t;
 
 // noinit属性でリセット後も保持（デバッグ用）
 __attribute__((section(".noinit"))) volatile HardFaultInfo_t g_hardFaultInfo;
+
+// USB ISRデバッグ用変数（HardFaultハンドラからも参照されるため先頭で定義）
+volatile uint32_t dbg_usb_isr_count = 0;       // USB ISR呼び出し回数
+volatile uint32_t dbg_usb_isr_msp_min = 0xFFFFFFFF;  // ISR内MSP最小値
+volatile uint32_t dbg_usb_isr_msp_start = 0;   // ISR開始時MSP
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -186,6 +195,10 @@ void HardFault_Handler(void)
   g_hardFaultInfo.stacked_r12 = stacked_r12;
   __asm volatile ("MRS %0, PSP" : "=r" (g_hardFaultInfo.psp));
   __asm volatile ("MRS %0, MSP" : "=r" (g_hardFaultInfo.msp));
+  // ISR関連のデバッグ情報を保存
+  g_hardFaultInfo.usb_isr_count = dbg_usb_isr_count;
+  g_hardFaultInfo.usb_isr_msp_min = dbg_usb_isr_msp_min;
+  g_hardFaultInfo.usb_isr_msp_start = dbg_usb_isr_msp_start;
   
   __BKPT(0);  // ここでブレーク（デバッガ接続時）
   /* USER CODE END HardFault_IRQn 0 */
@@ -425,13 +438,25 @@ void SAI2_A_IRQHandler(void)
 /**
   * @brief This function handles USB OTG HS interrupt.
   */
-volatile uint32_t dbg_usb_isr_count = 0;  // USB ISR呼び出し回数
-
 void OTG_HS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_HS_IRQn 0 */
   dbg_usb_isr_count++;
+
+  // ISR開始時のMSP（メインスタック）を記録
+  uint32_t msp_val;
+  __asm volatile ("MRS %0, msp" : "=r" (msp_val));
+  dbg_usb_isr_msp_start = msp_val;
+
+  // TinyUSB割り込みハンドラ呼び出し
   tusb_int_handler(BOARD_TUD_RHPORT, true);
+
+  // ISR終了時のMSP最小値を更新（デバッグ用）
+  __asm volatile ("MRS %0, msp" : "=r" (msp_val));
+  if (msp_val < dbg_usb_isr_msp_min) {
+    dbg_usb_isr_msp_min = msp_val;
+  }
+
   return;
   /* USER CODE END OTG_HS_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
