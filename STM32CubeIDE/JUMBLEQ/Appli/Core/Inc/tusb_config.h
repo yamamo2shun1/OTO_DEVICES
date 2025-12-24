@@ -48,8 +48,7 @@ extern "C"
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 
 // DWC2 DMA mode - DMAモードを有効化
-// Slaveモードでもハングが発生するため、DMAモードで再テスト
-// xfer_status, _dcd_dataはnoncacheable領域に配置済み
+// バッファをnoncacheable領域に配置してDCache coherency問題を解決
 #define CFG_TUD_DWC2_SLAVE_ENABLE 0
 #define CFG_TUD_DWC2_DMA_ENABLE   1
 
@@ -60,6 +59,11 @@ extern "C"
 // TinyUSB内部のバッファをnoncacheable領域に配置
 #define CFG_TUD_MEM_SECTION __attribute__((section("noncacheable_buffer"), aligned(32)))
 #define CFG_TUD_MEM_ALIGN   TU_ATTR_ALIGNED(32)
+
+// Audio FIFOバッファもnoncacheable領域に配置（DCache coherency問題対策）
+// audio_device.cで使用されるIN_SW_BUF_MEM_ATTRとOUT_SW_BUF_MEM_ATTRを上書き
+#define IN_SW_BUF_MEM_ATTR  CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
+#define OUT_SW_BUF_MEM_ATTR CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
 
 // noncacheable_buffer領域をuncached regionsに追加
 // リンカースクリプトに基づく: 0x24040000 - 0x24072000 (200KB)
