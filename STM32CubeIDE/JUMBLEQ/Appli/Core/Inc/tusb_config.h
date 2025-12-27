@@ -60,16 +60,11 @@ extern "C"
 #define CFG_TUD_MEM_SECTION __attribute__((section("noncacheable_buffer"), aligned(32)))
 #define CFG_TUD_MEM_ALIGN   TU_ATTR_ALIGNED(32)
 
-// Audio FIFOバッファもnoncacheable領域に配置（DCache coherency問題対策）
-// audio_device.cで使用されるIN_SW_BUF_MEM_ATTRとOUT_SW_BUF_MEM_ATTRを上書き
-#define IN_SW_BUF_MEM_ATTR  CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
-#define OUT_SW_BUF_MEM_ATTR CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
-
 // noncacheable_buffer領域をuncached regionsに追加
 // リンカースクリプトに基づく: 0x24040000 - 0x24072000 (200KB)
 // TinyUSBのDCacheメンテナンスをスキップするための設定
 #define CFG_DWC2_MEM_UNCACHED_REGIONS \
-  {.start = 0x24040000, .end = 0x24080000},
+    {.start = 0x24040000, .end = 0x24080000},
 
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define TUD_AUDIO_PREFER_RING_BUFFER 1
