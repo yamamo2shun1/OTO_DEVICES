@@ -54,6 +54,18 @@ enum
     VOLUME_CTRL_SILENCE = 0x8000,
 };
 
+enum
+{
+    INPUT_CH1 = 0,
+    INPUT_CH2,
+};
+
+enum
+{
+    INPUT_TYPE_LINE = 0,
+    INPUT_TYPE_PHONO,
+};
+
 // Audio controls
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
@@ -818,6 +830,91 @@ void control_master_out_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
 }
 
+void set_ch1_line()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+}
+
+void set_ch1_phono()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+}
+
+void set_ch2_line()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+}
+
+void set_ch2_phono()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+}
+
+void select_input_type(uint8_t ch, uint8_t type)
+{
+    if (ch == INPUT_CH1)
+    {
+        switch (type)
+        {
+        case INPUT_TYPE_LINE:
+            set_ch1_line();
+            break;
+        case INPUT_TYPE_PHONO:
+            set_ch1_phono();
+            break;
+        default:
+            break;
+        }
+    }
+    else if (ch == INPUT_CH2)
+    {
+        switch (type)
+        {
+        case INPUT_TYPE_LINE:
+            set_ch2_line();
+            break;
+        case INPUT_TYPE_PHONO:
+            set_ch2_phono();
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void select_send_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[0] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[0] = 0x01;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x0062, 4, Mode0);
+}
+
 static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
 {
     (void) hdma;
@@ -1113,21 +1210,21 @@ void ui_control_task(void)
         bool xfade_changed = false;
         for (int i = 0; i < 6; i++)
         {
-            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f)
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.01f)
             {
                 if (thumb_enable)
                 {
-                    send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                    // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                    send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
                 }
 
                 xfade_changed = true;
-                break;
             }
         }
 
         if (xfade_changed)
         {
-            const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
+            const float xf      = xfade[1];  // * xfade[2] * xfade[3] * xfade[4];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;

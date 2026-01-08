@@ -41,7 +41,36 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+// HardFault情報を保存する構造体（リセット後も確認可能にBKPSRAMに配置することも可能）
+typedef struct {
+    uint32_t magic;        // 0xDEADBEEF なら有効なデータ
+    uint32_t cfsr;
+    uint32_t hfsr;
+    uint32_t mmfar;
+    uint32_t bfar;
+    uint32_t stacked_pc;
+    uint32_t stacked_lr;
+    uint32_t stacked_psr;
+    uint32_t stacked_r0;
+    uint32_t stacked_r1;
+    uint32_t stacked_r2;
+    uint32_t stacked_r3;
+    uint32_t stacked_r12;
+    uint32_t psp;
+    uint32_t msp;
+    // ISR関連のデバッグ情報
+    uint32_t usb_isr_count;     // クラッシュ時のISR呼び出し回数
+    uint32_t usb_isr_msp_min;   // ISR中のMSP最小値
+    uint32_t usb_isr_msp_start; // ISR開始時のMSP値
+} HardFaultInfo_t;
 
+// noinit属性でリセット後も保持（デバッグ用）
+__attribute__((section(".noinit"))) volatile HardFaultInfo_t g_hardFaultInfo;
+
+// USB ISRデバッグ用変数（HardFaultハンドラからも参照されるため先頭で定義）
+volatile uint32_t dbg_usb_isr_count = 0;       // USB ISR呼び出し回数
+volatile uint32_t dbg_usb_isr_msp_min = 0xFFFFFFFF;  // ISR内MSP最小値
+volatile uint32_t dbg_usb_isr_msp_start = 0;   // ISR開始時MSP
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +123,84 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  // デバッグ用：フォールトの詳細情報を取得
+  volatile uint32_t cfsr = SCB->CFSR;    // Configurable Fault Status Register
+  volatile uint32_t hfsr = SCB->HFSR;    // Hard Fault Status Register
+  volatile uint32_t mmfar = SCB->MMFAR;  // MemManage Fault Address
+  volatile uint32_t bfar = SCB->BFAR;    // Bus Fault Address
+  volatile uint32_t afsr = SCB->AFSR;    // Auxiliary Fault Status Register
+  
+  // UFSR (Usage Fault Status Register) は CFSR の上位16ビット
+  volatile uint16_t ufsr = (cfsr >> 16) & 0xFFFF;
+  
+  // UNDEFINSTRビットをチェック (UFSR bit 0)
+  volatile uint8_t is_undefinstr = (ufsr & 0x0001) ? 1 : 0;
+  
+  // スタックポインタを取得
+  volatile uint32_t sp;
+  __asm volatile ("mov %0, sp" : "=r" (sp));
+  
+  // スタックフレームから例外発生時のレジスタを取得
+  // PSPまたはMSPのどちらが使われているかを確認
+  volatile uint32_t *fault_stack;
+  __asm volatile (
+    "TST lr, #4 \n"
+    "ITE EQ \n"
+    "MRSEQ %0, MSP \n"
+    "MRSNE %0, PSP \n"
+    : "=r" (fault_stack)
+  );
+  
+  // 例外スタックフレーム: R0, R1, R2, R3, R12, LR, PC, xPSR
+  volatile uint32_t stacked_r0  = fault_stack[0];
+  volatile uint32_t stacked_r1  = fault_stack[1];
+  volatile uint32_t stacked_r2  = fault_stack[2];
+  volatile uint32_t stacked_r3  = fault_stack[3];
+  volatile uint32_t stacked_r12 = fault_stack[4];
+  volatile uint32_t stacked_lr  = fault_stack[5];  // 戻りアドレス
+  volatile uint32_t stacked_pc  = fault_stack[6];  // フォールト発生時のPC ← 重要！
+  volatile uint32_t stacked_psr = fault_stack[7];
+  
+  // これらの変数はデバッガで確認できます
+  (void)cfsr;
+  (void)hfsr;
+  (void)mmfar;
+  (void)bfar;
+  (void)afsr;
+  (void)ufsr;
+  (void)is_undefinstr;
+  (void)sp;
+  (void)stacked_r0;
+  (void)stacked_r1;
+  (void)stacked_r2;
+  (void)stacked_r3;
+  (void)stacked_r12;
+  (void)stacked_lr;
+  (void)stacked_pc;
+  (void)stacked_psr;
+  
+  // グローバル変数に保存（リセット後も確認可能）
+  g_hardFaultInfo.magic = 0xDEADBEEF;
+  g_hardFaultInfo.cfsr = cfsr;
+  g_hardFaultInfo.hfsr = hfsr;
+  g_hardFaultInfo.mmfar = mmfar;
+  g_hardFaultInfo.bfar = bfar;
+  g_hardFaultInfo.stacked_pc = stacked_pc;
+  g_hardFaultInfo.stacked_lr = stacked_lr;
+  g_hardFaultInfo.stacked_psr = stacked_psr;
+  g_hardFaultInfo.stacked_r0 = stacked_r0;
+  g_hardFaultInfo.stacked_r1 = stacked_r1;
+  g_hardFaultInfo.stacked_r2 = stacked_r2;
+  g_hardFaultInfo.stacked_r3 = stacked_r3;
+  g_hardFaultInfo.stacked_r12 = stacked_r12;
+  __asm volatile ("MRS %0, PSP" : "=r" (g_hardFaultInfo.psp));
+  __asm volatile ("MRS %0, MSP" : "=r" (g_hardFaultInfo.msp));
+  // ISR関連のデバッグ情報を保存
+  g_hardFaultInfo.usb_isr_count = dbg_usb_isr_count;
+  g_hardFaultInfo.usb_isr_msp_min = dbg_usb_isr_msp_min;
+  g_hardFaultInfo.usb_isr_msp_start = dbg_usb_isr_msp_start;
+  
+  __BKPT(0);  // ここでブレーク（デバッガ接続時）
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -109,7 +215,42 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  // MemManage Fault情報を収集
+  volatile uint32_t cfsr = SCB->CFSR;
+  volatile uint32_t mmfar = SCB->MMFAR;
+  volatile uint8_t mmfsr = cfsr & 0xFF;  // MMFSR は CFSR の下位8ビット
+  
+  // スタックフレームから例外発生時のレジスタを取得
+  volatile uint32_t *fault_stack;
+  __asm volatile (
+    "TST lr, #4 \n"
+    "ITE EQ \n"
+    "MRSEQ %0, MSP \n"
+    "MRSNE %0, PSP \n"
+    : "=r" (fault_stack)
+  );
+  
+  volatile uint32_t stacked_pc  = fault_stack[6];
+  volatile uint32_t stacked_lr  = fault_stack[5];
+  
+  // グローバル変数に保存
+  g_hardFaultInfo.magic = 0xDEADBEEF;
+  g_hardFaultInfo.cfsr = cfsr;
+  g_hardFaultInfo.mmfar = mmfar;
+  g_hardFaultInfo.stacked_pc = stacked_pc;
+  g_hardFaultInfo.stacked_lr = stacked_lr;
+  g_hardFaultInfo.stacked_r0 = fault_stack[0];
+  g_hardFaultInfo.stacked_r1 = fault_stack[1];
+  g_hardFaultInfo.stacked_r2 = fault_stack[2];
+  g_hardFaultInfo.stacked_r3 = fault_stack[3];
+  g_hardFaultInfo.stacked_r12 = fault_stack[4];
+  g_hardFaultInfo.stacked_psr = fault_stack[7];
+  
+  (void)mmfsr;
+  (void)stacked_pc;
+  (void)stacked_lr;
+  
+  __BKPT(0);  // デバッガでブレーク
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
@@ -300,7 +441,22 @@ void SAI2_A_IRQHandler(void)
 void OTG_HS_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_HS_IRQn 0 */
+  dbg_usb_isr_count++;
+
+  // ISR開始時のMSP（メインスタック）を記録
+  uint32_t msp_val;
+  __asm volatile ("MRS %0, msp" : "=r" (msp_val));
+  dbg_usb_isr_msp_start = msp_val;
+
+  // TinyUSB割り込みハンドラ呼び出し
   tusb_int_handler(BOARD_TUD_RHPORT, true);
+
+  // ISR終了時のMSP最小値を更新（デバッグ用）
+  __asm volatile ("MRS %0, msp" : "=r" (msp_val));
+  if (msp_val < dbg_usb_isr_msp_min) {
+    dbg_usb_isr_msp_min = msp_val;
+  }
+
   return;
   /* USER CODE END OTG_HS_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
