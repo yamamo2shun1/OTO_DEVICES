@@ -376,7 +376,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 100
+Parameter Address	= 102
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -389,7 +389,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 95
+Parameter Address	= 96
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -413,7 +413,7 @@ Parameter Data :
 
 Module Name			= master_output
 Parameter Name		= Gain
-Parameter Address	= 103
+Parameter Address	= 105
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -646,7 +646,7 @@ Parameter Data :
 
 Module Name			= Snd_SW
 Parameter Name		= Index
-Parameter Address	= 98
+Parameter Address	= 100
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -657,7 +657,51 @@ Parameter Data :
 
 Module Name			= send_output
 Parameter Name		= Gain
+Parameter Address	= 101
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_0
+Parameter Name		= Gain
 Parameter Address	= 99
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_1
+Parameter Name		= Gain
+Parameter Address	= 95
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_2
+Parameter Name		= Gain
+Parameter Address	= 107
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_3
+Parameter Name		= Gain
+Parameter Address	= 106
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
