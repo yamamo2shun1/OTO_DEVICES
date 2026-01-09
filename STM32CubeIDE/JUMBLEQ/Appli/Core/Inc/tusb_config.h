@@ -47,20 +47,24 @@ extern "C"
 #define BOARD_TUD_RHPORT          1
 #define CFG_TUSB_RHPORT0_MODE     (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 
-// DWC2 DMA mode - Slaveモードを無効にし、DMAモードを有効にする
-// DMAモードではUSB FIFOへのアクセスがDMAで行われ、CPU競合が減る
+// DWC2 DMA mode - DMAモードを有効化
+// バッファをnoncacheable領域に配置してDCache coherency問題を解決
 #define CFG_TUD_DWC2_SLAVE_ENABLE 0
 #define CFG_TUD_DWC2_DMA_ENABLE   1
 
-// DMAモード + DCacheが有効なMCUでは、キャッシュ管理が必須
-// TinyUSBがDMA転送後にキャッシュをインバリデートするようになる
-#define CFG_TUD_MEM_DCACHE_ENABLE 1
+// DCache有効、TinyUSBバッファはnoncacheable領域に配置
+#define CFG_TUD_MEM_DCACHE_ENABLE    1
 #define CFG_TUD_MEM_DCACHE_LINE_SIZE 32
 
+// TinyUSB内部のバッファをnoncacheable領域に配置
+#define CFG_TUD_MEM_SECTION __attribute__((section("noncacheable_buffer"), aligned(32)))
+#define CFG_TUD_MEM_ALIGN   TU_ATTR_ALIGNED(32)
+
 // noncacheable_buffer領域をuncached regionsに追加
-// (0x24040000 - 0x2405FFFF: 128KB noncacheable section)
-//#define CFG_DWC2_MEM_UNCACHED_REGIONS \
-  {.start = 0x24040000, .end = 0x2405FFFF},
+// リンカースクリプトに基づく: 0x24040000 - 0x24072000 (200KB)
+// TinyUSBのDCacheメンテナンスをスキップするための設定
+#define CFG_DWC2_MEM_UNCACHED_REGIONS \
+    {.start = 0x24040000, .end = 0x24080000},
 
 // #define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 // #define TUD_AUDIO_PREFER_RING_BUFFER 1
@@ -81,6 +85,9 @@ extern "C"
 //--------------------------------------------------------------------
 // Common Configuration
 //--------------------------------------------------------------------
+
+// TinyUSB task queue size - increase for audio streaming
+#define CFG_TUD_TASK_QUEUE_SZ 64
 
 // defined by compiler flags for flexibility
 #ifndef CFG_TUSB_MCU
@@ -110,7 +117,7 @@ extern "C"
  */
 // DMAモードでも通常RAMを使用（noncacheableは他のDMAに影響する）
 #define CFG_TUSB_MEM_SECTION
-#define CFG_TUSB_MEM_ALIGN   __attribute__((aligned(32)))
+#define CFG_TUSB_MEM_ALIGN __attribute__((aligned(32)))
 
     //--------------------------------------------------------------------
     // DEVICE CONFIGURATION
@@ -128,14 +135,13 @@ extern "C"
 #define CFG_TUD_AUDIO  1
 #define CFG_TUD_VENDOR 0
 
-
 // MIDI Endpoint/FIFO sizes
 #if CFG_TUD_MIDI
-  // Bulk endpoints: 64 bytes (FS) / 512 bytes (HS)
-  #define CFG_TUD_MIDI_EP_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
-  // FIFO size for tud_midi_{read,write} (bytes)
-  #define CFG_TUD_MIDI_RX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
-  #define CFG_TUD_MIDI_TX_BUFSIZE   CFG_TUD_MIDI_EP_BUFSIZE
+    // Bulk endpoints: 64 bytes (FS) / 512 bytes (HS)
+    #define CFG_TUD_MIDI_EP_BUFSIZE (TUD_OPT_HIGH_SPEED ? 512 : 64)
+    // FIFO size for tud_midi_{read,write} (bytes)
+    #define CFG_TUD_MIDI_RX_BUFSIZE CFG_TUD_MIDI_EP_BUFSIZE
+    #define CFG_TUD_MIDI_TX_BUFSIZE CFG_TUD_MIDI_EP_BUFSIZE
 #endif
 
 //--------------------------------------------------------------------
@@ -146,7 +152,7 @@ extern "C"
 #define CFG_TUD_AUDIO_ENABLE_INTERRUPT_EP 1
 
 // How many formats are used, need to adjust USB descriptor if changed
-#define CFG_TUD_AUDIO_FUNC_1_N_FORMATS 2
+#define CFG_TUD_AUDIO_FUNC_1_N_FORMATS 1
 
 // Audio format type I specifications
 /* 24bit/48kHz is the best quality for headset or 24bit/96kHz for 2ch speaker,
@@ -155,17 +161,11 @@ extern "C"
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX   4
 #define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX   4
 
-// 16bit in 16bit slots
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX 2
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX         16
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX 2
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX         16
-
-// 24bit in 32bit slots (UAC2 only)
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX 4
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_TX         24
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX 4
-#define CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX         24
+// 24bit in 32bit slots
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX 4
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_TX         24
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX 4
+#define CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX         24
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_IN 1
@@ -175,14 +175,14 @@ extern "C"
 
 // UAC2 (High-Speed) Endpoint size calculation
 #define CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN TUD_AUDIO_EP_SIZE(true, CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
-#define CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_IN TUD_AUDIO_EP_SIZE(true, CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
 
 // Maximum EP IN size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX TU_MAX(CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, TU_MAX(CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN, CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_IN))
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX TU_MAX(CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN)
 
 // Tx flow control needs buffer size >= 4* EP size to work correctly
 // Example write FIFO every 1ms (8 HS frames), so buffer size should be 8 times larger for HS device
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ TU_MAX(4 * CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, TU_MAX(32 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN, 32 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_IN))
+// 低レイテンシー設定: 32倍 → 8倍 に削減（約1/4のレイテンシー）
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ TU_MAX(4 * CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_IN, 8 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN)
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_OUT 1
@@ -192,14 +192,14 @@ extern "C"
 
 // UAC2 (High-Speed) Endpoint size calculation
 #define CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_OUT TUD_AUDIO_EP_SIZE(true, CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
-#define CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_OUT TUD_AUDIO_EP_SIZE(true, CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_N_BYTES_PER_SAMPLE_RX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
 
 // Maximum EP OUT size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX TU_MAX(CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, TU_MAX(CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_OUT, CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_OUT))
+#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX TU_MAX(CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_OUT)
 
 // Rx flow control needs buffer size >= 4* EP size to work correctly
 // Example read FIFO every 1ms (8 HS frames), so buffer size should be 8 times larger for HS device
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ TU_MAX(4 * CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, TU_MAX(32 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_OUT, 32 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_2_EP_SZ_OUT))
+// 低レイテンシー設定: 32倍 → 8倍 に削減（約1/4のレイテンシー）
+#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ TU_MAX(4 * CFG_TUD_AUDIO10_FUNC_1_FORMAT_1_EP_SZ_OUT, 8 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_OUT)
 
 #ifdef __cplusplus
 }

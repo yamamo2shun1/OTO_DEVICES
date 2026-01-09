@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h
- * Created:	Sunday, 21 December 2025 7:10 AM
+ * Created:	Thursday, 08 January 2026 19:25 PM
  * Description:	Schematic default download data definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -13,12 +13,12 @@
  * are intended for resale to audio product end users.This software 
  * may not be distributed whole or in any part to third parties. 
  * 
- * Copyright © 2025 Analog Devices, Inc. All rights reserved.
+ * Copyright © 2026 Analog Devices, Inc. All rights reserved.
  */
 #ifndef __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
 #define __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
 
-#define BufferSize_ADAU146XSCHEMATIC_1			3534
+#define BufferSize_ADAU146XSCHEMATIC_1			2562
 #define NumTransactions_ADAU146XSCHEMATIC_1		58
 
 #endif

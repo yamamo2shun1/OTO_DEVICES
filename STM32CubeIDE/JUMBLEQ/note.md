@@ -120,3 +120,159 @@ SAI_RX_BUF_SIZE  = 1024  (SAI RX DMAバッファ, 2ch)
 3. `Appli/Core/Inc/audio_control.h`
 4. `Appli/Core/Src/audio_control.c`
 5. `Appli/STM32H7S3Z8TX_ROMxspi1.ld`
+
+---
+
+# HardFault修正履歴 #2 - DCache/FreeRTOSヒープ問題 (2025/01)
+
+## 問題の症状
+
+USB Audio再生中に**ランダムなHardFault**が発生。
+
+- **発生タイミング**: 7分〜2時間以上と不規則
+- **エラー種別**: UNDEFINSTR, INVSTATE, UNALIGNED など多様
+- **特徴的なパターン**:
+  - `stacked_pc`が無効なアドレス（0xFFFFFFF1 = EXC_RETURN）
+  - レジスタに`0xA5A5A5A5`（FreeRTOSスタック初期化パターン）
+  - IdleTask内でクラッシュ
+
+## 調査経緯
+
+### 1. 初期仮説 - DCache問題
+DWC2 DMAとDCacheのコヒーレンシ問題を疑い、以下を実施：
+- MPU Region 3（0x24040000-0x24080000）がNoncacheableであることを確認
+- `xfer_status`, `_dcd_data`を`CFG_TUD_MEM_SECTION`でNoncacheable領域に配置
+- → **改善せず**
+
+### 2. DMA vs Slaveモード
+- Slaveモード（`CFG_TUD_DWC2_DMA_ENABLE=0`）でテスト
+- → **同様にクラッシュ**
+
+### 3. DCache完全無効化テスト
+- `SCB_DisableDCache()`で無効化
+- → **まだクラッシュ** → DCacheは直接の原因ではない
+
+### 4. 決定的な発見
+クラッシュ時のレジスタに`0xA5A5A5A5`（FreeRTOSのスタック初期化パターン）が出現。
+これは**FreeRTOSのTCB（Task Control Block）またはスタックが破壊されている**ことを示す。
+
+## 根本原因
+
+**FreeRTOSヒープ（ucHeap）がキャッシュ可能なRAM領域にあった。**
+
+USB DMAがNoncacheable領域にアクセスする際、同じキャッシュラインを共有する
+FreeRTOSヒープのデータが巻き込まれ、DCache eviction/refillのタイミングで破壊された。
+
+### メモリレイアウト（修正前）
+```
+0x24000000 - 0x24040000: 通常RAM（キャッシュ可能）← ucHeap がここにあった
+0x24040000 - 0x24080000: Noncacheable（MPU Region 3）← USB DMAバッファ
+```
+
+破壊パターン：
+1. DMAがNoncacheable領域に書き込み
+2. CPUがキャッシュラインをevict/refill
+3. 隣接するucHeapのデータが古い値で上書き
+4. FreeRTOSのTCB/スタックが破壊
+5. タスクスケジューリング時にHardFault
+
+## 解決策
+
+### FreeRTOSヒープをNoncacheable領域に配置
+
+**FreeRTOSConfig.h:**
+```c
+#define configAPPLICATION_ALLOCATED_HEAP         1
+```
+
+**freertos.c:**
+```c
+__attribute__((section("noncacheable_buffer"), aligned(8)))
+uint8_t ucHeap[configTOTAL_HEAP_SIZE];
+```
+
+### TinyUSBバッファもNoncacheable領域に配置
+
+**tusb_config.h:**
+```c
+#define CFG_TUD_MEM_SECTION   __attribute__((section("noncacheable_buffer"), aligned(32)))
+#define CFG_TUD_MEM_ALIGN     TU_ATTR_ALIGNED(32)
+#define IN_SW_BUF_MEM_ATTR    CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
+#define OUT_SW_BUF_MEM_ATTR   CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
+```
+
+**audio_device.c:** (TinyUSBソース修正)
+```c
+#ifndef IN_SW_BUF_MEM_ATTR
+  #if !CFG_TUD_EDPT_DEDICATED_HWFIFO
+    #define IN_SW_BUF_MEM_ATTR TU_ATTR_ALIGNED(4)
+  #else
+    #define IN_SW_BUF_MEM_ATTR CFG_TUD_MEM_SECTION CFG_TUD_MEM_ALIGN
+  #endif
+#endif
+// OUT_SW_BUF_MEM_ATTRも同様
+```
+
+**dcd_dwc2.c:** (TinyUSBソース修正)
+```c
+CFG_TUD_MEM_SECTION static xfer_ctl_t xfer_status[DWC2_EP_MAX][2];
+CFG_TUD_MEM_SECTION static dcd_data_t _dcd_data;
+```
+
+## Noncacheable領域の最終配置
+
+mapファイルから確認：
+```
+アドレス         サイズ    内容
+0x24040000                noncacheable_buffer開始
+0x24056420      32KB      ucHeap (FreeRTOSヒープ)
+0x2405E640      16KB      audio_device.o (ep_in/out_sw_buf, lin_buf_in/out)
+0x24062700      1KB       midi_device.o
+0x24062B00      64B       usbd_control.o
+0x24062B40      352B      dcd_dwc2.o (xfer_status, _dcd_data)
+0x24062CA0                __NONCACHEABLEBUFFER_END
+
+使用量: 約140KB / 256KB
+```
+
+## デバッグ用モニタリング変数
+
+**stm32h7rsxx_it.c:**
+```c
+volatile uint32_t dbg_usb_isr_count = 0;       // USB ISR呼び出し回数
+volatile uint32_t dbg_usb_isr_msp_min = 0xFFFFFFFF;  // ISR中のMSP最小値
+volatile uint32_t dbg_usb_isr_msp_start = 0;   // ISR開始時のMSP
+```
+
+**freertos.c (vApplicationIdleHook):**
+```c
+extern size_t dbg_min_free_heap;  // FreeRTOSヒープ空き容量最小値
+```
+
+## 検証結果
+
+- **12時間以上の連続動作でHardFault発生なし** ✅
+- ヒープ使用量安定（約8KB使用、24KB空き）
+- ISRスタック使用量安定（約1KB使用）
+
+## 学んだ教訓
+
+1. **DCache問題は間接的に他の領域を破壊しうる**
+   - DMAバッファだけでなく、同じキャッシュラインを共有する可能性のある重要なデータ（ヒープ、TCB）もNoncacheable領域に置く
+
+2. **0xA5A5A5A5パターンはFreeRTOS破壊の証拠**
+   - FreeRTOSはスタックを`0xA5`で初期化する（`configCHECK_FOR_STACK_OVERFLOW`有効時）
+   - このパターンがレジスタに現れたら、TCB/スタック破壊を疑う
+
+3. **DCacheを無効化してもDMA問題は残る**
+   - DCache無効化はキャッシュコヒーレンシ問題の一部を解消するが、DMAと CPUの同時アクセス競合は別問題
+
+## 修正ファイル一覧
+
+1. `Appli/Core/Inc/FreeRTOSConfig.h` - `configAPPLICATION_ALLOCATED_HEAP=1`追加
+2. `Appli/Core/Src/freertos.c` - `ucHeap`をNoncacheable領域に定義
+3. `Appli/Core/Inc/tusb_config.h` - バッファ属性マクロ追加
+4. `Appli/tinyusb/src/class/audio/audio_device.c` - `#ifndef`ガード追加
+5. `Appli/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c` - `CFG_TUD_MEM_SECTION`追加
+6. `Appli/Core/Src/stm32h7rsxx_it.c` - ISRモニタリング追加、HardFaultInfo拡張
+7. `Appli/Core/Src/usb_otg.c` - USB割り込み優先度を6→5に変更

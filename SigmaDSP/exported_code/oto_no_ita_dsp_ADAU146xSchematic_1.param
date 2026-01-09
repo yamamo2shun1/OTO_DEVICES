@@ -88,7 +88,7 @@ Parameter Data :
 
 Module Name			= input_from_ch2
 Parameter Name		= Gain
-Parameter Address	= 113
+Parameter Address	= 88
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -99,7 +99,7 @@ Parameter Data :
 
 Module Name			= input_from_usb
 Parameter Name		= Gain
-Parameter Address	= 107
+Parameter Address	= 82
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -110,18 +110,18 @@ Parameter Data :
 
 Module Name			= DCInput_0
 Parameter Name		= DCValue
-Parameter Address	= 106
-Parameter Value		= 0
+Parameter Address	= 81
+Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x00, 
+0x01, 0x00, 0x00, 0x00, 
 
 
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel0
-Parameter Address	= 104
+Parameter Address	= 78
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -132,7 +132,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel1
-Parameter Address	= 105
+Parameter Address	= 79
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -143,7 +143,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1L
 Parameter Name		= gain
-Parameter Address	= 115
+Parameter Address	= 90
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -155,7 +155,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1R
 Parameter Name		= gain
-Parameter Address	= 117
+Parameter Address	= 92
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -168,171 +168,171 @@ Parameter Data :
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage0_B2
 Parameter Address	= 38
-Parameter Value		= 0.954654227074152
+Parameter Value		= 0.977280264882058
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0xF4, 0x64, 0x38, 
+0x00, 0xFA, 0x2F, 0x0A, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage0_B1
 Parameter Address	= 39
-Parameter Value		= -1.99174848837953
+Parameter Value		= -1.99586742913578
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFE, 0x02, 0x1C, 0xC5, 
+0xFE, 0x01, 0x0E, 0xD5, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage0_B0
 Parameter Address	= 40
-Parameter Value		= 1.03710108693933
+Parameter Value		= 1.01858887418741
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0x09, 0x7F, 0x75, 
+0x01, 0x04, 0xC2, 0x3E, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage0_A2
 Parameter Address	= 41
-Parameter Value		= -0.991755314013482
+Parameter Value		= -0.995869139069465
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x02, 0x1C, 0x53, 
+0xFF, 0x01, 0x0E, 0xB8, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage0_A1
 Parameter Address	= 42
-Parameter Value		= 1.99174848837953
+Parameter Value		= 1.99586742913578
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0xFD, 0xE3, 0x3B, 
+0x01, 0xFE, 0xF1, 0x2B, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage1_B2
 Parameter Address	= 24591
-Parameter Value		= 0.959167179850826
+Parameter Value		= 0.979312597649272
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0xF5, 0x8B, 0xFB, 
+0x00, 0xFA, 0xB4, 0x3B, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage1_B1
 Parameter Address	= 24592
-Parameter Value		= -1.9474762312657
+Parameter Value		= -1.97345348628905
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0xFE, 0x0D, 0x72, 0x33, 
+0xFE, 0x06, 0xCB, 0xC1, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage1_B0
 Parameter Address	= 24593
-Parameter Value		= 0.988561502107709
+Parameter Value		= 0.994204837987646
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0xFD, 0x12, 0x5E, 
+0x00, 0xFE, 0x84, 0x35, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage1_A2
 Parameter Address	= 24594
-Parameter Value		= -0.947728681958535
+Parameter Value		= -0.973517435636918
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x0D, 0x61, 0xA7, 
+0xFF, 0x06, 0xC7, 0x90, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage1_A1
 Parameter Address	= 24595
-Parameter Value		= 1.9474762312657
+Parameter Value		= 1.97345348628905
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x01, 0xF2, 0x8D, 0xCD, 
+0x01, 0xF9, 0x34, 0x3F, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage2_B2
 Parameter Address	= 43
-Parameter Value		= 0.26957105939467
+Parameter Value		= 0.128303059105025
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x45, 0x02, 0x9C, 
+0x00, 0x20, 0xD8, 0x78, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage2_B1
 Parameter Address	= 44
-Parameter Value		= 0.58192350170784
+Parameter Value		= -0.10743487227554
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x94, 0xF8, 0xF0, 
+0xFF, 0xE4, 0x7F, 0x26, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage2_B0
 Parameter Address	= 45
-Parameter Value		= 0.402376321322912
+Parameter Value		= 0.286793411995021
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x67, 0x02, 0x22, 
+0x00, 0x49, 0x6B, 0x4B, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage2_A2
 Parameter Address	= 46
-Parameter Value		= 0.328052619282417
+Parameter Value		= 0.584903528899954
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x53, 0xFB, 0x42, 
+0x00, 0x95, 0xBC, 0x3D, 
 
 
 
 Module Name			= Ph_EQ_1
 Parameter Name		= Stage2_A1
 Parameter Address	= 47
-Parameter Value		= -0.58192350170784
+Parameter Value		= 0.10743487227554
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x6B, 0x07, 0x10, 
+0x00, 0x1B, 0x80, 0xDA, 
 
 
 
 Module Name			= Ph_EQ_Gain_1
 Parameter Name		= Gain
-Parameter Address	= 114
+Parameter Address	= 89
 Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
@@ -354,7 +354,7 @@ Parameter Data :
 
 Module Name			= DCInput_1
 Parameter Name		= DCValue
-Parameter Address	= 75
+Parameter Address	= 80
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -376,7 +376,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 125
+Parameter Address	= 102
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -389,7 +389,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 120
+Parameter Address	= 96
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -402,7 +402,7 @@ Parameter Data :
 
 Module Name			= input_from_ch1
 Parameter Name		= Gain
-Parameter Address	= 119
+Parameter Address	= 94
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -413,7 +413,7 @@ Parameter Data :
 
 Module Name			= master_output
 Parameter Name		= Gain
-Parameter Address	= 128
+Parameter Address	= 105
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -424,7 +424,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel0
-Parameter Address	= 73
+Parameter Address	= 76
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -435,7 +435,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel1
-Parameter Address	= 74
+Parameter Address	= 77
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -446,7 +446,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2L
 Parameter Name		= gain
-Parameter Address	= 109
+Parameter Address	= 84
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -458,7 +458,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2R
 Parameter Name		= gain
-Parameter Address	= 111
+Parameter Address	= 86
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -471,171 +471,171 @@ Parameter Data :
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage0_B2
 Parameter Address	= 28
-Parameter Value		= 0.954654227074152
+Parameter Value		= 0.977280264882058
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0xF4, 0x64, 0x38, 
+0x00, 0xFA, 0x2F, 0x0A, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage0_B1
 Parameter Address	= 29
-Parameter Value		= -1.99174848837953
+Parameter Value		= -1.99586742913578
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFE, 0x02, 0x1C, 0xC5, 
+0xFE, 0x01, 0x0E, 0xD5, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage0_B0
 Parameter Address	= 30
-Parameter Value		= 1.03710108693933
+Parameter Value		= 1.01858887418741
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0x09, 0x7F, 0x75, 
+0x01, 0x04, 0xC2, 0x3E, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage0_A2
 Parameter Address	= 31
-Parameter Value		= -0.991755314013482
+Parameter Value		= -0.995869139069465
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x02, 0x1C, 0x53, 
+0xFF, 0x01, 0x0E, 0xB8, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage0_A1
 Parameter Address	= 32
-Parameter Value		= 1.99174848837953
+Parameter Value		= 1.99586742913578
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0xFD, 0xE3, 0x3B, 
+0x01, 0xFE, 0xF1, 0x2B, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage1_B2
 Parameter Address	= 24586
-Parameter Value		= 0.959167179850826
+Parameter Value		= 0.979312597649272
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0xF5, 0x8B, 0xFB, 
+0x00, 0xFA, 0xB4, 0x3B, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage1_B1
 Parameter Address	= 24587
-Parameter Value		= -1.9474762312657
+Parameter Value		= -1.97345348628905
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0xFE, 0x0D, 0x72, 0x33, 
+0xFE, 0x06, 0xCB, 0xC1, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage1_B0
 Parameter Address	= 24588
-Parameter Value		= 0.988561502107709
+Parameter Value		= 0.994204837987646
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0xFD, 0x12, 0x5E, 
+0x00, 0xFE, 0x84, 0x35, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage1_A2
 Parameter Address	= 24589
-Parameter Value		= -0.947728681958535
+Parameter Value		= -0.973517435636918
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x0D, 0x61, 0xA7, 
+0xFF, 0x06, 0xC7, 0x90, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage1_A1
 Parameter Address	= 24590
-Parameter Value		= 1.9474762312657
+Parameter Value		= 1.97345348628905
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x01, 0xF2, 0x8D, 0xCD, 
+0x01, 0xF9, 0x34, 0x3F, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage2_B2
 Parameter Address	= 33
-Parameter Value		= 0.26957105939467
+Parameter Value		= 0.128303059105025
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x45, 0x02, 0x9C, 
+0x00, 0x20, 0xD8, 0x78, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage2_B1
 Parameter Address	= 34
-Parameter Value		= 0.58192350170784
+Parameter Value		= -0.10743487227554
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x94, 0xF8, 0xF0, 
+0xFF, 0xE4, 0x7F, 0x26, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage2_B0
 Parameter Address	= 35
-Parameter Value		= 0.402376321322912
+Parameter Value		= 0.286793411995021
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x67, 0x02, 0x22, 
+0x00, 0x49, 0x6B, 0x4B, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage2_A2
 Parameter Address	= 36
-Parameter Value		= 0.328052619282417
+Parameter Value		= 0.584903528899954
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x53, 0xFB, 0x42, 
+0x00, 0x95, 0xBC, 0x3D, 
 
 
 
 Module Name			= Ph_EQ_2
 Parameter Name		= Stage2_A1
 Parameter Address	= 37
-Parameter Value		= -0.58192350170784
+Parameter Value		= 0.10743487227554
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0xFF, 0x6B, 0x07, 0x10, 
+0x00, 0x1B, 0x80, 0xDA, 
 
 
 
 Module Name			= Ph_EQ_Gain_2
 Parameter Name		= Gain
-Parameter Address	= 108
+Parameter Address	= 83
 Parameter Value		= 15.8489319246111
 Data Memory			= DM0
 Mem Page			= 0
@@ -646,7 +646,7 @@ Parameter Data :
 
 Module Name			= Snd_SW
 Parameter Name		= Index
-Parameter Address	= 123
+Parameter Address	= 100
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -657,7 +657,51 @@ Parameter Data :
 
 Module Name			= send_output
 Parameter Name		= Gain
-Parameter Address	= 124
+Parameter Address	= 101
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_0
+Parameter Name		= Gain
+Parameter Address	= 99
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_1
+Parameter Name		= Gain
+Parameter Address	= 95
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_2
+Parameter Name		= Gain
+Parameter Address	= 107
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleControlSplitter_3
+Parameter Name		= Gain
+Parameter Address	= 106
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0

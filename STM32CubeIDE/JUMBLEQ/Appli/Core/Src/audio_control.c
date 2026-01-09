@@ -54,6 +54,18 @@ enum
     VOLUME_CTRL_SILENCE = 0x8000,
 };
 
+enum
+{
+    INPUT_CH1 = 0,
+    INPUT_CH2,
+};
+
+enum
+{
+    INPUT_TYPE_LINE = 0,
+    INPUT_TYPE_PHONO,
+};
+
 // Audio controls
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
@@ -122,8 +134,8 @@ __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t stereo_in_b
 
 // Speaker data size received in the last frame
 uint16_t spk_data_size;
-// Resolution per format
-const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX, CFG_TUD_AUDIO_FUNC_1_FORMAT_2_RESOLUTION_RX};
+// Resolution per format (24bit only)
+const uint8_t resolutions_per_format[CFG_TUD_AUDIO_FUNC_1_N_FORMATS] = {CFG_TUD_AUDIO_FUNC_1_FORMAT_1_RESOLUTION_RX};
 // Current resolution, update on format change
 uint8_t current_resolution;
 
@@ -818,6 +830,91 @@ void control_master_out_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
 }
 
+void set_ch1_line()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+}
+
+void set_ch1_phono()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+}
+
+void set_ch2_line()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+}
+
+void set_ch2_phono()
+{
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+}
+
+void select_input_type(uint8_t ch, uint8_t type)
+{
+    if (ch == INPUT_CH1)
+    {
+        switch (type)
+        {
+        case INPUT_TYPE_LINE:
+            set_ch1_line();
+            break;
+        case INPUT_TYPE_PHONO:
+            set_ch1_phono();
+            break;
+        default:
+            break;
+        }
+    }
+    else if (ch == INPUT_CH2)
+    {
+        switch (type)
+        {
+        case INPUT_TYPE_LINE:
+            set_ch2_line();
+            break;
+        case INPUT_TYPE_PHONO:
+            set_ch2_phono();
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void select_send_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[0] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[0] = 0x01;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x0062, 4, Mode0);
+}
+
 static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
 {
     (void) hdma;
@@ -1113,21 +1210,21 @@ void ui_control_task(void)
         bool xfade_changed = false;
         for (int i = 0; i < 6; i++)
         {
-            if (fabs(xfade[i] - xfade_prev[i]) > 0.005f)
+            if (fabs(xfade[i] - xfade_prev[i]) > 0.01f)
             {
                 if (thumb_enable)
                 {
-                    send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                    // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                    send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
                 }
 
                 xfade_changed = true;
-                break;
             }
         }
 
         if (xfade_changed)
         {
-            const float xf      = xfade[1] * xfade[2] * xfade[3] * xfade[4];
+            const float xf      = xfade[1];  // * xfade[2] * xfade[3] * xfade[4];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1222,10 +1319,12 @@ void start_sai(void)
     // リングバッファをプリフィル（無音で初期化）
     // SAI DMAが開始直後にHalf割り込みを発生させた時、
     // リングバッファにデータがないとアンダーランになるため、
-    // SAI_TX_BUF_SIZE分の無音データを事前に投入しておく
+    // 無音データを事前に投入しておく
+    // 96kHzではデータレートが2倍なのでプリフィルも2倍必要
     // ========================================
-    memset(sai_tx_rng_buf, 0, SAI_TX_BUF_SIZE * sizeof(int32_t));
-    sai_tx_rng_buf_index = SAI_TX_BUF_SIZE;  // プリフィル分を加算
+    uint32_t prefill_size = (current_sample_rate == 96000) ? (SAI_TX_BUF_SIZE * 2) : SAI_TX_BUF_SIZE;
+    memset(sai_tx_rng_buf, 0, prefill_size * sizeof(int32_t));
+    sai_tx_rng_buf_index = prefill_size;
     sai_transmit_index   = 0;
     tx_pending_mask      = 0;
 
@@ -1769,7 +1868,7 @@ void audio_task(void)
     if (is_sr_changed)
     {
 #if RESET_FROM_FW
-        // AUDIO_SAI_Reset_ForNewRate();
+        AUDIO_SAI_Reset_ForNewRate();
 #endif
         is_sr_changed = false;
     }
@@ -1870,9 +1969,12 @@ void AUDIO_Init_ADAU1466(uint32_t hz)
     HAL_Delay(10);
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
     HAL_Delay(500);
+#if RESET_FROM_FW
     default_download_ADAU146XSCHEMATIC_1();
     HAL_Delay(100);
+#endif
 
+#if 0
     if (hz == 48000)
     {
         sr_48k_download();
@@ -1881,6 +1983,7 @@ void AUDIO_Init_ADAU1466(uint32_t hz)
     {
         sr_96k_download();
     }
+#endif
 }
 
 void AUDIO_SAI_Reset_ForNewRate(void)
@@ -1893,13 +1996,24 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         return;
     }
 
+    /* Disable interrupts during critical DMA/SAI stop sequence */
+    uint32_t primask = __get_PRIMASK();
     __disable_irq();
-    __DSB();
-    __enable_irq();
 
-    /* Stop DMA first (if running) to avoid FIFO churn while reconfiguring SAI */
-    (void) HAL_SAI_DMAStop(&hsai_BlockA2); /* TX */
-    (void) HAL_SAI_DMAStop(&hsai_BlockA1); /* RX */
+    /* Disable SAI DMA requests first */
+    hsai_BlockA2.Instance->CR1 &= ~SAI_xCR1_DMAEN;
+    hsai_BlockA1.Instance->CR1 &= ~SAI_xCR1_DMAEN;
+
+    /* Disable SAI blocks */
+    __HAL_SAI_DISABLE(&hsai_BlockA2);
+    __HAL_SAI_DISABLE(&hsai_BlockA1);
+    __DSB();
+
+    __set_PRIMASK(primask);
+
+    /* Abort DMA transfers */
+    (void) HAL_DMA_Abort(&handle_GPDMA1_Channel2);
+    (void) HAL_DMA_Abort(&handle_GPDMA1_Channel3);
     __DSB();
 
     /* Fully re-init SAI blocks so FIFOs/flags are reset as well */
@@ -1914,97 +2028,131 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     tx_pending_mask      = 0;
     rx_pending_mask      = 0;
 
-    AUDIO_Init_AK4619(new_hz);
+    /* Clear all audio buffers to avoid noise from stale data */
+    memset(sai_tx_rng_buf, 0, sizeof(sai_tx_rng_buf));
+    memset(sai_rx_rng_buf, 0, sizeof(sai_rx_rng_buf));
+    memset(stereo_out_buf, 0, sizeof(stereo_out_buf));
+    memset(stereo_in_buf, 0, sizeof(stereo_in_buf));
+    memset(usb_in_buf, 0, sizeof(usb_in_buf));
+    memset(usb_out_buf, 0, sizeof(usb_out_buf));
+    __DSB();
+
+    AUDIO_Init_AK4619(96000);
 #if RESET_FROM_FW
     AUDIO_Init_ADAU1466(new_hz);
 #endif
 
-    uint8_t data[2] = {0x00, 0x00};
     if (new_hz == 48000)
     {
-        // SERIAL_BYTE_0_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF201, 2, data);
-        // SERIAL_BYTE_1_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF205, 2, data);
-        // SERIAL_BYTE_2_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF209, 2, data);
-        // SERIAL_BYTE_4_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF211, 2, data);
-        // SERIAL_BYTE_5_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF215, 2, data);
-        // SERIAL_BYTE_6_1
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
+        ADI_REG_TYPE Mode0_0[2] = {0x00, 0x06};
+        ADI_REG_TYPE Mode0_1[2] = {0x00, 0x05};
+        ADI_REG_TYPE Mode0_2[2] = {0x00, 0x00};
+        ADI_REG_TYPE Mode0_3[2] = {0x00, 0x01};
 
-        // CORE CONTROL -> START_PULSE
-        data[1] = 0x02;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-
-        // MCLK_OUT
-        data[1] = 0x05;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF020, 2, Mode0_0); /* CLK_GEN1_M */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF005, 2, Mode0_1); /* MCLK_OUT */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode0_2); /* PLL_ENABLE */
+        __DSB();
+        HAL_Delay(100);
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode0_3); /* PLL_ENABLE */
     }
     else if (new_hz == 96000)
     {
-        // SERIAL_BYTE_0_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF201, 2, data);
-        // SERIAL_BYTE_1_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF205, 2, data);
-        // SERIAL_BYTE_2_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF209, 2, data);
-        // SERIAL_BYTE_4_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF211, 2, data);
-        // SERIAL_BYTE_5_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF215, 2, data);
-        // SERIAL_BYTE_6_1
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF219, 2, data);
+        ADI_REG_TYPE Mode1_0[2] = {0x00, 0x03};
+        ADI_REG_TYPE Mode1_1[2] = {0x00, 0x07};
+        ADI_REG_TYPE Mode1_2[2] = {0x00, 0x00};
+        ADI_REG_TYPE Mode1_3[2] = {0x00, 0x01};
 
-        // CORE CONTROL -> START_PULSE
-        data[1] = 0x03;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF401, 2, data);
-
-        // MCLK_OUT
-        data[1] = 0x07;
-        SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF005, 2, data);
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF020, 2, Mode1_0); /* CLK_GEN1_M */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF005, 2, Mode1_1); /* MCLK_OUT */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode1_2); /* PLL_ENABLE */
+        __DSB();
+        HAL_Delay(100);
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode1_3); /* PLL_ENABLE */
     }
 
-    // PLL_ENABLE
-    data[1] = 0x00;
-    SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
-
+    HAL_Delay(50);  // Wait for PLL to lock and stabilize
     __DSB();
 
-    // PLL_ENABLE
-    data[1] = 0x01;
-    SIGMA_WRITE_REGISTER_BLOCK(0x00, 0xF003, 2, data);
+    /* Re-init DMA channels (linked-list mode) */
+    (void) HAL_DMA_DeInit(&handle_GPDMA1_Channel2);
+    (void) HAL_DMA_DeInit(&handle_GPDMA1_Channel3);
 
-    /* Reconfigure peripherals + DMA linked-lists (generated init) */
+    handle_GPDMA1_Channel2.Instance                         = GPDMA1_Channel2;
+    handle_GPDMA1_Channel2.InitLinkedList.Priority          = DMA_LOW_PRIORITY_HIGH_WEIGHT;
+    handle_GPDMA1_Channel2.InitLinkedList.LinkStepMode      = DMA_LSM_FULL_EXECUTION;
+    handle_GPDMA1_Channel2.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT0;
+    handle_GPDMA1_Channel2.InitLinkedList.TransferEventMode = DMA_TCEM_LAST_LL_ITEM_TRANSFER;
+    handle_GPDMA1_Channel2.InitLinkedList.LinkedListMode    = DMA_LINKEDLIST_CIRCULAR;
+    if (HAL_DMAEx_List_Init(&handle_GPDMA1_Channel2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    handle_GPDMA1_Channel3.Instance                         = GPDMA1_Channel3;
+    handle_GPDMA1_Channel3.InitLinkedList.Priority          = DMA_LOW_PRIORITY_HIGH_WEIGHT;
+    handle_GPDMA1_Channel3.InitLinkedList.LinkStepMode      = DMA_LSM_FULL_EXECUTION;
+    handle_GPDMA1_Channel3.InitLinkedList.LinkAllocatedPort = DMA_LINK_ALLOCATED_PORT0;
+    handle_GPDMA1_Channel3.InitLinkedList.TransferEventMode = DMA_TCEM_LAST_LL_ITEM_TRANSFER;
+    handle_GPDMA1_Channel3.InitLinkedList.LinkedListMode    = DMA_LINKEDLIST_CIRCULAR;
+    if (HAL_DMAEx_List_Init(&handle_GPDMA1_Channel3) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    /* Reconfigure peripherals (SAI) */
     MX_SAI1_Init();
     MX_SAI2_Init();
 
-    /* Restart circular DMA on both directions (sizes are #words) */
-    if (HAL_SAI_Transmit_DMA(&hsai_BlockA2, (uint8_t*) stereo_out_buf, SAI_TX_BUF_SIZE) != HAL_OK)
+    /* Prefill TX ring buffer with silence (already zeroed above) */
+    /* Set write index ahead to provide initial data for DMA */
+    /* 96kHz needs larger prefill due to higher data rate */
+    if (new_hz == 96000)
+    {
+        sai_tx_rng_buf_index = SAI_TX_BUF_SIZE * 2;
+    }
+    else
+    {
+        sai_tx_rng_buf_index = SAI_TX_BUF_SIZE;
+    }
+    sai_transmit_index = 0;
+
+    /* Configure and link DMA for SAI2 TX */
+    MX_List_GPDMA1_Channel2_Config();
+    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel2, &List_GPDMA1_Channel2) != HAL_OK)
     {
         Error_Handler();
     }
-
-    if (HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*) stereo_in_buf, SAI_RX_BUF_SIZE) != HAL_OK)
+    handle_GPDMA1_Channel2.XferHalfCpltCallback = dma_sai2_tx_half;
+    handle_GPDMA1_Channel2.XferCpltCallback     = dma_sai2_tx_cplt;
+    handle_GPDMA1_Channel2.XferErrorCallback    = dma_sai_error;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel2) != HAL_OK)
     {
         Error_Handler();
     }
+    hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;
+    __HAL_SAI_ENABLE(&hsai_BlockA2);
 
-    // printf("[SAI] reset for %lu Hz\n", (unsigned long) new_hz);
+    /* Wait for SAI TX to synchronize with external clock before starting RX */
+    HAL_Delay(10);
+
+    /* Configure and link DMA for SAI1 RX */
+    MX_List_GPDMA1_Channel3_Config();
+    if (HAL_DMAEx_List_LinkQ(&handle_GPDMA1_Channel3, &List_GPDMA1_Channel3) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    handle_GPDMA1_Channel3.XferHalfCpltCallback = dma_sai1_rx_half;
+    handle_GPDMA1_Channel3.XferCpltCallback     = dma_sai1_rx_cplt;
+    handle_GPDMA1_Channel3.XferErrorCallback    = dma_sai_error;
+    if (HAL_DMAEx_List_Start_IT(&handle_GPDMA1_Channel3) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;
+    __HAL_SAI_ENABLE(&hsai_BlockA1);
+
+    SEGGER_RTT_printf(0, "[SAI] reset for %lu Hz (prev=%lu)\n", (unsigned long) new_hz, (unsigned long) prev_hz);
 
     prev_hz = new_hz;
 }
