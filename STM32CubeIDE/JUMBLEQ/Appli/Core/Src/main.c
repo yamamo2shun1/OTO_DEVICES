@@ -137,15 +137,14 @@ int main(void)
     reset_audio_buffer();
     reset_led_buffer();
 
-    AUDIO_Init_AK4619(48000);
-#if RESET_FROM_FW
+    AUDIO_Init_AK4619(96000);
+
     /* もし、SigmaStudio+からUSBi経由で書き込み、デバッグを行う場合は
      * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
      * SigmaStudio+からダウンロードを実行すること。
      */
     AUDIO_Init_ADAU1466(48000);
     HAL_Delay(500);
-#endif
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);

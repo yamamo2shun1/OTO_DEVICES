@@ -242,7 +242,7 @@
               "PLL_CTRL0_regRESERVED11 Reserved": 0,
               "PLL_WATCHDOG_reg_PLL_WATCHDOG": "PLL watchdog enabled",
               "PLL_WATCHDOG_regRESERVED17 Reserved": 0,
-              "CLK_GEN1_M_reg_CLOCKGEN1_M": 6,
+              "CLK_GEN1_M_reg_CLOCKGEN1_M": 6.0,
               "CLK_GEN1_M_regRESERVED18 Reserved": 0,
               "CLK_GEN1_N_reg_CLOCKGEN1_N": 1,
               "CLK_GEN1_N_regRESERVED19 Reserved": 0,
@@ -2568,47 +2568,26 @@
                             "Link_99",
                             "Link_100",
                             "Link_77",
-                            "Link_101",
-                            "Link_102",
                             "Link_110",
                             "Link_111",
                             "Link_114",
                             "Link_115",
                             "Link_116",
                             "Link_117",
-                            "Link_118",
-                            "Link_119",
-                            "Link_124",
-                            "Link_125"
-                          ]
-                        }
-                      },
-                      {
-                        "$type": "AnalogDevices.TypeDefinitions.Dom.SsprjDom.Internals.ChannelModel, TypeDefinitions",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": ""
-                        },
-                        "Uid": "Analog_0",
-                        "Name": "Analog",
-                        "PluginName": "AnalogDevices.Plugins.Channels.AudioChannel_v1.0.0.0",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IChannel",
-                        "LinkReference": {
-                          "$type": "System.Collections.ObjectModel.Collection`1[[System.String, mscorlib]], mscorlib",
-                          "$values": [
-                            "Link_103",
-                            "Link_104",
-                            "Link_108",
-                            "Link_109",
-                            "Link_122",
-                            "Link_123",
-                            "Link_126",
-                            "Link_127",
-                            "Link_128",
-                            "Link_129"
+                            "Link_130",
+                            "Link_131",
+                            "Link_132",
+                            "Link_133",
+                            "Link_134",
+                            "Link_135",
+                            "Link_136",
+                            "Link_137",
+                            "Link_138",
+                            "Link_139",
+                            "Link_140",
+                            "Link_141",
+                            "Link_142",
+                            "Link_143"
                           ]
                         }
                       }
@@ -2626,8 +2605,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2662,8 +2641,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2698,8 +2677,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "48000",
-                          "FSOut": 48000,
+                          "FS": "96000",
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2749,8 +2728,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2792,8 +2771,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "48000",
-                          "FSOut": 48000,
+                          "FS": "96000",
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2843,8 +2822,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2853,8 +2832,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2187.4444444444448,
-                          "Y": -292.88888888888891
+                          "X": 2519.5,
+                          "Y": -273.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2879,8 +2858,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -2889,8 +2868,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2187.4444444444448,
-                          "Y": -198.88888888888891
+                          "X": 2519.5,
+                          "Y": -179.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3041,8 +3020,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2187.4444444444448,
-                          "Y": -364.88888888888891
+                          "X": 2519.5,
+                          "Y": -345.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3067,8 +3046,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3077,8 +3056,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2190.3333333333335,
-                          "Y": -28.333333333333371
+                          "X": 2522.5,
+                          "Y": -8.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3103,8 +3082,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3113,8 +3092,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2190.3333333333335,
-                          "Y": 55.666666666666629
+                          "X": 2522.5,
+                          "Y": 76.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3139,8 +3118,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3182,13 +3161,13 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "48000",
-                          "FSOut": 48000,
+                          "FS": "96000",
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "IsDouble": true,
-                          "DCValue": 0.0,
+                          "DCValue": 1.0,
                           "IntegerBits": 32,
                           "DecimalBits": 0,
                           "FormatX": 8,
@@ -3196,8 +3175,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1143.0,
-                          "Y": -46.0
+                          "X": 899.875,
+                          "Y": -62.0
                         },
                         "Size": {
                           "Height": 143.0,
@@ -3222,8 +3201,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3261,8 +3240,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3271,8 +3250,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1011.0,
-                          "Y": 214.0
+                          "X": 751.0,
+                          "Y": 211.52333333333334
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3297,8 +3276,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3307,8 +3286,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1011.0,
-                          "Y": 298.0
+                          "X": 751.0,
+                          "Y": 297.16666666666669
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3333,8 +3312,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3449,8 +3428,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3466,8 +3445,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 810.0,
-                          "Y": 260.0
+                          "X": 570.0,
+                          "Y": 259.52333333333331
                         },
                         "Size": {
                           "Height": 252.0,
@@ -3492,8 +3471,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3508,7 +3487,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1320.0,
+                          "X": 1060.3133333333333,
                           "Y": 19.0
                         },
                         "Size": {
@@ -3534,8 +3513,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": "48000",
-                          "FSOut": 48000,
+                          "FS": "96000",
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3574,8 +3553,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3616,8 +3595,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3652,8 +3631,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3688,8 +3667,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3705,8 +3684,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1130.0,
-                          "Y": 161.0
+                          "X": 851.25,
+                          "Y": 149.78499999999997
                         },
                         "Size": {
                           "Height": 252.0,
@@ -3743,8 +3722,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2183.3333333333335,
-                          "Y": -93.3333333333334
+                          "X": 2515.5,
+                          "Y": -73.000000000000028
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3769,8 +3748,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3812,8 +3791,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3851,8 +3830,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3887,8 +3866,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -3923,8 +3902,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -4039,8 +4018,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -4071,76 +4050,6 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_2",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 1519.0,
-                          "Y": 57.0
-                        },
-                        "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
-                        },
-                        "Label": "TConnector_1_1",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_3",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 1519.0,
-                          "Y": 115.0
-                        },
-                        "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
-                        },
-                        "Label": "TConnector_1_1_1",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
                         "PluginName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0",
                         "Name": "Nx2 Switch",
                         "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
@@ -4152,8 +4061,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -4191,8 +4100,8 @@
                           "IsLocked": false,
                           "EncryptedString": "",
                           "RepCount": 1,
-                          "FS": 48000,
-                          "FSOut": 48000,
+                          "FS": 96000,
+                          "FSOut": 96000,
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
@@ -4223,34 +4132,41 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_4",
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SingleControlSplitter_v1.0.0.0",
+                        "Name": "Single Control Splitter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleControlSplitter_0",
                         "WritableProperties": {
                           "IsRemovable": true,
                           "RestrictShape": false,
                           "BoardKey": "",
                           "IsLocked": false,
                           "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 0,
+                          "GainMin": -40.0,
+                          "GainMax": 8.0,
+                          "GainRes": 1.0,
+                          "CustomVal": 8330,
+                          "SetTunable": false,
+                          "SlewType": "No Slew"
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 705.0,
-                          "Y": -38.0
+                          "X": 1348.8433333333333,
+                          "Y": -62.0
                         },
                         "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
+                          "Height": 167.0,
+                          "Width": 104.0
                         },
-                        "Label": "TConnector_1_1_2",
+                        "Label": "SingleControlSplitter_0",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -4258,34 +4174,41 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_5",
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SingleControlSplitter_v1.0.0.0",
+                        "Name": "Single Control Splitter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleControlSplitter_1",
                         "WritableProperties": {
                           "IsRemovable": true,
                           "RestrictShape": false,
                           "BoardKey": "",
                           "IsLocked": false,
                           "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 0,
+                          "GainMin": -40.0,
+                          "GainMax": 8.0,
+                          "GainRes": 1.0,
+                          "CustomVal": 8330,
+                          "SetTunable": false,
+                          "SlewType": "No Slew"
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 705.0,
-                          "Y": 20.0
+                          "X": 1348.8433333333333,
+                          "Y": 180.625
                         },
                         "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
+                          "Height": 167.0,
+                          "Width": 104.0
                         },
-                        "Label": "TConnector_1_1_1_1",
+                        "Label": "SingleControlSplitter_1",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -4293,34 +4216,41 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_6",
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SingleControlSplitter_v1.0.0.0",
+                        "Name": "Single Control Splitter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleControlSplitter_2",
                         "WritableProperties": {
                           "IsRemovable": true,
                           "RestrictShape": false,
                           "BoardKey": "",
                           "IsLocked": false,
                           "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 0,
+                          "GainMin": -40.0,
+                          "GainMax": 8.0,
+                          "GainRes": 1.0,
+                          "CustomVal": 8330,
+                          "SetTunable": false,
+                          "SlewType": "No Slew"
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2077.3333333333339,
-                          "Y": -6.0
+                          "X": 2164.1666666666665,
+                          "Y": -219.66666666666669
                         },
                         "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
+                          "Height": 167.0,
+                          "Width": 104.0
                         },
-                        "Label": "TConnector_1_1_2_1",
+                        "Label": "SingleControlSplitter_2",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -4328,34 +4258,41 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Visuals.TConnector_v1.0.0.0",
-                        "Name": "T-Connector",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
-                        "Uid": "TConnector_7",
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SingleControlSplitter_v1.0.0.0",
+                        "Name": "Single Control Splitter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleControlSplitter_3",
                         "WritableProperties": {
                           "IsRemovable": true,
                           "RestrictShape": false,
                           "BoardKey": "",
                           "IsLocked": false,
                           "EncryptedString": "",
-                          "CanvasSize": {
-                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
-                            "Height": 1080.0,
-                            "Width": 1920.0
-                          },
-                          "FS": 48000,
-                          "Link": false
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 0,
+                          "GainMin": -40.0,
+                          "GainMax": 8.0,
+                          "GainRes": 1.0,
+                          "CustomVal": 8330,
+                          "SetTunable": false,
+                          "SlewType": "No Slew"
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2077.3333333333339,
-                          "Y": 73.0
+                          "X": 2164.1666666666665,
+                          "Y": 6.0
                         },
                         "Size": {
-                          "Height": 24.0,
-                          "Width": 24.020000000000003
+                          "Height": 167.0,
+                          "Width": 104.0
                         },
-                        "Label": "TConnector_1_1_1_1_1",
+                        "Label": "SingleControlSplitter_3",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -4427,12 +4364,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 960.66666666666652,
-                            "Y": 172.2187
+                            "X": 683.33333333333337,
+                            "Y": 172.21866666666671
                           },
                           {
-                            "X": 960.66666666666652,
-                            "Y": 318.3333
+                            "X": 683.33333333333337,
+                            "Y": 317.83333333333337
                           }
                         ]
                       },
@@ -4445,12 +4382,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1001.0,
+                            "X": 741.0,
                             "Y": 153.6093
                           },
                           {
-                            "X": 1001.0,
-                            "Y": 234.3333
+                            "X": 741.0,
+                            "Y": 232.19
                           }
                         ]
                       },
@@ -4499,12 +4436,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 776.5,
-                            "Y": 255.3644
+                            "X": 500.0,
+                            "Y": 255.36444444444445
                           },
                           {
-                            "X": 776.5,
-                            "Y": 428.0
+                            "X": 500.0,
+                            "Y": 427.52333333333331
                           }
                         ]
                       },
@@ -4517,12 +4454,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 786.0,
-                            "Y": 229.6356
+                            "X": 534.0,
+                            "Y": 229.68222222222221
                           },
                           {
-                            "X": 786.0,
-                            "Y": 344.0
+                            "X": 534.0,
+                            "Y": 343.52333333333331
                           }
                         ]
                       },
@@ -4535,12 +4472,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 991.33333333333326,
-                            "Y": 428.0
+                            "X": 721.0,
+                            "Y": 427.52333333333331
                           },
                           {
-                            "X": 991.33333333333326,
-                            "Y": 339.0
+                            "X": 721.0,
+                            "Y": 338.5
                           }
                         ]
                       },
@@ -4553,12 +4490,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 975.33333333333326,
-                            "Y": 344.0
+                            "X": 707.08333333333337,
+                            "Y": 343.52333333333331
                           },
                           {
-                            "X": 975.33333333333326,
-                            "Y": 255.0
+                            "X": 707.08333333333337,
+                            "Y": 252.85666666666663
                           }
                         ]
                       },
@@ -4571,11 +4508,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1289.0,
-                            "Y": 25.5
+                            "X": 1050.0,
+                            "Y": 9.5
                           },
                           {
-                            "X": 1289.0,
+                            "X": 1050.0,
                             "Y": 59.75
                           }
                         ]
@@ -4607,12 +4544,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1729.0,
-                            "Y": -340.2222
+                            "X": 1635.0,
+                            "Y": -340.66666666666669
                           },
                           {
-                            "X": 1729.0,
-                            "Y": -28.6818
+                            "X": 1635.0,
+                            "Y": -28.499999999999993
                           }
                         ]
                       },
@@ -4625,12 +4562,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1697.7272727272725,
-                            "Y": -285.8888888888888
+                            "X": 1562.5,
+                            "Y": -286.33333333333337
                           },
                           {
-                            "X": 1697.7272727272725,
-                            "Y": 111.31818181818187
+                            "X": 1562.5,
+                            "Y": 111.50000000000001
                           }
                         ]
                       },
@@ -4659,7 +4596,16 @@
                         "TargetUid": "SingleVolumeControl_4",
                         "TargetPinName": "Input0",
                         "LinkType": "SampleAnalog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": 841.0,
+                            "Y": 242.5233
+                          },
+                          {
+                            "X": 841.0,
+                            "Y": 233.785
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_76",
@@ -4668,7 +4614,16 @@
                         "TargetUid": "SingleVolumeControl_4",
                         "TargetPinName": "Input1",
                         "LinkType": "SampleAnalog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": 841.0,
+                            "Y": 328.1667
+                          },
+                          {
+                            "X": 841.0,
+                            "Y": 317.785
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_78",
@@ -4679,11 +4634,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1296.0,
-                            "Y": 328.6667
+                            "X": 1050.0,
+                            "Y": 317.785
                           },
                           {
-                            "X": 1296.0,
+                            "X": 1050.0,
                             "Y": 141.25
                           }
                         ]
@@ -4985,111 +4940,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 1272.5,
-                            "Y": 244.6667
+                            "X": 1001.25,
+                            "Y": 233.785
                           },
                           {
-                            "X": 1272.5,
+                            "X": 1001.25,
                             "Y": 100.5
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_101",
-                        "SourceUid": "SingleSlewExtVol_0",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "TConnector_2",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 1509.0,
-                            "Y": 73.3333
-                          },
-                          {
-                            "X": 1509.0,
-                            "Y": 68.8182
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_102",
-                        "SourceUid": "SingleSlewExtVol_0",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "TConnector_3",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 1509.0,
-                            "Y": 127.6667
-                          },
-                          {
-                            "X": 1509.0,
-                            "Y": 126.8182
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_103",
-                        "SourceUid": "TConnector_2",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SignalMerger_2",
-                        "TargetPinName": "Input1",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 1666.3636363636363,
-                            "Y": 68.81818181818187
-                          },
-                          {
-                            "X": 1666.3636363636363,
-                            "Y": -13.18181818181813
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_104",
-                        "SourceUid": "TConnector_3",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SignalMerger_3",
-                        "TargetPinName": "Input1",
-                        "LinkType": "Analog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_108",
-                        "SourceUid": "TConnector_3",
-                        "SourcePinName": "Output",
-                        "TargetUid": "StereoSwitchNx2_0",
-                        "TargetPinName": "Input1",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 1566.875,
-                            "Y": 127.0
-                          },
-                          {
-                            "X": 1566.875,
-                            "Y": 376.2187
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_109",
-                        "SourceUid": "TConnector_2",
-                        "SourcePinName": "Output",
-                        "TargetUid": "StereoSwitchNx2_0",
-                        "TargetPinName": "Input0",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 1596.875,
-                            "Y": 69.0
-                          },
-                          {
-                            "X": 1596.875,
-                            "Y": 357.6093
                           }
                         ]
                       },
@@ -5184,186 +5040,200 @@
                         ]
                       },
                       {
-                        "Uid": "Link_118",
+                        "Uid": "Link_130",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch2_out",
+                        "TargetUid": "SignalMerger_2",
+                        "TargetPinName": "Input2",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_131",
                         "SourceUid": "Input0to15_0",
                         "SourcePinName": "Ch3_out",
-                        "TargetUid": "TConnector_5",
-                        "TargetPinName": "Input",
+                        "TargetUid": "SignalMerger_3",
+                        "TargetPinName": "Input2",
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 605.99999999999989,
+                            "X": 1679.1666666666665,
                             "Y": -115.8095
                           },
                           {
-                            "X": 605.99999999999989,
-                            "Y": 32.166700000000006
+                            "X": 1679.1666666666665,
+                            "Y": 142.5
                           }
                         ]
                       },
                       {
-                        "Uid": "Link_119",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch2_out",
-                        "TargetUid": "TConnector_4",
+                        "Uid": "Link_132",
+                        "SourceUid": "SingleSlewExtVol_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleControlSplitter_0",
                         "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_133",
+                        "SourceUid": "SingleSlewExtVol_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleControlSplitter_1",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_134",
+                        "SourceUid": "SingleControlSplitter_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalMerger_2",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_135",
+                        "SourceUid": "SingleControlSplitter_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "StereoSwitchNx2_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_136",
+                        "SourceUid": "SingleControlSplitter_1",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "StereoSwitchNx2_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_137",
+                        "SourceUid": "SingleControlSplitter_1",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalMerger_3",
+                        "TargetPinName": "Input1",
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 632.66666666666652,
-                            "Y": -138.2434
+                            "X": 1557.5,
+                            "Y": 236.2917
                           },
                           {
-                            "X": 632.66666666666652,
-                            "Y": -25.833299999999998
+                            "X": 1557.5,
+                            "Y": 126.99999999999999
                           }
                         ]
                       },
                       {
-                        "Uid": "Link_122",
-                        "SourceUid": "TConnector_4",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SignalMerger_2",
-                        "TargetPinName": "Input2",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 825.55555555555566,
-                            "Y": -25.833300000000008
-                          },
-                          {
-                            "X": 825.55555555555566,
-                            "Y": -205.55555555555557
-                          },
-                          {
-                            "X": 1641.1111111111113,
-                            "Y": -205.55555555555557
-                          },
-                          {
-                            "X": 1641.1111111111113,
-                            "Y": 2.3182000000000045
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_123",
-                        "SourceUid": "TConnector_5",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SignalMerger_3",
-                        "TargetPinName": "Input2",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 858.88888888888891,
-                            "Y": 32.166699999999992
-                          },
-                          {
-                            "X": 858.88888888888891,
-                            "Y": -166.66666666666663
-                          },
-                          {
-                            "X": 1620.0,
-                            "Y": -166.66666666666663
-                          },
-                          {
-                            "X": 1620.0,
-                            "Y": 142.3182
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_124",
+                        "Uid": "Link_138",
                         "SourceUid": "SingleVolumeControl_5",
                         "SourcePinName": "Output0",
-                        "TargetUid": "TConnector_6",
+                        "TargetUid": "SingleControlSplitter_2",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2077.3333,
+                            "X": 2154.0,
                             "Y": 5.0
+                          },
+                          {
+                            "X": 2154.0,
+                            "Y": -136.1667
                           }
                         ]
                       },
                       {
-                        "Uid": "Link_125",
+                        "Uid": "Link_139",
                         "SourceUid": "SingleVolumeControl_5",
                         "SourcePinName": "Output1",
-                        "TargetUid": "TConnector_7",
+                        "TargetUid": "SingleControlSplitter_3",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2067.0,
+                            "X": 2154.0,
                             "Y": 89.0
                           },
                           {
-                            "X": 2067.0,
-                            "Y": 85.0
+                            "X": 2154.0,
+                            "Y": 89.5
                           }
                         ]
                       },
                       {
-                        "Uid": "Link_126",
-                        "SourceUid": "TConnector_7",
-                        "SourcePinName": "Output",
-                        "TargetUid": "Output_7",
-                        "TargetPinName": "Input",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 2190.3333,
-                            "Y": 85.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_127",
-                        "SourceUid": "TConnector_6",
-                        "SourcePinName": "Output",
-                        "TargetUid": "Output_6",
-                        "TargetPinName": "Input",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 2190.3333,
-                            "Y": 6.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_128",
-                        "SourceUid": "TConnector_6",
-                        "SourcePinName": "Output",
+                        "Uid": "Link_140",
+                        "SourceUid": "SingleControlSplitter_2",
+                        "SourcePinName": "Output0",
                         "TargetUid": "Output_4",
                         "TargetPinName": "Input",
-                        "LinkType": "Analog",
+                        "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2129.9999999999995,
-                            "Y": 5.9999999999999982
+                            "X": 2408.333333333333,
+                            "Y": -164.0
                           },
                           {
-                            "X": 2129.9999999999995,
-                            "Y": -260.8889
+                            "X": 2408.333333333333,
+                            "Y": -241.0
                           }
                         ]
                       },
                       {
-                        "Uid": "Link_129",
-                        "SourceUid": "TConnector_7",
-                        "SourcePinName": "Output",
-                        "TargetUid": "Output_5",
+                        "Uid": "Link_141",
+                        "SourceUid": "SingleControlSplitter_2",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_6",
                         "TargetPinName": "Input",
-                        "LinkType": "Analog",
+                        "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2163.0,
-                            "Y": 85.0
+                            "X": 2340.833333333333,
+                            "Y": -108.33329999999998
                           },
                           {
-                            "X": 2163.0,
-                            "Y": -166.8889
+                            "X": 2340.833333333333,
+                            "Y": 24.000000000000011
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_142",
+                        "SourceUid": "SingleControlSplitter_3",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "Output_5",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 2408.333333333333,
+                            "Y": 61.666699999999992
+                          },
+                          {
+                            "X": 2408.333333333333,
+                            "Y": -147.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_143",
+                        "SourceUid": "SingleControlSplitter_3",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_7",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 2513.0,
+                            "Y": 117.3333
+                          },
+                          {
+                            "X": 2513.0,
+                            "Y": 108.0
                           }
                         ]
                       }
@@ -5419,8 +5289,8 @@
     "AltShapes": [],
     "PropertyPresets": {}
   },
-  "LastActiveTabUid": "ADAU146xSchematic_1",
-  "LastActiveTabName": "ADAU146xSchematic_1",
-  "LastActiveTabIsConfig": false,
-  "LastActiveTabIsEditable": true
+  "LastActiveTabUid": "ADAU1466_1",
+  "LastActiveTabName": "Settings",
+  "LastActiveTabIsConfig": true,
+  "LastActiveTabIsEditable": false
 }
