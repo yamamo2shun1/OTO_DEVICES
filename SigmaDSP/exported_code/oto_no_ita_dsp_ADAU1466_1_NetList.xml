@@ -55,10 +55,10 @@
       <Algorithm name="Ph_EQ_Gain_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="SingleSlewExtVol_0" friendlyname="External Control of the Volume Gain">
         <Link pin="ControlInput" dir="in" link="Link_38" id="Link_38" />
-        <Link pin="Input1" dir="in" link="Link_78" id="Link_78" />
         <Link pin="Input0" dir="in" link="Link_77" id="Link_77" />
         <Link pin="Output0" dir="out" link="Link_132" id="Link_132" />
-        <Link pin="Output1" dir="out" link="Link_133" id="Link_133" />
+        <Link pin="Output1" dir="out" link="Link_147" id="Link_147" />
+        <Link pin="Input1" dir="in" link="Link_152" id="Link_152" />
       </Algorithm>
       <Algorithm name="DCInput_1" friendlyname="Use this control to test a DC voltage input">
         <Link pin="Output" dir="out" link="Link_65" id="Link_65" />
@@ -95,11 +95,13 @@
         <Link pin="Input" dir="in" link="Link_132" id="Link_132" />
         <Link pin="Output0" dir="out" link="Link_134" id="Link_134" />
         <Link pin="Output1" dir="out" link="Link_135" id="Link_135" />
+        <Link pin="Output2" dir="out" link="Link_144" id="Link_144" />
       </Algorithm>
       <Algorithm name="SingleControlSplitter_1" friendlyname="Splits one Input Signal into Multiple Outputs.&#xA; The Output is affected by the Gain Scaled by the Values Specified in the Gain Control Knob">
-        <Link pin="Input" dir="in" link="Link_133" id="Link_133" />
         <Link pin="Output1" dir="out" link="Link_136" id="Link_136" />
         <Link pin="Output0" dir="out" link="Link_137" id="Link_137" />
+        <Link pin="Output2" dir="out" link="Link_145" id="Link_145" />
+        <Link pin="Input" dir="in" link="Link_147" id="Link_147" />
       </Algorithm>
       <Algorithm name="SingleControlSplitter_2" friendlyname="Splits one Input Signal into Multiple Outputs.&#xA; The Output is affected by the Gain Scaled by the Values Specified in the Gain Control Knob">
         <Link pin="Input" dir="in" link="Link_138" id="Link_138" />
@@ -110,6 +112,18 @@
         <Link pin="Input" dir="in" link="Link_139" id="Link_139" />
         <Link pin="Output0" dir="out" link="Link_142" id="Link_142" />
         <Link pin="Output1" dir="out" link="Link_143" id="Link_143" />
+      </Algorithm>
+      <Algorithm name="SignalMerger_6" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
+        <Link pin="Input0" dir="in" link="Link_144" id="Link_144" />
+        <Link pin="Input1" dir="in" link="Link_145" id="Link_145" />
+        <Link pin="Output" dir="out" link="Link_150" id="Link_150" />
+      </Algorithm>
+      <Algorithm name="DSPReadBack_0" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design">
+        <Link pin="Input" dir="in" link="Link_151" id="Link_151" />
+      </Algorithm>
+      <Algorithm name="RunningAverage_0" friendlyname="Signal Measurement Envelope Generator">
+        <Link pin="Input" dir="in" link="Link_150" id="Link_150" />
+        <Link pin="Output" dir="out" link="Link_151" id="Link_151" />
       </Algorithm>
     </Schematic>
   </Core>
