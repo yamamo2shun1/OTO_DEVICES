@@ -29,8 +29,8 @@
       <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
         <Link pin="Ch0_out" dir="out" link="Link_41" id="Link_41" />
         <Link pin="Ch1_out" dir="out" link="Link_42" id="Link_42" />
-        <Link pin="Ch2_out" dir="out" link="Link_130" id="Link_130" />
-        <Link pin="Ch3_out" dir="out" link="Link_131" id="Link_131" />
+        <Link pin="Ch2_out" dir="out" link="Link_166" id="Link_166" />
+        <Link pin="Ch3_out" dir="out" link="Link_167" id="Link_167" />
       </Algorithm>
       <Algorithm name="Output_4" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_140" id="Link_140" />
@@ -55,10 +55,10 @@
       <Algorithm name="Ph_EQ_Gain_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="SingleSlewExtVol_0" friendlyname="External Control of the Volume Gain">
         <Link pin="ControlInput" dir="in" link="Link_38" id="Link_38" />
-        <Link pin="Input0" dir="in" link="Link_77" id="Link_77" />
         <Link pin="Output0" dir="out" link="Link_132" id="Link_132" />
         <Link pin="Output1" dir="out" link="Link_147" id="Link_147" />
-        <Link pin="Input1" dir="in" link="Link_152" id="Link_152" />
+        <Link pin="Input0" dir="in" link="Link_152" id="Link_154" />
+        <Link pin="Input1" dir="in" link="Link_153" id="Link_155" />
       </Algorithm>
       <Algorithm name="DCInput_1" friendlyname="Use this control to test a DC voltage input">
         <Link pin="Output" dir="out" link="Link_65" id="Link_65" />
@@ -67,20 +67,20 @@
         <Link pin="ControlInput" dir="in" link="Link_65" id="Link_65" />
         <Link pin="Output0" dir="out" link="Link_68" id="Link_68" />
         <Link pin="Output1" dir="out" link="Link_69" id="Link_69" />
-        <Link pin="Input0" dir="in" link="Link_83" id="Link_83" />
-        <Link pin="Input1" dir="in" link="Link_84" id="Link_84" />
+        <Link pin="Input0" dir="in" link="Link_156" id="Link_158" />
+        <Link pin="Input1" dir="in" link="Link_157" id="Link_159" />
       </Algorithm>
       <Algorithm name="SignalMerger_2" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Input0" dir="in" link="Link_68" id="Link_68" />
         <Link pin="Output" dir="out" link="Link_79" id="Link_79" />
-        <Link pin="Input2" dir="in" link="Link_130" id="Link_130" />
         <Link pin="Input1" dir="in" link="Link_134" id="Link_134" />
+        <Link pin="Input2" dir="in" link="Link_166" id="Link_164" />
       </Algorithm>
       <Algorithm name="SignalMerger_3" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Input0" dir="in" link="Link_69" id="Link_69" />
         <Link pin="Output" dir="out" link="Link_80" id="Link_80" />
-        <Link pin="Input2" dir="in" link="Link_131" id="Link_131" />
         <Link pin="Input1" dir="in" link="Link_137" id="Link_137" />
+        <Link pin="Input2" dir="in" link="Link_167" id="Link_165" />
       </Algorithm>
       <Algorithm name="input_from_ch1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="master_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
