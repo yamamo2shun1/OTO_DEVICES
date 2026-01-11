@@ -112,7 +112,7 @@ void renew(void)
 void rgb_led_task(void)
 {
     ADI_REG_TYPE rx_data[4] = {0};
-    SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_0_VALUE_ADDR, 4, rx_data);
+    SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_B_VALUE_ADDR, 4, rx_data);
     uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
     float dbfs   = 0.0f;
     if (val == 0)
