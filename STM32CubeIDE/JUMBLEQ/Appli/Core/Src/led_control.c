@@ -109,7 +109,71 @@ void renew(void)
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
 
-void rgb_led_task(void)
+void set_vu_meter_a(void)
+{
+    ADI_REG_TYPE rx_data[4] = {0};
+    SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_A_VALUE_ADDR, 4, rx_data);
+    uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
+    float dbfs   = 0.0f;
+    if (val == 0 || val == 0xFFFFFFFF)
+    {
+        dbfs = -96.0f;
+    }
+    else
+    {
+        dbfs = 20.0f * log((float) val / pow(2, 23));
+    }
+    if (dbfs > -9.0f)
+    {
+        set_led(4, 255, 0, 0);
+        set_led(3, 255, 255, 0);
+        set_led(2, 0, 255, 0);
+        set_led(1, 0, 255, 0);
+        set_led(0, 0, 255, 0);
+    }
+    else if (dbfs > -18.0f)
+    {
+        set_led(4, 0, 0, 0);
+        set_led(3, 255, 255, 0);
+        set_led(2, 0, 255, 0);
+        set_led(1, 0, 255, 0);
+        set_led(0, 0, 255, 0);
+    }
+    else if (dbfs > -27.0f)
+    {
+        set_led(4, 0, 0, 0);
+        set_led(3, 0, 0, 0);
+        set_led(2, 0, 255, 0);
+        set_led(1, 0, 255, 0);
+        set_led(0, 0, 255, 0);
+    }
+    else if (dbfs > -36.0f)
+    {
+        set_led(4, 0, 0, 0);
+        set_led(3, 0, 0, 0);
+        set_led(2, 0, 0, 0);
+        set_led(1, 0, 255, 0);
+        set_led(0, 0, 255, 0);
+    }
+    else if (dbfs > -45.0f)
+    {
+        set_led(4, 0, 0, 0);
+        set_led(3, 0, 0, 0);
+        set_led(2, 0, 0, 0);
+        set_led(1, 0, 0, 0);
+        set_led(0, 0, 255, 0);
+    }
+    else
+    {
+        set_led(4, 0, 0, 0);
+        set_led(3, 0, 0, 0);
+        set_led(2, 0, 0, 0);
+        set_led(1, 0, 0, 0);
+        set_led(0, 0, 0, 0);
+    }
+}
+
+void set_vu_meter_b(void)
 {
     ADI_REG_TYPE rx_data[4] = {0};
     SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_B_VALUE_ADDR, 4, rx_data);
@@ -171,6 +235,13 @@ void rgb_led_task(void)
         set_led(8, 0, 0, 0);
         set_led(9, 0, 0, 0);
     }
+}
+
+void rgb_led_task(void)
+{
+
+    set_vu_meter_a();
+    set_vu_meter_b();
     renew();
 
     if (is_color_update)
