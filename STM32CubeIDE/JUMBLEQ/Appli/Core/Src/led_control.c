@@ -126,34 +126,34 @@ void set_vu_meter_a(void)
     if (dbfs > -9.0f)
     {
         set_led(4, 255, 0, 0);
-        set_led(3, 255, 255, 0);
-        set_led(2, 0, 255, 0);
-        set_led(1, 0, 255, 0);
-        set_led(0, 0, 255, 0);
+        set_led(3, 240, 76, 0);
+        set_led(2, 200, 140, 0);
+        set_led(1, 60, 122, 0);
+        set_led(0, 0, 64, 0);
     }
     else if (dbfs > -18.0f)
     {
         set_led(4, 0, 0, 0);
-        set_led(3, 255, 255, 0);
-        set_led(2, 0, 255, 0);
-        set_led(1, 0, 255, 0);
-        set_led(0, 0, 255, 0);
+        set_led(3, 240, 76, 0);
+        set_led(2, 200, 140, 0);
+        set_led(1, 60, 122, 0);
+        set_led(0, 0, 64, 0);
     }
     else if (dbfs > -27.0f)
     {
         set_led(4, 0, 0, 0);
         set_led(3, 0, 0, 0);
-        set_led(2, 0, 255, 0);
-        set_led(1, 0, 255, 0);
-        set_led(0, 0, 255, 0);
+        set_led(2, 200, 140, 0);
+        set_led(1, 60, 122, 0);
+        set_led(0, 0, 64, 0);
     }
     else if (dbfs > -36.0f)
     {
         set_led(4, 0, 0, 0);
         set_led(3, 0, 0, 0);
         set_led(2, 0, 0, 0);
-        set_led(1, 0, 255, 0);
-        set_led(0, 0, 255, 0);
+        set_led(1, 60, 122, 0);
+        set_led(0, 0, 64, 0);
     }
     else if (dbfs > -45.0f)
     {
@@ -161,7 +161,7 @@ void set_vu_meter_a(void)
         set_led(3, 0, 0, 0);
         set_led(2, 0, 0, 0);
         set_led(1, 0, 0, 0);
-        set_led(0, 0, 255, 0);
+        set_led(0, 0, 64, 0);
     }
     else
     {
@@ -190,34 +190,34 @@ void set_vu_meter_b(void)
     if (dbfs > -9.0f)
     {
         set_led(5, 255, 0, 0);
-        set_led(6, 255, 255, 0);
-        set_led(7, 0, 255, 0);
-        set_led(8, 0, 255, 0);
-        set_led(9, 0, 255, 0);
+        set_led(6, 240, 76, 0);
+        set_led(7, 200, 140, 0);
+        set_led(8, 60, 122, 0);
+        set_led(9, 0, 64, 0);
     }
     else if (dbfs > -18.0f)
     {
         set_led(5, 0, 0, 0);
-        set_led(6, 255, 255, 0);
-        set_led(7, 0, 255, 0);
-        set_led(8, 0, 255, 0);
-        set_led(9, 0, 255, 0);
+        set_led(6, 240, 80, 0);
+        set_led(7, 200, 140, 0);
+        set_led(8, 60, 122, 0);
+        set_led(9, 0, 64, 0);
     }
     else if (dbfs > -27.0f)
     {
         set_led(5, 0, 0, 0);
         set_led(6, 0, 0, 0);
-        set_led(7, 0, 255, 0);
-        set_led(8, 0, 255, 0);
-        set_led(9, 0, 255, 0);
+        set_led(7, 200, 140, 0);
+        set_led(8, 60, 122, 0);
+        set_led(9, 0, 64, 0);
     }
     else if (dbfs > -36.0f)
     {
         set_led(5, 0, 0, 0);
         set_led(6, 0, 0, 0);
         set_led(7, 0, 0, 0);
-        set_led(8, 0, 255, 0);
-        set_led(9, 0, 255, 0);
+        set_led(8, 60, 122, 0);
+        set_led(9, 0, 64, 0);
     }
     else if (dbfs > -45.0f)
     {
@@ -225,7 +225,7 @@ void set_vu_meter_b(void)
         set_led(6, 0, 0, 0);
         set_led(7, 0, 0, 0);
         set_led(8, 0, 0, 0);
-        set_led(9, 0, 255, 0);
+        set_led(9, 0, 64, 0);
     }
     else
     {
