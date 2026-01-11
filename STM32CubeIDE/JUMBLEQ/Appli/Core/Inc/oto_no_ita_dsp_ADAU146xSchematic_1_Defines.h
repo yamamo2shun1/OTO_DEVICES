@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h
- * Created:	Sunday, 11 January 2026 8:23 AM
+ * Created:	Sunday, 11 January 2026 9:22 AM
  * Description:	Schematic default download data definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -18,7 +18,7 @@
 #ifndef __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
 #define __OTO_NO_ITA_DSP_ADAU146XSCHEMATIC_1_DEFINES_H__
 
-#define BufferSize_ADAU146XSCHEMATIC_1			2766
+#define BufferSize_ADAU146XSCHEMATIC_1			3122
 #define NumTransactions_ADAU146XSCHEMATIC_1		58
 
 #endif
