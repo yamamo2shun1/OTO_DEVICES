@@ -716,22 +716,22 @@ Parameter Data :
 Module Name			= RunningAverage_0
 Parameter Name		= RmsTCinDBps
 Parameter Address	= 133
-Parameter Value		= 7.195837303553E-05
+Parameter Value		= 0.000287864561677509
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x04, 0xB7, 
+0x00, 0x00, 0x12, 0xDE, 
 
 
 
 Module Name			= RunningAverage_0
 Parameter Name		= Decay
 Parameter Address	= 135
-Parameter Value		= 1.08506944444444E-06
+Parameter Value		= 1.30208333333333E-05
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x12, 
+0x00, 0x00, 0x00, 0xDA, 
 
 
 
@@ -805,22 +805,22 @@ Parameter Data :
 Module Name			= RunningAverage_0_1
 Parameter Name		= RmsTCinDBps
 Parameter Address	= 119
-Parameter Value		= 7.195837303553E-05
+Parameter Value		= 0.000287864561677509
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x04, 0xB7, 
+0x00, 0x00, 0x12, 0xDE, 
 
 
 
 Module Name			= RunningAverage_0_1
 Parameter Name		= Decay
 Parameter Address	= 121
-Parameter Value		= 1.08506944444444E-06
+Parameter Value		= 1.30208333333333E-05
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x12, 
+0x00, 0x00, 0x00, 0xDA, 
 
 
 
