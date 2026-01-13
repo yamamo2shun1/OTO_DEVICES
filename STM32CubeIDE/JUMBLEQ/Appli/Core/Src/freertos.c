@@ -202,15 +202,15 @@ void MX_FREERTOS_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 
 // スタック監視情報（デバッガのWatchウィンドウで確認可能）
-volatile uint32_t dbg_free_heap = 0;
-volatile uint32_t dbg_min_free_heap = 0xFFFFFFFF;  // ヒープ最小空き容量
-volatile uint32_t dbg_usb_stack_free = 0;
-volatile uint32_t dbg_audio_stack_free = 0;
-volatile uint32_t dbg_led_stack_free = 0;
-volatile uint32_t dbg_adc_stack_free = 0;
+volatile uint32_t dbg_free_heap          = 0;
+volatile uint32_t dbg_min_free_heap      = 0xFFFFFFFF;  // ヒープ最小空き容量
+volatile uint32_t dbg_usb_stack_free     = 0;
+volatile uint32_t dbg_audio_stack_free   = 0;
+volatile uint32_t dbg_led_stack_free     = 0;
+volatile uint32_t dbg_adc_stack_free     = 0;
 volatile uint32_t dbg_default_stack_free = 0;
-volatile uint32_t dbg_min_usb_stack = 0xFFFFFFFF;    // USB最小スタック残量
-volatile uint32_t dbg_min_audio_stack = 0xFFFFFFFF;  // Audio最小スタック残量
+volatile uint32_t dbg_min_usb_stack      = 0xFFFFFFFF;  // USB最小スタック残量
+volatile uint32_t dbg_min_audio_stack    = 0xFFFFFFFF;  // Audio最小スタック残量
 
 void StartDefaultTask(void* argument)
 {
@@ -219,25 +219,28 @@ void StartDefaultTask(void* argument)
     for (;;)
     {
         dbg_free_heap = xPortGetFreeHeapSize();
-        if (dbg_free_heap < dbg_min_free_heap) {
+        if (dbg_free_heap < dbg_min_free_heap)
+        {
             dbg_min_free_heap = dbg_free_heap;
         }
-        
+
         // 各タスクのスタック残量を監視（High Water Mark）
-        dbg_usb_stack_free = uxTaskGetStackHighWaterMark(usbTaskHandle) * 4;
-        dbg_audio_stack_free = uxTaskGetStackHighWaterMark(audioTaskHandle) * 4;
-        dbg_led_stack_free = uxTaskGetStackHighWaterMark(ledTaskHandle) * 4;
-        dbg_adc_stack_free = uxTaskGetStackHighWaterMark(adcTaskHandle) * 4;
+        dbg_usb_stack_free     = uxTaskGetStackHighWaterMark(usbTaskHandle) * 4;
+        dbg_audio_stack_free   = uxTaskGetStackHighWaterMark(audioTaskHandle) * 4;
+        dbg_led_stack_free     = uxTaskGetStackHighWaterMark(ledTaskHandle) * 4;
+        dbg_adc_stack_free     = uxTaskGetStackHighWaterMark(adcTaskHandle) * 4;
         dbg_default_stack_free = uxTaskGetStackHighWaterMark(NULL) * 4;
-        
+
         // 最小値を記録（問題発生時の最悪ケースを追跡）
-        if (dbg_usb_stack_free < dbg_min_usb_stack) {
+        if (dbg_usb_stack_free < dbg_min_usb_stack)
+        {
             dbg_min_usb_stack = dbg_usb_stack_free;
         }
-        if (dbg_audio_stack_free < dbg_min_audio_stack) {
+        if (dbg_audio_stack_free < dbg_min_audio_stack)
+        {
             dbg_min_audio_stack = dbg_audio_stack_free;
         }
-        
+
         // デバッガのWatchウィンドウまたはLive Expressionsで監視
         // SWOが動作しない環境ではprintfを使わない
 
@@ -319,7 +322,7 @@ void StartLEDTask(void* argument)
         led_tx_blinking_task();
         led_rx_blinking_task();
         rgb_led_task();
-        osDelay(10);  // LED更新は10ms間隔で十分
+        osDelay(20);  // LED更新は10ms間隔で十分
     }
     /* USER CODE END StartLEDTask */
 }
