@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1.h
- * Created:	Tuesday, 13 January 2026 12:25 PM
+ * Created:	Tuesday, 13 January 2026 14:51 PM
  * Description:	ADAU146xSchematic_1 program data.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -1096,7 +1096,7 @@ ADI_REG_TYPE R39_SOUT_SOURCE23_ADAU146XSCHEMATIC_1_Data[R39_SOUT_SOURCE23_SIZE_A
 #define R40_SERIAL_BYTE_0_0_SIZE_ADAU146XSCHEMATIC_1 2
 #define R40_SERIAL_BYTE_0_0_ADDR_ADAU146XSCHEMATIC_1 61952
 ADI_REG_TYPE R40_SERIAL_BYTE_0_0_ADAU146XSCHEMATIC_1_Data[R40_SERIAL_BYTE_0_0_SIZE_ADAU146XSCHEMATIC_1] = {
-0x90, 0x41, 
+0x90, 0x49, 
 };
 
 /* Register Default - SERIAL_BYTE_1_0 */

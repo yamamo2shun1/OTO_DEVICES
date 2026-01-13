@@ -1493,7 +1493,7 @@
               "SPDIFTX_INPUT_reg_SPDIFTX_SOURCE": "Not used",
               "SPDIFTX_INPUT_regRESERVED363 Reserved": 0,
               "SERIAL_BYTE_0_0_reg_TDM_MODE": "4 channels, 32 bit/channel",
-              "SERIAL_BYTE_0_0_reg_DATA_FMT": "I2S - BCLK delay by 1",
+              "SERIAL_BYTE_0_0_reg_DATA_FMT": "Left justified",
               "SERIAL_BYTE_0_0_reg_WORD_LEN": "32 bits",
               "SERIAL_BYTE_0_0_reg_BCLK_POL": "Negative polarity",
               "SERIAL_BYTE_0_0_reg_LRCLK_POL": "Negative polarity",
@@ -2962,7 +2962,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3000,7 +3000,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3038,7 +3038,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3076,7 +3076,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3735,7 +3735,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -8340,8 +8340,8 @@
     "AltShapes": [],
     "PropertyPresets": {}
   },
-  "LastActiveTabUid": "ADAU146xSchematic_1",
-  "LastActiveTabName": "ADAU146xSchematic_1",
-  "LastActiveTabIsConfig": false,
-  "LastActiveTabIsEditable": true
+  "LastActiveTabUid": "ADAU1466_1",
+  "LastActiveTabName": "Settings",
+  "LastActiveTabIsConfig": true,
+  "LastActiveTabIsEditable": false
 }
