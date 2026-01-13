@@ -133,12 +133,14 @@ void SIGMA_READ_REGISTER(uint8_t devAddress, uint16_t address, uint16_t length, 
         {
             pData[i] = rx_data[i + 3];
         }
+#if 0
         SEGGER_RTT_printf(0, "[%04X] Read: ", address);
         for (int i = 0; i < length; i++)
         {
             SEGGER_RTT_printf(0, "%02X ", pData[i]);
         }
         SEGGER_RTT_printf(0, "\n");
+#endif
     }
     else
     {
