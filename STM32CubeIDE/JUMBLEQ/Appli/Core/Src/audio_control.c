@@ -825,6 +825,24 @@ void control_input_from_ch2_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_CH2_GAIN_ADDR, 4, gain_array);
 }
 
+void control_send_out_gain(const uint16_t adc_val)
+{
+    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
+    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
+
+    const double rate = pow(10.0, db / 20.0);
+
+    uint8_t gain_array[4] = {0x00};
+    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
+    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
+    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
+    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
+#if 0
+    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
+#endif
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND_OUTPUT_GAIN_ADDR, 4, gain_array);
+}
+
 void control_master_out_gain(const uint16_t adc_val)
 {
     const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
@@ -1126,7 +1144,7 @@ void ui_control_task(void)
                 control_input_from_ch1_gain(pot_val[pot_ch]);
                 break;
             case 7:
-                // control_input_from_usb_gain(pot_val[pot_ch]);
+                control_send_out_gain(pot_val[pot_ch]);
                 break;
             default:
                 break;
