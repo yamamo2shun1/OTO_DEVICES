@@ -14,6 +14,10 @@ JUMBLEQ is a DJ mixer, a USB audio interface, a MIDI controller, a prototype boa
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x6 and Pot x8
 
+## Block Diagram
+<img width="797" height="677" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/4444cabd-dd56-42ea-abe8-049c593370ba" />
+
+
 ## Prototype 1
 ![DSCF6165-2](https://github.com/user-attachments/assets/813ef216-b056-449b-9184-85f06c5ffc14)
 ![DSCF6172-2](https://github.com/user-attachments/assets/47018ccd-0286-43c2-a8e6-ca9e42f9c408)
