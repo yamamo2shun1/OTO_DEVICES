@@ -543,14 +543,12 @@ static bool audio20_feature_unit_get_request(uint8_t rhport, audio20_control_req
                 .subrange[0]   = {.bMin = tu_htole16(-VOLUME_CTRL_50_DB), tu_htole16(VOLUME_CTRL_0_DB), tu_htole16(256)}
             };
             TU_LOG1("Get channel %u volume range (%d, %d, %u) dB\r\n", request->bChannelNumber, range_vol.subrange[0].bMin / 256, range_vol.subrange[0].bMax / 256, range_vol.subrange[0].bRes / 256);
-            SEGGER_RTT_printf(0, "Get channel %u volume range (%d, %d, %u) dB\r\n", request->bChannelNumber, range_vol.subrange[0].bMin / 256, range_vol.subrange[0].bMax / 256, range_vol.subrange[0].bRes / 256);
             return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const*) request, &range_vol, sizeof(range_vol));
         }
         else if (request->bRequest == AUDIO20_CS_REQ_CUR)
         {
             audio20_control_cur_2_t cur_vol = {.bCur = tu_htole16(volume[request->bChannelNumber])};
             TU_LOG1("Get channel %u volume %d dB\r\n", request->bChannelNumber, cur_vol.bCur / 256);
-            SEGGER_RTT_printf(0, "Get channel %u volume %d dB\r\n", request->bChannelNumber, cur_vol.bCur / 256);
             return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const*) request, &cur_vol, sizeof(cur_vol));
         }
     }
@@ -586,7 +584,6 @@ static bool audio20_feature_unit_set_request(uint8_t rhport, audio20_control_req
         TU_LOG1("Set channel %d volume: %d dB\r\n", request->bChannelNumber, volume[request->bChannelNumber] / 256);
 
         control_input_from_usb_gain(request->bChannelNumber, volume[request->bChannelNumber] / 256);
-        SEGGER_RTT_printf(0, "Set channel %d volume: %d dB\r\n", request->bChannelNumber, volume[request->bChannelNumber] / 256);
 
         return true;
     }
