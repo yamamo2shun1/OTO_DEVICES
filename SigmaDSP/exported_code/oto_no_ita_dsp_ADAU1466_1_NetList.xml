@@ -27,10 +27,10 @@
       </Algorithm>
       <Algorithm name="input_from_ch2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
-        <Link pin="Ch0_out" dir="out" link="Link_41" id="Link_41" />
-        <Link pin="Ch1_out" dir="out" link="Link_42" id="Link_42" />
-        <Link pin="Ch2_out" dir="out" link="Link_166" id="Link_166" />
-        <Link pin="Ch3_out" dir="out" link="Link_167" id="Link_167" />
+        <Link pin="Ch0_out" dir="out" link="Link_221" id="Link_221" />
+        <Link pin="Ch1_out" dir="out" link="Link_222" id="Link_222" />
+        <Link pin="Ch2_out" dir="out" link="Link_223" id="Link_223" />
+        <Link pin="Ch3_out" dir="out" link="Link_224" id="Link_224" />
       </Algorithm>
       <Algorithm name="Output_4" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_140" id="Link_140" />
@@ -44,7 +44,6 @@
       <Algorithm name="Output_7" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_143" id="Link_143" />
       </Algorithm>
-      <Algorithm name="input_from_usb" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="DCInput_0" friendlyname="Use this control to test a DC voltage input">
         <Link pin="Output" dir="out" link="Link_38" id="Link_38" />
       </Algorithm>
@@ -75,14 +74,14 @@
         <Link pin="Input0" dir="in" link="Link_193" id="Link_194" />
         <Link pin="Input1" dir="in" link="Link_196" id="Link_198" />
         <Link pin="Input2" dir="in" link="Link_206" id="Link_208" />
-        <Link pin="Input3" dir="in" link="Link_166" id="Link_210" />
+        <Link pin="Input3" dir="in" link="Link_227" id="Link_210" />
       </Algorithm>
       <Algorithm name="SignalMerger_3" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Output" dir="out" link="Link_80" id="Link_80" />
         <Link pin="Input0" dir="in" link="Link_192" id="Link_195" />
         <Link pin="Input1" dir="in" link="Link_197" id="Link_199" />
         <Link pin="Input2" dir="in" link="Link_207" id="Link_209" />
-        <Link pin="Input3" dir="in" link="Link_167" id="Link_211" />
+        <Link pin="Input3" dir="in" link="Link_228" id="Link_211" />
       </Algorithm>
       <Algorithm name="input_from_ch1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="master_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
@@ -119,6 +118,10 @@
       <Algorithm name="SignalMerger_6_1" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="DSPReadBack_A" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design" />
       <Algorithm name="RunningAverage_0_1" friendlyname="Signal Measurement Envelope Generator" />
+      <Algorithm name="input_from_usb1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb3" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb4" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
     </Schematic>
   </Core>
 </IC>
