@@ -155,6 +155,8 @@ static volatile uint32_t dbg_ret_underrun      = 0;  // リングバッファ不
 static volatile uint32_t dbg_ret_written_zero  = 0;  // written == 0
 static volatile int32_t dbg_last_used          = 0;  // 最後のused値
 
+void control_input_from_usb_gain(uint8_t ch, int16_t db);
+
 void reset_audio_buffer(void)
 {
     for (uint16_t i = 0; i < ADC_NUM; i++)
@@ -541,12 +543,14 @@ static bool audio20_feature_unit_get_request(uint8_t rhport, audio20_control_req
                 .subrange[0]   = {.bMin = tu_htole16(-VOLUME_CTRL_50_DB), tu_htole16(VOLUME_CTRL_0_DB), tu_htole16(256)}
             };
             TU_LOG1("Get channel %u volume range (%d, %d, %u) dB\r\n", request->bChannelNumber, range_vol.subrange[0].bMin / 256, range_vol.subrange[0].bMax / 256, range_vol.subrange[0].bRes / 256);
+            SEGGER_RTT_printf(0, "Get channel %u volume range (%d, %d, %u) dB\r\n", request->bChannelNumber, range_vol.subrange[0].bMin / 256, range_vol.subrange[0].bMax / 256, range_vol.subrange[0].bRes / 256);
             return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const*) request, &range_vol, sizeof(range_vol));
         }
         else if (request->bRequest == AUDIO20_CS_REQ_CUR)
         {
             audio20_control_cur_2_t cur_vol = {.bCur = tu_htole16(volume[request->bChannelNumber])};
             TU_LOG1("Get channel %u volume %d dB\r\n", request->bChannelNumber, cur_vol.bCur / 256);
+            SEGGER_RTT_printf(0, "Get channel %u volume %d dB\r\n", request->bChannelNumber, cur_vol.bCur / 256);
             return tud_audio_buffer_and_schedule_control_xfer(rhport, (tusb_control_request_t const*) request, &cur_vol, sizeof(cur_vol));
         }
     }
@@ -580,6 +584,9 @@ static bool audio20_feature_unit_set_request(uint8_t rhport, audio20_control_req
         volume[request->bChannelNumber] = ((audio20_control_cur_2_t const*) buf)->bCur;
 
         TU_LOG1("Set channel %d volume: %d dB\r\n", request->bChannelNumber, volume[request->bChannelNumber] / 256);
+
+        control_input_from_usb_gain(request->bChannelNumber, volume[request->bChannelNumber] / 256);
+        SEGGER_RTT_printf(0, "Set channel %d volume: %d dB\r\n", request->bChannelNumber, volume[request->bChannelNumber] / 256);
 
         return true;
     }
@@ -754,24 +761,35 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     return true;
 }
 
-// tud_audio_rx_done_isr を削除してデフォルト（weak）に戻す
-
-void control_input_from_usb_gain(const uint16_t adc_val)
+void control_input_from_usb_gain(uint8_t ch, int16_t db)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
+    SEGGER_RTT_printf(0, "USB CH%d Gain: %.2f dB\n", ch, db);
 
-    const double rate = pow(10.0, db / 20.0);
+    const double rate = pow(10.0, (double) db / 20.0);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
     gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
     gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
     gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB_GAIN_ADDR, 4, gain_array);
+
+    switch (ch)
+    {
+    case 1:
+        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB1_GAIN_ADDR, 4, gain_array);
+        break;
+    case 2:
+        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB2_GAIN_ADDR, 4, gain_array);
+        break;
+    case 3:
+        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB3_GAIN_ADDR, 4, gain_array);
+        break;
+    case 4:
+        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB4_GAIN_ADDR, 4, gain_array);
+        break;
+    default:
+        break;
+    }
 }
 
 void control_input_from_ch1_gain(const uint16_t adc_val)
@@ -1111,7 +1129,7 @@ void ui_control_task(void)
                 control_input_from_ch1_gain(pot_val[pot_ch]);
                 break;
             case 7:
-                control_input_from_usb_gain(pot_val[pot_ch]);
+                // control_input_from_usb_gain(pot_val[pot_ch]);
                 break;
             default:
                 break;
@@ -1823,10 +1841,12 @@ void audio_task(void)
         audio_task_call_count = 0;
         audio_task_last_tick  = now;
 
+#if 0
         // ヒープ残量を監視
         size_t freeHeap = xPortGetFreeHeapSize();
         size_t minHeap  = xPortGetMinimumEverFreeHeapSize();
         SEGGER_RTT_printf(0, "heap: free=%d, min=%d\n", freeHeap, minHeap);
+#endif
 
         // 1秒ごとにリングバッファ状態をログ出力
         if (s_streaming_out)
