@@ -1,12 +1,14 @@
 ### Documents
 Datasheets/
 
+FlexASIO.toml
+
 ### Kicad
 *.zip
 KiCad/OTO_NO_ITA/fp-info-cache
 KiCad/OTO_NO_ITA/jlcpcb/production_files/
 KiCad/OTO_NO_ITA/jlcpcb/gerber/
-KiCad/OTO_NO_DEIRI/jlcpcb/
+KiCad/OTO_NO_DEIRI/
 KiCad/OTO_NO_TE/jlcpcb/gerber/
 
 ### STM32CubeIDE
