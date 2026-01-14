@@ -63,10 +63,8 @@ void SIGMA_WRITE_DELAY(uint8_t devAddress, uint16_t dataAddress, uint16_t length
 /*
  * Read device registers
  */
-#define SIGMA_READ_REGISTER(devAddress, address, length, pData) \
-    { /*TODO: implement macro or define as function*/           \
-    }
-
+// #define SIGMA_READ_REGISTER(devAddress, address, length, pData) { /*TODO: implement macro or define as function*/}
+void SIGMA_READ_REGISTER(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData);
 /*
  * Set a register field's value
  */
