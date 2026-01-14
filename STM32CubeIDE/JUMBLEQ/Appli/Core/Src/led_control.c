@@ -239,7 +239,6 @@ void set_vu_meter_b(void)
 
 void rgb_led_task(void)
 {
-
     set_vu_meter_a();
     set_vu_meter_b();
     renew();
