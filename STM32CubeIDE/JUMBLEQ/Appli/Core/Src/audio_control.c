@@ -1280,6 +1280,14 @@ void ui_control_task(void)
             xfade_prev[i] = xfade[i];
         }
     }
+
+    while (tud_midi_available())
+    {
+        uint8_t packet[4];
+        tud_midi_packet_read(packet);
+
+        SEGGER_RTT_printf(0, "MIDI RX: 0x%02X 0x%02X 0x%02X(%d) 0x%02X(%d)\n", packet[0], packet[1], packet[2], packet[2], packet[3], packet[3]);
+    }
     is_adc_complete = false;
 }
 
