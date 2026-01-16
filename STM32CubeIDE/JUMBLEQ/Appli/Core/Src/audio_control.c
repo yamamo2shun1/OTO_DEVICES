@@ -1226,7 +1226,8 @@ void ui_control_task(void)
             }
         }
 
-        bool xfade_changed = false;
+        bool xfadeA_changed = false;
+        bool xfadeB_changed = false;
         for (int i = 0; i < 6; i++)
         {
             if (fabs(xfade[i] - xfade_prev[i]) > 0.01f)
@@ -1234,13 +1235,32 @@ void ui_control_task(void)
                 // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
                 send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
 
-                xfade_changed = true;
+                if (i == 0 || i == 1)
+                {
+                    xfadeB_changed = true;
+                }
+                if (i == 4 || i == 5)
+                {
+                    xfadeA_changed = true;
+                }
             }
         }
 
-        if (xfade_changed)
+        if (xfadeA_changed)
         {
-            const float xf      = xfade[0] * xfade[1];  // * xfade[2] * xfade[3] * xfade[4];
+            const float xf      = xfade[5] * xfade[4];
+            uint8_t dc_array[4] = {0x00};
+            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
+            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
+            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
+            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+        }
+
+        if (xfadeB_changed)
+        {
+            const float xf      = xfade[0] * xfade[1];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1248,16 +1268,6 @@ void ui_control_task(void)
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
             SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
-
-#if 0
-        xfade       = 0.0f;
-        dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
-        dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
-        dc_array[2] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 8) & 0x000000FF;
-        dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
-
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
-#endif
         }
 
         for (int i = 0; i < 6; i++)
