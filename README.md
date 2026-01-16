@@ -1,7 +1,5 @@
 # JUMBLEQ
-JUMBLEQ is a “jumbled equipment”.
-
-JUMBLEQ is a DJ mixer, a USB audio interface, a MIDI controller, a prototype board, and an instrument.
+“JUMBLEQ” is short for “jumbled equipment”
 
 ## Audio Spec.
 - Analog: 4in/4out
