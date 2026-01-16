@@ -157,7 +157,7 @@ int main(void)
     start_audio_control();
     HAL_Delay(100);
 
-    set_led(0, 0, 0, 0);
+    set_led_color(0, 0, 0, 0);
     renew();
     HAL_Delay(100);
 
