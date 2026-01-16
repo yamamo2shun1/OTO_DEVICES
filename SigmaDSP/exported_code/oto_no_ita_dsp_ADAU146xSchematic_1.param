@@ -749,22 +749,22 @@ Parameter Data :
 Module Name			= xf_assign_sw_A
 Parameter Name		= Index
 Parameter Address	= 119
-Parameter Value		= 2
+Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x02, 
+0x00, 0x00, 0x00, 0x01, 
 
 
 
 Module Name			= xf_assign_sw_post
 Parameter Name		= Index
 Parameter Address	= 118
-Parameter Value		= 1
+Parameter Value		= 2
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x00, 0x01, 
+0x00, 0x00, 0x00, 0x02, 
 
 
 

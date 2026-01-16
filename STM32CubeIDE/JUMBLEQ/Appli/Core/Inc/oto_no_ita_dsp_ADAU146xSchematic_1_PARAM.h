@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h
- * Created:	Tuesday, 13 January 2026 14:51 PM
+ * Created:	Friday, 16 January 2026 9:34 AM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -630,8 +630,8 @@
 #define MOD_XF_ASSIGN_SW_A_COUNT                1
 #define MOD_XF_ASSIGN_SW_A_SCHEMATIC            "ADAU146xSchematic_1"
 #define MOD_XF_ASSIGN_SW_A_INDEX_ADDR           119
-#define MOD_XF_ASSIGN_SW_A_INDEX_FIXPT          0x00000002
-#define MOD_XF_ASSIGN_SW_A_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(2)
+#define MOD_XF_ASSIGN_SW_A_INDEX_FIXPT          0x00000001
+#define MOD_XF_ASSIGN_SW_A_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(1)
 #define MOD_XF_ASSIGN_SW_A_INDEX_TYPE           SIGMASTUDIOTYPE_INTEGER
 #define MOD_XF_ASSIGN_SW_A_INDEX_DATA_MEMORY    "DM0"
 #define MOD_XF_ASSIGN_SW_A_INDEX_MEM_PAGE       0
@@ -642,8 +642,8 @@
 #define MOD_XF_ASSIGN_SW_POST_COUNT                1
 #define MOD_XF_ASSIGN_SW_POST_SCHEMATIC            "ADAU146xSchematic_1"
 #define MOD_XF_ASSIGN_SW_POST_INDEX_ADDR           118
-#define MOD_XF_ASSIGN_SW_POST_INDEX_FIXPT          0x00000001
-#define MOD_XF_ASSIGN_SW_POST_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(1)
+#define MOD_XF_ASSIGN_SW_POST_INDEX_FIXPT          0x00000002
+#define MOD_XF_ASSIGN_SW_POST_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(2)
 #define MOD_XF_ASSIGN_SW_POST_INDEX_TYPE           SIGMASTUDIOTYPE_INTEGER
 #define MOD_XF_ASSIGN_SW_POST_INDEX_DATA_MEMORY    "DM0"
 #define MOD_XF_ASSIGN_SW_POST_INDEX_MEM_PAGE       0
