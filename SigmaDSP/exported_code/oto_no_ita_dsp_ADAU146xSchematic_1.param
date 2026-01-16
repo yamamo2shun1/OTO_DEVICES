@@ -379,7 +379,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 130
+Parameter Address	= 139
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -679,9 +679,9 @@ Parameter Data :
 
 
 
-Module Name			= SignalMerger_6
+Module Name			= SignalMerger_B
 Parameter Name		= gain
-Parameter Address	= 134
+Parameter Address	= 130
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -702,9 +702,9 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0
+Module Name			= RunningAverage_B
 Parameter Name		= RmsTCinDBps
-Parameter Address	= 136
+Parameter Address	= 132
 Parameter Value		= 0.000287864561677509
 Data Memory			= DM0
 Mem Page			= 0
@@ -713,9 +713,9 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0
+Module Name			= RunningAverage_B
 Parameter Name		= Decay
-Parameter Address	= 138
+Parameter Address	= 134
 Parameter Value		= 1.30208333333333E-05
 Data Memory			= DM0
 Mem Page			= 0
@@ -724,9 +724,9 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0
+Module Name			= RunningAverage_B
 Parameter Name		= Hold
-Parameter Address	= 137
+Parameter Address	= 133
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -768,7 +768,7 @@ Parameter Data :
 
 
 
-Module Name			= SignalMerger_6_1
+Module Name			= SignalMerger_A
 Parameter Name		= gain
 Parameter Address	= 120
 Parameter Value		= 0
@@ -791,7 +791,7 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0_1
+Module Name			= RunningAverage_A
 Parameter Name		= RmsTCinDBps
 Parameter Address	= 122
 Parameter Value		= 0.000287864561677509
@@ -802,7 +802,7 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0_1
+Module Name			= RunningAverage_A
 Parameter Name		= Decay
 Parameter Address	= 124
 Parameter Value		= 1.30208333333333E-05
@@ -813,7 +813,7 @@ Parameter Data :
 
 
 
-Module Name			= RunningAverage_0_1
+Module Name			= RunningAverage_A
 Parameter Name		= Hold
 Parameter Address	= 123
 Parameter Value		= 0
