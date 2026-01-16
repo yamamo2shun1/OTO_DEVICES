@@ -2648,11 +2648,11 @@
                             "Link_231",
                             "Link_232",
                             "Link_233",
-                            "Link_234",
                             "Link_237",
                             "Link_238",
                             "Link_239",
-                            "Link_240"
+                            "Link_240",
+                            "Link_241"
                           ]
                         }
                       }
@@ -4717,7 +4717,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 837.0,
-                          "Y": 710.0
+                          "Y": 713.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4801,7 +4801,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 837.0,
-                          "Y": 794.0
+                          "Y": 797.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6311,7 +6311,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 1921.0,
-                          "Y": 785.0
+                          "Y": 785.5
                         },
                         "Size": {
                           "Height": 62.0,
@@ -7736,12 +7736,7 @@
                         "TargetUid": "AliasInput_5",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 837.220742857143,
-                            "Y": 808.57142857142844
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_162",
@@ -7750,12 +7745,7 @@
                         "TargetUid": "AliasInput_4",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 837.220742857143,
-                            "Y": 724.57142857142844
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_153",
@@ -8402,16 +8392,7 @@
                         "TargetUid": "RunningAverage_1",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 2000.8571428571431,
-                            "Y": 816.0
-                          },
-                          {
-                            "X": 2000.8571428571431,
-                            "Y": 816.5
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_215",
@@ -8485,11 +8466,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 128.0,
-                            "Y": -852.7544
+                            "X": 91.111111111111114,
+                            "Y": -852.80952380952374
                           },
                           {
-                            "X": 128.0,
+                            "X": 91.111111111111114,
                             "Y": -54.0
                           }
                         ]
@@ -8593,30 +8574,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 1909.0,
+                            "X": 1911.0,
                             "Y": 796.0392
                           },
                           {
-                            "X": 1909.0,
-                            "Y": 805.6667
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_234",
-                        "SourceUid": "AliasOutput_37",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SignalMerger_7",
-                        "TargetPinName": "Input1",
-                        "LinkType": "Analog",
-                        "Points": [
-                          {
-                            "X": 1909.0,
-                            "Y": 839.0392
-                          },
-                          {
-                            "X": 1909.0,
-                            "Y": 826.3333
+                            "X": 1911.0,
+                            "Y": 806.1667
                           }
                         ]
                       },
@@ -8707,6 +8670,24 @@
                           {
                             "X": 1913.0,
                             "Y": 1117.3333
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_241",
+                        "SourceUid": "AliasOutput_37",
+                        "SourcePinName": "Output",
+                        "TargetUid": "SignalMerger_7",
+                        "TargetPinName": "Input1",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 1915.0,
+                            "Y": 839.0392
+                          },
+                          {
+                            "X": 1915.0,
+                            "Y": 826.8333
                           }
                         ]
                       }
