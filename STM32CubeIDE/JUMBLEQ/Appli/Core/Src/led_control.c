@@ -247,42 +247,6 @@ void rgb_led_task(void)
     {
         HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
 
-#if 0
-        switch (test)
-        {
-        case 0:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 255, 0, 0);
-            }
-            test = 1;
-            break;
-        case 1:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 255, 0);
-            }
-            test = 2;
-            break;
-        case 2:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 255);
-            }
-            test = 3;
-            break;
-        case 3:
-        default:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 0);
-            }
-            test = 0;
-            break;
-        }
-        renew();
-#endif
-
         is_color_update = false;
     }
 }
