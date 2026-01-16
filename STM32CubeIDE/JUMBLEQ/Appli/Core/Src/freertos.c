@@ -322,7 +322,7 @@ void StartLEDTask(void* argument)
         led_tx_blinking_task();
         led_rx_blinking_task();
         rgb_led_task();
-        osDelay(20);  // LED更新は10ms間隔で十分
+        osDelay(20);  // LED更新は20ms間隔で十分
     }
     /* USER CODE END StartLEDTask */
 }
