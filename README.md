@@ -15,8 +15,7 @@ JUMBLEQ is a DJ mixer, a USB audio interface, a MIDI controller, a prototype boa
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x6 and Pot x8
 
 ## for Windows User
-I am developing JUMBLEQ entirely by myself.
-It is impossible for me alone to develop both the ASIO driver and the corresponding firmware. Therefore, if this device ever ends up in someone else's hands and that person is a Windows user, please use [ASIO4ALL](https://asio4all.org/) without hesitation.
+I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
 
 ## Block Diagram
 <img width="1217" height="842" alt="block_diagram" src="https://github.com/user-attachments/assets/05a23b76-daef-4675-8531-006a5432ee58" />
