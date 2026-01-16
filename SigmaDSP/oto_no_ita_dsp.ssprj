@@ -2857,8 +2857,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": -19.819794584500187,
-                          "Y": -978.94491129785251
+                          "X": -20.0,
+                          "Y": -979.0
                         },
                         "Size": {
                           "Height": 424.0,
@@ -2967,8 +2967,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": -31.819794584500187,
-                          "Y": -1042.9449112978527
+                          "X": -32.0,
+                          "Y": -1043.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -4545,7 +4545,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 341.0,
-                          "Y": -931.94491129785251
+                          "Y": -932.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4629,7 +4629,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 341.0,
-                          "Y": -648.94491129785251
+                          "Y": -649.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4879,7 +4879,7 @@
                         "Angle": 0.0,
                         "Position": {
                           "X": 341.0,
-                          "Y": -358.81045751633997
+                          "Y": -359.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5318,7 +5318,7 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumStereoChannels": 3,
-                          "SelectedVal": 2,
+                          "SelectedVal": 1,
                           "CustomSlew": 8330,
                           "SetTunable": false,
                           "SlewType": "No Slew"
@@ -5771,7 +5771,7 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumStereoChannels": 3,
-                          "SelectedVal": 1,
+                          "SelectedVal": 2,
                           "CustomSlew": 8330,
                           "SetTunable": false,
                           "SlewType": "No Slew"
@@ -6595,8 +6595,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 152.32306255835704,
-                          "Y": -1045.9449112978525
+                          "X": 152.0,
+                          "Y": -1046.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -6638,8 +6638,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 152.32306255835704,
-                          "Y": -762.94491129785251
+                          "X": 152.0,
+                          "Y": -763.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -6681,8 +6681,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 152.32306255835704,
-                          "Y": -472.81045751633997
+                          "X": 152.0,
+                          "Y": -473.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -6724,7 +6724,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 152.32306255835704,
+                          "X": 152.0,
                           "Y": -180.0
                         },
                         "Size": {
@@ -8340,8 +8340,8 @@
     "AltShapes": [],
     "PropertyPresets": {}
   },
-  "LastActiveTabUid": "ADAU1466_1",
-  "LastActiveTabName": "Settings",
-  "LastActiveTabIsConfig": true,
-  "LastActiveTabIsEditable": false
+  "LastActiveTabUid": "ADAU146xSchematic_1",
+  "LastActiveTabName": "ADAU146xSchematic_1",
+  "LastActiveTabIsConfig": false,
+  "LastActiveTabIsEditable": true
 }

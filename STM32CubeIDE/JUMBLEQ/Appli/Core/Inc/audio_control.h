@@ -27,8 +27,6 @@
 #define MAG_XFADE_CUTOFF          16
 #define MAG_XFADE_RANGE           384
 
-#define THUMB_THRESHOLD 1200
-
 void reset_audio_buffer(void);
 uint32_t get_tx_blink_interval_ms(void);
 uint32_t get_rx_blink_interval_ms(void);

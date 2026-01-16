@@ -85,8 +85,6 @@ uint16_t mag_val[MAG_SW_NUM]                 = {0};
 uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
 uint16_t mag_offset[MAG_SW_NUM]              = {0};
 
-bool thumb_enable = false;
-
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 
@@ -1192,34 +1190,26 @@ void ui_control_task(void)
         mag_calibration_count++;
     }
 
-#if 0
-    if (mag_val[0] < 950)
-    {
-        xfade[0] = 0.0f;
-    }
-    else if (mag_val[0] >= 950 && mag_val[0] <= 1500)
-    {
-        xfade[0] = ((float) (mag_val[0] - 950) / (float) (1500 - 950));
-    }
-    else if (mag_val[0] > 1500)
-    {
-        xfade[0] = 1.0f;
-    }
-#endif
-
     if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        if (mag_val[0] <= THUMB_THRESHOLD && mag_val[5] <= THUMB_THRESHOLD)
+        for (int i = 0; i < 6; i++)
         {
-            for (int i = 1; i < 5; i++)
+            if (i == 0 || i == 5)
             {
-                xfade[i] = 0.0f;
+                if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
+                {
+                    xfade[i] = 0.0f;
+                }
+                else if (mag_val[i] >= mag_offset[i] + MAG_XFADE_CUTOFF && mag_val[i] <= mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = (float) (mag_val[i] - mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE;
+                }
+                else if (mag_val[i] > mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = 1.0f;
+                }
             }
-            thumb_enable = false;
-        }
-        else
-        {
-            for (int i = 1; i < 5; i++)
+            else
             {
                 if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
                 {
@@ -1234,28 +1224,43 @@ void ui_control_task(void)
                     xfade[i] = 0.0f;
                 }
             }
-
-            thumb_enable = true;
         }
 
-        bool xfade_changed = false;
+        bool xfadeA_changed = false;
+        bool xfadeB_changed = false;
         for (int i = 0; i < 6; i++)
         {
             if (fabs(xfade[i] - xfade_prev[i]) > 0.01f)
             {
-                if (thumb_enable)
-                {
-                    // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
-                    send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
-                }
+                // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
 
-                xfade_changed = true;
+                if (i == 0 || i == 1)
+                {
+                    xfadeB_changed = true;
+                }
+                if (i == 4 || i == 5)
+                {
+                    xfadeA_changed = true;
+                }
             }
         }
 
-        if (xfade_changed)
+        if (xfadeA_changed)
         {
-            const float xf      = xfade[1];  // * xfade[2] * xfade[3] * xfade[4];
+            const float xf      = xfade[5] * xfade[4];
+            uint8_t dc_array[4] = {0x00};
+            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
+            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
+            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
+            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+        }
+
+        if (xfadeB_changed)
+        {
+            const float xf      = xfade[0] * xfade[1];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1263,22 +1268,20 @@ void ui_control_task(void)
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
             SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
-
-#if 0
-        xfade       = 0.0f;
-        dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
-        dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
-        dc_array[2] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 8) & 0x000000FF;
-        dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
-
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
-#endif
         }
 
         for (int i = 0; i < 6; i++)
         {
             xfade_prev[i] = xfade[i];
         }
+    }
+
+    while (tud_midi_available())
+    {
+        uint8_t packet[4];
+        tud_midi_packet_read(packet);
+
+        SEGGER_RTT_printf(0, "MIDI RX: 0x%02X 0x%02X 0x%02X(%d) 0x%02X(%d)\n", packet[0], packet[1], packet[2], packet[2], packet[3], packet[3]);
     }
     is_adc_complete = false;
 }
