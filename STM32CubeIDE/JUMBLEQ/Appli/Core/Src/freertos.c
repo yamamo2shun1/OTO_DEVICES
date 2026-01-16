@@ -73,7 +73,7 @@ const osThreadAttr_t usbTask_attributes = {
 osThreadId_t audioTaskHandle;
 const osThreadAttr_t audioTask_attributes = {
     .name       = "audioTask",
-    .stack_size = 512 * 4,
+    .stack_size = 1024 * 4,  // Increased from 512*4 for sample rate change handling
     .priority   = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for ledTask */
