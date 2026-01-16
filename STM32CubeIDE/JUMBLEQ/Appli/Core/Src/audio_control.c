@@ -1207,8 +1207,10 @@ void ui_control_task(void)
 
     if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        for (int i = 0; i < 6; i++)
+        int index[6] = {0, 5, 1, 2, 3, 4};
+        for (int j = 0; j < 6; j++)
         {
+            int i = index[j];
             if (i == 0 || i == 5)
             {
                 if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
