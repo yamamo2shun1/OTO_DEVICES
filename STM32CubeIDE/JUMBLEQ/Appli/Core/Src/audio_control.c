@@ -68,6 +68,9 @@ enum
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
 
+uint8_t current_xfA_position = 127;
+uint8_t current_xfB_position = 127;
+
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
 uint8_t pot_ch         = 0;
@@ -87,6 +90,8 @@ uint16_t mag_offset[MAG_SW_NUM]              = {0};
 
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_min[MAG_SW_NUM]  = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_max[MAG_SW_NUM]  = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 int16_t hpout_clear_count              = 0;
 volatile uint32_t sai_tx_rng_buf_index = 0;
@@ -224,6 +229,16 @@ uint32_t get_tx_blink_interval_ms(void)
 uint32_t get_rx_blink_interval_ms(void)
 {
     return rx_blink_interval_ms;
+}
+
+uint8_t get_current_xfA_position(void)
+{
+    return current_xfA_position;
+}
+
+uint8_t get_current_xfB_position(void)
+{
+    return current_xfB_position;
 }
 
 //--------------------------------------------------------------------+
@@ -1208,6 +1223,20 @@ void ui_control_task(void)
                 {
                     xfade[i] = 1.0f;
                 }
+
+                if (xfade[i] >= xfade_max[i])
+                {
+                    xfade_max[i] = xfade[i];
+
+                    if (i == 0)
+                    {
+                        xfade_min[1] = xfade_max[i];
+                    }
+                    else if (i == 5)
+                    {
+                        xfade_min[4] = xfade_max[i];
+                    }
+                }
             }
             else
             {
@@ -1222,6 +1251,23 @@ void ui_control_task(void)
                 else if (mag_val[i] > mag_offset[i] + MAG_XFADE_RANGE)
                 {
                     xfade[i] = 0.0f;
+                }
+
+                if (xfade[i] <= xfade_min[i])
+                {
+                    xfade_min[i] = xfade[i];
+
+                    if (xfade_min[i] < 0.01f)
+                    {
+                        if (i == 1)
+                        {
+                            xfade_max[0] = 0.0f;
+                        }
+                        else if (i == 4)
+                        {
+                            xfade_max[5] = 0.0f;
+                        }
+                    }
                 }
             }
         }
@@ -1248,7 +1294,7 @@ void ui_control_task(void)
 
         if (xfadeA_changed)
         {
-            const float xf      = xfade[5] * xfade[4];
+            const float xf      = xfade_max[5] * xfade_min[4];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1256,11 +1302,13 @@ void ui_control_task(void)
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
             SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+
+            current_xfA_position = (uint8_t) (xf * 128.0f);
         }
 
         if (xfadeB_changed)
         {
-            const float xf      = xfade[0] * xfade[1];
+            const float xf      = xfade_max[0] * xfade_min[1];
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1268,6 +1316,8 @@ void ui_control_task(void)
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
             SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+
+            current_xfB_position = (uint8_t) (xf * 128.0f);
         }
 
         for (int i = 0; i < 6; i++)
