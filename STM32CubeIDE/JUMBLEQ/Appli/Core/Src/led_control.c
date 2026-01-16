@@ -249,15 +249,15 @@ void layer_xfA_position(void)
     static uint8_t blink_count_a = 0;
     uint8_t xf_pos               = get_current_xfA_position();
 
-    uint8_t white_level = 40;
+    uint8_t white_level = 0;
 
     if (blink_count_a < 8)
     {
-        white_level = (uint8_t) (40.0f * ((float) blink_count_a / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) blink_count_a / 8.0f));
     }
     else
     {
-        white_level = (uint8_t) (40.0f * ((float) (15 - blink_count_a) / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) (15 - blink_count_a) / 8.0f));
     }
 
     if (xf_pos < 32)
@@ -333,15 +333,15 @@ void layer_xfB_position(void)
     static uint8_t blink_count_b = 0;
     uint8_t xf_pos               = get_current_xfB_position();
 
-    uint8_t white_level = 40;
+    uint8_t white_level = 0;
 
     if (blink_count_b < 8)
     {
-        white_level = (uint8_t) (40.0f * ((float) blink_count_b / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) blink_count_b / 8.0f));
     }
     else
     {
-        white_level = (uint8_t) (40.0f * ((float) (15 - blink_count_b) / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) (15 - blink_count_b) / 8.0f));
     }
 
     if (xf_pos < 32)
