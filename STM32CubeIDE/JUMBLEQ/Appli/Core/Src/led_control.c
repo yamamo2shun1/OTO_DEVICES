@@ -83,7 +83,7 @@ void led_rx_blinking_task(void)
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 }
 
-void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
+void set_led_color(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
     grb[index][0] = green;
     grb[index][1] = red;
@@ -125,51 +125,51 @@ void set_vu_meter_a(void)
     }
     if (dbfs > -9.0f)
     {
-        set_led(4, 255, 0, 0);
-        set_led(3, 240, 76, 0);
-        set_led(2, 200, 140, 0);
-        set_led(1, 60, 122, 0);
-        set_led(0, 0, 64, 0);
+        set_led_color(4, 255, 0, 0);
+        set_led_color(3, 240, 76, 0);
+        set_led_color(2, 200, 140, 0);
+        set_led_color(1, 60, 122, 0);
+        set_led_color(0, 0, 64, 0);
     }
     else if (dbfs > -18.0f)
     {
-        set_led(4, 0, 0, 0);
-        set_led(3, 240, 76, 0);
-        set_led(2, 200, 140, 0);
-        set_led(1, 60, 122, 0);
-        set_led(0, 0, 64, 0);
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 240, 76, 0);
+        set_led_color(2, 200, 140, 0);
+        set_led_color(1, 60, 122, 0);
+        set_led_color(0, 0, 64, 0);
     }
     else if (dbfs > -27.0f)
     {
-        set_led(4, 0, 0, 0);
-        set_led(3, 0, 0, 0);
-        set_led(2, 200, 140, 0);
-        set_led(1, 60, 122, 0);
-        set_led(0, 0, 64, 0);
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 200, 140, 0);
+        set_led_color(1, 60, 122, 0);
+        set_led_color(0, 0, 64, 0);
     }
     else if (dbfs > -36.0f)
     {
-        set_led(4, 0, 0, 0);
-        set_led(3, 0, 0, 0);
-        set_led(2, 0, 0, 0);
-        set_led(1, 60, 122, 0);
-        set_led(0, 0, 64, 0);
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 60, 122, 0);
+        set_led_color(0, 0, 64, 0);
     }
     else if (dbfs > -45.0f)
     {
-        set_led(4, 0, 0, 0);
-        set_led(3, 0, 0, 0);
-        set_led(2, 0, 0, 0);
-        set_led(1, 0, 0, 0);
-        set_led(0, 0, 64, 0);
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 0, 0, 0);
+        set_led_color(0, 0, 64, 0);
     }
     else
     {
-        set_led(4, 0, 0, 0);
-        set_led(3, 0, 0, 0);
-        set_led(2, 0, 0, 0);
-        set_led(1, 0, 0, 0);
-        set_led(0, 0, 0, 0);
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 0, 0, 0);
+        set_led_color(0, 0, 0, 0);
     }
 }
 
@@ -189,51 +189,51 @@ void set_vu_meter_b(void)
     }
     if (dbfs > -9.0f)
     {
-        set_led(5, 255, 0, 0);
-        set_led(6, 240, 76, 0);
-        set_led(7, 200, 140, 0);
-        set_led(8, 60, 122, 0);
-        set_led(9, 0, 64, 0);
+        set_led_color(5, 255, 0, 0);
+        set_led_color(6, 240, 76, 0);
+        set_led_color(7, 200, 140, 0);
+        set_led_color(8, 60, 122, 0);
+        set_led_color(9, 0, 64, 0);
     }
     else if (dbfs > -18.0f)
     {
-        set_led(5, 0, 0, 0);
-        set_led(6, 240, 80, 0);
-        set_led(7, 200, 140, 0);
-        set_led(8, 60, 122, 0);
-        set_led(9, 0, 64, 0);
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 240, 80, 0);
+        set_led_color(7, 200, 140, 0);
+        set_led_color(8, 60, 122, 0);
+        set_led_color(9, 0, 64, 0);
     }
     else if (dbfs > -27.0f)
     {
-        set_led(5, 0, 0, 0);
-        set_led(6, 0, 0, 0);
-        set_led(7, 200, 140, 0);
-        set_led(8, 60, 122, 0);
-        set_led(9, 0, 64, 0);
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 200, 140, 0);
+        set_led_color(8, 60, 122, 0);
+        set_led_color(9, 0, 64, 0);
     }
     else if (dbfs > -36.0f)
     {
-        set_led(5, 0, 0, 0);
-        set_led(6, 0, 0, 0);
-        set_led(7, 0, 0, 0);
-        set_led(8, 60, 122, 0);
-        set_led(9, 0, 64, 0);
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 60, 122, 0);
+        set_led_color(9, 0, 64, 0);
     }
     else if (dbfs > -45.0f)
     {
-        set_led(5, 0, 0, 0);
-        set_led(6, 0, 0, 0);
-        set_led(7, 0, 0, 0);
-        set_led(8, 0, 0, 0);
-        set_led(9, 0, 64, 0);
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 0, 0, 0);
+        set_led_color(9, 0, 64, 0);
     }
     else
     {
-        set_led(5, 0, 0, 0);
-        set_led(6, 0, 0, 0);
-        set_led(7, 0, 0, 0);
-        set_led(8, 0, 0, 0);
-        set_led(9, 0, 0, 0);
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 0, 0, 0);
+        set_led_color(9, 0, 0, 0);
     }
 }
 
