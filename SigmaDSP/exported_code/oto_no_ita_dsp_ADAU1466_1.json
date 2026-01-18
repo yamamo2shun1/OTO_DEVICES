@@ -298,7 +298,7 @@
               {
                 "Name": "SERIAL_BYTE_4_0",
                 "Size": 2,
-                "Data": "0x90, 0x48"
+                "Data": "0x90, 0x49"
               },
               {
                 "Name": "SERIAL_BYTE_5_0",

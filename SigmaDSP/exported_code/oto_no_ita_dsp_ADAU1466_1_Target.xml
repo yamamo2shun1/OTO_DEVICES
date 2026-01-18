@@ -419,7 +419,7 @@
         <Address>61968</Address>
         <AddrIncr>2</AddrIncr>
         <Size>2</Size>
-        <Data>0x90, 0x48</Data>
+        <Data>0x90, 0x49</Data>
       </Register>
       <Register>
         <Name>SERIAL_BYTE_5_0</Name>
