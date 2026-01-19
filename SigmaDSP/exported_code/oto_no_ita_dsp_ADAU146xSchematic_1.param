@@ -379,7 +379,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 139
+Parameter Address	= 140
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -635,20 +635,9 @@ Parameter Data :
 
 
 
-Module Name			= Snd_SW
-Parameter Name		= Index
-Parameter Address	= 143
-Parameter Value		= 1
-Data Memory			= DM0
-Mem Page			= 0
-Parameter Data :
-0x00, 0x00, 0x00, 0x01, 
-
-
-
-Module Name			= send_output
+Module Name			= send1_output
 Parameter Name		= Gain
-Parameter Address	= 144
+Parameter Address	= 129
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -681,7 +670,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_B
 Parameter Name		= gain
-Parameter Address	= 130
+Parameter Address	= 131
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -704,7 +693,7 @@ Parameter Data :
 
 Module Name			= RunningAverage_B
 Parameter Name		= RmsTCinDBps
-Parameter Address	= 132
+Parameter Address	= 133
 Parameter Value		= 0.000287864561677509
 Data Memory			= DM0
 Mem Page			= 0
@@ -715,7 +704,7 @@ Parameter Data :
 
 Module Name			= RunningAverage_B
 Parameter Name		= Decay
-Parameter Address	= 134
+Parameter Address	= 135
 Parameter Value		= 1.30208333333333E-05
 Data Memory			= DM0
 Mem Page			= 0
@@ -726,7 +715,7 @@ Parameter Data :
 
 Module Name			= RunningAverage_B
 Parameter Name		= Hold
-Parameter Address	= 133
+Parameter Address	= 134
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -737,7 +726,7 @@ Parameter Data :
 
 Module Name			= xf_assign_sw_B
 Parameter Name		= Index
-Parameter Address	= 129
+Parameter Address	= 130
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -860,6 +849,17 @@ Parameter Data :
 Module Name			= input_from_usb4
 Parameter Name		= Gain
 Parameter Address	= 102
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= send2_output
+Parameter Name		= Gain
+Parameter Address	= 144
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
