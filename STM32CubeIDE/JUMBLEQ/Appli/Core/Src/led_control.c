@@ -23,6 +23,8 @@
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
 
+#define BLINK_COUNT_MAX 32
+
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
 uint8_t grb[LED_NUMS][RGB] = {0};
@@ -251,13 +253,13 @@ void layer_xfA_position(void)
 
     uint8_t white_level = 0;
 
-    if (blink_count_a < 8)
+    if (blink_count_a < BLINK_COUNT_MAX / 2)
     {
-        white_level = (uint8_t) (80.0f * ((float) blink_count_a / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) blink_count_a / (float) (BLINK_COUNT_MAX / 2)));
     }
     else
     {
-        white_level = (uint8_t) (80.0f * ((float) (15 - blink_count_a) / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) ((BLINK_COUNT_MAX - 1) - blink_count_a) / (float) (BLINK_COUNT_MAX / 2)));
     }
 
     if (xf_pos < 32)
@@ -325,7 +327,7 @@ void layer_xfA_position(void)
         layer_led_color(8, 0, 0, 0);
         layer_led_color(9, 0, 0, 0);
     }
-    blink_count_a = (blink_count_a + 1) % 16;
+    blink_count_a = (blink_count_a + 1) % BLINK_COUNT_MAX;
 }
 
 void layer_xfB_position(void)
@@ -335,13 +337,13 @@ void layer_xfB_position(void)
 
     uint8_t white_level = 0;
 
-    if (blink_count_b < 8)
+    if (blink_count_b < BLINK_COUNT_MAX / 2)
     {
-        white_level = (uint8_t) (80.0f * ((float) blink_count_b / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) blink_count_b / (float) (BLINK_COUNT_MAX / 2)));
     }
     else
     {
-        white_level = (uint8_t) (80.0f * ((float) (15 - blink_count_b) / 8.0f));
+        white_level = (uint8_t) (80.0f * ((float) ((BLINK_COUNT_MAX - 1) - blink_count_b) / (float) (BLINK_COUNT_MAX / 2)));
     }
 
     if (xf_pos < 32)
@@ -409,7 +411,7 @@ void layer_xfB_position(void)
         layer_led_color(8, 0, 0, 0);
         layer_led_color(9, 0, 0, 0);
     }
-    blink_count_b = (blink_count_b + 1) % 16;
+    blink_count_b = (blink_count_b + 1) % BLINK_COUNT_MAX;
 }
 
 void rgb_led_task(void)
