@@ -15,7 +15,7 @@
 // 2048 samples @ 48kHz = ~42ms, 1024 = ~21ms, 512 = ~10ms
 #define SAI_RNG_BUF_SIZE 4096  // リングバッファ（2のべき乗必須）: 8192→2048 で約1/4のレイテンシー
 #define SAI_TX_BUF_SIZE  1024  // 4ch DMAバッファ (USB->SAI): 2048→512 で約1/4のレイテンシー
-#define SAI_RX_BUF_SIZE  512   // 2ch DMAバッファ (SAI->USB): 1024→256 で約1/4のレイテンシー
+#define SAI_RX_BUF_SIZE  1024  // 4ch DMAバッファ (SAI->USB): 1024→256 で約1/4のレイテンシー
 
 #define POT_CH_SEL_WAIT           1
 #define ADC_NUM                   8
