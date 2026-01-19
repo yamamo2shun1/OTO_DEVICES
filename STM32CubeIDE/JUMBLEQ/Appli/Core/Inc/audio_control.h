@@ -25,7 +25,7 @@
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
-#define MAG_XFADE_RANGE           384
+#define MAG_XFADE_RANGE           1408
 
 void reset_audio_buffer(void);
 uint32_t get_tx_blink_interval_ms(void);

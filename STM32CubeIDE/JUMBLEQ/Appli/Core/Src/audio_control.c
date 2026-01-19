@@ -1278,7 +1278,7 @@ void ui_control_task(void)
                 {
                     xfade_min[i] = xfade[i];
 
-                    if (xfade_min[i] < 0.01f)
+                    if (xfade_min[i] < 0.05f)
                     {
                         if (i == 1)
                         {
@@ -1310,12 +1310,14 @@ void ui_control_task(void)
                 {
                     xfadeA_changed = true;
                 }
+
+                xfade_prev[i] = xfade[i];
             }
         }
 
         if (xfadeA_changed)
         {
-            const float xf      = xfade_max[5] * xfade_min[4];
+            const float xf      = pow(xfade_max[5] * xfade_min[4], 1.0f / 3.0f);
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1329,7 +1331,7 @@ void ui_control_task(void)
 
         if (xfadeB_changed)
         {
-            const float xf      = xfade_max[0] * xfade_min[1];
+            const float xf      = pow(xfade_max[0] * xfade_min[1], 1.0f / 3.0f);
             uint8_t dc_array[4] = {0x00};
             dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
             dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1339,11 +1341,6 @@ void ui_control_task(void)
             SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
 
             current_xfB_position = (uint8_t) (xf * 128.0f);
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            xfade_prev[i] = xfade[i];
         }
     }
 
