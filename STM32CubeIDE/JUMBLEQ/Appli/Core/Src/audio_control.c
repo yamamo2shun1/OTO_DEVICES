@@ -771,11 +771,31 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     return true;
 }
 
+double convert_pot2dB(uint16_t adc_val)
+{
+    double x  = (double) adc_val / 1023.0;
+    double db = 0.0;
+    if (x < 0.7)
+    {
+        db = -80.0 + (x / 0.7) * 80.0;
+    }
+    else
+    {
+        db = (x - 0.7) / 0.3 * 10.0;
+    }
+    return db;
+}
+
+double convert_dB2gain(double db)
+{
+    return pow(10.0, db / 20.0);
+}
+
 void control_input_from_usb_gain(uint8_t ch, int16_t db)
 {
     SEGGER_RTT_printf(0, "USB CH%d Gain: %.2f dB\n", ch, db);
 
-    const double rate = pow(10.0, (double) db / 20.0);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
@@ -804,10 +824,8 @@ void control_input_from_usb_gain(uint8_t ch, int16_t db)
 
 void control_input_from_ch1_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
+    const double db   = convert_pot2dB(adc_val);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
@@ -822,10 +840,8 @@ void control_input_from_ch1_gain(const uint16_t adc_val)
 
 void control_input_from_ch2_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
+    const double db   = convert_pot2dB(adc_val);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
@@ -840,10 +856,8 @@ void control_input_from_ch2_gain(const uint16_t adc_val)
 
 void control_send1_out_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
+    const double db   = convert_pot2dB(adc_val);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
@@ -858,10 +872,8 @@ void control_send1_out_gain(const uint16_t adc_val)
 
 void control_send2_out_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
+    const double db   = convert_pot2dB(adc_val);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
@@ -912,10 +924,8 @@ void control_wet_out_gain(const uint16_t adc_val)
 
 void control_master_out_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
+    const double db   = convert_pot2dB(adc_val);
+    const double rate = convert_dB2gain(db);
 
     uint8_t gain_array[4] = {0x00};
     gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
