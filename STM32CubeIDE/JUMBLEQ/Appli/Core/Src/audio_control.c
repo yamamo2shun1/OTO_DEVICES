@@ -876,7 +876,7 @@ void control_send2_out_gain(const uint16_t adc_val)
 
 void control_dryA_out_gain(const uint16_t adc_val)
 {
-    const float rate    = adc_val / 1023.0f;
+    const float rate    = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
     uint8_t dc_array[4] = {0x00};
     dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
     dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
@@ -888,7 +888,7 @@ void control_dryA_out_gain(const uint16_t adc_val)
 
 void control_dryB_out_gain(const uint16_t adc_val)
 {
-    const float rate    = adc_val / 1023.0f;
+    const float rate    = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
     uint8_t dc_array[4] = {0x00};
     dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
     dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
@@ -900,7 +900,7 @@ void control_dryB_out_gain(const uint16_t adc_val)
 
 void control_wet_out_gain(const uint16_t adc_val)
 {
-    const float rate    = adc_val / 1023.0f;
+    const float rate    = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
     uint8_t dc_array[4] = {0x00};
     dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
     dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
@@ -1216,7 +1216,7 @@ void ui_control_task(void)
                 break;
             case 7:
                 // control_dryA_out_gain(1023 - pot_val[pot_ch]);
-                control_dryB_out_gain(1023 - pot_val[pot_ch]);
+                control_dryB_out_gain(pot_val[pot_ch]);
                 control_wet_out_gain(pot_val[pot_ch]);
                 break;
             default:
