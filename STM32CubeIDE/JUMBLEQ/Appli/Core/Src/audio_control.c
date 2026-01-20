@@ -2147,6 +2147,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         return;
     }
 
+    /* Stop ADC DMA to prevent parameter changes during ADAU1466 initialization */
+    (void) HAL_ADC_Stop(&hadc1);
+    (void) HAL_DMA_Abort(&handle_HPDMA1_Channel0);
+    is_adc_complete = false;
+    __DSB();
+
     /* Disable interrupts during critical DMA/SAI stop sequence */
     uint32_t primask = __get_PRIMASK();
     __disable_irq();
@@ -2302,6 +2308,22 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     }
     hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;
     __HAL_SAI_ENABLE(&hsai_BlockA1);
+
+    /* Restart ADC DMA after sample rate change is complete */
+    MX_List_HPDMA1_Channel0_Config();
+    if (HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    handle_HPDMA1_Channel0.XferCpltCallback = dma_adc_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_HPDMA1_Channel0) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    if (HAL_ADC_Start(&hadc1) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
     SEGGER_RTT_printf(0, "[SAI] reset for %lu Hz (prev=%lu)\n", (unsigned long) new_hz, (unsigned long) prev_hz);
 
