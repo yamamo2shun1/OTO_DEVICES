@@ -41,7 +41,7 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef* hspi)
 void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData)
 {
     // Use static buffer to avoid stack overflow
-    static uint8_t data[2048];
+    static uint8_t data[2560];
 
     data[0] = devAddress;
     data[1] = (uint8_t) ((address >> 8) & 0x00FF);

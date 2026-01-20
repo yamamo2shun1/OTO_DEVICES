@@ -220,35 +220,55 @@ void MemManage_Handler(void)
   volatile uint32_t mmfar = SCB->MMFAR;
   volatile uint8_t mmfsr = cfsr & 0xFF;  // MMFSR は CFSR の下位8ビット
   
-  // スタックフレームから例外発生時のレジスタを取得
+  // 直接MSPとPSPを取得
+  volatile uint32_t msp_val, psp_val, lr_val;
+  __asm volatile ("MRS %0, MSP" : "=r" (msp_val));
+  __asm volatile ("MRS %0, PSP" : "=r" (psp_val));
+  __asm volatile ("MOV %0, lr" : "=r" (lr_val));
+  
+  // LRのbit2でどちらのスタックを使うか判断
   volatile uint32_t *fault_stack;
-  __asm volatile (
-    "TST lr, #4 \n"
-    "ITE EQ \n"
-    "MRSEQ %0, MSP \n"
-    "MRSNE %0, PSP \n"
-    : "=r" (fault_stack)
-  );
+  if (lr_val & 0x4) {
+    fault_stack = (uint32_t *)psp_val;  // PSPを使用（タスクコンテキスト）
+  } else {
+    fault_stack = (uint32_t *)msp_val;  // MSPを使用（ハンドラモード）
+  }
   
-  volatile uint32_t stacked_pc  = fault_stack[6];
-  volatile uint32_t stacked_lr  = fault_stack[5];
-  
-  // グローバル変数に保存
+  // グローバル変数に保存（先にMSP/PSP/LRを保存）
   g_hardFaultInfo.magic = 0xDEADBEEF;
   g_hardFaultInfo.cfsr = cfsr;
   g_hardFaultInfo.mmfar = mmfar;
-  g_hardFaultInfo.stacked_pc = stacked_pc;
-  g_hardFaultInfo.stacked_lr = stacked_lr;
-  g_hardFaultInfo.stacked_r0 = fault_stack[0];
-  g_hardFaultInfo.stacked_r1 = fault_stack[1];
-  g_hardFaultInfo.stacked_r2 = fault_stack[2];
-  g_hardFaultInfo.stacked_r3 = fault_stack[3];
-  g_hardFaultInfo.stacked_r12 = fault_stack[4];
-  g_hardFaultInfo.stacked_psr = fault_stack[7];
+  g_hardFaultInfo.msp = msp_val;
+  g_hardFaultInfo.psp = psp_val;
+  g_hardFaultInfo.usb_isr_count = dbg_usb_isr_count;
+  g_hardFaultInfo.usb_isr_msp_min = dbg_usb_isr_msp_min;
+  g_hardFaultInfo.usb_isr_msp_start = lr_val;  // LR値を保存（デバッグ用に流用）
+  
+  // スタックポインタが有効なRAM範囲か確認してからアクセス
+  // DTCM: 0x20000000-0x20010000, AXI SRAM: 0x24000000-0x24072000
+  uint32_t sp = (uint32_t)fault_stack;
+  if ((sp >= 0x20000000 && sp < 0x20010000) || (sp >= 0x24000000 && sp < 0x24080000)) {
+    g_hardFaultInfo.stacked_r0 = fault_stack[0];
+    g_hardFaultInfo.stacked_r1 = fault_stack[1];
+    g_hardFaultInfo.stacked_r2 = fault_stack[2];
+    g_hardFaultInfo.stacked_r3 = fault_stack[3];
+    g_hardFaultInfo.stacked_r12 = fault_stack[4];
+    g_hardFaultInfo.stacked_lr = fault_stack[5];
+    g_hardFaultInfo.stacked_pc = fault_stack[6];
+    g_hardFaultInfo.stacked_psr = fault_stack[7];
+  } else {
+    // スタックポインタが無効 - 値を0xFFFFFFFFでマーク
+    g_hardFaultInfo.stacked_r0 = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_r1 = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_r2 = sp;  // 無効なSP値を保存
+    g_hardFaultInfo.stacked_r3 = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_r12 = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_lr = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_pc = 0xFFFFFFFF;
+    g_hardFaultInfo.stacked_psr = 0xFFFFFFFF;
+  }
   
   (void)mmfsr;
-  (void)stacked_pc;
-  (void)stacked_lr;
   
   __BKPT(0);  // デバッガでブレーク
   /* USER CODE END MemoryManagement_IRQn 0 */
