@@ -330,7 +330,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleSlewExtVol_0
+Module Name			= SingleSlewExtVol_B
 Parameter Name		= slew_mode
 Parameter Address	= 24597
 Parameter Value		= 8320
@@ -352,7 +352,7 @@ Parameter Data :
 
 
 
-Module Name			= SingleSlewExtVol_1
+Module Name			= SingleSlewExtVol_A
 Parameter Name		= slew_mode
 Parameter Address	= 24595
 Parameter Value		= 8320

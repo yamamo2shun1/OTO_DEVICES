@@ -50,21 +50,9 @@
       <Algorithm name="SignalMerger_1R" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="Ph_EQ_1" friendlyname="Allows to control EQ parameters in a graphical way." />
       <Algorithm name="Ph_EQ_Gain_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
-      <Algorithm name="SingleSlewExtVol_0" friendlyname="External Control of the Volume Gain">
-        <Link pin="ControlInput" dir="in" link="Link_38" id="Link_38" />
-        <Link pin="Output0" dir="out" link="Link_196" id="Link_196" />
-        <Link pin="Output1" dir="out" link="Link_197" id="Link_197" />
-        <Link pin="Input0" dir="in" link="Link_235" id="Link_237" />
-        <Link pin="Input1" dir="in" link="Link_236" id="Link_238" />
-      </Algorithm>
+      <Algorithm name="SingleSlewExtVol_B" friendlyname="External Control of the Volume Gain" />
       <Algorithm name="DCInput_A" friendlyname="Use this control to test a DC voltage input" />
-      <Algorithm name="SingleSlewExtVol_1" friendlyname="External Control of the Volume Gain">
-        <Link pin="ControlInput" dir="in" link="Link_65" id="Link_65" />
-        <Link pin="Output1" dir="out" link="Link_192" id="Link_192" />
-        <Link pin="Output0" dir="out" link="Link_193" id="Link_193" />
-        <Link pin="Input0" dir="in" link="Link_229" id="Link_231" />
-        <Link pin="Input1" dir="in" link="Link_230" id="Link_232" />
-      </Algorithm>
+      <Algorithm name="SingleSlewExtVol_A" friendlyname="External Control of the Volume Gain" />
       <Algorithm name="SignalMerger_2" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Output" dir="out" link="Link_79" id="Link_79" />
         <Link pin="Input0" dir="in" link="Link_193" id="Link_194" />

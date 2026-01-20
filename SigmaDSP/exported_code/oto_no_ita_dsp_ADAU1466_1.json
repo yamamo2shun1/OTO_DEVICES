@@ -1813,7 +1813,7 @@
                 ]
               },
               {
-                "AlgoName": "SingleSlewExtVol_0",
+                "AlgoName": "SingleSlewExtVol_B",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0",
@@ -1949,7 +1949,7 @@
                 ]
               },
               {
-                "AlgoName": "SingleSlewExtVol_1",
+                "AlgoName": "SingleSlewExtVol_A",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0",

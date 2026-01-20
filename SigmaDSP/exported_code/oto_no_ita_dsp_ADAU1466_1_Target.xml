@@ -1187,7 +1187,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>SingleSlewExtVol_0</AlgoName>
+          <AlgoName>SingleSlewExtVol_B</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0</DetailedName>
           <Description>External Control of the Volume Gain</Description>
           <AbstractParameter>
@@ -1259,7 +1259,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>SingleSlewExtVol_1</AlgoName>
+          <AlgoName>SingleSlewExtVol_A</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleSlewExtVol_v1.0.0.0</DetailedName>
           <Description>External Control of the Volume Gain</Description>
           <AbstractParameter>
