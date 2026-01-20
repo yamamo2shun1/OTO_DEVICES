@@ -756,7 +756,7 @@
                 "AbstractParameter": []
               },
               {
-                "AlgoName": "DCInput_0",
+                "AlgoName": "DCInput_B",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0",
@@ -1881,7 +1881,7 @@
                 ]
               },
               {
-                "AlgoName": "DCInput_1",
+                "AlgoName": "DCInput_A",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0",

@@ -44,9 +44,7 @@
       <Algorithm name="Output_7" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_143" id="Link_143" />
       </Algorithm>
-      <Algorithm name="DCInput_0" friendlyname="Use this control to test a DC voltage input">
-        <Link pin="Output" dir="out" link="Link_38" id="Link_38" />
-      </Algorithm>
+      <Algorithm name="DCInput_B" friendlyname="Use this control to test a DC voltage input" />
       <Algorithm name="Ln_Pn_SW_1" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="SignalMerger_1L" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="SignalMerger_1R" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
@@ -59,9 +57,7 @@
         <Link pin="Input0" dir="in" link="Link_235" id="Link_237" />
         <Link pin="Input1" dir="in" link="Link_236" id="Link_238" />
       </Algorithm>
-      <Algorithm name="DCInput_1" friendlyname="Use this control to test a DC voltage input">
-        <Link pin="Output" dir="out" link="Link_65" id="Link_65" />
-      </Algorithm>
+      <Algorithm name="DCInput_A" friendlyname="Use this control to test a DC voltage input" />
       <Algorithm name="SingleSlewExtVol_1" friendlyname="External Control of the Volume Gain">
         <Link pin="ControlInput" dir="in" link="Link_65" id="Link_65" />
         <Link pin="Output1" dir="out" link="Link_192" id="Link_192" />

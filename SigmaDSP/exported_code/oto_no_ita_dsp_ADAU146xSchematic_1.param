@@ -97,7 +97,7 @@ Parameter Data :
 
 
 
-Module Name			= DCInput_0
+Module Name			= DCInput_B
 Parameter Name		= DCValue
 Parameter Address	= 101
 Parameter Value		= 0
@@ -341,7 +341,7 @@ Parameter Data :
 
 
 
-Module Name			= DCInput_1
+Module Name			= DCInput_A
 Parameter Name		= DCValue
 Parameter Address	= 100
 Parameter Value		= 1

@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h
- * Created:	Monday, 19 January 2026 10:25 AM
+ * Created:	Tuesday, 20 January 2026 13:24 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -58,17 +58,17 @@
 
 
 
-/* Module DCInput_0 - DC Input */
-#define MOD_DCINPUT_0_COUNT                  1
-#define MOD_DCINPUT_0_SCHEMATIC              "ADAU146xSchematic_1"
-#define MOD_DCINPUT_0_DCVALUE_ADDR           101
-#define MOD_DCINPUT_0_DCVALUE_FIXPT          0x00000000
-#define MOD_DCINPUT_0_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
-#define MOD_DCINPUT_0_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
-#define MOD_DCINPUT_0_DCVALUE_DATA_MEMORY    "DM0"
-#define MOD_DCINPUT_0_DCVALUE_MEM_PAGE       0
-#define MOD_DCINPUT_0_DCVALUE_DATA_MEMORY    "DM0"
-#define MOD_DCINPUT_0_DCVALUE_MEM_PAGE       0
+/* Module DCInput_B - DC Input */
+#define MOD_DCINPUT_B_COUNT                  1
+#define MOD_DCINPUT_B_SCHEMATIC              "ADAU146xSchematic_1"
+#define MOD_DCINPUT_B_DCVALUE_ADDR           101
+#define MOD_DCINPUT_B_DCVALUE_FIXPT          0x00000000
+#define MOD_DCINPUT_B_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
+#define MOD_DCINPUT_B_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_DCINPUT_B_DCVALUE_DATA_MEMORY    "DM0"
+#define MOD_DCINPUT_B_DCVALUE_MEM_PAGE       0
+#define MOD_DCINPUT_B_DCVALUE_DATA_MEMORY    "DM0"
+#define MOD_DCINPUT_B_DCVALUE_MEM_PAGE       0
 
 /* Module Ln_Pn_SW_1 - 2xN Switch */
 #define MOD_LN_PN_SW_1_COUNT                         2
@@ -262,17 +262,17 @@
 #define MOD_SINGLESLEWEXTVOL_0_SLEW_MODE_DATA_MEMORY    "DM1"
 #define MOD_SINGLESLEWEXTVOL_0_SLEW_MODE_MEM_PAGE       0
 
-/* Module DCInput_1 - DC Input */
-#define MOD_DCINPUT_1_COUNT                  1
-#define MOD_DCINPUT_1_SCHEMATIC              "ADAU146xSchematic_1"
-#define MOD_DCINPUT_1_DCVALUE_ADDR           100
-#define MOD_DCINPUT_1_DCVALUE_FIXPT          0x01000000
-#define MOD_DCINPUT_1_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
-#define MOD_DCINPUT_1_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
-#define MOD_DCINPUT_1_DCVALUE_DATA_MEMORY    "DM0"
-#define MOD_DCINPUT_1_DCVALUE_MEM_PAGE       0
-#define MOD_DCINPUT_1_DCVALUE_DATA_MEMORY    "DM0"
-#define MOD_DCINPUT_1_DCVALUE_MEM_PAGE       0
+/* Module DCInput_A - DC Input */
+#define MOD_DCINPUT_A_COUNT                  1
+#define MOD_DCINPUT_A_SCHEMATIC              "ADAU146xSchematic_1"
+#define MOD_DCINPUT_A_DCVALUE_ADDR           100
+#define MOD_DCINPUT_A_DCVALUE_FIXPT          0x01000000
+#define MOD_DCINPUT_A_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_DCINPUT_A_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_DCINPUT_A_DCVALUE_DATA_MEMORY    "DM0"
+#define MOD_DCINPUT_A_DCVALUE_MEM_PAGE       0
+#define MOD_DCINPUT_A_DCVALUE_DATA_MEMORY    "DM0"
+#define MOD_DCINPUT_A_DCVALUE_MEM_PAGE       0
 
 /* Module SingleSlewExtVol_1 - External Volume Control (Slew) */
 #define MOD_SINGLESLEWEXTVOL_1_COUNT                    1

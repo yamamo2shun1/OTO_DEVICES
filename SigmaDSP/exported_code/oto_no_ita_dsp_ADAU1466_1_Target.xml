@@ -635,7 +635,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>DCInput_0</AlgoName>
+          <AlgoName>DCInput_B</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0</DetailedName>
           <Description>Use this control to test a DC voltage input</Description>
           <AbstractParameter>
@@ -1223,7 +1223,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>DCInput_1</AlgoName>
+          <AlgoName>DCInput_A</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.Sources.Sigma300.Sample.DCInput_v1.0.0.0</DetailedName>
           <Description>Use this control to test a DC voltage input</Description>
           <AbstractParameter>

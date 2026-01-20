@@ -1324,7 +1324,7 @@ void ui_control_task(void)
             dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
-            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_A_DCVALUE_ADDR, 4, dc_array);
 
             current_xfA_position = (uint8_t) (xf * 128.0f);
         }
@@ -1338,7 +1338,7 @@ void ui_control_task(void)
             dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
             dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
 
-            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
+            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_B_DCVALUE_ADDR, 4, dc_array);
 
             current_xfB_position = (uint8_t) (xf * 128.0f);
         }

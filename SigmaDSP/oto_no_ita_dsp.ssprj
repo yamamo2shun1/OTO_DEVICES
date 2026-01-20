@@ -2966,7 +2966,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3004,7 +3004,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3042,7 +3042,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3080,7 +3080,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3204,7 +3204,7 @@
                           "Height": 143.0,
                           "Width": 96.0
                         },
-                        "Label": "DCInput_0",
+                        "Label": "DCInput_B",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -3556,7 +3556,7 @@
                           "Height": 143.0,
                           "Width": 96.0
                         },
-                        "Label": "DCInput_1",
+                        "Label": "DCInput_A",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -3739,7 +3739,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -5948,7 +5948,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2341.1688311688308,
+                          "X": 2341.0,
                           "Y": 425.0
                         },
                         "Size": {
@@ -5989,7 +5989,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2341.1688311688308,
+                          "X": 2341.0,
                           "Y": 509.0
                         },
                         "Size": {
@@ -6030,7 +6030,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2341.1688311688308,
+                          "X": 2341.0,
                           "Y": 797.0
                         },
                         "Size": {
@@ -6071,7 +6071,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2342.2121645021639,
+                          "X": 2342.0,
                           "Y": 881.0
                         },
                         "Size": {
