@@ -874,6 +874,42 @@ void control_send2_out_gain(const uint16_t adc_val)
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND2_OUTPUT_GAIN_ADDR, 4, gain_array);
 }
 
+void control_dryA_out_gain(const uint16_t adc_val)
+{
+    const float rate    = adc_val / 1023.0f;
+    uint8_t dc_array[4] = {0x00};
+    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
+    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
+    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
+    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
+
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_DRYA_DCVALUE_ADDR, 4, dc_array);
+}
+
+void control_dryB_out_gain(const uint16_t adc_val)
+{
+    const float rate    = adc_val / 1023.0f;
+    uint8_t dc_array[4] = {0x00};
+    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
+    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
+    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
+    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
+
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_DRYB_DCVALUE_ADDR, 4, dc_array);
+}
+
+void control_wet_out_gain(const uint16_t adc_val)
+{
+    const float rate    = adc_val / 1023.0f;
+    uint8_t dc_array[4] = {0x00};
+    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
+    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
+    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
+    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
+
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_WET_DCVALUE_ADDR, 4, dc_array);
+}
+
 void control_master_out_gain(const uint16_t adc_val)
 {
     const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
@@ -1157,6 +1193,10 @@ void ui_control_task(void)
 
         if (stable_count == 0)
         {
+            /*
+             * 0 1 4 5
+             * 2 3 6 7
+             */
             switch (pot_ch)
             {
             case 0:
@@ -1175,8 +1215,9 @@ void ui_control_task(void)
                 control_input_from_ch1_gain(pot_val[pot_ch]);
                 break;
             case 7:
-                control_send1_out_gain(pot_val[pot_ch]);
-                control_send2_out_gain(pot_val[pot_ch]);
+                // control_dryA_out_gain(1023 - pot_val[pot_ch]);
+                control_dryB_out_gain(1023 - pot_val[pot_ch]);
+                control_wet_out_gain(pot_val[pot_ch]);
                 break;
             default:
                 break;
