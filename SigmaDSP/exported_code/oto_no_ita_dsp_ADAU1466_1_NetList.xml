@@ -55,17 +55,17 @@
       <Algorithm name="SingleSlewExtVol_A" friendlyname="External Control of the Volume Gain" />
       <Algorithm name="SignalMerger_2" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Output" dir="out" link="Link_79" id="Link_79" />
-        <Link pin="Input0" dir="in" link="Link_193" id="Link_194" />
-        <Link pin="Input1" dir="in" link="Link_196" id="Link_198" />
         <Link pin="Input2" dir="in" link="Link_206" id="Link_208" />
-        <Link pin="Input3" dir="in" link="Link_227" id="Link_210" />
+        <Link pin="Input1" dir="in" link="Link_255" id="Link_255" />
+        <Link pin="Input3" dir="in" link="Link_257" id="Link_257" />
+        <Link pin="Input0" dir="in" link="Link_262" id="Link_262" />
       </Algorithm>
       <Algorithm name="SignalMerger_3" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
         <Link pin="Output" dir="out" link="Link_80" id="Link_80" />
-        <Link pin="Input0" dir="in" link="Link_192" id="Link_195" />
-        <Link pin="Input1" dir="in" link="Link_197" id="Link_199" />
         <Link pin="Input2" dir="in" link="Link_207" id="Link_209" />
-        <Link pin="Input3" dir="in" link="Link_228" id="Link_211" />
+        <Link pin="Input1" dir="in" link="Link_256" id="Link_256" />
+        <Link pin="Input3" dir="in" link="Link_258" id="Link_258" />
+        <Link pin="Input0" dir="in" link="Link_263" id="Link_263" />
       </Algorithm>
       <Algorithm name="input_from_ch1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="master_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
@@ -105,6 +105,12 @@
         <Link pin="Input" dir="in" link="Link_248" id="Link_248" />
       </Algorithm>
       <Algorithm name="send2_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="DCInput_dryB" friendlyname="Use this control to test a DC voltage input" />
+      <Algorithm name="SingleSlewExtVol_dryB" friendlyname="External Control of the Volume Gain" />
+      <Algorithm name="DCInput_wet" friendlyname="Use this control to test a DC voltage input" />
+      <Algorithm name="SingleSlewExtVol_wet" friendlyname="External Control of the Volume Gain" />
+      <Algorithm name="DCInput_dryA" friendlyname="Use this control to test a DC voltage input" />
+      <Algorithm name="SingleSlewExtVol_dryA" friendlyname="External Control of the Volume Gain" />
     </Schematic>
   </Core>
 </IC>
