@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h
- * Created:	Tuesday, 20 January 2026 16:23 PM
+ * Created:	Wednesday, 21 January 2026 9:33 AM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -242,8 +242,8 @@
 #define MOD_PH_EQ_GAIN_1_COUNT               1
 #define MOD_PH_EQ_GAIN_1_SCHEMATIC           "ADAU146xSchematic_1"
 #define MOD_PH_EQ_GAIN_1_GAIN_ADDR           115
-#define MOD_PH_EQ_GAIN_1_GAIN_FIXPT          0x3F18820E
-#define MOD_PH_EQ_GAIN_1_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(63.0957344480193)
+#define MOD_PH_EQ_GAIN_1_GAIN_FIXPT          0x7FFFFFFF
+#define MOD_PH_EQ_GAIN_1_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(251.188643150958)
 #define MOD_PH_EQ_GAIN_1_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
 #define MOD_PH_EQ_GAIN_1_GAIN_DATA_MEMORY    "DM0"
 #define MOD_PH_EQ_GAIN_1_GAIN_MEM_PAGE       0
@@ -506,8 +506,8 @@
 #define MOD_PH_EQ_GAIN_2_COUNT               1
 #define MOD_PH_EQ_GAIN_2_SCHEMATIC           "ADAU146xSchematic_1"
 #define MOD_PH_EQ_GAIN_2_GAIN_ADDR           109
-#define MOD_PH_EQ_GAIN_2_GAIN_FIXPT          0x3F18820E
-#define MOD_PH_EQ_GAIN_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(63.0957344480193)
+#define MOD_PH_EQ_GAIN_2_GAIN_FIXPT          0x7FFFFFFF
+#define MOD_PH_EQ_GAIN_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(251.188643150958)
 #define MOD_PH_EQ_GAIN_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
 #define MOD_PH_EQ_GAIN_2_GAIN_DATA_MEMORY    "DM0"
 #define MOD_PH_EQ_GAIN_2_GAIN_MEM_PAGE       0

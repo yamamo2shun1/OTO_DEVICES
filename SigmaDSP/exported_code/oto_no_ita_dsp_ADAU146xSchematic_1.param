@@ -322,11 +322,11 @@ Parameter Data :
 Module Name			= Ph_EQ_Gain_1
 Parameter Name		= Gain
 Parameter Address	= 115
-Parameter Value		= 63.0957344480193
+Parameter Value		= 251.188643150958
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x3F, 0x18, 0x82, 0x0E, 
+0x7F, 0xFF, 0xFF, 0xFF, 
 
 
 
@@ -627,11 +627,11 @@ Parameter Data :
 Module Name			= Ph_EQ_Gain_2
 Parameter Name		= Gain
 Parameter Address	= 109
-Parameter Value		= 63.0957344480193
+Parameter Value		= 251.188643150958
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x3F, 0x18, 0x82, 0x0E, 
+0x7F, 0xFF, 0xFF, 0xFF, 
 
 
 
