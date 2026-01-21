@@ -791,31 +791,36 @@ double convert_dB2gain(double db)
     return pow(10.0, db / 20.0);
 }
 
+void write_q8_24(const uint16_t addr, const double val)
+{
+    uint8_t gain_array[4] = {0x00};
+    gain_array[0]         = ((uint32_t) (val * pow(2, 23)) >> 24) & 0x000000FF;
+    gain_array[1]         = ((uint32_t) (val * pow(2, 23)) >> 16) & 0x000000FF;
+    gain_array[2]         = ((uint32_t) (val * pow(2, 23)) >> 8) & 0x000000FF;
+    gain_array[3]         = (uint32_t) (val * pow(2, 23)) & 0x000000FF;
+
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, addr, 4, gain_array);
+}
+
 void control_input_from_usb_gain(uint8_t ch, int16_t db)
 {
     SEGGER_RTT_printf(0, "USB CH%d Gain: %.2f dB\n", ch, db);
 
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
+    const double gain = convert_dB2gain(db);
 
     switch (ch)
     {
     case 1:
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB1_GAIN_ADDR, 4, gain_array);
+        write_q8_24(MOD_INPUT_FROM_USB1_GAIN_ADDR, gain);
         break;
     case 2:
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB2_GAIN_ADDR, 4, gain_array);
+        write_q8_24(MOD_INPUT_FROM_USB2_GAIN_ADDR, gain);
         break;
     case 3:
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB3_GAIN_ADDR, 4, gain_array);
+        write_q8_24(MOD_INPUT_FROM_USB3_GAIN_ADDR, gain);
         break;
     case 4:
-        SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB4_GAIN_ADDR, 4, gain_array);
+        write_q8_24(MOD_INPUT_FROM_USB4_GAIN_ADDR, gain);
         break;
     default:
         break;
@@ -825,117 +830,54 @@ void control_input_from_usb_gain(uint8_t ch, int16_t db)
 void control_input_from_ch1_gain(const uint16_t adc_val)
 {
     const double db   = convert_pot2dB(adc_val);
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_CH1_GAIN_ADDR, 4, gain_array);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_INPUT_FROM_CH1_GAIN_ADDR, gain);
 }
 
 void control_input_from_ch2_gain(const uint16_t adc_val)
 {
     const double db   = convert_pot2dB(adc_val);
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_CH2_GAIN_ADDR, 4, gain_array);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_INPUT_FROM_CH2_GAIN_ADDR, gain);
 }
 
 void control_send1_out_gain(const uint16_t adc_val)
 {
     const double db   = convert_pot2dB(adc_val);
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND1_OUTPUT_GAIN_ADDR, 4, gain_array);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_SEND1_OUTPUT_GAIN_ADDR, gain);
 }
 
 void control_send2_out_gain(const uint16_t adc_val)
 {
     const double db   = convert_pot2dB(adc_val);
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND2_OUTPUT_GAIN_ADDR, 4, gain_array);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_SEND2_OUTPUT_GAIN_ADDR, gain);
 }
 
 void control_dryA_out_gain(const uint16_t adc_val)
 {
-    const float rate    = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    uint8_t dc_array[4] = {0x00};
-    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_DRYA_DCVALUE_ADDR, 4, dc_array);
+    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_DRYA_DCVALUE_ADDR, rate);
 }
 
 void control_dryB_out_gain(const uint16_t adc_val)
 {
-    const float rate    = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    uint8_t dc_array[4] = {0x00};
-    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_DRYB_DCVALUE_ADDR, 4, dc_array);
+    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_DRYB_DCVALUE_ADDR, rate);
 }
 
 void control_wet_out_gain(const uint16_t adc_val)
 {
-    const float rate    = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    uint8_t dc_array[4] = {0x00};
-    dc_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    dc_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    dc_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    dc_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_WET_DCVALUE_ADDR, 4, dc_array);
+    const float rate = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_WET_DCVALUE_ADDR, rate);
 }
 
 void control_master_out_gain(const uint16_t adc_val)
 {
     const double db   = convert_pot2dB(adc_val);
-    const double rate = convert_dB2gain(db);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_MASTER_OUTPUT_GAIN_ADDR, gain);
 }
 
 void set_ch1_line()
@@ -1368,28 +1310,16 @@ void ui_control_task(void)
 
         if (xfadeA_changed)
         {
-            const float xf      = pow(xfade_max[5] * xfade_min[4], 1.0f / 3.0f);
-            uint8_t dc_array[4] = {0x00};
-            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
-            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
-            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
-            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
-
-            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_A_DCVALUE_ADDR, 4, dc_array);
+            const float xf = pow(xfade_max[5] * xfade_min[4], 1.0f / 3.0f);
+            write_q8_24(MOD_DCINPUT_A_DCVALUE_ADDR, xf);
 
             current_xfA_position = (uint8_t) (xf * 128.0f);
         }
 
         if (xfadeB_changed)
         {
-            const float xf      = pow(xfade_max[0] * xfade_min[1], 1.0f / 3.0f);
-            uint8_t dc_array[4] = {0x00};
-            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
-            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
-            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
-            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
-
-            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_B_DCVALUE_ADDR, 4, dc_array);
+            const float xf = pow(xfade_max[0] * xfade_min[1], 1.0f / 3.0f);
+            write_q8_24(MOD_DCINPUT_B_DCVALUE_ADDR, xf);
 
             current_xfB_position = (uint8_t) (xf * 128.0f);
         }
