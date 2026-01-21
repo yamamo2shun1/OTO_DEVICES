@@ -1391,9 +1391,9 @@ void ui_control_task(void)
         uint8_t packet[4];
         tud_midi_packet_read(packet);
 
-        if ((packet[0] & 0xF0) == 0xC0)  // Program Change
+        if ((packet[1] & 0xF0) == 0xC0)  // Program Change
         {
-            switch (packet[1])
+            switch (packet[2])
             {
             case CH1_LINE:
                 select_input_type(INPUT_CH1, INPUT_TYPE_LINE);
