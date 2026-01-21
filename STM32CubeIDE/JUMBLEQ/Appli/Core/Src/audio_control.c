@@ -973,13 +973,13 @@ void select_xf_assignA_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
@@ -993,13 +993,13 @@ void select_xf_assignB_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
@@ -1013,13 +1013,13 @@ void select_xf_assignPost_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
