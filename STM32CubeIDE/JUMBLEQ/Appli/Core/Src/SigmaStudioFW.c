@@ -40,8 +40,8 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef* hspi)
 
 void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData)
 {
-    // HAL_StatusTypeDef status;
-    uint8_t data[1 + 2 + length];
+    // Use static buffer to avoid stack overflow
+    static uint8_t data[2560];
 
     data[0] = devAddress;
     data[1] = (uint8_t) ((address >> 8) & 0x00FF);
@@ -85,8 +85,8 @@ void SIGMA_WRITE_REGISTER_BLOCK_IT(uint8_t devAddress, uint16_t address, uint16_
 
 void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_t length, uint8_t* pData)
 {
-    // HAL_StatusTypeDef status;
-    uint8_t data[1 + 2 + length];
+    // Use static buffer to avoid stack overflow
+    static uint8_t data[64];  // SAFELOAD typically uses small data size
 
     data[0] = devAddress;
     data[1] = (uint8_t) ((dataAddress >> 8) & 0x00FF);
