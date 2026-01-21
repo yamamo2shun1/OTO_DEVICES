@@ -56,12 +56,30 @@ enum
 {
     INPUT_CH1 = 0,
     INPUT_CH2,
+    INPUT_USB,
 };
 
 enum
 {
     INPUT_TYPE_LINE = 0,
     INPUT_TYPE_PHONO,
+};
+
+enum
+{
+    CH1_LINE = 0,
+    CH1_PHONO,
+    CH2_LINE,
+    CH2_PHONO,
+    XF_ASSIGN_A_CH1,
+    XF_ASSIGN_A_CH2,
+    XF_ASSIGN_A_USB,
+    XF_ASSIGN_B_CH1,
+    XF_ASSIGN_B_CH2,
+    XF_ASSIGN_B_USB,
+    XF_ASSIGN_POST_CH1,
+    XF_ASSIGN_POST_CH2,
+    XF_ASSIGN_POST_USB,
 };
 
 // Audio controls
@@ -885,8 +903,8 @@ void set_ch1_line()
     ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004E, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004F, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch1_phono()
@@ -894,8 +912,8 @@ void set_ch1_phono()
     ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004E, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004F, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch2_line()
@@ -903,8 +921,8 @@ void set_ch2_line()
     ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004C, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004D, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch2_phono()
@@ -912,8 +930,8 @@ void set_ch2_phono()
     ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004C, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x004D, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void select_input_type(uint8_t ch, uint8_t type)
@@ -948,7 +966,7 @@ void select_input_type(uint8_t ch, uint8_t type)
     }
 }
 
-void select_send_source(uint8_t ch)
+void select_xf_assignA_source(uint8_t ch)
 {
     ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -960,9 +978,52 @@ void select_send_source(uint8_t ch)
     case INPUT_CH2:
         Mode0[0] = 0x01;
         break;
+    case INPUT_USB:
+        Mode0[0] = 0x02;
+        break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0x0062, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
+}
+
+void select_xf_assignB_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[0] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[0] = 0x01;
+        break;
+    case INPUT_USB:
+        Mode0[0] = 0x02;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
+}
+
+void select_xf_assignPost_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[0] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[0] = 0x01;
+        break;
+    case INPUT_USB:
+        Mode0[0] = 0x02;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
 }
 
 static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
@@ -1329,6 +1390,54 @@ void ui_control_task(void)
     {
         uint8_t packet[4];
         tud_midi_packet_read(packet);
+
+        if ((packet[0] & 0xF0) == 0xC0)  // Program Change
+        {
+            switch (packet[1])
+            {
+            case CH1_LINE:
+                select_input_type(INPUT_CH1, INPUT_TYPE_LINE);
+                break;
+            case CH1_PHONO:
+                select_input_type(INPUT_CH1, INPUT_TYPE_PHONO);
+                break;
+            case CH2_LINE:
+                select_input_type(INPUT_CH2, INPUT_TYPE_LINE);
+                break;
+            case CH2_PHONO:
+                select_input_type(INPUT_CH2, INPUT_TYPE_PHONO);
+                break;
+            case XF_ASSIGN_A_CH1:
+                select_xf_assignA_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_A_CH2:
+                select_xf_assignA_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_A_USB:
+                select_xf_assignA_source(INPUT_USB);
+                break;
+            case XF_ASSIGN_B_CH1:
+                select_xf_assignB_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_B_CH2:
+                select_xf_assignB_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_B_USB:
+                select_xf_assignB_source(INPUT_USB);
+                break;
+            case XF_ASSIGN_POST_CH1:
+                select_xf_assignPost_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_POST_CH2:
+                select_xf_assignPost_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_POST_USB:
+                select_xf_assignPost_source(INPUT_USB);
+                break;
+            default:
+                break;
+            }
+        }
 
         SEGGER_RTT_printf(0, "MIDI RX: 0x%02X 0x%02X 0x%02X(%d) 0x%02X(%d)\n", packet[0], packet[1], packet[2], packet[2], packet[3], packet[3]);
     }
