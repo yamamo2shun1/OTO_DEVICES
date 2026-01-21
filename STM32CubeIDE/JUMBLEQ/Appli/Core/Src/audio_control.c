@@ -1204,7 +1204,7 @@ void ui_control_task(void)
             stable_count++;
         }
 
-        if (stable_count == 0)
+        if (stable_count <= 1)
         {
             /*
              * 0 1 4 5
