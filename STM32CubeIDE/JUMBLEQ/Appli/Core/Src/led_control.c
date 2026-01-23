@@ -11,6 +11,9 @@
 
 #include "audio_control.h"
 
+#include "SigmaStudioFW.h"
+#include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
+
 #define RGB            3
 #define COL_BITS       8
 #define WL_LED_BIT_LEN (RGB * COL_BITS)
@@ -19,6 +22,8 @@
 #define DMA_BUF_SIZE   (LED_NUMS * WL_LED_BIT_LEN + 1)
 #define WL_LED_ONE     16
 #define WL_LED_ZERO    7
+
+#define BLINK_COUNT_MAX 32
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint8_t led_buf[DMA_BUF_SIZE] = {0};
 
@@ -80,11 +85,18 @@ void led_rx_blinking_task(void)
     HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 }
 
-void set_led(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
+void set_led_color(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
 {
     grb[index][0] = green;
     grb[index][1] = red;
     grb[index][2] = blue;
+}
+
+void layer_led_color(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
+{
+    grb[index][0] |= green;
+    grb[index][1] |= red;
+    grb[index][2] |= blue;
 }
 
 void renew(void)
@@ -106,45 +118,313 @@ void renew(void)
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
 
+void set_vu_meter_a(void)
+{
+    ADI_REG_TYPE rx_data[4] = {0};
+    SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_A_VALUE_ADDR, 4, rx_data);
+    uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
+    float dbfs   = 0.0f;
+    if (val == 0 || val == 0xFFFFFFFF)
+    {
+        dbfs = -96.0f;
+    }
+    else
+    {
+        dbfs = 20.0f * log((float) val / pow(2, 23));
+    }
+    if (dbfs > -9.0f)
+    {
+        set_led_color(4, 127, 0, 0);
+        set_led_color(3, 120, 38, 0);
+        set_led_color(2, 100, 70, 0);
+        set_led_color(1, 30, 61, 0);
+        set_led_color(0, 0, 32, 0);
+    }
+    else if (dbfs > -18.0f)
+    {
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 120, 38, 0);
+        set_led_color(2, 100, 70, 0);
+        set_led_color(1, 30, 61, 0);
+        set_led_color(0, 0, 32, 0);
+    }
+    else if (dbfs > -27.0f)
+    {
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 100, 70, 0);
+        set_led_color(1, 30, 61, 0);
+        set_led_color(0, 0, 32, 0);
+    }
+    else if (dbfs > -36.0f)
+    {
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 30, 61, 0);
+        set_led_color(0, 0, 32, 0);
+    }
+    else if (dbfs > -45.0f)
+    {
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 0, 0, 0);
+        set_led_color(0, 0, 32, 0);
+    }
+    else
+    {
+        set_led_color(4, 0, 0, 0);
+        set_led_color(3, 0, 0, 0);
+        set_led_color(2, 0, 0, 0);
+        set_led_color(1, 0, 0, 0);
+        set_led_color(0, 0, 0, 0);
+    }
+}
+
+void set_vu_meter_b(void)
+{
+    ADI_REG_TYPE rx_data[4] = {0};
+    SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_B_VALUE_ADDR, 4, rx_data);
+    uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
+    float dbfs   = 0.0f;
+    if (val == 0 || val == 0xFFFFFFFF)
+    {
+        dbfs = -96.0f;
+    }
+    else
+    {
+        dbfs = 20.0f * log((float) val / pow(2, 23));
+    }
+    if (dbfs > -9.0f)
+    {
+        set_led_color(5, 127, 0, 0);
+        set_led_color(6, 120, 38, 0);
+        set_led_color(7, 100, 70, 0);
+        set_led_color(8, 30, 61, 0);
+        set_led_color(9, 0, 32, 0);
+    }
+    else if (dbfs > -18.0f)
+    {
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 120, 38, 0);
+        set_led_color(7, 100, 70, 0);
+        set_led_color(8, 30, 61, 0);
+        set_led_color(9, 0, 32, 0);
+    }
+    else if (dbfs > -27.0f)
+    {
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 100, 70, 0);
+        set_led_color(8, 30, 61, 0);
+        set_led_color(9, 0, 32, 0);
+    }
+    else if (dbfs > -36.0f)
+    {
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 30, 61, 0);
+        set_led_color(9, 0, 32, 0);
+    }
+    else if (dbfs > -45.0f)
+    {
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 0, 0, 0);
+        set_led_color(9, 0, 32, 0);
+    }
+    else
+    {
+        set_led_color(5, 0, 0, 0);
+        set_led_color(6, 0, 0, 0);
+        set_led_color(7, 0, 0, 0);
+        set_led_color(8, 0, 0, 0);
+        set_led_color(9, 0, 0, 0);
+    }
+}
+
+void layer_xfA_position(void)
+{
+    static uint8_t blink_count_a = 0;
+    uint8_t xf_pos               = get_current_xfA_position();
+
+    uint8_t white_level = 0;
+
+    if (blink_count_a < BLINK_COUNT_MAX / 2)
+    {
+        white_level = (uint8_t) (80.0f * ((float) blink_count_a / (float) (BLINK_COUNT_MAX / 2)));
+    }
+    else
+    {
+        white_level = (uint8_t) (80.0f * ((float) ((BLINK_COUNT_MAX - 1) - blink_count_a) / (float) (BLINK_COUNT_MAX / 2)));
+    }
+
+    if (xf_pos < 32)
+    {
+        layer_led_color(0, white_level, white_level, white_level);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else if (xf_pos < 64)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, white_level, white_level, white_level);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else if (xf_pos < 96)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, white_level, white_level, white_level);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else if (xf_pos < 120)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, white_level, white_level, white_level);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, white_level, white_level, white_level);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    blink_count_a = (blink_count_a + 1) % BLINK_COUNT_MAX;
+}
+
+void layer_xfB_position(void)
+{
+    static uint8_t blink_count_b = 0;
+    uint8_t xf_pos               = get_current_xfB_position();
+
+    uint8_t white_level = 0;
+
+    if (blink_count_b < BLINK_COUNT_MAX / 2)
+    {
+        white_level = (uint8_t) (80.0f * ((float) blink_count_b / (float) (BLINK_COUNT_MAX / 2)));
+    }
+    else
+    {
+        white_level = (uint8_t) (80.0f * ((float) ((BLINK_COUNT_MAX - 1) - blink_count_b) / (float) (BLINK_COUNT_MAX / 2)));
+    }
+
+    if (xf_pos < 32)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, white_level, white_level, white_level);
+    }
+    else if (xf_pos < 64)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, white_level, white_level, white_level);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else if (xf_pos < 96)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, white_level, white_level, white_level);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else if (xf_pos < 120)
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, 0, 0, 0);
+        layer_led_color(6, white_level, white_level, white_level);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    else
+    {
+        layer_led_color(0, 0, 0, 0);
+        layer_led_color(1, 0, 0, 0);
+        layer_led_color(2, 0, 0, 0);
+        layer_led_color(3, 0, 0, 0);
+        layer_led_color(4, 0, 0, 0);
+        layer_led_color(5, white_level, white_level, white_level);
+        layer_led_color(6, 0, 0, 0);
+        layer_led_color(7, 0, 0, 0);
+        layer_led_color(8, 0, 0, 0);
+        layer_led_color(9, 0, 0, 0);
+    }
+    blink_count_b = (blink_count_b + 1) % BLINK_COUNT_MAX;
+}
+
 void rgb_led_task(void)
 {
+    set_vu_meter_a();
+    set_vu_meter_b();
+    layer_xfA_position();
+    layer_xfB_position();
+    renew();
+
     if (is_color_update)
     {
         HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-
-        switch (test)
-        {
-        case 0:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 255, 0, 0);
-            }
-            test = 1;
-            break;
-        case 1:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 255, 0);
-            }
-            test = 2;
-            break;
-        case 2:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 255);
-            }
-            test = 3;
-            break;
-        case 3:
-        default:
-            for (int i = 0; i < LED_NUMS; i++)
-            {
-                set_led(i, 0, 0, 0);
-            }
-            test = 0;
-            break;
-        }
-        renew();
 
         is_color_update = false;
     }

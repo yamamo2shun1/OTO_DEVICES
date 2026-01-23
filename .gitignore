@@ -1,13 +1,15 @@
 ### Documents
 Datasheets/
 
+FlexASIO.toml
+
 ### Kicad
 *.zip
-KiCad/OTO_NO_ITA/fp-info-cache
-KiCad/OTO_NO_ITA/jlcpcb/production_files/
-KiCad/OTO_NO_ITA/jlcpcb/gerber/
-KiCad/OTO_NO_DEIRI/jlcpcb/
-KiCad/OTO_NO_TE/jlcpcb/gerber/
+fp-info-cache
+jlcpcb/
+
+KiCad/GLPMJ_One/
+KiCad/GLPMJ_One_Plate/
 
 ### STM32CubeIDE
 .metadata
@@ -34,5 +36,3 @@ STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_ROMxspi1_RAMxspi2.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_RAMxspi1_ROMxspi2.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_OEMiROT_Appli.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_default.ld
-
-KiCad/OTO_NO_ITA/jlcpcb/project.db

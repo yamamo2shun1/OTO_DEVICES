@@ -88,7 +88,7 @@ Parameter Data :
 
 Module Name			= input_from_ch2
 Parameter Name		= Gain
-Parameter Address	= 88
+Parameter Address	= 114
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -97,31 +97,20 @@ Parameter Data :
 
 
 
-Module Name			= input_from_usb
-Parameter Name		= Gain
-Parameter Address	= 82
-Parameter Value		= 1
-Data Memory			= DM0
-Mem Page			= 0
-Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
-
-
-
-Module Name			= DCInput_0
+Module Name			= DCInput_B
 Parameter Name		= DCValue
-Parameter Address	= 81
-Parameter Value		= 1
+Parameter Address	= 104
+Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 
 
 
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel0
-Parameter Address	= 78
+Parameter Address	= 98
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -132,7 +121,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_1
 Parameter Name		= Index_Channel1
-Parameter Address	= 79
+Parameter Address	= 99
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -143,7 +132,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1L
 Parameter Name		= gain
-Parameter Address	= 90
+Parameter Address	= 116
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -155,7 +144,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_1R
 Parameter Name		= gain
-Parameter Address	= 92
+Parameter Address	= 118
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -332,29 +321,29 @@ Parameter Data :
 
 Module Name			= Ph_EQ_Gain_1
 Parameter Name		= Gain
-Parameter Address	= 89
-Parameter Value		= 15.8489319246111
+Parameter Address	= 115
+Parameter Value		= 251.188643150958
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x0F, 0xD9, 0x53, 0x9A, 
+0x7F, 0xFF, 0xFF, 0xFF, 
 
 
 
-Module Name			= SingleSlewExtVol_0
+Module Name			= SingleSlewExtVol_B
 Parameter Name		= slew_mode
-Parameter Address	= 24597
-Parameter Value		= 8320
+Parameter Address	= 24601
+Parameter Value		= 8330
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x80, 
+0x00, 0x00, 0x20, 0x8A, 
 
 
 
-Module Name			= DCInput_1
+Module Name			= DCInput_A
 Parameter Name		= DCValue
-Parameter Address	= 80
+Parameter Address	= 103
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -363,46 +352,48 @@ Parameter Data :
 
 
 
-Module Name			= SingleSlewExtVol_1
+Module Name			= SingleSlewExtVol_A
 Parameter Name		= slew_mode
-Parameter Address	= 24585
-Parameter Value		= 8320
+Parameter Address	= 24597
+Parameter Value		= 8330
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x80, 
+0x00, 0x00, 0x20, 0x8A, 
 
 
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 102
+Parameter Address	= 148
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x55, 0x55, 0x55, 
-0x00, 0x55, 0x55, 0x55, 
-0x00, 0x55, 0x55, 0x55, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
 
 
 
 Module Name			= SignalMerger_3
 Parameter Name		= gain
-Parameter Address	= 96
+Parameter Address	= 144
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x00, 0x55, 0x55, 0x55, 
-0x00, 0x55, 0x55, 0x55, 
-0x00, 0x55, 0x55, 0x55, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
+0x00, 0x40, 0x00, 0x00, 
 
 
 
 Module Name			= input_from_ch1
 Parameter Name		= Gain
-Parameter Address	= 94
+Parameter Address	= 120
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -413,7 +404,7 @@ Parameter Data :
 
 Module Name			= master_output
 Parameter Name		= Gain
-Parameter Address	= 105
+Parameter Address	= 152
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -424,7 +415,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel0
-Parameter Address	= 76
+Parameter Address	= 96
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -435,7 +426,7 @@ Parameter Data :
 
 Module Name			= Ln_Pn_SW_2
 Parameter Name		= Index_Channel1
-Parameter Address	= 77
+Parameter Address	= 97
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -446,7 +437,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2L
 Parameter Name		= gain
-Parameter Address	= 84
+Parameter Address	= 110
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -458,7 +449,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2R
 Parameter Name		= gain
-Parameter Address	= 86
+Parameter Address	= 112
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -635,51 +626,18 @@ Parameter Data :
 
 Module Name			= Ph_EQ_Gain_2
 Parameter Name		= Gain
-Parameter Address	= 83
-Parameter Value		= 15.8489319246111
+Parameter Address	= 109
+Parameter Value		= 251.188643150958
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x0F, 0xD9, 0x53, 0x9A, 
+0x7F, 0xFF, 0xFF, 0xFF, 
 
 
 
-Module Name			= Snd_SW
-Parameter Name		= Index
-Parameter Address	= 100
-Parameter Value		= 0
-Data Memory			= DM0
-Mem Page			= 0
-Parameter Data :
-0x00, 0x00, 0x00, 0x00, 
-
-
-
-Module Name			= send_output
+Module Name			= send1_output
 Parameter Name		= Gain
-Parameter Address	= 101
-Parameter Value		= 1
-Data Memory			= DM0
-Mem Page			= 0
-Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
-
-
-
-Module Name			= SingleControlSplitter_0
-Parameter Name		= Gain
-Parameter Address	= 99
-Parameter Value		= 1
-Data Memory			= DM0
-Mem Page			= 0
-Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
-
-
-
-Module Name			= SingleControlSplitter_1
-Parameter Name		= Gain
-Parameter Address	= 95
+Parameter Address	= 132
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -690,7 +648,7 @@ Parameter Data :
 
 Module Name			= SingleControlSplitter_2
 Parameter Name		= Gain
-Parameter Address	= 107
+Parameter Address	= 154
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -701,12 +659,278 @@ Parameter Data :
 
 Module Name			= SingleControlSplitter_3
 Parameter Name		= Gain
+Parameter Address	= 153
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SignalMerger_B
+Parameter Name		= gain
+Parameter Address	= 134
+Parameter Value		= 0
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x80, 0x00, 0x00, 
+0x00, 0x80, 0x00, 0x00, 
+
+
+
+Module Name			= DSPReadBack_B
+Parameter Name		= Value
+Parameter Address	= 67
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= RunningAverage_B
+Parameter Name		= RmsTCinDBps
+Parameter Address	= 136
+Parameter Value		= 0.000287864561677509
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x12, 0xDE, 
+
+
+
+Module Name			= RunningAverage_B
+Parameter Name		= Decay
+Parameter Address	= 138
+Parameter Value		= 1.30208333333333E-05
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0xDA, 
+
+
+
+Module Name			= RunningAverage_B
+Parameter Name		= Hold
+Parameter Address	= 137
+Parameter Value		= 0
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= xf_assign_sw_B
+Parameter Name		= Index
+Parameter Address	= 133
+Parameter Value		= 0
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= xf_assign_sw_A
+Parameter Name		= Index
+Parameter Address	= 122
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x01, 
+
+
+
+Module Name			= xf_assign_sw_post
+Parameter Name		= Index
+Parameter Address	= 121
+Parameter Value		= 2
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x02, 
+
+
+
+Module Name			= SignalMerger_A
+Parameter Name		= gain
+Parameter Address	= 123
+Parameter Value		= 0
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x80, 0x00, 0x00, 
+0x00, 0x80, 0x00, 0x00, 
+
+
+
+Module Name			= DSPReadBack_A
+Parameter Name		= Value
+Parameter Address	= 60
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= RunningAverage_A
+Parameter Name		= RmsTCinDBps
+Parameter Address	= 125
+Parameter Value		= 0.000287864561677509
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x12, 0xDE, 
+
+
+
+Module Name			= RunningAverage_A
+Parameter Name		= Decay
+Parameter Address	= 127
+Parameter Value		= 1.30208333333333E-05
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0xDA, 
+
+
+
+Module Name			= RunningAverage_A
+Parameter Name		= Hold
+Parameter Address	= 126
+Parameter Value		= 0
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= input_from_usb1
+Parameter Name		= Gain
+Parameter Address	= 108
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= input_from_usb2
+Parameter Name		= Gain
+Parameter Address	= 107
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= input_from_usb3
+Parameter Name		= Gain
 Parameter Address	= 106
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
 0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= input_from_usb4
+Parameter Name		= Gain
+Parameter Address	= 105
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= send2_output
+Parameter Name		= Gain
+Parameter Address	= 143
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= DCInput_dryB
+Parameter Name		= DCValue
+Parameter Address	= 102
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleSlewExtVol_dryB
+Parameter Name		= slew_mode
+Parameter Address	= 24603
+Parameter Value		= 8330
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x20, 0x8A, 
+
+
+
+Module Name			= DCInput_wet
+Parameter Name		= DCValue
+Parameter Address	= 101
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleSlewExtVol_wet
+Parameter Name		= slew_mode
+Parameter Address	= 24585
+Parameter Value		= 8330
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x20, 0x8A, 
+
+
+
+Module Name			= DCInput_dryA
+Parameter Name		= DCValue
+Parameter Address	= 100
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= SingleSlewExtVol_dryA
+Parameter Name		= slew_mode
+Parameter Address	= 24599
+Parameter Value		= 8330
+Data Memory			= DM1
+Mem Page			= 0
+Parameter Data :
+0x00, 0x00, 0x20, 0x8A, 
 
 
 

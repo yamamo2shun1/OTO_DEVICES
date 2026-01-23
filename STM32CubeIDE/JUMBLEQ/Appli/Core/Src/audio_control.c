@@ -21,8 +21,6 @@
 #include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
 #include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
-#include "sr_48k_Modes.h"
-#include "sr_96k_Modes.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
 
@@ -58,6 +56,7 @@ enum
 {
     INPUT_CH1 = 0,
     INPUT_CH2,
+    INPUT_USB,
 };
 
 enum
@@ -66,9 +65,29 @@ enum
     INPUT_TYPE_PHONO,
 };
 
+enum
+{
+    CH1_LINE = 0,
+    CH1_PHONO,
+    CH2_LINE,
+    CH2_PHONO,
+    XF_ASSIGN_A_CH1,
+    XF_ASSIGN_A_CH2,
+    XF_ASSIGN_A_USB,
+    XF_ASSIGN_B_CH1,
+    XF_ASSIGN_B_CH2,
+    XF_ASSIGN_B_USB,
+    XF_ASSIGN_POST_CH1,
+    XF_ASSIGN_POST_CH2,
+    XF_ASSIGN_POST_USB,
+};
+
 // Audio controls
 static uint32_t tx_blink_interval_ms = BLINK_NOT_MOUNTED;
 static uint32_t rx_blink_interval_ms = BLINK_NOT_MOUNTED;
+
+uint8_t current_xfA_position = 127;
+uint8_t current_xfB_position = 127;
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
@@ -87,10 +106,10 @@ uint16_t mag_val[MAG_SW_NUM]                 = {0};
 uint32_t mag_offset_sum[MAG_SW_NUM]          = {0};
 uint16_t mag_offset[MAG_SW_NUM]              = {0};
 
-bool thumb_enable = false;
-
 float xfade[MAG_SW_NUM]      = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float xfade_prev[MAG_SW_NUM] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_min[MAG_SW_NUM]  = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+float xfade_max[MAG_SW_NUM]  = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 int16_t hpout_clear_count              = 0;
 volatile uint32_t sai_tx_rng_buf_index = 0;
@@ -156,6 +175,8 @@ static volatile uint32_t dbg_ret_no_ep         = 0;  // EP NULL
 static volatile uint32_t dbg_ret_underrun      = 0;  // リングバッファ不足
 static volatile uint32_t dbg_ret_written_zero  = 0;  // written == 0
 static volatile int32_t dbg_last_used          = 0;  // 最後のused値
+
+void control_input_from_usb_gain(uint8_t ch, int16_t db);
 
 void reset_audio_buffer(void)
 {
@@ -226,6 +247,16 @@ uint32_t get_tx_blink_interval_ms(void)
 uint32_t get_rx_blink_interval_ms(void)
 {
     return rx_blink_interval_ms;
+}
+
+uint8_t get_current_xfA_position(void)
+{
+    return current_xfA_position;
+}
+
+uint8_t get_current_xfB_position(void)
+{
+    return current_xfB_position;
 }
 
 //--------------------------------------------------------------------+
@@ -583,6 +614,8 @@ static bool audio20_feature_unit_set_request(uint8_t rhport, audio20_control_req
 
         TU_LOG1("Set channel %d volume: %d dB\r\n", request->bChannelNumber, volume[request->bChannelNumber] / 256);
 
+        control_input_from_usb_gain(request->bChannelNumber, volume[request->bChannelNumber] / 256);
+
         return true;
     }
     else
@@ -756,78 +789,113 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     return true;
 }
 
-// tud_audio_rx_done_isr を削除してデフォルト（weak）に戻す
-
-void control_input_from_usb_gain(const uint16_t adc_val)
+double convert_pot2dB(uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
+    double x  = (double) adc_val / 1023.0;
+    double db = 0.0;
+    if (x < 0.7)
+    {
+        db = -80.0 + (x / 0.7) * 80.0;
+    }
+    else
+    {
+        db = (x - 0.7) / 0.3 * 10.0;
+    }
+    return db;
+}
 
-    const double rate = pow(10.0, db / 20.0);
+double convert_dB2gain(double db)
+{
+    return pow(10.0, db / 20.0);
+}
 
+void write_q8_24(const uint16_t addr, const double val)
+{
     uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_USB_GAIN_ADDR, 4, gain_array);
+    gain_array[0]         = ((uint32_t) (val * pow(2, 23)) >> 24) & 0x000000FF;
+    gain_array[1]         = ((uint32_t) (val * pow(2, 23)) >> 16) & 0x000000FF;
+    gain_array[2]         = ((uint32_t) (val * pow(2, 23)) >> 8) & 0x000000FF;
+    gain_array[3]         = (uint32_t) (val * pow(2, 23)) & 0x000000FF;
+
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, addr, 4, gain_array);
+}
+
+void control_input_from_usb_gain(uint8_t ch, int16_t db)
+{
+    SEGGER_RTT_printf(0, "USB CH%d Gain: %.2f dB\n", ch, db);
+
+    const double gain = convert_dB2gain(db);
+
+    switch (ch)
+    {
+    case 1:
+        write_q8_24(MOD_INPUT_FROM_USB1_GAIN_ADDR, gain);
+        break;
+    case 2:
+        write_q8_24(MOD_INPUT_FROM_USB2_GAIN_ADDR, gain);
+        break;
+    case 3:
+        write_q8_24(MOD_INPUT_FROM_USB3_GAIN_ADDR, gain);
+        break;
+    case 4:
+        write_q8_24(MOD_INPUT_FROM_USB4_GAIN_ADDR, gain);
+        break;
+    default:
+        break;
+    }
 }
 
 void control_input_from_ch1_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_CH1_GAIN_ADDR, 4, gain_array);
+    const double db   = convert_pot2dB(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_INPUT_FROM_CH1_GAIN_ADDR, gain);
 }
 
 void control_input_from_ch2_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
+    const double db   = convert_pot2dB(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_INPUT_FROM_CH2_GAIN_ADDR, gain);
+}
 
-    const double rate = pow(10.0, db / 20.0);
+void control_send1_out_gain(const uint16_t adc_val)
+{
+    const double db   = convert_pot2dB(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_SEND1_OUTPUT_GAIN_ADDR, gain);
+}
 
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_INPUT_FROM_CH2_GAIN_ADDR, 4, gain_array);
+void control_send2_out_gain(const uint16_t adc_val)
+{
+    const double db   = convert_pot2dB(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_SEND2_OUTPUT_GAIN_ADDR, gain);
+}
+
+void control_dryA_out_gain(const uint16_t adc_val)
+{
+    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_DRYA_DCVALUE_ADDR, rate);
+}
+
+void control_dryB_out_gain(const uint16_t adc_val)
+{
+    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_DRYB_DCVALUE_ADDR, rate);
+}
+
+void control_wet_out_gain(const uint16_t adc_val)
+{
+    const float rate = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    write_q8_24(MOD_DCINPUT_WET_DCVALUE_ADDR, rate);
 }
 
 void control_master_out_gain(const uint16_t adc_val)
 {
-    const double c_curve_val = 1038.0 * tanh((double) adc_val / 448.0);
-    const double db          = (135.0 / 1023.0) * c_curve_val - 120.0;
-
-    const double rate = pow(10.0, db / 20.0);
-
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (rate * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (rate * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (rate * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (rate * pow(2, 23)) & 0x000000FF;
-#if 0
-    SEGGER_RTT_printf(0, "%d -> %02X,%02X,%02X,%02X\n", adc_val, gain_array[0], gain_array[1], gain_array[2], gain_array[3]);
-#endif
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_MASTER_OUTPUT_GAIN_ADDR, 4, gain_array);
+    const double db   = convert_pot2dB(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_MASTER_OUTPUT_GAIN_ADDR, gain);
 }
 
 void set_ch1_line()
@@ -835,8 +903,8 @@ void set_ch1_line()
     ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch1_phono()
@@ -844,8 +912,8 @@ void set_ch1_phono()
     ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004E, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004F, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch2_line()
@@ -853,8 +921,8 @@ void set_ch2_line()
     ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void set_ch2_phono()
@@ -862,8 +930,8 @@ void set_ch2_phono()
     ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
     ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004C, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x004D, 4, Mode0_1);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
+    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
 }
 
 void select_input_type(uint8_t ch, uint8_t type)
@@ -898,21 +966,64 @@ void select_input_type(uint8_t ch, uint8_t type)
     }
 }
 
-void select_send_source(uint8_t ch)
+void select_xf_assignA_source(uint8_t ch)
 {
     ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
 
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
+        break;
+    case INPUT_USB:
+        Mode0[3] = 0x02;
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0x0062, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
+}
+
+void select_xf_assignB_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[3] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[3] = 0x01;
+        break;
+    case INPUT_USB:
+        Mode0[3] = 0x02;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
+}
+
+void select_xf_assignPost_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_CH1:
+        Mode0[3] = 0x00;
+        break;
+    case INPUT_CH2:
+        Mode0[3] = 0x01;
+        break;
+    case INPUT_USB:
+        Mode0[3] = 0x02;
+        break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
 }
 
 static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
@@ -1093,8 +1204,12 @@ void ui_control_task(void)
             stable_count++;
         }
 
-        if (stable_count == 0)
+        if (stable_count <= 1)
         {
+            /*
+             * 0 1 4 5
+             * 2 3 6 7
+             */
             switch (pot_ch)
             {
             case 0:
@@ -1113,7 +1228,9 @@ void ui_control_task(void)
                 control_input_from_ch1_gain(pot_val[pot_ch]);
                 break;
             case 7:
-                control_input_from_usb_gain(pot_val[pot_ch]);
+                // control_dryA_out_gain(1023 - pot_val[pot_ch]);
+                control_dryB_out_gain(pot_val[pot_ch]);
+                control_wet_out_gain(pot_val[pot_ch]);
                 break;
             default:
                 break;
@@ -1161,34 +1278,42 @@ void ui_control_task(void)
         mag_calibration_count++;
     }
 
-#if 0
-    if (mag_val[0] < 950)
-    {
-        xfade[0] = 0.0f;
-    }
-    else if (mag_val[0] >= 950 && mag_val[0] <= 1500)
-    {
-        xfade[0] = ((float) (mag_val[0] - 950) / (float) (1500 - 950));
-    }
-    else if (mag_val[0] > 1500)
-    {
-        xfade[0] = 1.0f;
-    }
-#endif
-
     if (mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        if (mag_val[0] <= THUMB_THRESHOLD && mag_val[5] <= THUMB_THRESHOLD)
+        int index[6] = {0, 5, 1, 2, 3, 4};
+        for (int j = 0; j < 6; j++)
         {
-            for (int i = 1; i < 5; i++)
+            int i = index[j];
+            if (i == 0 || i == 5)
             {
-                xfade[i] = 0.0f;
+                if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
+                {
+                    xfade[i] = 0.0f;
+                }
+                else if (mag_val[i] >= mag_offset[i] + MAG_XFADE_CUTOFF && mag_val[i] <= mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = (float) (mag_val[i] - mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE;
+                }
+                else if (mag_val[i] > mag_offset[i] + MAG_XFADE_RANGE)
+                {
+                    xfade[i] = 1.0f;
+                }
+
+                if (xfade[i] >= xfade_max[i])
+                {
+                    xfade_max[i] = xfade[i];
+
+                    if (i == 0)
+                    {
+                        xfade_min[1] = xfade_max[i];
+                    }
+                    else if (i == 5)
+                    {
+                        xfade_min[4] = xfade_max[i];
+                    }
+                }
             }
-            thumb_enable = false;
-        }
-        else
-        {
-            for (int i = 1; i < 5; i++)
+            else
             {
                 if (mag_val[i] < mag_offset[i] + MAG_XFADE_CUTOFF)
                 {
@@ -1202,52 +1327,119 @@ void ui_control_task(void)
                 {
                     xfade[i] = 0.0f;
                 }
-            }
 
-            thumb_enable = true;
+                if (xfade[i] <= xfade_min[i])
+                {
+                    xfade_min[i] = xfade[i];
+
+                    if (xfade_min[i] < 0.05f)
+                    {
+                        if (i == 1)
+                        {
+                            xfade_max[0] = 0.0f;
+                        }
+                        else if (i == 4)
+                        {
+                            xfade_max[5] = 0.0f;
+                        }
+                    }
+                }
+            }
         }
 
-        bool xfade_changed = false;
+        bool xfadeA_changed = false;
+        bool xfadeB_changed = false;
         for (int i = 0; i < 6; i++)
         {
             if (fabs(xfade[i] - xfade_prev[i]) > 0.01f)
             {
-                if (thumb_enable)
+                // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+
+                if (i == 0 || i == 1)
                 {
-                    // send_note(60 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
-                    send_control_change(10 + (5 - i), (uint8_t) (127.0f - xfade[i] * 127.0f), 0);
+                    xfadeB_changed = true;
+                }
+                if (i == 4 || i == 5)
+                {
+                    xfadeA_changed = true;
                 }
 
-                xfade_changed = true;
+                xfade_prev[i] = xfade[i];
             }
         }
 
-        if (xfade_changed)
+        if (xfadeA_changed)
         {
-            const float xf      = xfade[1];  // * xfade[2] * xfade[3] * xfade[4];
-            uint8_t dc_array[4] = {0x00};
-            dc_array[0]         = ((uint32_t) (xf * pow(2, 23)) >> 24) & 0x000000FF;
-            dc_array[1]         = ((uint32_t) (xf * pow(2, 23)) >> 16) & 0x000000FF;
-            dc_array[2]         = ((uint32_t) (xf * pow(2, 23)) >> 8) & 0x000000FF;
-            dc_array[3]         = (uint32_t) (xf * pow(2, 23)) & 0x000000FF;
+            const float xf = pow(xfade_max[5] * xfade_min[4], 1.0f / 3.0f);
+            write_q8_24(MOD_DCINPUT_A_DCVALUE_ADDR, xf);
 
-            SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_0_DCVALUE_ADDR, 4, dc_array);
-
-#if 0
-        xfade       = 0.0f;
-        dc_array[0] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 24) & 0x000000FF;
-        dc_array[1] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 16) & 0x000000FF;
-        dc_array[2] = ((uint32_t) ((1.0f - xfade) * pow(2, 23)) >> 8) & 0x000000FF;
-        dc_array[3] = (uint32_t) ((1.0f - xfade) * pow(2, 23)) & 0x000000FF;
-
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DCINPUT_1_DCVALUE_ADDR, 4, dc_array);
-#endif
+            current_xfA_position = (uint8_t) (xf * 128.0f);
         }
 
-        for (int i = 0; i < 6; i++)
+        if (xfadeB_changed)
         {
-            xfade_prev[i] = xfade[i];
+            const float xf = pow(xfade_max[0] * xfade_min[1], 1.0f / 3.0f);
+            write_q8_24(MOD_DCINPUT_B_DCVALUE_ADDR, xf);
+
+            current_xfB_position = (uint8_t) (xf * 128.0f);
         }
+    }
+
+    while (tud_midi_available())
+    {
+        uint8_t packet[4];
+        tud_midi_packet_read(packet);
+
+        if ((packet[1] & 0xF0) == 0xC0)  // Program Change
+        {
+            switch (packet[2])
+            {
+            case CH1_LINE:
+                select_input_type(INPUT_CH1, INPUT_TYPE_LINE);
+                break;
+            case CH1_PHONO:
+                select_input_type(INPUT_CH1, INPUT_TYPE_PHONO);
+                break;
+            case CH2_LINE:
+                select_input_type(INPUT_CH2, INPUT_TYPE_LINE);
+                break;
+            case CH2_PHONO:
+                select_input_type(INPUT_CH2, INPUT_TYPE_PHONO);
+                break;
+            case XF_ASSIGN_A_CH1:
+                select_xf_assignA_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_A_CH2:
+                select_xf_assignA_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_A_USB:
+                select_xf_assignA_source(INPUT_USB);
+                break;
+            case XF_ASSIGN_B_CH1:
+                select_xf_assignB_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_B_CH2:
+                select_xf_assignB_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_B_USB:
+                select_xf_assignB_source(INPUT_USB);
+                break;
+            case XF_ASSIGN_POST_CH1:
+                select_xf_assignPost_source(INPUT_CH1);
+                break;
+            case XF_ASSIGN_POST_CH2:
+                select_xf_assignPost_source(INPUT_CH2);
+                break;
+            case XF_ASSIGN_POST_USB:
+                select_xf_assignPost_source(INPUT_USB);
+                break;
+            default:
+                break;
+            }
+        }
+
+        SEGGER_RTT_printf(0, "MIDI RX: 0x%02X 0x%02X 0x%02X(%d) 0x%02X(%d)\n", packet[0], packet[1], packet[2], packet[2], packet[3], packet[3]);
     }
     is_adc_complete = false;
 }
@@ -1661,9 +1853,9 @@ static void copybuf_ring2usb_and_send(void)
         return;  // 足りないなら今回は送らない
     }
 
-    // USBは4ch、SAIは2ch
-    // SAI: [L1][R1][L1][R1]...
-    // USB: [L1][R1][0][0][L1][R1][0][0]... (ch3/4は無音)
+    // USBは4ch、SAIも4ch
+    // SAI: [L1][R1][L2][R2][L1][R1][L2][R2]...
+    // USB: [L1][R1][L2][R2][L1][R1][L2][R2]...
 
     uint32_t usb_bytes;
     uint16_t written;
@@ -1681,16 +1873,20 @@ static void copybuf_ring2usb_and_send(void)
 
         for (uint32_t f = 0; f < frames; f++)
         {
-            uint32_t r_L = (sai_receive_index + f * 2 + 0) & (SAI_RNG_BUF_SIZE - 1);
-            uint32_t r_R = (sai_receive_index + f * 2 + 1) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_L1 = (sai_receive_index + f * 4 + 0) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_R1 = (sai_receive_index + f * 4 + 1) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_L2 = (sai_receive_index + f * 4 + 2) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_R2 = (sai_receive_index + f * 4 + 3) & (SAI_RNG_BUF_SIZE - 1);
             // 32bit → 16bit (上位16bitを取り出す)
             // SAIデータは符号付き32bitなので、算術右シフトで符号を保持
-            int32_t sample_L          = sai_rx_rng_buf[r_L];
-            int32_t sample_R          = sai_rx_rng_buf[r_R];
-            usb_out_buf_16[f * 4 + 0] = (int16_t) (sample_L >> 16);  // L1
-            usb_out_buf_16[f * 4 + 1] = (int16_t) (sample_R >> 16);  // R1
-            usb_out_buf_16[f * 4 + 2] = 0;                           // L2 (無音)
-            usb_out_buf_16[f * 4 + 3] = 0;                           // R2 (無音)
+            int32_t sample_L1         = sai_rx_rng_buf[r_L1];
+            int32_t sample_R1         = sai_rx_rng_buf[r_R1];
+            int32_t sample_L2         = sai_rx_rng_buf[r_L2];
+            int32_t sample_R2         = sai_rx_rng_buf[r_R2];
+            usb_out_buf_16[f * 4 + 0] = (int16_t) (sample_L1 >> 16);  // L1
+            usb_out_buf_16[f * 4 + 1] = (int16_t) (sample_R1 >> 16);  // R1
+            usb_out_buf_16[f * 4 + 2] = (int16_t) (sample_L2 >> 16);  // L2
+            usb_out_buf_16[f * 4 + 3] = (int16_t) (sample_R2 >> 16);  // R2
         }
 
         // ISRコンテキストから呼ばれるので通常版を使用
@@ -1715,7 +1911,7 @@ static void copybuf_ring2usb_and_send(void)
             written_frames = frames;
         if (written_frames == 0)
             return;
-        sai_receive_index += written_frames * 2;  // SAIは2ch分
+        sai_receive_index += written_frames * 4;  // SAIは4ch分
     }
     else
     {
@@ -1728,12 +1924,14 @@ static void copybuf_ring2usb_and_send(void)
 
         for (uint32_t f = 0; f < frames; f++)
         {
-            uint32_t r_L           = (sai_receive_index + f * 2 + 0) & (SAI_RNG_BUF_SIZE - 1);
-            uint32_t r_R           = (sai_receive_index + f * 2 + 1) & (SAI_RNG_BUF_SIZE - 1);
-            usb_out_buf[f * 4 + 0] = sai_rx_rng_buf[r_L];  // L1
-            usb_out_buf[f * 4 + 1] = sai_rx_rng_buf[r_R];  // R1
-            usb_out_buf[f * 4 + 2] = 0;                    // L2 (無音)
-            usb_out_buf[f * 4 + 3] = 0;                    // R2 (無音)
+            uint32_t r_L1          = (sai_receive_index + f * 4 + 0) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_R1          = (sai_receive_index + f * 4 + 1) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_L2          = (sai_receive_index + f * 4 + 2) & (SAI_RNG_BUF_SIZE - 1);
+            uint32_t r_R2          = (sai_receive_index + f * 4 + 3) & (SAI_RNG_BUF_SIZE - 1);
+            usb_out_buf[f * 4 + 0] = sai_rx_rng_buf[r_L1];  // L1
+            usb_out_buf[f * 4 + 1] = sai_rx_rng_buf[r_R1];  // R1
+            usb_out_buf[f * 4 + 2] = sai_rx_rng_buf[r_L2];  // L2
+            usb_out_buf[f * 4 + 3] = sai_rx_rng_buf[r_R2];  // R2
         }
 
         // ISRコンテキストから呼ばれるので通常版を使用
@@ -1758,7 +1956,7 @@ static void copybuf_ring2usb_and_send(void)
             written_frames = frames;
         if (written_frames == 0)
             return;
-        sai_receive_index += written_frames * 2;  // SAIは2ch分
+        sai_receive_index += written_frames * 4;  // SAIは4ch分
     }
 }
 
@@ -1825,10 +2023,12 @@ void audio_task(void)
         audio_task_call_count = 0;
         audio_task_last_tick  = now;
 
+#if 0
         // ヒープ残量を監視
         size_t freeHeap = xPortGetFreeHeapSize();
         size_t minHeap  = xPortGetMinimumEverFreeHeapSize();
         SEGGER_RTT_printf(0, "heap: free=%d, min=%d\n", freeHeap, minHeap);
+#endif
 
         // 1秒ごとにリングバッファ状態をログ出力
         if (s_streaming_out)
@@ -1996,6 +2196,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         return;
     }
 
+    /* Stop ADC DMA to prevent parameter changes during ADAU1466 initialization */
+    (void) HAL_ADC_Stop(&hadc1);
+    (void) HAL_DMA_Abort(&handle_HPDMA1_Channel0);
+    is_adc_complete = false;
+    __DSB();
+
     /* Disable interrupts during critical DMA/SAI stop sequence */
     uint32_t primask = __get_PRIMASK();
     __disable_irq();
@@ -2049,12 +2255,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         ADI_REG_TYPE Mode0_2[2] = {0x00, 0x00};
         ADI_REG_TYPE Mode0_3[2] = {0x00, 0x01};
 
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF020, 2, Mode0_0); /* CLK_GEN1_M */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF005, 2, Mode0_1); /* MCLK_OUT */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode0_2); /* PLL_ENABLE */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF020, 2, Mode0_0); /* CLK_GEN1_M */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF005, 2, Mode0_1); /* MCLK_OUT */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode0_2); /* PLL_ENABLE */
         __DSB();
         HAL_Delay(100);
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode0_3); /* PLL_ENABLE */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode0_3); /* PLL_ENABLE */
     }
     else if (new_hz == 96000)
     {
@@ -2063,12 +2269,12 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         ADI_REG_TYPE Mode1_2[2] = {0x00, 0x00};
         ADI_REG_TYPE Mode1_3[2] = {0x00, 0x01};
 
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF020, 2, Mode1_0); /* CLK_GEN1_M */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF005, 2, Mode1_1); /* MCLK_OUT */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode1_2); /* PLL_ENABLE */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF020, 2, Mode1_0); /* CLK_GEN1_M */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF005, 2, Mode1_1); /* MCLK_OUT */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode1_2); /* PLL_ENABLE */
         __DSB();
         HAL_Delay(100);
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_0, 0xF003, 2, Mode1_3); /* PLL_ENABLE */
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode1_3); /* PLL_ENABLE */
     }
 
     HAL_Delay(50);  // Wait for PLL to lock and stabilize
@@ -2151,6 +2357,22 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     }
     hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;
     __HAL_SAI_ENABLE(&hsai_BlockA1);
+
+    /* Restart ADC DMA after sample rate change is complete */
+    MX_List_HPDMA1_Channel0_Config();
+    if (HAL_DMAEx_List_LinkQ(&handle_HPDMA1_Channel0, &List_HPDMA1_Channel0) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    handle_HPDMA1_Channel0.XferCpltCallback = dma_adc_cplt;
+    if (HAL_DMAEx_List_Start_IT(&handle_HPDMA1_Channel0) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    if (HAL_ADC_Start(&hadc1) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
     SEGGER_RTT_printf(0, "[SAI] reset for %lu Hz (prev=%lu)\n", (unsigned long) new_hz, (unsigned long) prev_hz);
 
