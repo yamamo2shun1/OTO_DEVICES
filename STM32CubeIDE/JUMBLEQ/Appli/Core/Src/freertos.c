@@ -31,6 +31,9 @@
 #include "audio_control.h"
 #include "led_control.h"
 #include "adc.h"
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
+#include "SigmaStudioFW.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,13 +70,13 @@ osThreadId_t usbTaskHandle;
 const osThreadAttr_t usbTask_attributes = {
     .name       = "usbTask",
     .stack_size = 512 * 4,
-    .priority   = (osPriority_t) osPriorityHigh,  // AboveNormalからHighに変更
+    .priority   = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for audioTask */
 osThreadId_t audioTaskHandle;
 const osThreadAttr_t audioTask_attributes = {
     .name       = "audioTask",
-    .stack_size = 1024 * 4,  // Increased from 512*4 for sample rate change handling
+    .stack_size = 1024 * 4,
     .priority   = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for ledTask */
@@ -81,14 +84,14 @@ osThreadId_t ledTaskHandle;
 const osThreadAttr_t ledTask_attributes = {
     .name       = "ledTask",
     .stack_size = 256 * 4,
-    .priority   = (osPriority_t) osPriorityNormal,  // BelowNormalからNormalに変更
+    .priority   = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for adcTask */
 osThreadId_t adcTaskHandle;
 const osThreadAttr_t adcTask_attributes = {
     .name       = "adcTask",
     .stack_size = 512 * 4,
-    .priority   = (osPriority_t) osPriorityAboveNormal,  // HighからAboveNormalに変更（USB/Audioより低く）
+    .priority   = (osPriority_t) osPriorityAboveNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -199,7 +202,6 @@ void MX_FREERTOS_Init(void)
  * @param  argument: Not used
  * @retval None
  */
-/* USER CODE END Header_StartDefaultTask */
 
 // スタック監視情報（デバッガのWatchウィンドウで確認可能）
 volatile uint32_t dbg_free_heap          = 0;
@@ -211,6 +213,8 @@ volatile uint32_t dbg_adc_stack_free     = 0;
 volatile uint32_t dbg_default_stack_free = 0;
 volatile uint32_t dbg_min_usb_stack      = 0xFFFFFFFF;  // USB最小スタック残量
 volatile uint32_t dbg_min_audio_stack    = 0xFFFFFFFF;  // Audio最小スタック残量
+
+/* USER CODE END Header_StartDefaultTask */
 
 void StartDefaultTask(void* argument)
 {
@@ -256,8 +260,6 @@ void StartDefaultTask(void* argument)
  * @param argument: Not used
  * @retval None
  */
-/* USER CODE END Header_StartUSBTask */
-
 // デバッグ用カウンタ
 volatile uint32_t dbg_usb_task_count   = 0;
 volatile uint32_t dbg_audio_task_count = 0;
@@ -267,9 +269,16 @@ extern volatile uint32_t dbg_usb_isr_count;
 extern volatile uint32_t dbg_usb_isr_msp_min;
 extern volatile uint32_t dbg_usb_isr_msp_start;
 
+/* USER CODE END Header_StartUSBTask */
+
 void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
+    tusb_rhport_init_t dev_init = {
+        .role  = TUSB_ROLE_DEVICE,
+        .speed = TUSB_SPEED_HIGH};
+    tusb_init(BOARD_TUD_RHPORT, &dev_init);
+
     // TinyUSB is already initialized in main.c with tusb_init()
     (void) argument;
 
@@ -296,6 +305,39 @@ void StartAudioTask(void* argument)
     /* USER CODE BEGIN StartAudioTask */
     (void) argument;
 
+    // SPI同期プリミティブを初期化（FreeRTOSスケジューラ起動後）
+    SIGMA_SPI_Init();
+
+    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+
+    reset_audio_buffer();
+
+    AUDIO_Init_AK4619(96000);
+
+    /* もし、SigmaStudio+からUSBi経由で書き込み、デバッグを行う場合は
+     * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
+     * SigmaStudio+からダウンロードを実行すること。
+     */
+    AUDIO_Init_ADAU1466(48000);
+    HAL_Delay(500);
+
+    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+
+    start_adc();
+    HAL_Delay(100);
+
+    start_sai();
+    start_audio_control();
+    HAL_Delay(100);
+
+    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+
     /* Infinite loop */
     for (;;)
     {
@@ -316,6 +358,12 @@ void StartAudioTask(void* argument)
 void StartLEDTask(void* argument)
 {
     /* USER CODE BEGIN StartLEDTask */
+    reset_led_buffer();
+
+    set_led_color(0, 0, 0, 0);
+    renew();
+    HAL_Delay(100);
+
     /* Infinite loop */
     for (;;)
     {
@@ -337,6 +385,14 @@ void StartLEDTask(void* argument)
 void StartADCTask(void* argument)
 {
     /* USER CODE BEGIN StartADCTask */
+    // OLED初期化（FreeRTOSスケジューラー開始後に実行）
+    ssd1306_I2C_Init();
+    osDelay(100);
+    ssd1306_Init();
+    ssd1306_SetCursor(5, 8);
+    ssd1306_WriteString("JUMBLEQ", Font_16x24, White);
+    ssd1306_UpdateScreen();
+
     /* Infinite loop */
     for (;;)
     {
