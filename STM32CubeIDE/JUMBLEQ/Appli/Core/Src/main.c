@@ -130,45 +130,7 @@ int main(void)
     MX_SAI2_Init();
     MX_ADC1_Init();
     /* USER CODE BEGIN 2 */
-    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
-    reset_audio_buffer();
-    reset_led_buffer();
-
-    AUDIO_Init_AK4619(96000);
-
-    /* もし、SigmaStudio+からUSBi経由で書き込み、デバッグを行う場合は
-     * RESET_FROMFWを0に設定し、ここ以下の行で一旦ブレークして、
-     * SigmaStudio+からダウンロードを実行すること。
-     */
-    AUDIO_Init_ADAU1466(48000);
-    HAL_Delay(500);
-
-    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
-
-    start_adc();
-    HAL_Delay(100);
-
-    start_sai();
-    start_audio_control();
-    HAL_Delay(100);
-
-    set_led_color(0, 0, 0, 0);
-    renew();
-    HAL_Delay(100);
-
-    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
-    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-
-    tusb_rhport_init_t dev_init = {
-        .role  = TUSB_ROLE_DEVICE,
-        .speed = TUSB_SPEED_HIGH};
-    tusb_init(BOARD_TUD_RHPORT, &dev_init);
     /* USER CODE END 2 */
 
     /* Init scheduler */
