@@ -41,7 +41,6 @@ extern "C"
 #include "ssd1306_fonts.h"
 
 #include "SEGGER_RTT.h"
-#include "my_log.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
