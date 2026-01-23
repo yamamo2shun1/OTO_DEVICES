@@ -973,13 +973,13 @@ void select_xf_assignA_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
@@ -993,13 +993,13 @@ void select_xf_assignB_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
@@ -1013,13 +1013,13 @@ void select_xf_assignPost_source(uint8_t ch)
     switch (ch)
     {
     case INPUT_CH1:
-        Mode0[0] = 0x00;
+        Mode0[3] = 0x00;
         break;
     case INPUT_CH2:
-        Mode0[0] = 0x01;
+        Mode0[3] = 0x01;
         break;
     case INPUT_USB:
-        Mode0[0] = 0x02;
+        Mode0[3] = 0x02;
         break;
     }
 
@@ -1204,7 +1204,7 @@ void ui_control_task(void)
             stable_count++;
         }
 
-        if (stable_count == 0)
+        if (stable_count <= 1)
         {
             /*
              * 0 1 4 5
@@ -1235,6 +1235,21 @@ void ui_control_task(void)
             default:
                 break;
             }
+
+            char msg[32];
+            ssd1306_Fill(Black);
+            ssd1306_SetCursor(0, 0);
+            sprintf(msg, "C2:%ddB Mst:%ddB", (int16_t) convert_pot2dB(pot_val[4]), (int16_t) convert_pot2dB(pot_val[5]));
+            ssd1306_WriteString(msg, Font_7x10, White);
+
+            ssd1306_SetCursor(0, 11);
+            sprintf(msg, "C1:%ddB D/W:%d%%", (int16_t) convert_pot2dB(pot_val[6]), (int16_t) ((double) pot_val[7] / 1023.0 * 100.0));
+            ssd1306_WriteString(msg, Font_7x10, White);
+            // ssd1306_UpdateScreen();
+
+            ssd1306_SetCursor(0, 22);
+            ssd1306_WriteString("A:C1(Ln)  B:C2(Ph)", Font_7x10, White);
+            ssd1306_UpdateScreen();
         }
 
         pot_val_prev[pot_ch][1] = pot_val_prev[pot_ch][0];
