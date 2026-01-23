@@ -37,6 +37,9 @@ extern "C"
 #include "tusb.h"
 #include "usb_descriptors.h"
 
+#include "ssd1306.h"
+#include "ssd1306_fonts.h"
+
 #include "SEGGER_RTT.h"
 #include "my_log.h"
 /* USER CODE END Includes */
