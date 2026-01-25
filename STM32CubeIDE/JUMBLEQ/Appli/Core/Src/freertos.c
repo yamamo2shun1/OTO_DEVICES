@@ -33,6 +33,7 @@
 #include "adc.h"
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
+#include "SigmaStudioFW.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -303,6 +304,9 @@ void StartAudioTask(void* argument)
 {
     /* USER CODE BEGIN StartAudioTask */
     (void) argument;
+
+    // SPI同期プリミティブを初期化（FreeRTOSスケジューラ起動後）
+    SIGMA_SPI_Init();
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
