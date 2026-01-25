@@ -30,9 +30,8 @@
 #include "tusb.h"
 #include "audio_control.h"
 #include "led_control.h"
+#include "oled_control.h"
 #include "adc.h"
-#include "ssd1306.h"
-#include "ssd1306_fonts.h"
 #include "SigmaStudioFW.h"
 /* USER CODE END Includes */
 
@@ -93,6 +92,13 @@ const osThreadAttr_t adcTask_attributes = {
     .stack_size = 512 * 4,
     .priority   = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for oledTask */
+osThreadId_t oledTaskHandle;
+const osThreadAttr_t oledTask_attributes = {
+    .name       = "oledTask",
+    .stack_size = 256 * 4,
+    .priority   = (osPriority_t) osPriorityNormal,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -104,6 +110,7 @@ void StartUSBTask(void* argument);
 void StartAudioTask(void* argument);
 void StartLEDTask(void* argument);
 void StartADCTask(void* argument);
+void StartOLEDTask(void* argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -187,6 +194,9 @@ void MX_FREERTOS_Init(void)
     /* creation of adcTask */
     adcTaskHandle = osThreadNew(StartADCTask, NULL, &adcTask_attributes);
 
+    /* creation of oledTask */
+    oledTaskHandle = osThreadNew(StartOLEDTask, NULL, &oledTask_attributes);
+
     /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     /* USER CODE END RTOS_THREADS */
@@ -215,7 +225,6 @@ volatile uint32_t dbg_min_usb_stack      = 0xFFFFFFFF;  // USB最小スタック
 volatile uint32_t dbg_min_audio_stack    = 0xFFFFFFFF;  // Audio最小スタック残量
 
 /* USER CODE END Header_StartDefaultTask */
-
 void StartDefaultTask(void* argument)
 {
     /* USER CODE BEGIN StartDefaultTask */
@@ -270,24 +279,22 @@ extern volatile uint32_t dbg_usb_isr_msp_min;
 extern volatile uint32_t dbg_usb_isr_msp_start;
 
 /* USER CODE END Header_StartUSBTask */
-
 void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
+    (void) argument;
+
     tusb_rhport_init_t dev_init = {
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_HIGH};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
-
-    // TinyUSB is already initialized in main.c with tusb_init()
-    (void) argument;
 
     /* Infinite loop */
     for (;;)
     {
         dbg_usb_task_count++;
         // 短いタイムアウトを使用して無限ブロックを防ぐ
-        tud_task_ext(10, false);  // 10msタイムアウト
+        tud_task();  //_ext(10, false);  // 10msタイムアウト
         // osDelay(1) は不要（tud_task_ext内で待機するため）
     }
     /* USER CODE END StartUSBTask */
@@ -321,18 +328,18 @@ void StartAudioTask(void* argument)
      * SigmaStudio+からダウンロードを実行すること。
      */
     AUDIO_Init_ADAU1466(48000);
-    HAL_Delay(500);
+    osDelay(500);
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
 
     start_adc();
-    HAL_Delay(100);
+    osDelay(100);
 
     start_sai();
     start_audio_control();
-    HAL_Delay(100);
+    osDelay(100);
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
@@ -362,7 +369,7 @@ void StartLEDTask(void* argument)
 
     set_led_color(0, 0, 0, 0);
     renew();
-    HAL_Delay(100);
+    osDelay(100);
 
     /* Infinite loop */
     for (;;)
@@ -385,13 +392,6 @@ void StartLEDTask(void* argument)
 void StartADCTask(void* argument)
 {
     /* USER CODE BEGIN StartADCTask */
-    // OLED初期化（FreeRTOSスケジューラー開始後に実行）
-    ssd1306_I2C_Init();
-    osDelay(100);
-    ssd1306_Init();
-    ssd1306_SetCursor(5, 8);
-    ssd1306_WriteString("JUMBLEQ", Font_16x24, White);
-    ssd1306_UpdateScreen();
 
     /* Infinite loop */
     for (;;)
@@ -400,6 +400,29 @@ void StartADCTask(void* argument)
         osDelay(1);
     }
     /* USER CODE END StartADCTask */
+}
+
+/* USER CODE BEGIN Header_StartOLEDTask */
+/**
+ * @brief Function implementing the oledTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartOLEDTask */
+void StartOLEDTask(void* argument)
+{
+    /* USER CODE BEGIN StartOLEDTask */
+    (void) argument;
+
+    OLED_Init();
+
+    /* Infinite loop */
+    for (;;)
+    {
+        OLED_UpdateTask();
+        osDelay(20);
+    }
+    /* USER CODE END StartOLEDTask */
 }
 
 /* Private application code --------------------------------------------------*/
