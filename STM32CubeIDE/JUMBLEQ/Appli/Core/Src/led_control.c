@@ -118,19 +118,19 @@ void renew(void)
     HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_3, (uint32_t*) led_buf, DMA_BUF_SIZE);
 }
 
+// 定数: pow(2, 23) = 8388608.0f
+#define FULL_SCALE_24BIT 8388608.0f
+
 void set_vu_meter_a(void)
 {
     ADI_REG_TYPE rx_data[4] = {0};
     SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_A_VALUE_ADDR, 4, rx_data);
     uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
-    float dbfs   = 0.0f;
-    if (val == 0 || val == 0xFFFFFFFF)
+    float dbfs   = -96.0f;
+    if (val > 0 && val != 0xFFFFFFFF)
     {
-        dbfs = -96.0f;
-    }
-    else
-    {
-        dbfs = 20.0f * log((float) val / pow(2, 23));
+        // dBFS = 20 * log10(val / 2^23)
+        dbfs = 20.0f * log10f((float)val / FULL_SCALE_24BIT);
     }
     if (dbfs > -9.0f)
     {
@@ -187,14 +187,11 @@ void set_vu_meter_b(void)
     ADI_REG_TYPE rx_data[4] = {0};
     SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_DSPREADBACK_B_VALUE_ADDR, 4, rx_data);
     uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
-    float dbfs   = 0.0f;
-    if (val == 0 || val == 0xFFFFFFFF)
+    float dbfs   = -96.0f;
+    if (val > 0 && val != 0xFFFFFFFF)
     {
-        dbfs = -96.0f;
-    }
-    else
-    {
-        dbfs = 20.0f * log((float) val / pow(2, 23));
+        // dBFS = 20 * log10(val / 2^23)
+        dbfs = 20.0f * log10f((float)val / FULL_SCALE_24BIT);
     }
     if (dbfs > -9.0f)
     {
