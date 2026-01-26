@@ -39,15 +39,15 @@ ENTRY(Reset_Handler)
 _estack = ORIGIN(DTCM) + LENGTH(DTCM); /* end of "DTCM" Ram type memory */
 
 _Min_Heap_Size = 0x200; /* required amount of heap */
-_Min_Stack_Size = 0x4000; /* required amount of stack - 16KB */
+_Min_Stack_Size = 0x2C000; /* required amount of stack - 176KB for ISR handling (DTCM 192KB) */
 
 __FLASH_BEGIN  = 0x90000000;
 __FLASH_SIZE   = 0x08000000;
 
 
 __RAM_BEGIN    = 0x24000000;
-__RAM_SIZE     = 0x40000;
-__RAM_NONCACHEABLEBUFFER_SIZE = 0x32000;
+__RAM_SIZE     = 0x52000;  /* 328KB: AXI-SRAM (DTCM_AXI_SHARE=2で128KB減少) */
+__RAM_NONCACHEABLEBUFFER_SIZE = 0x0;  /* DCache無効のため不要 */
 
 /* Memories definition */
 MEMORY
@@ -56,7 +56,7 @@ MEMORY
   RAM_NONCACHEABLEBUFFER (xrw) : ORIGIN = __RAM_BEGIN + __RAM_SIZE,  LENGTH = __RAM_NONCACHEABLEBUFFER_SIZE
 
   ITCM      (xrw) : ORIGIN = 0x00000000,  LENGTH = 0x00010000
-  DTCM      (rw)  : ORIGIN = 0x20000000,  LENGTH = 0x00010000
+  DTCM      (rw)  : ORIGIN = 0x20000000,  LENGTH = 0x00030000  /* 192KB: DTCM_AXI_SHARE=2 */
   SRAMAHB   (rw)  : ORIGIN = 0x30000000,  LENGTH = 0x00008000
   BKPSRAM   (rw)  : ORIGIN = 0x38800000,  LENGTH = 0x00001000
 
@@ -178,14 +178,15 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM
 
+  /* DCache無効のため、noncacheable領域は通常RAMに配置 */
   RW_NONCACHEABLE :
   {
     __NONCACHEABLEBUFFER_BEGIN = .;/* create symbol for start of section */
     KEEP(*(noncacheable_buffer))
     __NONCACHEABLEBUFFER_END = .;  /* create symbol for start of section */
-  } > RAM_NONCACHEABLEBUFFER
+  } > RAM
 
-  /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
+  /* User_heap_stack section, used to check that there is enough "DTCM" Ram type memory left */
   ._user_heap_stack :
   {
     . = ALIGN(8);
