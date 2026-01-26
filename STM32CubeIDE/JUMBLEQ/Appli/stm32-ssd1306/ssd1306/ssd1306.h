@@ -162,7 +162,6 @@ typedef struct
 } SSD1306_Font_t;
 
 // Procedure definitions
-void ssd1306_I2C_Init(void);  // I2Cセマフォ初期化（FreeRTOSタスク内で呼ぶこと）
 void ssd1306_Init(void);
 void ssd1306_Fill(SSD1306_COLOR color);
 void ssd1306_UpdateScreen(void);

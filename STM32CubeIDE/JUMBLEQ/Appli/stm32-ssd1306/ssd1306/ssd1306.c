@@ -5,39 +5,33 @@
 
 #if defined(SSD1306_USE_I2C)
 
+    #include "cmsis_os2.h"
     #include "FreeRTOS.h"
     #include "semphr.h"
 
 // I2C排他制御用ミューテックス
-static SemaphoreHandle_t ssd1306_i2c_mutex = NULL;
-static uint8_t ssd1306_cmd_byte            = 0;     // コマンド用バッファ
+extern osMutexId_t i2cMutexHandle;
 
-// ミューテックス初期化
-void ssd1306_I2C_Init(void)
-{
-    if (ssd1306_i2c_mutex == NULL)
-    {
-        ssd1306_i2c_mutex = xSemaphoreCreateMutex();
-    }
-}
+static uint8_t ssd1306_cmd_byte = 0;  // コマンド用バッファ
 
 // I2C送信（ブロッキングモード、排他制御付き）
 static HAL_StatusTypeDef ssd1306_I2C_Write(uint16_t mem_addr, uint8_t* data, uint16_t size)
 {
     HAL_StatusTypeDef status = HAL_ERROR;
 
-    if (ssd1306_i2c_mutex == NULL)
+    if (i2cMutexHandle == NULL)
     {
         return HAL_ERROR;
     }
 
     // ミューテックスで排他制御（最大200ms待機）
-    if (xSemaphoreTake(ssd1306_i2c_mutex, pdMS_TO_TICKS(200)) == pdTRUE)
+    if (osMutexAcquire(i2cMutexHandle, pdMS_TO_TICKS(200)) == osOK)
     {
         // ブロッキングモードで送信（タイムアウト100ms）
         status = HAL_I2C_Mem_Write(&SSD1306_I2C_PORT, SSD1306_I2C_ADDR, mem_addr, 1, data, size, 100);
 
-        xSemaphoreGive(ssd1306_i2c_mutex);
+        osMutexRelease(i2cMutexHandle);
+        osThreadYield();
     }
 
     return status;

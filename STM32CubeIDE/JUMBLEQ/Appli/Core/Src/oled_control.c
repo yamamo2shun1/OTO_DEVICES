@@ -14,8 +14,6 @@
 
 void OLED_Init(void)
 {
-    ssd1306_I2C_Init();
-    osDelay(100);
     ssd1306_Init();
     ssd1306_SetCursor(5, 8);
     ssd1306_WriteString("JUMBLEQ", Font_16x24, White);
