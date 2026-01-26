@@ -3,16 +3,16 @@
 #include <stdlib.h>
 #include <string.h>  // For memcpy
 
-#if defined(SSD1306_USE_I2C)
-
-    #include "cmsis_os2.h"
-    #include "FreeRTOS.h"
-    #include "semphr.h"
+#include "cmsis_os2.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 // I2C排他制御用ミューテックス
 extern osMutexId_t i2cMutexHandle;
 
 static uint8_t ssd1306_cmd_byte = 0;  // コマンド用バッファ
+
+#if defined(SSD1306_USE_I2C)
 
 // I2C送信（ブロッキングモード、排他制御付き）
 static HAL_StatusTypeDef ssd1306_I2C_Write(uint16_t mem_addr, uint8_t* data, uint16_t size)
@@ -31,7 +31,6 @@ static HAL_StatusTypeDef ssd1306_I2C_Write(uint16_t mem_addr, uint8_t* data, uin
         status = HAL_I2C_Mem_Write(&SSD1306_I2C_PORT, SSD1306_I2C_ADDR, mem_addr, 1, data, size, 100);
 
         osMutexRelease(i2cMutexHandle);
-        osThreadYield();
     }
 
     return status;
