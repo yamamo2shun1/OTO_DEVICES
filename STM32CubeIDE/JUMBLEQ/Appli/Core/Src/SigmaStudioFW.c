@@ -40,7 +40,6 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef* hspi)
 {
     if (hspi == &hspi5)
     {
-        // エラー時もセマフォを解放してタスクをブロック解除
         osSemaphoreRelease(spiTxBinarySemHandle);
         osSemaphoreRelease(spiTxRxBinarySemHandle);
     }
@@ -102,7 +101,6 @@ void SIGMA_WRITE_REGISTER_BLOCK_IT(uint8_t devAddress, uint16_t address, uint16_
         }
 
         osMutexRelease(spiMutexHandle);
-        osThreadYield();
     }
     else
     {
@@ -159,7 +157,6 @@ void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_
         }
 
         osMutexRelease(spiMutexHandle);
-        osThreadYield();
     }
 }
 
@@ -236,7 +233,6 @@ void SIGMA_READ_REGISTER(uint8_t devAddress, uint16_t address, uint16_t length, 
         }
 
         osMutexRelease(spiMutexHandle);
-        osThreadYield();
     }
     else
     {
