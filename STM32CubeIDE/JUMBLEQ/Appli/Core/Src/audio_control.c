@@ -16,11 +16,10 @@
 #include "sai.h"
 
 #include "FreeRTOS.h"  // for xPortGetFreeHeapSize
+#include "cmsis_os2.h"
 
-#include "SigmaStudioFW.h"
-#include "oto_no_ita_dsp_ADAU146xSchematic_1.h"
-#include "oto_no_ita_dsp_ADAU146xSchematic_1_Defines.h"
-#include "oto_no_ita_dsp_ADAU146xSchematic_1_PARAM.h"
+#include "ak4619.h"
+#include "adau1466.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
 
@@ -50,36 +49,6 @@ enum
     VOLUME_CTRL_90_DB   = 23040,
     VOLUME_CTRL_100_DB  = 25600,
     VOLUME_CTRL_SILENCE = 0x8000,
-};
-
-enum
-{
-    INPUT_CH1 = 0,
-    INPUT_CH2,
-    INPUT_USB,
-};
-
-enum
-{
-    INPUT_TYPE_LINE = 0,
-    INPUT_TYPE_PHONO,
-};
-
-enum
-{
-    CH1_LINE = 0,
-    CH1_PHONO,
-    CH2_LINE,
-    CH2_PHONO,
-    XF_ASSIGN_A_CH1,
-    XF_ASSIGN_A_CH2,
-    XF_ASSIGN_A_USB,
-    XF_ASSIGN_B_CH1,
-    XF_ASSIGN_B_CH2,
-    XF_ASSIGN_B_USB,
-    XF_ASSIGN_POST_CH1,
-    XF_ASSIGN_POST_CH2,
-    XF_ASSIGN_POST_USB,
 };
 
 // Audio controls
@@ -257,6 +226,26 @@ uint8_t get_current_xfA_position(void)
 uint8_t get_current_xfB_position(void)
 {
     return current_xfB_position;
+}
+
+int16_t get_current_ch1_db(void)
+{
+    return (int16_t) convert_pot2dB(pot_val[6]);
+}
+
+int16_t get_current_ch2_db(void)
+{
+    return (int16_t) convert_pot2dB(pot_val[4]);
+}
+
+int16_t get_current_master_db(void)
+{
+    return (int16_t) convert_pot2dB(pot_val[5]);
+}
+
+int16_t get_current_dry_wet(void)
+{
+    return (int16_t) ((double) pot_val[7] / 1023.0 * 100.0);
 }
 
 //--------------------------------------------------------------------+
@@ -789,243 +778,6 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
     return true;
 }
 
-double convert_pot2dB(uint16_t adc_val)
-{
-    double x  = (double) adc_val / 1023.0;
-    double db = 0.0;
-    if (x < 0.7)
-    {
-        db = -80.0 + (x / 0.7) * 80.0;
-    }
-    else
-    {
-        db = (x - 0.7) / 0.3 * 10.0;
-    }
-    return db;
-}
-
-double convert_dB2gain(double db)
-{
-    return pow(10.0, db / 20.0);
-}
-
-void write_q8_24(const uint16_t addr, const double val)
-{
-    uint8_t gain_array[4] = {0x00};
-    gain_array[0]         = ((uint32_t) (val * pow(2, 23)) >> 24) & 0x000000FF;
-    gain_array[1]         = ((uint32_t) (val * pow(2, 23)) >> 16) & 0x000000FF;
-    gain_array[2]         = ((uint32_t) (val * pow(2, 23)) >> 8) & 0x000000FF;
-    gain_array[3]         = (uint32_t) (val * pow(2, 23)) & 0x000000FF;
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, addr, 4, gain_array);
-}
-
-void control_input_from_usb_gain(uint8_t ch, int16_t db)
-{
-    SEGGER_RTT_printf(0, "USB CH%d Gain: %.2f dB\n", ch, db);
-
-    const double gain = convert_dB2gain(db);
-
-    switch (ch)
-    {
-    case 1:
-        write_q8_24(MOD_INPUT_FROM_USB1_GAIN_ADDR, gain);
-        break;
-    case 2:
-        write_q8_24(MOD_INPUT_FROM_USB2_GAIN_ADDR, gain);
-        break;
-    case 3:
-        write_q8_24(MOD_INPUT_FROM_USB3_GAIN_ADDR, gain);
-        break;
-    case 4:
-        write_q8_24(MOD_INPUT_FROM_USB4_GAIN_ADDR, gain);
-        break;
-    default:
-        break;
-    }
-}
-
-void control_input_from_ch1_gain(const uint16_t adc_val)
-{
-    const double db   = convert_pot2dB(adc_val);
-    const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_INPUT_FROM_CH1_GAIN_ADDR, gain);
-}
-
-void control_input_from_ch2_gain(const uint16_t adc_val)
-{
-    const double db   = convert_pot2dB(adc_val);
-    const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_INPUT_FROM_CH2_GAIN_ADDR, gain);
-}
-
-void control_send1_out_gain(const uint16_t adc_val)
-{
-    const double db   = convert_pot2dB(adc_val);
-    const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_SEND1_OUTPUT_GAIN_ADDR, gain);
-}
-
-void control_send2_out_gain(const uint16_t adc_val)
-{
-    const double db   = convert_pot2dB(adc_val);
-    const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_SEND2_OUTPUT_GAIN_ADDR, gain);
-}
-
-void control_dryA_out_gain(const uint16_t adc_val)
-{
-    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    write_q8_24(MOD_DCINPUT_DRYA_DCVALUE_ADDR, rate);
-}
-
-void control_dryB_out_gain(const uint16_t adc_val)
-{
-    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    write_q8_24(MOD_DCINPUT_DRYB_DCVALUE_ADDR, rate);
-}
-
-void control_wet_out_gain(const uint16_t adc_val)
-{
-    const float rate = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
-    write_q8_24(MOD_DCINPUT_WET_DCVALUE_ADDR, rate);
-}
-
-void control_master_out_gain(const uint16_t adc_val)
-{
-    const double db   = convert_pot2dB(adc_val);
-    const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_MASTER_OUTPUT_GAIN_ADDR, gain);
-}
-
-void set_ch1_line()
-{
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
-}
-
-void set_ch1_phono()
-{
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_1_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
-}
-
-void set_ch2_line()
-{
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
-}
-
-void set_ch2_phono()
-{
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
-
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL0_ADDR, 4, Mode0_0);
-    SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_LN_PN_SW_2_INDEX_CHANNEL1_ADDR, 4, Mode0_1);
-}
-
-void select_input_type(uint8_t ch, uint8_t type)
-{
-    if (ch == INPUT_CH1)
-    {
-        switch (type)
-        {
-        case INPUT_TYPE_LINE:
-            set_ch1_line();
-            break;
-        case INPUT_TYPE_PHONO:
-            set_ch1_phono();
-            break;
-        default:
-            break;
-        }
-    }
-    else if (ch == INPUT_CH2)
-    {
-        switch (type)
-        {
-        case INPUT_TYPE_LINE:
-            set_ch2_line();
-            break;
-        case INPUT_TYPE_PHONO:
-            set_ch2_phono();
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-void select_xf_assignA_source(uint8_t ch)
-{
-    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
-
-    switch (ch)
-    {
-    case INPUT_CH1:
-        Mode0[3] = 0x00;
-        break;
-    case INPUT_CH2:
-        Mode0[3] = 0x01;
-        break;
-    case INPUT_USB:
-        Mode0[3] = 0x02;
-        break;
-    }
-
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
-}
-
-void select_xf_assignB_source(uint8_t ch)
-{
-    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
-
-    switch (ch)
-    {
-    case INPUT_CH1:
-        Mode0[3] = 0x00;
-        break;
-    case INPUT_CH2:
-        Mode0[3] = 0x01;
-        break;
-    case INPUT_USB:
-        Mode0[3] = 0x02;
-        break;
-    }
-
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
-}
-
-void select_xf_assignPost_source(uint8_t ch)
-{
-    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
-
-    switch (ch)
-    {
-    case INPUT_CH1:
-        Mode0[3] = 0x00;
-        break;
-    case INPUT_CH2:
-        Mode0[3] = 0x01;
-        break;
-    case INPUT_USB:
-        Mode0[3] = 0x02;
-        break;
-    }
-
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
-}
-
 static void dma_adc_cplt(DMA_HandleTypeDef* hdma)
 {
     (void) hdma;
@@ -1235,21 +987,6 @@ void ui_control_task(void)
             default:
                 break;
             }
-
-            char msg[32];
-            ssd1306_Fill(Black);
-            ssd1306_SetCursor(0, 0);
-            sprintf(msg, "C2:%ddB Mst:%ddB", (int16_t) convert_pot2dB(pot_val[4]), (int16_t) convert_pot2dB(pot_val[5]));
-            ssd1306_WriteString(msg, Font_7x10, White);
-
-            ssd1306_SetCursor(0, 11);
-            sprintf(msg, "C1:%ddB D/W:%d%%", (int16_t) convert_pot2dB(pot_val[6]), (int16_t) ((double) pot_val[7] / 1023.0 * 100.0));
-            ssd1306_WriteString(msg, Font_7x10, White);
-            // ssd1306_UpdateScreen();
-
-            ssd1306_SetCursor(0, 22);
-            ssd1306_WriteString("A:C1(Ln)  B:C2(Ph)", Font_7x10, White);
-            ssd1306_UpdateScreen();
         }
 
         pot_val_prev[pot_ch][1] = pot_val_prev[pot_ch][0];
@@ -1387,7 +1124,7 @@ void ui_control_task(void)
         if (xfadeA_changed)
         {
             const float xf = pow(xfade_max[5] * xfade_min[4], 1.0f / 3.0f);
-            write_q8_24(MOD_DCINPUT_A_DCVALUE_ADDR, xf);
+            set_dc_inputA(xf);
 
             current_xfA_position = (uint8_t) (xf * 128.0f);
         }
@@ -1395,7 +1132,7 @@ void ui_control_task(void)
         if (xfadeB_changed)
         {
             const float xf = pow(xfade_max[0] * xfade_min[1], 1.0f / 3.0f);
-            write_q8_24(MOD_DCINPUT_B_DCVALUE_ADDR, xf);
+            set_dc_inputB(xf);
 
             current_xfB_position = (uint8_t) (xf * 128.0f);
         }
@@ -1561,7 +1298,7 @@ void start_sai(void)
     hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;  // ← ここが「DMAリクエスト有効化」
     __HAL_SAI_ENABLE(&hsai_BlockA2);
 
-    HAL_Delay(500);
+    osDelay(500);
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 1);
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
@@ -2048,13 +1785,15 @@ void audio_task(void)
         // 1秒ごとにリングバッファ状態をログ出力
         if (s_streaming_out)
         {
-            // 最初の8サンプルをダンプ (4ch x 2frames)
+#if 0  // RTTログを一時無効化
+       // 最初の8サンプルをダンプ (4ch x 2frames)
             SEGGER_RTT_printf(0, "spk=%d [%08X %08X %08X %08X]\n", spk_data_size, usb_in_buf[0], usb_in_buf[1], usb_in_buf[2], usb_in_buf[3]);
             // TX側のデバッグ情報
             int32_t tx_used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
             SEGGER_RTT_printf(0, "  tx: half=%d cplt=%d fill=%d under=%d copied=%d used=%d\n", dbg_tx_half_count, dbg_tx_cplt_count, dbg_fill_tx_count, dbg_fill_underrun, dbg_fill_copied, tx_used);
             // SAI TX出力バッファの内容を確認
             SEGGER_RTT_printf(0, "  sai_tx: [%08X %08X %08X %08X]\n", stereo_out_buf[0], stereo_out_buf[1], stereo_out_buf[2], stereo_out_buf[3]);
+#endif
             dbg_tx_half_count = 0;
             dbg_tx_cplt_count = 0;
             dbg_fill_tx_count = 0;
@@ -2063,12 +1802,14 @@ void audio_task(void)
         }
         if (s_streaming_in)
         {
-            // USB書き込み状況をログ出力
+#if 0  // RTTログを一時無効化
+       // USB書き込み状況をログ出力
             SEGGER_RTT_printf(0, "mic: res=%d, total=%d, used=%d\n", current_resolution, dbg_usb_write_total, dbg_last_used);
             SEGGER_RTT_printf(0, "  ret: mount=%d strm=%d ep=%d under=%d w0=%d\n", dbg_ret_not_mounted, dbg_ret_not_streaming, dbg_ret_no_ep, dbg_ret_underrun, dbg_ret_written_zero);
             // SAI RXバッファの内容を確認
             uint32_t idx = sai_receive_index & (SAI_RNG_BUF_SIZE - 1);
             SEGGER_RTT_printf(0, "sai_rx[%d]: %08X %08X %08X %08X\n", idx, sai_rx_rng_buf[idx], sai_rx_rng_buf[(idx + 1) & (SAI_RNG_BUF_SIZE - 1)], sai_rx_rng_buf[(idx + 2) & (SAI_RNG_BUF_SIZE - 1)], sai_rx_rng_buf[(idx + 3) & (SAI_RNG_BUF_SIZE - 1)]);
+#endif
             // カウンタリセット
             dbg_usb_write_partial = 0;
             dbg_usb_write_total   = 0;
@@ -2127,78 +1868,6 @@ void audio_task(void)
         }
 #endif
     }
-}
-
-void AUDIO_Init_AK4619(uint32_t hz)
-{
-    uint8_t sndData[1] = {0x00};
-
-    // AK4619 HW Reset
-    HAL_GPIO_WritePin(CODEC_RESET_GPIO_Port, CODEC_RESET_Pin, 0);
-    HAL_Delay(10);
-    HAL_GPIO_WritePin(CODEC_RESET_GPIO_Port, CODEC_RESET_Pin, 1);
-    HAL_Delay(500);
-
-    // Power Management
-    // sndData[0] = 0x36;  // 00 11 0 11 0
-    // HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Audio I/F format
-    sndData[0] = 0xAC;  // 1 010 11 00 (TDM, 32bit, TDM128 I2S compatible, Falling, Slow)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x01, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Reset Control
-    sndData[0] = 0x10;  // 000 1 00 00
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x02, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // System Clock Setting
-    if (hz == 48000)
-    {
-        sndData[0] = 0x00;  // 00000 000 (48kHz)
-    }
-    else if (hz == 96000)
-    {
-        sndData[0] = 0x01;  // 00000 001 (96kHz)
-    }
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x03, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // ADC Input Setting
-    sndData[0] = 0x55;  // 01 01 01 01 (AIN1L, AIN1R, AIN4L, AIN4R)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x0B, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // DAC Input Select Setting
-    // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
-    sndData[0] = 0x04;  // 00 00 01 00 (SDIN2 -> DAC2, SDIN1 -> DAC1)
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x12, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-
-    // Power Management
-    sndData[0] = 0x37;  // 00 11 0 11 1
-    HAL_I2C_Mem_Write(&hi2c3, (0b0010001 << 1), 0x00, I2C_MEMADD_SIZE_8BIT, sndData, sizeof(sndData), 10000);
-    // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
-}
-
-void AUDIO_Init_ADAU1466(uint32_t hz)
-{
-    // ADAU1466 HW Reset
-    HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 0);
-    HAL_Delay(10);
-    HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
-    HAL_Delay(500);
-#if RESET_FROM_FW
-    default_download_ADAU146XSCHEMATIC_1();
-    HAL_Delay(100);
-#endif
-
-#if 0
-    if (hz == 48000)
-    {
-        sr_48k_download();
-    }
-    else if (hz == 96000)
-    {
-        sr_96k_download();
-    }
-#endif
 }
 
 void AUDIO_SAI_Reset_ForNewRate(void)
@@ -2263,38 +1932,6 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     AUDIO_Init_ADAU1466(new_hz);
 #endif
 
-    if (new_hz == 48000)
-    {
-        ADI_REG_TYPE Mode0_0[2] = {0x00, 0x06};
-        ADI_REG_TYPE Mode0_1[2] = {0x00, 0x05};
-        ADI_REG_TYPE Mode0_2[2] = {0x00, 0x00};
-        ADI_REG_TYPE Mode0_3[2] = {0x00, 0x01};
-
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF020, 2, Mode0_0); /* CLK_GEN1_M */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF005, 2, Mode0_1); /* MCLK_OUT */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode0_2); /* PLL_ENABLE */
-        __DSB();
-        HAL_Delay(100);
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode0_3); /* PLL_ENABLE */
-    }
-    else if (new_hz == 96000)
-    {
-        ADI_REG_TYPE Mode1_0[2] = {0x00, 0x03};
-        ADI_REG_TYPE Mode1_1[2] = {0x00, 0x07};
-        ADI_REG_TYPE Mode1_2[2] = {0x00, 0x00};
-        ADI_REG_TYPE Mode1_3[2] = {0x00, 0x01};
-
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF020, 2, Mode1_0); /* CLK_GEN1_M */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF005, 2, Mode1_1); /* MCLK_OUT */
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode1_2); /* PLL_ENABLE */
-        __DSB();
-        HAL_Delay(100);
-        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, 0xF003, 2, Mode1_3); /* PLL_ENABLE */
-    }
-
-    HAL_Delay(50);  // Wait for PLL to lock and stabilize
-    __DSB();
-
     /* Re-init DMA channels (linked-list mode) */
     (void) HAL_DMA_DeInit(&handle_GPDMA1_Channel2);
     (void) HAL_DMA_DeInit(&handle_GPDMA1_Channel3);
@@ -2355,7 +1992,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     __HAL_SAI_ENABLE(&hsai_BlockA2);
 
     /* Wait for SAI TX to synchronize with external clock before starting RX */
-    HAL_Delay(10);
+    osDelay(10);
 
     /* Configure and link DMA for SAI1 RX */
     MX_List_GPDMA1_Channel3_Config();
