@@ -23,6 +23,10 @@ When you connect the USB cable while holding down SW3, it is recognized as a USB
 > python uf2conv.py -c -b 0x90010000 -f STM32H7RS -o app.uf2 app.bin
 ```
 
+## MIDI Spec.
+- [RX](./Docs/MIDI_RX_SPEC.md)
+- [TX](./Docs/MIDI_TX_SPEC.md)
+
 ## Block Diagram
 <img width="811" height="701" alt="JUMBLEQ_diagram" src="https://github.com/user-attachments/assets/09df1829-d854-44bf-9779-de79fafe3dac" />
 
