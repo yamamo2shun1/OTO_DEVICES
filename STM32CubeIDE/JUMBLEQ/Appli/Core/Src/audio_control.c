@@ -194,18 +194,22 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
+        ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
+        ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
 
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
                               (unsigned)cfg.current_xfA_assign,
                               (unsigned)cfg.current_xfB_assign,
                               (unsigned)cfg.current_xfpost_assign,
                               (unsigned)cfg.current_ch1_dvs_enable,
-                              (unsigned)cfg.current_ch2_dvs_enable);
+                              (unsigned)cfg.current_ch2_dvs_enable,
+                              (double)cfg.current_xf_curve_exp_a,
+                              (double)cfg.current_xf_curve_exp_b);
         }
         else
         {
@@ -222,6 +226,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
+        ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
+        ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
         (void)ui_control_apply_persist_state(&ui_state);
 
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)

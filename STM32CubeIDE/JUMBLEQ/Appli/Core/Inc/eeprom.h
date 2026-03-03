@@ -26,11 +26,13 @@ typedef struct
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     uint8_t reserved[1];
+    float current_xf_curve_exp_a;
+    float current_xf_curve_exp_b;
 } EEPROM_DeviceConfig_t;
 
 #define EEPROM_CONFIG_ADDR               (0x0000U)
 #define EEPROM_CONFIG_MAGIC              (0x51424D4AU) /* "JMBQ" */
-#define EEPROM_CONFIG_VERSION            (0x0002U)
+#define EEPROM_CONFIG_VERSION            (0x0003U)
 
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef *hi2c);
 HAL_StatusTypeDef EEPROM_WaitReady(I2C_HandleTypeDef *hi2c, uint32_t timeout_ms);
