@@ -18,6 +18,8 @@
 #include "adau1466.h"
 #include "SigmaStudioFW.h"
 
+#include <math.h>
+
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
 enum
@@ -68,6 +70,9 @@ typedef struct
     uint32_t mag_offset_sum[MAG_SW_NUM];
     uint16_t mag_offset[MAG_SW_NUM];
     xfade_state_t xf;
+    float curve_exp_a;
+    float curve_exp_b;
+    bool curve_edit_mode;
     bool is_start_audio_control;
 } ui_control_state_t;
 
@@ -79,6 +84,9 @@ static ui_control_state_t s_ui = {
     .current_xfpost_assign  = INPUT_SRC_USB12,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
+    .curve_exp_a            = UI_XFADE_CURVE_EXP_A_DEFAULT,
+    .curve_exp_b            = UI_XFADE_CURVE_EXP_B_DEFAULT,
+    .curve_edit_mode        = false,
     .xf.position_a          = 0,
     .xf.position_b          = 0,
     .xf.raw                 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
@@ -98,15 +106,20 @@ static const float XFADE_EXTREMA_HYSTERESIS           = 0.002f;
 static const float XFADE_EXTREMA_SEND_THRESHOLD       = 0.002f;
 static const float XFADE_PAIR_RESET_THRESHOLD         = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF             = 0.05f;
-static const float XFADE_CURVE_EXP_A                  = 1.0f / 3.0f;
-static const float XFADE_CURVE_EXP_B                  = 50.0f;
+static const float XFADE_CURVE_EXP_MIN                = 0.5f;
+static const float XFADE_CURVE_EXP_MAX                = 50.0f;
+
+static const uint8_t MIDI_CH_15 = 14U; // zero-based MIDI channel index.
+static const uint8_t MIDI_CC_XFADE_CURVE_EXP_A = 20U;
+static const uint8_t MIDI_CC_XFADE_CURVE_EXP_B = 21U;
+static const uint8_t MIDI_PC_CURVE_EDIT_MODE_OFF = 120U;
+static const uint8_t MIDI_PC_CURVE_EDIT_MODE_ON  = 121U;
 
 typedef struct
 {
     uint8_t fade_up_idx;
     uint8_t fade_down_idx;
     uint8_t prev_idx;
-    float curve_exp;
     uint8_t *current_position;
     void (*set_dc)(float xf_pos);
 } xfade_pair_runtime_t;
@@ -125,7 +138,6 @@ static const xfade_pair_runtime_t s_xfade_pairs[] = {
         .fade_up_idx = 5,
         .fade_down_idx = 4,
         .prev_idx = XFADE_PAIR_A,
-        .curve_exp = XFADE_CURVE_EXP_A,
         .current_position = &s_ui.xf.position_a,
         .set_dc = set_dc_inputA,
     },
@@ -133,7 +145,6 @@ static const xfade_pair_runtime_t s_xfade_pairs[] = {
         .fade_up_idx = 0,
         .fade_down_idx = 1,
         .prev_idx = XFADE_PAIR_B,
-        .curve_exp = XFADE_CURVE_EXP_B,
         .current_position = &s_ui.xf.position_b,
         .set_dc = set_dc_inputB,
     },
@@ -157,6 +168,62 @@ static uint8_t xfade_to_cc(float xfade)
     }
 
     return (uint8_t) (127.0f - xfade * 127.0f);
+}
+
+static void mark_xfade_curve_dirty(void)
+{
+    for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
+    {
+        s_ui.xf.up_peak_prev[i]    = -1.0f;
+        s_ui.xf.down_floor_prev[i] = -1.0f;
+    }
+}
+
+static float midi_cc_to_curve_exp(uint8_t value)
+{
+    const float t = (float) value / 127.0f;
+    const float ratio = XFADE_CURVE_EXP_MAX / XFADE_CURVE_EXP_MIN;
+
+    return XFADE_CURVE_EXP_MIN * powf(ratio, t);
+}
+
+static uint8_t curve_exp_to_midi_cc(float curve_exp)
+{
+    float t;
+
+    if (curve_exp < XFADE_CURVE_EXP_MIN)
+    {
+        curve_exp = XFADE_CURVE_EXP_MIN;
+    }
+    else if (curve_exp > XFADE_CURVE_EXP_MAX)
+    {
+        curve_exp = XFADE_CURVE_EXP_MAX;
+    }
+
+    t = logf(curve_exp / XFADE_CURVE_EXP_MIN) / logf(XFADE_CURVE_EXP_MAX / XFADE_CURVE_EXP_MIN);
+    if (t < 0.0f)
+    {
+        t = 0.0f;
+    }
+    else if (t > 1.0f)
+    {
+        t = 1.0f;
+    }
+
+    return (uint8_t) ((t * 127.0f) + 0.5f);
+}
+
+static float clamp_curve_exp(float value)
+{
+    if (value < XFADE_CURVE_EXP_MIN)
+    {
+        return XFADE_CURVE_EXP_MIN;
+    }
+    if (value > XFADE_CURVE_EXP_MAX)
+    {
+        return XFADE_CURVE_EXP_MAX;
+    }
+    return value;
 }
 
 uint8_t get_current_xfA_position(void)
@@ -345,6 +412,31 @@ bool get_current_ch1_dvs_enabled(void)
 bool get_current_ch2_dvs_enabled(void)
 {
     return (s_ui.current_ch2_dvs_enable != 0U);
+}
+
+bool ui_control_is_curve_edit_mode_enabled(void)
+{
+    return s_ui.curve_edit_mode;
+}
+
+float ui_control_get_curve_exp_a(void)
+{
+    return s_ui.curve_exp_a;
+}
+
+float ui_control_get_curve_exp_b(void)
+{
+    return s_ui.curve_exp_b;
+}
+
+uint8_t ui_control_get_curve_exp_a_cc(void)
+{
+    return curve_exp_to_midi_cc(s_ui.curve_exp_a);
+}
+
+uint8_t ui_control_get_curve_exp_b_cc(void)
+{
+    return curve_exp_to_midi_cc(s_ui.curve_exp_b);
 }
 
 void ui_control_dma_adc_cplt(DMA_HandleTypeDef* hdma)
@@ -789,6 +881,7 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t *pair)
 
     if (extrema_changed)
     {
+        const float curve_exp = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.curve_exp_a : s_ui.curve_exp_b;
         float base = up_now * down_now;
         if (base < 0.0f)
         {
@@ -799,7 +892,7 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t *pair)
             base = 1.0f;
         }
 
-        const float xf      = powf(base, pair->curve_exp);
+        const float xf      = powf(base, curve_exp);
         const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
         // Quantized position gate avoids redundant SPI writes.
         if (xf_cc != *pair->current_position)
@@ -888,8 +981,27 @@ static void midi_program_enable_dvs(uint8_t arg)
     apply_dvs_state(input_ch, enable);
 }
 
-static bool dispatch_midi_program_change(uint8_t program)
+static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 {
+    if (channel != MIDI_CH_15)
+    {
+        return false;
+    }
+
+    if (program == MIDI_PC_CURVE_EDIT_MODE_OFF)
+    {
+        s_ui.curve_edit_mode = false;
+        SEGGER_RTT_printf(0, "Curve edit mode OFF (PC%u)\r\n", (unsigned) program);
+        return true;
+    }
+
+    if (program == MIDI_PC_CURVE_EDIT_MODE_ON)
+    {
+        s_ui.curve_edit_mode = true;
+        SEGGER_RTT_printf(0, "Curve edit mode ON (PC%u)\r\n", (unsigned) program);
+        return true;
+    }
+
     if (program == 127U)
     {
         EEPROM_DeviceConfig_t cfg;
@@ -898,7 +1010,15 @@ static bool dispatch_midi_program_change(uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign);
+            SEGGER_RTT_printf(0,
+                              "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
+                              (unsigned) cfg.current_ch1_input_type,
+                              (unsigned) cfg.current_ch2_input_type,
+                              (unsigned) cfg.current_xfA_assign,
+                              (unsigned) cfg.current_xfB_assign,
+                              (unsigned) cfg.current_xfpost_assign,
+                              (double) cfg.current_xf_curve_exp_a,
+                              (double) cfg.current_xf_curve_exp_b);
         }
         else
         {
@@ -941,6 +1061,47 @@ static bool dispatch_midi_program_change(uint8_t program)
     return false;
 }
 
+static bool dispatch_midi_control_change(uint8_t channel, uint8_t number, uint8_t value)
+{
+    float new_curve_exp;
+
+    if (!s_ui.curve_edit_mode)
+    {
+        return false;
+    }
+
+    if (channel != MIDI_CH_15)
+    {
+        return false;
+    }
+
+    if (number == MIDI_CC_XFADE_CURVE_EXP_A)
+    {
+        new_curve_exp = midi_cc_to_curve_exp(value);
+        if (fabsf(new_curve_exp - s_ui.curve_exp_a) > 0.0001f)
+        {
+            s_ui.curve_exp_a = new_curve_exp;
+            mark_xfade_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve A updated by CC%u Ch15 -> %.4f\r\n", (unsigned) number, (double) s_ui.curve_exp_a);
+        }
+        return true;
+    }
+
+    if (number == MIDI_CC_XFADE_CURVE_EXP_B)
+    {
+        new_curve_exp = midi_cc_to_curve_exp(value);
+        if (fabsf(new_curve_exp - s_ui.curve_exp_b) > 0.0001f)
+        {
+            s_ui.curve_exp_b = new_curve_exp;
+            mark_xfade_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve B updated by CC%u Ch15 -> %.4f\r\n", (unsigned) number, (double) s_ui.curve_exp_b);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 static void process_midi_rx(void)
 {
     while (tud_midi_available())
@@ -948,9 +1109,16 @@ static void process_midi_rx(void)
         uint8_t packet[4];
         tud_midi_packet_read(packet);
 
-        if ((packet[1] & 0xF0) == 0xC0)
+        const uint8_t status  = (uint8_t) (packet[1] & 0xF0U);
+        const uint8_t channel = (uint8_t) (packet[1] & 0x0FU);
+
+        if (status == 0xC0U)
         {
-            (void) dispatch_midi_program_change(packet[2]);
+            (void) dispatch_midi_program_change(channel, packet[2]);
+        }
+        else if (status == 0xB0U)
+        {
+            (void) dispatch_midi_control_change(channel, packet[2], packet[3]);
         }
 
         SEGGER_RTT_printf(0, "MIDI RX: 0x%02X 0x%02X 0x%02X(%d) 0x%02X(%d)\n", packet[0], packet[1], packet[2], packet[2], packet[3], packet[3]);
@@ -999,6 +1167,8 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_xfpost_assign  = s_ui.current_xfpost_assign;
     state->current_ch1_dvs_enable = s_ui.current_ch1_dvs_enable;
     state->current_ch2_dvs_enable = s_ui.current_ch2_dvs_enable;
+    state->current_xf_curve_exp_a = s_ui.curve_exp_a;
+    state->current_xf_curve_exp_b = s_ui.curve_exp_b;
 }
 
 bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
@@ -1034,6 +1204,9 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_xf_assign_post(input_ch_post);
     apply_dvs_state(INPUT_CH1, state->current_ch1_dvs_enable != 0U);
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
+    s_ui.curve_exp_a = clamp_curve_exp(state->current_xf_curve_exp_a);
+    s_ui.curve_exp_b = clamp_curve_exp(state->current_xf_curve_exp_b);
+    mark_xfade_curve_dirty();
 
     return true;
 }
@@ -1072,6 +1245,9 @@ void ui_control_reset_state(void)
     s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
+    s_ui.curve_exp_a            = UI_XFADE_CURVE_EXP_A_DEFAULT;
+    s_ui.curve_exp_b            = UI_XFADE_CURVE_EXP_B_DEFAULT;
+    s_ui.curve_edit_mode        = false;
     s_ui.xf.position_a          = 0;
     s_ui.xf.position_b          = 0;
 
@@ -1087,6 +1263,7 @@ void ui_control_reset_state(void)
         s_ui.xf.up_peak_prev[i]    = 0.0f;
         s_ui.xf.down_floor_prev[i] = 1.0f;
     }
+    mark_xfade_curve_dirty();
     s_ui.xf.extrema_prev_valid = false;
 
     s_ui.pot_ch         = 0;
