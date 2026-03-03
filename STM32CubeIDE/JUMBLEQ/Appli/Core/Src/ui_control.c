@@ -58,6 +58,11 @@ typedef struct
     float xfade_prev[MAG_SW_NUM];
     float xfade_min[MAG_SW_NUM];
     float xfade_max[MAG_SW_NUM];
+    float xfade_max_prev_0;
+    float xfade_min_prev_1;
+    float xfade_max_prev_5;
+    float xfade_min_prev_4;
+    bool xfade_extrema_prev_valid;
     bool is_start_audio_control;
 } ui_control_state_t;
 
@@ -69,12 +74,17 @@ static ui_control_state_t s_ui = {
     .current_xfpost_assign  = INPUT_SRC_USB12,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
-    .current_xfA_position   = 127,
-    .current_xfB_position   = 127,
+    .current_xfA_position   = 0,
+    .current_xfB_position   = 0,
     .xfade                  = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xfade_prev             = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xfade_min              = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xfade_max              = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    .xfade_max_prev_0       = 0.0f,
+    .xfade_min_prev_1       = 1.0f,
+    .xfade_max_prev_5       = 0.0f,
+    .xfade_min_prev_4       = 1.0f,
+    .xfade_extrema_prev_valid = false,
     .is_start_audio_control = false,
 };
 
@@ -363,9 +373,9 @@ static uint8_t current_input_src_from_channel(uint8_t input_ch)
     case INPUT_CH2:
         return input_src_from_channel_type(INPUT_CH2, s_ui.current_ch2_input_type);
     case INPUT_USB12:
-    	return INPUT_SRC_USB12;
+        return INPUT_SRC_USB12;
     case INPUT_USB34:
-    	return INPUT_SRC_USB34;
+        return INPUT_SRC_USB34;
     default:
         return INPUT_SRC_NONE;
     }
@@ -599,6 +609,8 @@ static void ui_control_update_mag_samples(void)
 
 static void ui_control_update_xfade_from_mag(void)
 {
+    const float xfade_extrema_hysteresis = 0.002f;
+    const float xfade_pair_reset_threshold = 0.98f;
     int index[MAG_SW_NUM] = {0, 5, 1, 2, 3, 4};
     for (int j = 0; j < MAG_SW_NUM; j++)
     {
@@ -618,7 +630,7 @@ static void ui_control_update_xfade_from_mag(void)
                 s_ui.xfade[i] = 1.0f;
             }
 
-            if (s_ui.xfade[i] >= s_ui.xfade_max[i])
+            if (s_ui.xfade[i] > (s_ui.xfade_max[i] + xfade_extrema_hysteresis))
             {
                 s_ui.xfade_max[i] = s_ui.xfade[i];
 
@@ -629,6 +641,20 @@ static void ui_control_update_xfade_from_mag(void)
                 else if (i == 5)
                 {
                     s_ui.xfade_min[4] = s_ui.xfade_max[i];
+                }
+            }
+
+            // Keep paired minimum re-synchronized while the source side stays near full scale.
+            // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
+            if (s_ui.xfade[i] >= xfade_pair_reset_threshold)
+            {
+                if (i == 0)
+                {
+                    s_ui.xfade_min[1] = s_ui.xfade[i];
+                }
+                else
+                {
+                    s_ui.xfade_min[4] = s_ui.xfade[i];
                 }
             }
         }
@@ -647,7 +673,7 @@ static void ui_control_update_xfade_from_mag(void)
                 s_ui.xfade[i] = 0.0f;
             }
 
-            if (s_ui.xfade[i] <= s_ui.xfade_min[i])
+            if (s_ui.xfade[i] < (s_ui.xfade_min[i] - xfade_extrema_hysteresis))
             {
                 s_ui.xfade_min[i] = s_ui.xfade[i];
 
@@ -669,39 +695,86 @@ static void ui_control_update_xfade_from_mag(void)
 
 static void ui_control_apply_xfade_updates(void)
 {
-    bool xfadeA_changed = false;
-    bool xfadeB_changed = false;
+    const float extrema_send_threshold = 0.002f;
+    const float xfadeB_curve_exp       = 50.0f;
+    bool xfadeA_extrema_changed        = false;
+    bool xfadeB_extrema_changed        = false;
+
     for (int i = 0; i < MAG_SW_NUM; i++)
     {
         if (fabs(s_ui.xfade[i] - s_ui.xfade_prev[i]) > 0.01f)
         {
             send_control_change(10 + (5 - i), xfade_to_cc(s_ui.xfade[i]), 0);
-
-            if (i == 0 || i == 1)
-            {
-                xfadeB_changed = true;
-            }
-            if (i == 4 || i == 5)
-            {
-                xfadeA_changed = true;
-            }
-
             s_ui.xfade_prev[i] = s_ui.xfade[i];
         }
     }
 
-    if (xfadeA_changed)
+    if (!s_ui.xfade_extrema_prev_valid)
     {
-        const float xf = pow(s_ui.xfade_max[5] * s_ui.xfade_min[4], 1.0f / 3.0f);
-        set_dc_inputA(xf);
-        s_ui.current_xfA_position = (uint8_t) (xf * 128.0f);
+        s_ui.xfade_max_prev_0       = s_ui.xfade_max[0];
+        s_ui.xfade_min_prev_1       = s_ui.xfade_min[1];
+        s_ui.xfade_max_prev_5       = s_ui.xfade_max[5];
+        s_ui.xfade_min_prev_4       = s_ui.xfade_min[4];
+        s_ui.xfade_extrema_prev_valid = true;
+    }
+    else
+    {
+        if (fabs(s_ui.xfade_max[0] - s_ui.xfade_max_prev_0) > extrema_send_threshold || fabs(s_ui.xfade_min[1] - s_ui.xfade_min_prev_1) > extrema_send_threshold)
+        {
+            xfadeB_extrema_changed = true;
+        }
+
+        if (fabs(s_ui.xfade_max[5] - s_ui.xfade_max_prev_5) > extrema_send_threshold || fabs(s_ui.xfade_min[4] - s_ui.xfade_min_prev_4) > extrema_send_threshold)
+        {
+            xfadeA_extrema_changed = true;
+        }
+
+        s_ui.xfade_max_prev_0 = s_ui.xfade_max[0];
+        s_ui.xfade_min_prev_1 = s_ui.xfade_min[1];
+        s_ui.xfade_max_prev_5 = s_ui.xfade_max[5];
+        s_ui.xfade_min_prev_4 = s_ui.xfade_min[4];
     }
 
-    if (xfadeB_changed)
+    if (xfadeA_extrema_changed)
     {
-        const float xf = pow(s_ui.xfade_max[0] * s_ui.xfade_min[1], 1.0f / 3.0f);
-        set_dc_inputB(xf);
-        s_ui.current_xfB_position = (uint8_t) (xf * 128.0f);
+        float base = s_ui.xfade_max[5] * s_ui.xfade_min[4];
+        if (base < 0.0f)
+        {
+            base = 0.0f;
+        }
+        else if (base > 1.0f)
+        {
+            base = 1.0f;
+        }
+
+        const float xf      = powf(base, 1.0f / 3.0f);
+        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
+        if (xf_cc != s_ui.current_xfA_position)
+        {
+            set_dc_inputA(xf);
+            s_ui.current_xfA_position = xf_cc;
+        }
+    }
+
+    if (xfadeB_extrema_changed)
+    {
+        float base = s_ui.xfade_max[0] * s_ui.xfade_min[1];
+        if (base < 0.0f)
+        {
+            base = 0.0f;
+        }
+        else if (base > 1.0f)
+        {
+            base = 1.0f;
+        }
+
+        const float xf      = powf(base, xfadeB_curve_exp);
+        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
+        if (xf_cc != s_ui.current_xfB_position)
+        {
+            set_dc_inputB(xf);
+            s_ui.current_xfB_position = xf_cc;
+        }
     }
 }
 
@@ -938,8 +1011,8 @@ void ui_control_reset_state(void)
     s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
-    s_ui.current_xfA_position   = 127;
-    s_ui.current_xfB_position   = 127;
+    s_ui.current_xfA_position   = 0;
+    s_ui.current_xfB_position   = 0;
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
@@ -948,6 +1021,11 @@ void ui_control_reset_state(void)
         s_ui.xfade_min[i]  = 1.0f;
         s_ui.xfade_max[i]  = 0.0f;
     }
+    s_ui.xfade_max_prev_0       = 0.0f;
+    s_ui.xfade_min_prev_1       = 1.0f;
+    s_ui.xfade_max_prev_5       = 0.0f;
+    s_ui.xfade_min_prev_4       = 1.0f;
+    s_ui.xfade_extrema_prev_valid = false;
 
     s_ui.pot_ch         = 0;
     s_ui.pot_ch_counter = 0;
