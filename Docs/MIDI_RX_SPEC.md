@@ -18,9 +18,28 @@
 
 | PC番号 | 機能 |
 |---:|---|
-| 0-19 | 既存の入力切替/アサイン/DVS制御（`adau1466.h` 定義） |
-| 120 | `curve_edit_mode` OFF |
-| 121 | `curve_edit_mode` ON |
+| 0 | Ch.1をLine入力に切り替え |
+| 1 | Ch.1をPhono入力に切り替え |
+| 2 | Ch.2をLine入力に切り替え |
+| 3 | Ch.2をPhono入力に切り替え |
+| 4 | XFader AにCh.1を割り当て |
+| 5 | XFader AにCh.2を割り当て |
+| 6 | XFader AにUSB[1/2]を割り当て |
+| 7 | XFader AにUSB[3/4]を割り当て |
+| 8 | XFader BにCh.1を割り当て |
+| 9 | XFader BにCh.2を割り当て |
+| 10 | XFader BにUSB[1/2]を割り当て |
+| 11 | XFader BにUSB[3/4]を割り当て |
+| 12 | Post XFaderにCh.1を割り当て |
+| 13 | Post XFaderにCh.2を割り当て |
+| 14 | Post XFaderにUSB[1/2]を割り当て |
+| 15 | Post XFaderにUSB[3/4]を割り当て |
+| 16 | Ch.1のDVSモードを無効化 |
+| 17 | Ch.1のDVSモードを有効化 |
+| 18 | Ch.2のDVSモードを無効化 |
+| 19 | Ch.2のDVSモードを有効化 |
+| 120 | フェーダー・カーブ調整モード オフ |
+| 121 | フェーダー・カーブ調整モード オン |
 | 127 | 現在設定をEEPROMへ保存 |
 
 備考:
@@ -32,7 +51,7 @@
 
 以下をすべて満たした場合のみ受理する。
 
-- `curve_edit_mode == ON`
+- フェーダー・カーブ調整モードオン中
 - MIDIチャンネルが Ch.15
 - CC番号が対象（20 or 21）
 
