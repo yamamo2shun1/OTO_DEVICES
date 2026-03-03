@@ -6,7 +6,6 @@
 
 - 受信MIDIは USB-MIDI 経由で処理する
 - UI設定変更に使う受信MIDIは **MIDI Ch.15 固定**（1始まり表記）
-- 保存は既存仕様どおり **Program Change 127** で実行する
 
 ## 2. 受信仕様（Host -> Device）
 
@@ -45,7 +44,7 @@ Ch.15以外のPCは無視される。
 
 - ON/OFFはPCで切り替える（`PC121` ON / `PC120` OFF）
 - ON中はメインOLEDにカーブ編集表示を出す
-- OFF中は従来のメインOLED表示に戻る
+- OFF中は従来のメインOLED表示（各入出力Chのゲイン値表示）
 - 自動タイムアウトは無し
 
 ## 4. EEPROM保存・起動時復元
