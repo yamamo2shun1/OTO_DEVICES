@@ -33,6 +33,23 @@ enum
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
+// State used by magnetic-switch crossfader processing.
+typedef struct
+{
+    uint8_t position_a;
+    uint8_t position_b;
+    float raw[MAG_SW_NUM];
+    float prev[MAG_SW_NUM];
+    float min[MAG_SW_NUM];
+    float max[MAG_SW_NUM];
+    float max_prev_0;
+    float min_prev_1;
+    float max_prev_5;
+    float min_prev_4;
+    bool extrema_prev_valid;
+} xfade_state_t;
+
+// Aggregated UI runtime state (ADC-derived controls + persisted selections).
 typedef struct
 {
     uint8_t current_ch1_input_type;
@@ -42,8 +59,6 @@ typedef struct
     uint8_t current_xfpost_assign;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
-    uint8_t current_xfA_position;
-    uint8_t current_xfB_position;
     uint8_t pot_ch;
     uint8_t pot_ch_counter;
     uint16_t pot_ma_index[POT_NUM];
@@ -54,15 +69,7 @@ typedef struct
     uint16_t mag_val[MAG_SW_NUM];
     uint32_t mag_offset_sum[MAG_SW_NUM];
     uint16_t mag_offset[MAG_SW_NUM];
-    float xfade[MAG_SW_NUM];
-    float xfade_prev[MAG_SW_NUM];
-    float xfade_min[MAG_SW_NUM];
-    float xfade_max[MAG_SW_NUM];
-    float xfade_max_prev_0;
-    float xfade_min_prev_1;
-    float xfade_max_prev_5;
-    float xfade_min_prev_4;
-    bool xfade_extrema_prev_valid;
+    xfade_state_t xf;
     bool is_start_audio_control;
 } ui_control_state_t;
 
@@ -74,21 +81,63 @@ static ui_control_state_t s_ui = {
     .current_xfpost_assign  = INPUT_SRC_USB12,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
-    .current_xfA_position   = 0,
-    .current_xfB_position   = 0,
-    .xfade                  = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xfade_prev             = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xfade_min              = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xfade_max              = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-    .xfade_max_prev_0       = 0.0f,
-    .xfade_min_prev_1       = 1.0f,
-    .xfade_max_prev_5       = 0.0f,
-    .xfade_min_prev_4       = 1.0f,
-    .xfade_extrema_prev_valid = false,
+    .xf.position_a          = 0,
+    .xf.position_b          = 0,
+    .xf.raw                 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .xf.prev                = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .xf.min                 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .xf.max                 = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    .xf.max_prev_0          = 0.0f,
+    .xf.min_prev_1          = 1.0f,
+    .xf.max_prev_5          = 0.0f,
+    .xf.min_prev_4          = 1.0f,
+    .xf.extrema_prev_valid  = false,
     .is_start_audio_control = false,
 };
 
 static volatile bool is_adc_complete = false;
+
+static const float XFADE_CC_UPDATE_THRESHOLD          = 0.01f;
+static const float XFADE_EXTREMA_HYSTERESIS           = 0.002f;
+static const float XFADE_EXTREMA_SEND_THRESHOLD       = 0.002f;
+static const float XFADE_PAIR_RESET_THRESHOLD         = 0.98f;
+static const float XFADE_MIN_RESET_CUTOFF             = 0.05f;
+static const float XFADE_CURVE_EXP_A                  = 1.0f / 3.0f;
+static const float XFADE_CURVE_EXP_B                  = 50.0f;
+
+typedef struct
+{
+    uint8_t src_max_idx;
+    uint8_t dst_min_idx;
+    float curve_exp;
+    uint8_t *current_position;
+    float *max_prev;
+    float *min_prev;
+    void (*set_dc)(float xf_pos);
+} xfade_pair_runtime_t;
+
+// Runtime mapping for each xfade bus:
+// src_max_idx * dst_min_idx -> curved scalar -> ADAU1466 DC input.
+static const xfade_pair_runtime_t s_xfade_pairs[] = {
+    {
+        .src_max_idx = 5,
+        .dst_min_idx = 4,
+        .curve_exp = XFADE_CURVE_EXP_A,
+        .current_position = &s_ui.xf.position_a,
+        .max_prev = &s_ui.xf.max_prev_5,
+        .min_prev = &s_ui.xf.min_prev_4,
+        .set_dc = set_dc_inputA,
+    },
+    {
+        .src_max_idx = 0,
+        .dst_min_idx = 1,
+        .curve_exp = XFADE_CURVE_EXP_B,
+        .current_position = &s_ui.xf.position_b,
+        .max_prev = &s_ui.xf.max_prev_0,
+        .min_prev = &s_ui.xf.min_prev_1,
+        .set_dc = set_dc_inputB,
+    },
+};
 
 static void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
 {
@@ -112,12 +161,12 @@ static uint8_t xfade_to_cc(float xfade)
 
 uint8_t get_current_xfA_position(void)
 {
-    return s_ui.current_xfA_position;
+    return s_ui.xf.position_a;
 }
 
 uint8_t get_current_xfB_position(void)
 {
-    return s_ui.current_xfB_position;
+    return s_ui.xf.position_b;
 }
 
 int16_t get_current_ch1_db(void)
@@ -151,12 +200,12 @@ int16_t get_current_dry_wet(void)
 
 uint8_t get_current_xfade2_cc_value(void)
 {
-    return xfade_to_cc(s_ui.xfade[2]);
+    return xfade_to_cc(s_ui.xf.raw[2]);
 }
 
 uint8_t get_current_xfade3_cc_value(void)
 {
-    return xfade_to_cc(s_ui.xfade[3]);
+    return xfade_to_cc(s_ui.xf.raw[3]);
 }
 
 char* get_current_input_typeA_str(void)
@@ -607,173 +656,181 @@ static void ui_control_update_mag_samples(void)
     }
 }
 
-static void ui_control_update_xfade_from_mag(void)
+static int8_t ui_control_pair_min_index_from_src(uint8_t src_idx)
 {
-    const float xfade_extrema_hysteresis = 0.002f;
-    const float xfade_pair_reset_threshold = 0.98f;
-    int index[MAG_SW_NUM] = {0, 5, 1, 2, 3, 4};
-    for (int j = 0; j < MAG_SW_NUM; j++)
+    static const int8_t map[MAG_SW_NUM] = {1, -1, -1, -1, -1, 4};
+    return (src_idx < MAG_SW_NUM) ? map[src_idx] : -1;
+}
+
+// Reverse lookup for paired xfade endpoints (min-side -> source max-side).
+static int8_t ui_control_pair_max_index_from_min(uint8_t min_idx)
+{
+    static const int8_t map[MAG_SW_NUM] = {-1, 0, -1, -1, 5, -1};
+    return (min_idx < MAG_SW_NUM) ? map[min_idx] : -1;
+}
+
+// Convert one magnetic sensor sample into normalized xfade raw [0..1].
+static void update_raw_xfade_from_mag(uint8_t i)
+{
+    // End sensors (0,5) rise from 0->1, center-side sensors (1-4) invert 1->0.
+    if (i == 0 || i == 5)
     {
-        int i = index[j];
-        if (i == 0 || i == 5)
+        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
         {
-            if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
-            {
-                s_ui.xfade[i] = 0.0f;
-            }
-            else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
-            {
-                s_ui.xfade[i] = (float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE;
-            }
-            else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
-            {
-                s_ui.xfade[i] = 1.0f;
-            }
+            s_ui.xf.raw[i] = 0.0f;
+        }
+        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        {
+            s_ui.xf.raw[i] = (float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE;
+        }
+        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        {
+            s_ui.xf.raw[i] = 1.0f;
+        }
+    }
+    else
+    {
+        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
+        {
+            s_ui.xf.raw[i] = 1.0f;
+        }
+        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        {
+            s_ui.xf.raw[i] = 1.0f - ((float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE);
+        }
+        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        {
+            s_ui.xf.raw[i] = 0.0f;
+        }
+    }
+}
 
-            if (s_ui.xfade[i] > (s_ui.xfade_max[i] + xfade_extrema_hysteresis))
-            {
-                s_ui.xfade_max[i] = s_ui.xfade[i];
+// Update peak/valley trackers used to build stable pair outputs.
+static void update_xfade_extrema(uint8_t i)
+{
+    if (i == 0 || i == 5)
+    {
+        // Track source-side peak; pair min is synchronized from this edge.
+        if (s_ui.xf.raw[i] > (s_ui.xf.max[i] + XFADE_EXTREMA_HYSTERESIS))
+        {
+            s_ui.xf.max[i] = s_ui.xf.raw[i];
 
-                if (i == 0)
-                {
-                    s_ui.xfade_min[1] = s_ui.xfade_max[i];
-                }
-                else if (i == 5)
-                {
-                    s_ui.xfade_min[4] = s_ui.xfade_max[i];
-                }
-            }
-
-            // Keep paired minimum re-synchronized while the source side stays near full scale.
-            // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
-            if (s_ui.xfade[i] >= xfade_pair_reset_threshold)
+            const int8_t min_idx = ui_control_pair_min_index_from_src((uint8_t) i);
+            if (min_idx >= 0)
             {
-                if (i == 0)
-                {
-                    s_ui.xfade_min[1] = s_ui.xfade[i];
-                }
-                else
-                {
-                    s_ui.xfade_min[4] = s_ui.xfade[i];
-                }
+                s_ui.xf.min[(uint8_t) min_idx] = s_ui.xf.max[i];
             }
         }
-        else
+
+        // Keep paired minimum re-synchronized while the source side stays near full scale.
+        // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
+        if (s_ui.xf.raw[i] >= XFADE_PAIR_RESET_THRESHOLD)
         {
-            if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
+            const int8_t min_idx = ui_control_pair_min_index_from_src((uint8_t) i);
+            if (min_idx >= 0)
             {
-                s_ui.xfade[i] = 1.0f;
+                s_ui.xf.min[(uint8_t) min_idx] = s_ui.xf.raw[i];
             }
-            else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
-            {
-                s_ui.xfade[i] = 1.0f - ((float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE);
-            }
-            else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
-            {
-                s_ui.xfade[i] = 0.0f;
-            }
+        }
+    }
+    else
+    {
+        // Track destination-side minimum; when near zero, clear paired source max.
+        if (s_ui.xf.raw[i] < (s_ui.xf.min[i] - XFADE_EXTREMA_HYSTERESIS))
+        {
+            s_ui.xf.min[i] = s_ui.xf.raw[i];
 
-            if (s_ui.xfade[i] < (s_ui.xfade_min[i] - xfade_extrema_hysteresis))
+            if (s_ui.xf.min[i] < XFADE_MIN_RESET_CUTOFF)
             {
-                s_ui.xfade_min[i] = s_ui.xfade[i];
-
-                if (s_ui.xfade_min[i] < 0.05f)
+                const int8_t max_idx = ui_control_pair_max_index_from_min((uint8_t) i);
+                if (max_idx >= 0)
                 {
-                    if (i == 1)
-                    {
-                        s_ui.xfade_max[0] = 0.0f;
-                    }
-                    else if (i == 4)
-                    {
-                        s_ui.xfade_max[5] = 0.0f;
-                    }
+                    s_ui.xf.max[(uint8_t) max_idx] = 0.0f;
                 }
             }
         }
     }
 }
 
-static void ui_control_apply_xfade_updates(void)
+// Full per-scan xfade update pipeline: raw normalization then extrema tracking.
+static void ui_control_update_xfade_from_mag(void)
 {
-    const float extrema_send_threshold = 0.002f;
-    const float xfadeB_curve_exp       = 50.0f;
-    bool xfadeA_extrema_changed        = false;
-    bool xfadeB_extrema_changed        = false;
-
-    for (int i = 0; i < MAG_SW_NUM; i++)
+    static const uint8_t index[MAG_SW_NUM] = {0, 5, 1, 2, 3, 4};
+    for (uint32_t j = 0; j < MAG_SW_NUM; j++)
     {
-        if (fabs(s_ui.xfade[i] - s_ui.xfade_prev[i]) > 0.01f)
+        const uint8_t i = index[j];
+        update_raw_xfade_from_mag(i);
+        update_xfade_extrema(i);
+    }
+}
+
+// Emit MIDI CC only when raw xfade changes enough to justify traffic.
+static void emit_xfade_cc_if_needed(uint8_t i)
+{
+    // MIDI CC updates use a larger threshold to limit traffic and jitter.
+    if (fabs(s_ui.xf.raw[i] - s_ui.xf.prev[i]) > XFADE_CC_UPDATE_THRESHOLD)
+    {
+        send_control_change(10 + (5 - i), xfade_to_cc(s_ui.xf.raw[i]), 0);
+        s_ui.xf.prev[i] = s_ui.xf.raw[i];
+    }
+}
+
+// Compute and commit one pair output (A or B) from tracked extrema.
+static void update_xfade_pair_output(const xfade_pair_runtime_t *pair)
+{
+    // DSP writes are driven by extrema deltas, not raw sample deltas.
+    const float max_now = s_ui.xf.max[pair->src_max_idx];
+    const float min_now = s_ui.xf.min[pair->dst_min_idx];
+    const bool extrema_changed = (fabs(max_now - *pair->max_prev) > XFADE_EXTREMA_SEND_THRESHOLD) || (fabs(min_now - *pair->min_prev) > XFADE_EXTREMA_SEND_THRESHOLD);
+
+    if (extrema_changed)
+    {
+        float base = max_now * min_now;
+        if (base < 0.0f)
         {
-            send_control_change(10 + (5 - i), xfade_to_cc(s_ui.xfade[i]), 0);
-            s_ui.xfade_prev[i] = s_ui.xfade[i];
+            base = 0.0f;
+        }
+        else if (base > 1.0f)
+        {
+            base = 1.0f;
+        }
+
+        const float xf      = powf(base, pair->curve_exp);
+        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
+        // Quantized position gate avoids redundant SPI writes.
+        if (xf_cc != *pair->current_position)
+        {
+            pair->set_dc(xf);
+            *pair->current_position = xf_cc;
         }
     }
 
-    if (!s_ui.xfade_extrema_prev_valid)
+    *pair->max_prev = max_now;
+    *pair->min_prev = min_now;
+}
+
+// Apply outgoing updates for xfade: MIDI CC stream and DSP DC controls.
+static void ui_control_apply_xfade_updates(void)
+{
+    for (uint32_t i = 0; i < MAG_SW_NUM; i++)
     {
-        s_ui.xfade_max_prev_0       = s_ui.xfade_max[0];
-        s_ui.xfade_min_prev_1       = s_ui.xfade_min[1];
-        s_ui.xfade_max_prev_5       = s_ui.xfade_max[5];
-        s_ui.xfade_min_prev_4       = s_ui.xfade_min[4];
-        s_ui.xfade_extrema_prev_valid = true;
+        emit_xfade_cc_if_needed((uint8_t) i);
+    }
+
+    if (!s_ui.xf.extrema_prev_valid)
+    {
+        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+        {
+            *s_xfade_pairs[i].max_prev = s_ui.xf.max[s_xfade_pairs[i].src_max_idx];
+            *s_xfade_pairs[i].min_prev = s_ui.xf.min[s_xfade_pairs[i].dst_min_idx];
+        }
+        s_ui.xf.extrema_prev_valid = true;
     }
     else
     {
-        if (fabs(s_ui.xfade_max[0] - s_ui.xfade_max_prev_0) > extrema_send_threshold || fabs(s_ui.xfade_min[1] - s_ui.xfade_min_prev_1) > extrema_send_threshold)
+        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
         {
-            xfadeB_extrema_changed = true;
-        }
-
-        if (fabs(s_ui.xfade_max[5] - s_ui.xfade_max_prev_5) > extrema_send_threshold || fabs(s_ui.xfade_min[4] - s_ui.xfade_min_prev_4) > extrema_send_threshold)
-        {
-            xfadeA_extrema_changed = true;
-        }
-
-        s_ui.xfade_max_prev_0 = s_ui.xfade_max[0];
-        s_ui.xfade_min_prev_1 = s_ui.xfade_min[1];
-        s_ui.xfade_max_prev_5 = s_ui.xfade_max[5];
-        s_ui.xfade_min_prev_4 = s_ui.xfade_min[4];
-    }
-
-    if (xfadeA_extrema_changed)
-    {
-        float base = s_ui.xfade_max[5] * s_ui.xfade_min[4];
-        if (base < 0.0f)
-        {
-            base = 0.0f;
-        }
-        else if (base > 1.0f)
-        {
-            base = 1.0f;
-        }
-
-        const float xf      = powf(base, 1.0f / 3.0f);
-        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
-        if (xf_cc != s_ui.current_xfA_position)
-        {
-            set_dc_inputA(xf);
-            s_ui.current_xfA_position = xf_cc;
-        }
-    }
-
-    if (xfadeB_extrema_changed)
-    {
-        float base = s_ui.xfade_max[0] * s_ui.xfade_min[1];
-        if (base < 0.0f)
-        {
-            base = 0.0f;
-        }
-        else if (base > 1.0f)
-        {
-            base = 1.0f;
-        }
-
-        const float xf      = powf(base, xfadeB_curve_exp);
-        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
-        if (xf_cc != s_ui.current_xfB_position)
-        {
-            set_dc_inputB(xf);
-            s_ui.current_xfB_position = xf_cc;
+            update_xfade_pair_output(&s_xfade_pairs[i]);
         }
     }
 }
@@ -1011,21 +1068,21 @@ void ui_control_reset_state(void)
     s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
-    s_ui.current_xfA_position   = 0;
-    s_ui.current_xfB_position   = 0;
+    s_ui.xf.position_a          = 0;
+    s_ui.xf.position_b          = 0;
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
-        s_ui.xfade[i]      = 1.0f;
-        s_ui.xfade_prev[i] = 1.0f;
-        s_ui.xfade_min[i]  = 1.0f;
-        s_ui.xfade_max[i]  = 0.0f;
+        s_ui.xf.raw[i]  = 1.0f;
+        s_ui.xf.prev[i] = 1.0f;
+        s_ui.xf.min[i]  = 1.0f;
+        s_ui.xf.max[i]  = 0.0f;
     }
-    s_ui.xfade_max_prev_0       = 0.0f;
-    s_ui.xfade_min_prev_1       = 1.0f;
-    s_ui.xfade_max_prev_5       = 0.0f;
-    s_ui.xfade_min_prev_4       = 1.0f;
-    s_ui.xfade_extrema_prev_valid = false;
+    s_ui.xf.max_prev_0         = 0.0f;
+    s_ui.xf.min_prev_1         = 1.0f;
+    s_ui.xf.max_prev_5         = 0.0f;
+    s_ui.xf.min_prev_4         = 1.0f;
+    s_ui.xf.extrema_prev_valid = false;
 
     s_ui.pot_ch         = 0;
     s_ui.pot_ch_counter = 0;
