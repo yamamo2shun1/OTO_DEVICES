@@ -656,11 +656,11 @@ void HAL_SAI_ErrorCallback(SAI_HandleTypeDef* hsai)
 void start_sai(void)
 {
     // ========================================
-    // リングバッファを�Eリフィル�E�無音で初期化！E
+    // リングバッファをプリフィル（無音で初期化）
     // SAI DMAが開始直後にHalf割り込みを発生させた時、E
-    // リングバッファにチE�EタがなぁE��アンダーランになるため、E
-    // 無音チE�Eタを事前に投�Eしておく
-    // 96kHzではチE�Eタレートが2倍なのでプリフィルめE倍忁E��E
+    // リングバッファにデータがないとアンダーランになるため、
+    // 無音データを事前に投入しておく
+    // 96kHzではデータレートが高いため、十分な量をプリフィルする
     // ========================================
     uint32_t prefill_size = SAI_TX_BUF_SIZE;
     memset(sai_tx_rng_buf, 0, prefill_size * sizeof(int32_t));
@@ -718,7 +718,7 @@ void start_sai(void)
         Error_Handler();
     }
 #endif
-    hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;  // ↁEここが「DMAリクエスト有効化、E
+    hsai_BlockA2.Instance->CR1 |= SAI_xCR1_DMAEN;  // ここでDMAリクエストを有効化
     __HAL_SAI_ENABLE(&hsai_BlockA2);
 
     osDelay(500);
@@ -752,7 +752,7 @@ void start_sai(void)
         Error_Handler();
     }
 #endif
-    hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;  // ↁEここが「DMAリクエスト有効化、E
+    hsai_BlockA1.Instance->CR1 |= SAI_xCR1_DMAEN;  // ここでDMAリクエストを有効化
     __HAL_SAI_ENABLE(&hsai_BlockA1);
 }
 
@@ -777,7 +777,7 @@ void copybuf_usb2ring(void)
         return;
     }
 
-    // USBは4ch、SAIめEch�E�そのままコピ�E�E�E
+    // USBは4ch、SAIも4chのためそのままコピー
     // USB: [L1][R1][L2][R2][L1][R1][L2][R2]...
     // SAI: [L1][R1][L2][R2][L1][R1][L2][R2]...
 
@@ -804,10 +804,10 @@ static inline void fill_tx_half(uint32_t index0)
     const uint32_t frame_words = 4;  // 4ch x 32bit = 1 frame
     uint32_t pull_words        = n;
 
-    // index0のバウンドチェチE��
+    // index0の範囲チェック
     if (index0 >= SAI_TX_BUF_SIZE)
     {
-        // 不正な値 - 無音で埋めめE
+        // 不正な値は無音で埋める
         return;
     }
 
@@ -824,13 +824,13 @@ static inline void fill_tx_half(uint32_t index0)
 #endif
     if (used < 0)
     {
-        // 同期ズレは捨てて合わせ直ぁE
+        // 同期ズレは破棄して合わせ直す
         sai_transmit_index = sai_tx_rng_buf_index;
         used               = 0;
     }
 
-    // チE�Eタ不足時�E可能な刁E��け�E生し、残りは末尾フレーム保持で埋める、E
-    // ぁE��なり�E無音にせずクリチE��感を抑える、E
+    // データ不足時は可能な分だけ再生し、残りは末尾フレーム保持で埋める
+    // いきなり無音にせず、クリック感を抑える
     if (used < (int32_t) n)
     {
 #if AUDIO_DIAG_LOG
@@ -849,24 +849,24 @@ static inline void fill_tx_half(uint32_t index0)
         }
     }
 
-    // usedが大きすぎる場合も異常�E�オーバ�Eフロー等！E
+    // usedが大きすぎる場合も異常（オーバーフロー等）
     if (used > (int32_t) SAI_RNG_BUF_SIZE)
     {
-        // リセチE��して無音で埋めめE
+        // リセットして無音で埋める
         sai_transmit_index = sai_tx_rng_buf_index;
         memset(stereo_out_buf + index0, 0, n * sizeof(int32_t));
         return;
     }
 
-    // 長時間再生時�E USB/SAI クロチE��差を吸収するため、E
-    // リング水位に応じて 1 frame だけ消費量を増減する、E
+    // 長時間再生時のUSB/SAIクロック差を吸収するため、
+    // リング水位に応じて 1 frame だけ消費量を増減する
     const int32_t target_level = (int32_t) SAI_TX_TARGET_LEVEL_WORDS;
     const int32_t high_thr     = target_level + (int32_t) (SAI_TX_BUF_SIZE / 2);
     const int32_t low_thr      = target_level - (int32_t) (SAI_TX_BUF_SIZE / 2);
 
     if (used >= (int32_t) n && used > high_thr && used >= (int32_t) (n + frame_words))
     {
-        // バッファ過夁E-> 1 frame 余�Eに消費して追征E
+        // バッファ過多: 1 frame 余分に消費して追従
         pull_words = n + frame_words;
 #if AUDIO_DIAG_LOG
         dbg_tx_drift_up_events++;
@@ -874,14 +874,14 @@ static inline void fill_tx_half(uint32_t index0)
     }
     else if (used >= (int32_t) n && used < low_thr && n > frame_words)
     {
-        // バッファ不足傾吁E-> 1 frame 少なく消費して追征E
+        // バッファ不足傾向: 1 frame 少なく消費して追従
         pull_words = n - frame_words;
 #if AUDIO_DIAG_LOG
         dbg_tx_drift_dn_events++;
 #endif
     }
 
-    // 安�EガーチE
+    // 安全ガード
     if ((int32_t) pull_words > used)
     {
         pull_words = (uint32_t) used;
@@ -908,7 +908,7 @@ static inline void fill_tx_half(uint32_t index0)
 #if AUDIO_DIAG_LOG
         dbg_tx_partial_fill_events++;
 #endif
-        // 不足刁E�E最後�E1frameを繰り返してクリチE��ノイズを抑える
+        // 不足分は最後の1frameを繰り返し、クリックノイズを抑える
         uint32_t* dst = (uint32_t*) (stereo_out_buf + index0 + pull_words);
         uint32_t* src = (uint32_t*) (stereo_out_buf + index0 + pull_words - frame_words);
         for (uint32_t i = pull_words; i < n; i += frame_words)
@@ -926,7 +926,7 @@ static inline void fill_tx_half(uint32_t index0)
 
 void copybuf_ring2sai(void)
 {
-    // ISRから立つ「更新要求」を取り出して、該当halfだぁE回更新する
+    // ISRからの更新要求を取り出し、該当halfを更新する
     uint8_t mask;
     uint32_t primask = __get_PRIMASK();
     __disable_irq();
@@ -945,9 +945,9 @@ void copybuf_ring2sai(void)
 // ==============================
 static inline void fill_rx_half(uint32_t index0)
 {
-    const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半�Eぶん！Eord数�E�E
+    const uint32_t n = (SAI_RX_BUF_SIZE / 2);  // 半分のword数
 
-    // index0のバウンドチェチE��
+    // index0の範囲チェック
     if (index0 >= SAI_RX_BUF_SIZE)
     {
         return;
@@ -960,7 +960,7 @@ static inline void fill_rx_half(uint32_t index0)
         used              = 0;
     }
 
-    // usedが大きすぎる場合も異常�E�オーバ�Eフロー等！E
+    // usedが大きすぎる場合も異常（オーバーフロー等）
     if (used > (int32_t) SAI_RNG_BUF_SIZE)
     {
         sai_receive_index = sai_rx_rng_buf_index;
@@ -1002,17 +1002,17 @@ static void copybuf_sai2ring(void)
     rx_pending_mask = 0;
     __set_PRIMASK(primask);
 
-    // 頁E��：half→cplt の頁E��処琁E��両方溜まってぁE��場合！E
+    // 注意: half->cplt の順で両方の更新要求が溜まる場合がある
     if (mask & 0x01)
         fill_rx_half(0);
     if (mask & 0x02)
         fill_rx_half(SAI_RX_BUF_SIZE / 2);
 }
 
-// 1msあたり�Eフレーム数
+// 1msあたりのフレーム数
 static uint32_t audio_frames_per_ms(void)
 {
-    // 侁E 48kHz -> 48 frames/ms
+    // 例: 48kHz -> 48 frames/ms
     return current_sample_rate / AUDIO_MS_PER_SECOND;
 }
 
@@ -1056,7 +1056,7 @@ static void copybuf_ring2usb_and_send(void)
         return;
     }
 
-    // IN(録音)側ぁEstreaming してぁE��ぁE��ら送らなぁE
+    // IN(録音)側がstreamingしていないなら送らない
     if (!s_streaming_in)
     {
         return;
@@ -1078,10 +1078,10 @@ static void copybuf_ring2usb_and_send(void)
     }
     if (used < (int32_t) sai_words)
     {
-        return;  // 足りなぁE��ら今回は送らなぁE
+        return;  // 足りないなら今回は送らない
     }
 
-    // USBは4ch、SAIめEch
+    // USBは4ch、SAIも4ch
     // SAI: [L1][R1][L2][R2][L1][R1][L2][R2]...
     // USB: [L1][R1][L2][R2][L1][R1][L2][R2]...
 
@@ -1121,8 +1121,8 @@ static void copybuf_ring2usb_and_send(void)
     sai_receive_index += written_frames * AUDIO_RING_FRAME_WORDS;  // SAIは4ch分
 }
 
-// TinyUSB TX完亁E��ールバック - USB ISRコンチE��ストで呼ばれる
-// ISR冁E��FIFO操作を行うとRX処琁E��競合するため、フラグのみ設宁E
+// TinyUSB TX完了コールバック - USB ISRコンテキストで呼ばれる
+// ISR内でFIFO操作を行うとRX処理と競合するため、フラグのみ設定
 bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_id, uint8_t ep_in, uint8_t cur_alt_setting)
 {
     (void) rhport;
@@ -1134,7 +1134,7 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
         return true;
     }
 
-    // ISRではフラグを立てるだぁE- 実際の送信はタスクコンチE��ストで行う
+    // ISRではフラグのみ立てる。実際の送信はタスクコンテキストで行う
     usb_tx_pending = true;
     return true;
 }
@@ -1163,7 +1163,7 @@ bool tud_audio_rx_done_isr(uint8_t rhport, uint16_t n_bytes_received, uint8_t fu
 // audio_task()呼び出し頻度計測用
 static volatile uint32_t audio_task_call_count = 0;
 static volatile uint32_t audio_task_last_tick  = 0;
-static volatile uint32_t audio_task_frequency  = 0;  // 呼び出し回数/私E
+static volatile uint32_t audio_task_frequency  = 0;  // 呼び出し回数/秒
 void audio_task(void)
 {
     // 呼び出し頻度計測
@@ -1246,8 +1246,8 @@ void audio_task(void)
             __set_PRIMASK(primask);
         }
 
-        // Feedback EPがFIFO水位を使って送信レート制御するため、E
-        // 毎msで「忁E��E��だけ」読む。�E量吸ぁE�Eし�E水位制御を壊す、E
+        // Feedback EPがFIFO水位を使って送信レート制御するため、
+        // 毎msで「必要な分だけ」読む。過剰に吸い出すと水位制御が崩れる
         if (usb_io_slot || usb_rx_event)
         {
             uint16_t budget = audio_out_bytes_for_elapsed_ms(usb_io_elapsed_ms);
@@ -1307,7 +1307,7 @@ void audio_task(void)
         // SAI -> USB
         copybuf_sai2ring();
 
-        // USB TX送信 (ISRからのフラグ通知、また�Eストリーミング中は常に試衁E
+        // USB TX送信 (ISRからのフラグ通知、またはストリーミング中は常に試行)
         if (usb_io_slot && (usb_tx_pending || s_streaming_in))
         {
             usb_tx_pending = false;
