@@ -20,3 +20,29 @@
 
 - 実装内チャンネル値は 0始まり（例: `0` = MIDI Ch.1）
 - XFADER系CCは更新閾値を持ち、トラフィック/ジッタ抑制のため差分が小さい場合は送信しない
+
+## 4. 設定ダンプ応答（PC126受信時）
+
+`Host -> Device` で `PC126 (Ch.15)` を受信したとき、Deviceは現在設定中の保存対象パラメータを `Device -> Host` で送信する。
+
+- 送信チャンネル: **MIDI Ch.15**（実装値14）
+- 送信種別: Program Change + Control Change
+
+### 4.1 Program Change（Device -> Host, Ch.15）
+
+| PC値 | 意味 |
+|---:|---|
+| 0/1 | Ch.1入力タイプ（Line / Phono） |
+| 2/3 | Ch.2入力タイプ（Line / Phono） |
+| 4/5/6/7 | XFader Aソース（Ch.1 / Ch.2 / USB[1/2] / USB[3/4]） |
+| 8/9/10/11 | XFader Bソース（Ch.1 / Ch.2 / USB[1/2] / USB[3/4]） |
+| 12/13/14/15 | Post XFaderソース（Ch.1 / Ch.2 / USB[1/2] / USB[3/4]） |
+| 16/17 | Ch.1 DVS（Off / On） |
+| 18/19 | Ch.2 DVS（Off / On） |
+
+### 4.2 Control Change（Device -> Host, Ch.15）
+
+| CC値 | 意味 |
+|---:|---|
+| 20 | `XFADE_CURVE_EXP_A`（0.5..50.0 を 0..127 へ変換） |
+| 21 | `XFADE_CURVE_EXP_B`（0.5..50.0 を 0..127 へ変換） |
