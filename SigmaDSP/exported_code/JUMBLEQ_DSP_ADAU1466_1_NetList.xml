@@ -48,7 +48,6 @@
       <Algorithm name="Ln_Pn_SW_1" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="SignalMerger_1L" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="SignalMerger_1R" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
-      <Algorithm name="Ph_EQ_1" friendlyname="Allows to control EQ parameters in a graphical way." />
       <Algorithm name="Ph_EQ_Gain_1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="SingleSlewExtVol_B" friendlyname="External Control of the Volume Gain" />
       <Algorithm name="DCInput_A" friendlyname="Use this control to test a DC voltage input" />
@@ -72,7 +71,6 @@
       <Algorithm name="Ln_Pn_SW_2" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="SignalMerger_2L" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="SignalMerger_2R" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
-      <Algorithm name="Ph_EQ_2" friendlyname="Allows to control EQ parameters in a graphical way." />
       <Algorithm name="Ph_EQ_Gain_2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="send1_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="SingleControlSplitter_2" friendlyname="Splits one Input Signal into Multiple Outputs.&#xA; The Output is affected by the Gain Scaled by the Values Specified in the Gain Control Knob">
@@ -133,6 +131,13 @@
         <Link pin="Input0" dir="in" link="Link_197" id="Link_283" />
         <Link pin="Input1" dir="in" link="Link_273" id="Link_292" />
       </Algorithm>
+      <Algorithm name="GenSecondOrder_0" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
+        <Link pin="Output0" dir="out" link="Link_295" id="Link_295" />
+        <Link pin="Output1" dir="out" link="Link_296" id="Link_296" />
+        <Link pin="Input0" dir="in" link="Link_297" id="Link_297" />
+        <Link pin="Input1" dir="in" link="Link_298" id="Link_298" />
+      </Algorithm>
+      <Algorithm name="GenSecondOrder_0_1" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc." />
     </Schematic>
   </Core>
 </IC>

@@ -2535,10 +2535,6 @@
                             "Link_46",
                             "Link_52",
                             "Link_60",
-                            "Link_48",
-                            "Link_47",
-                            "Link_50",
-                            "Link_49",
                             "Link_54",
                             "Link_53",
                             "Link_38",
@@ -2550,10 +2546,6 @@
                             "Link_80",
                             "Link_87",
                             "Link_88",
-                            "Link_89",
-                            "Link_90",
-                            "Link_91",
-                            "Link_92",
                             "Link_93",
                             "Link_94",
                             "Link_97",
@@ -2617,7 +2609,15 @@
                             "Link_276",
                             "Link_277",
                             "Link_278",
-                            "Link_279"
+                            "Link_279",
+                            "Link_295",
+                            "Link_296",
+                            "Link_297",
+                            "Link_298",
+                            "Link_299",
+                            "Link_300",
+                            "Link_301",
+                            "Link_302"
                           ]
                         }
                       },
@@ -3354,122 +3354,6 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.ParametricEQ_v1.0.0.0",
-                        "Name": "Graphical Parametric EQ",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "ParametricEQ_0",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "PrecisionType": "DoublePrecision",
-                          "NumChannels": 2,
-                          "NumFilters": 3,
-                          "FilterIndex": 2,
-                          "RemoveIndex": -1,
-                          "FrequencyMin": 20,
-                          "FrequencyMax": 24000,
-                          "MagnitudeMin": -60,
-                          "MagnitudeMax": 30,
-                          "Frequency1_Filter0": 20.0,
-                          "Frequency2_Filter0": 1000,
-                          "Boost_Filter0": 20.0,
-                          "Gain1_Filter0": 0,
-                          "Gain2_Filter0": 0,
-                          "QFactor_Filter0": 0.1,
-                          "Ripple_Filter0": 0.1,
-                          "FilterType_Filter0": 0,
-                          "SubType1_Filter0": 0,
-                          "SubType2_Filter0": 0,
-                          "Active1_Filter0": true,
-                          "Active2_Filter0": true,
-                          "Bypass_Filter0": false,
-                          "View_Filter0": false,
-                          "IIRCoefficients_Filter0": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          },
-                          "SetTunable": false,
-                          "Frequency1_Filter1": 123.0,
-                          "Frequency2_Filter1": 1000,
-                          "Boost_Filter1": -5.0,
-                          "Gain1_Filter1": 0,
-                          "Gain2_Filter1": 0,
-                          "QFactor_Filter1": 0.4,
-                          "Ripple_Filter1": 0.1,
-                          "FilterType_Filter1": 0,
-                          "SubType1_Filter1": 0,
-                          "SubType2_Filter1": 0,
-                          "Active1_Filter1": true,
-                          "Active2_Filter1": true,
-                          "Bypass_Filter1": false,
-                          "View_Filter1": false,
-                          "IIRCoefficients_Filter1": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          },
-                          "Frequency1_Filter2": 20000.0,
-                          "Frequency2_Filter2": 1000,
-                          "Boost_Filter2": -20.0,
-                          "Gain1_Filter2": 0,
-                          "Gain2_Filter2": 0,
-                          "QFactor_Filter2": 0.4,
-                          "Ripple_Filter2": 0.1,
-                          "FilterType_Filter2": 0,
-                          "SubType1_Filter2": 0,
-                          "SubType2_Filter2": 0,
-                          "Active1_Filter2": true,
-                          "Active2_Filter2": true,
-                          "Bypass_Filter2": false,
-                          "View_Filter2": false,
-                          "IIRCoefficients_Filter2": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          }
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 214.0,
-                          "Y": 243.0
-                        },
-                        "Size": {
-                          "Height": 77.046666666666667,
-                          "Width": 80.556666666666672
-                        },
-                        "Label": "Ph_EQ_1",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
                         "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
                         "Name": "Single Volume Control",
                         "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
@@ -3937,122 +3821,6 @@
                           "Width": 58.42
                         },
                         "Label": "SignalMerger_2R",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.ParametricEQ_v1.0.0.0",
-                        "Name": "Graphical Parametric EQ",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "ParametricEQ_1",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "PrecisionType": "DoublePrecision",
-                          "NumChannels": 2,
-                          "NumFilters": 3,
-                          "FilterIndex": 2,
-                          "RemoveIndex": -1,
-                          "FrequencyMin": 20,
-                          "FrequencyMax": 24000,
-                          "MagnitudeMin": -60,
-                          "MagnitudeMax": 30,
-                          "Frequency1_Filter0": 20.0,
-                          "Frequency2_Filter0": 1000,
-                          "Boost_Filter0": 20.0,
-                          "Gain1_Filter0": 0,
-                          "Gain2_Filter0": 0,
-                          "QFactor_Filter0": 0.1,
-                          "Ripple_Filter0": 0.1,
-                          "FilterType_Filter0": 0,
-                          "SubType1_Filter0": 0,
-                          "SubType2_Filter0": 0,
-                          "Active1_Filter0": true,
-                          "Active2_Filter0": true,
-                          "Bypass_Filter0": false,
-                          "View_Filter0": false,
-                          "IIRCoefficients_Filter0": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          },
-                          "SetTunable": false,
-                          "Frequency1_Filter1": 123.0,
-                          "Frequency2_Filter1": 1000,
-                          "Boost_Filter1": -5.0,
-                          "Gain1_Filter1": 0,
-                          "Gain2_Filter1": 0,
-                          "QFactor_Filter1": 0.4,
-                          "Ripple_Filter1": 0.1,
-                          "FilterType_Filter1": 0,
-                          "SubType1_Filter1": 0,
-                          "SubType2_Filter1": 0,
-                          "Active1_Filter1": true,
-                          "Active2_Filter1": true,
-                          "Bypass_Filter1": false,
-                          "View_Filter1": false,
-                          "IIRCoefficients_Filter1": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          },
-                          "Frequency1_Filter2": 20000.0,
-                          "Frequency2_Filter2": 1000,
-                          "Boost_Filter2": -20.0,
-                          "Gain1_Filter2": 0,
-                          "Gain2_Filter2": 0,
-                          "QFactor_Filter2": 0.4,
-                          "Ripple_Filter2": 0.1,
-                          "FilterType_Filter2": 0,
-                          "SubType1_Filter2": 0,
-                          "SubType2_Filter2": 0,
-                          "Active1_Filter2": true,
-                          "Active2_Filter2": true,
-                          "Bypass_Filter2": false,
-                          "View_Filter2": false,
-                          "IIRCoefficients_Filter2": {
-                            "$type": "System.Collections.Generic.List`1[[System.Double, mscorlib]], mscorlib",
-                            "$values": [
-                              1.0,
-                              0.0,
-                              0.0,
-                              0.0,
-                              0.0
-                            ]
-                          }
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 230.0,
-                          "Y": 684.0
-                        },
-                        "Size": {
-                          "Height": 77.046666666666667,
-                          "Width": 80.556666666666672
-                        },
-                        "Label": "Ph_EQ_2",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -5368,8 +5136,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 614.327731092437
+                          "X": 1516.0,
+                          "Y": 614.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5409,8 +5177,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 656.327731092437
+                          "X": 1516.0,
+                          "Y": 656.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5450,8 +5218,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 403.32773109243703
+                          "X": 1516.0,
+                          "Y": 403.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5491,8 +5259,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 449.32773109243703
+                          "X": 1516.0,
+                          "Y": 449.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5532,8 +5300,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168067,
-                          "Y": 507.32773109243703
+                          "X": 1516.0,
+                          "Y": 507.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5573,8 +5341,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 552.327731092437
+                          "X": 1516.0,
+                          "Y": 552.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8170,8 +7938,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 725.546218487395
+                          "X": 1516.0,
+                          "Y": 726.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8211,14 +7979,190 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1515.6050420168065,
-                          "Y": 771.546218487395
+                          "X": 1516.0,
+                          "Y": 772.0
                         },
                         "Size": {
                           "Height": 24.0,
                           "Width": 68.63666666666667
                         },
                         "Label": "usb_34_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.GenSecondOrder_v1.0.0.0",
+                        "Name": "General EQ",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "GenSecondOrder_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumStages": 1,
+                          "NumChannels": 2,
+                          "Stage0_Boost": 0,
+                          "Stage0_Boost_Min": -10,
+                          "Stage0_Boost_Max": 10,
+                          "Stage0_BoostT": 0,
+                          "Stage0_BoostT_Min": -10,
+                          "Stage0_BoostT_Max": 10,
+                          "Stage0_BoostB": 0,
+                          "Stage0_BoostB_Min": -10,
+                          "Stage0_BoostB_Max": 10,
+                          "Stage0_FrequencyEnabled": true,
+                          "Stage0_Frequency": 1000,
+                          "Stage0_Frequency_Min": 0,
+                          "Stage0_Frequency_Max": 96000,
+                          "Stage0_Frequency2": 1000,
+                          "Stage0_Frequency2_Min": 0,
+                          "Stage0_Frequency2_Max": 96000,
+                          "Stage0_Q": 1.41,
+                          "Stage0_Q_Min": 0.05,
+                          "Stage0_Q_Max": 16,
+                          "Stage0_Slope": 1,
+                          "Stage0_Slope_Min": 0,
+                          "Stage0_Slope_Max": 2,
+                          "Stage0_Bandwidth": 1.41,
+                          "Stage0_Bandwidth_Min": 0.1,
+                          "Stage0_Bandwidth_Max": 11,
+                          "Stage0_Ripple": 0.1,
+                          "Stage0_Ripple_Min": 0.1,
+                          "Stage0_Ripple_Max": 10,
+                          "Stage0_Gain": 0,
+                          "Stage0_Gain_Min": -15,
+                          "Stage0_Gain_Max": 15,
+                          "Stage0_FilterType": 13,
+                          "Stage0_EnabledOrBypassed": true,
+                          "Stage0_Phase": false,
+                          "Stage0_LockFrequency": false,
+                          "Stage0_Filter1Gain": 0,
+                          "Stage0_Filter1Gain_Min": -15,
+                          "Stage0_Filter1Gain_Max": 15,
+                          "Stage0_Filter2Gain": 0,
+                          "Stage0_Filter2Gain_Min": -15,
+                          "Stage0_Filter2Gain_Max": 15,
+                          "Stage0_FirstFilterActive": true,
+                          "Stage0_SecondFilterActive": true,
+                          "Stage0_Filter1FirstOrderType": 1,
+                          "Stage0_Filter2FirstOrderType": 0,
+                          "Stage0_B0": 0.06522795,
+                          "Stage0_B1": 0.00210223,
+                          "Stage0_B2": -0.06312573,
+                          "Stage0_A1": -1.86685955,
+                          "Stage0_A2": 0.86728426,
+                          "PrecisionType": "DoublePrecision",
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 230.0,
+                          "Y": 326.0
+                        },
+                        "Size": {
+                          "Height": 171.0,
+                          "Width": 113.0
+                        },
+                        "Label": "GenSecondOrder_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.GenSecondOrder_v1.0.0.0",
+                        "Name": "General EQ",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "GenSecondOrder_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumStages": 1,
+                          "NumChannels": 2,
+                          "Stage0_Boost": 0,
+                          "Stage0_Boost_Min": -10,
+                          "Stage0_Boost_Max": 10,
+                          "Stage0_BoostT": 0,
+                          "Stage0_BoostT_Min": -10,
+                          "Stage0_BoostT_Max": 10,
+                          "Stage0_BoostB": 0,
+                          "Stage0_BoostB_Min": -10,
+                          "Stage0_BoostB_Max": 10,
+                          "Stage0_FrequencyEnabled": true,
+                          "Stage0_Frequency": 1000,
+                          "Stage0_Frequency_Min": 0,
+                          "Stage0_Frequency_Max": 96000,
+                          "Stage0_Frequency2": 1000,
+                          "Stage0_Frequency2_Min": 0,
+                          "Stage0_Frequency2_Max": 96000,
+                          "Stage0_Q": 1.41,
+                          "Stage0_Q_Min": 0.05,
+                          "Stage0_Q_Max": 16,
+                          "Stage0_Slope": 1,
+                          "Stage0_Slope_Min": 0,
+                          "Stage0_Slope_Max": 2,
+                          "Stage0_Bandwidth": 1.41,
+                          "Stage0_Bandwidth_Min": 0.1,
+                          "Stage0_Bandwidth_Max": 11,
+                          "Stage0_Ripple": 0.1,
+                          "Stage0_Ripple_Min": 0.1,
+                          "Stage0_Ripple_Max": 10,
+                          "Stage0_Gain": 0,
+                          "Stage0_Gain_Min": -15,
+                          "Stage0_Gain_Max": 15,
+                          "Stage0_FilterType": 13,
+                          "Stage0_EnabledOrBypassed": true,
+                          "Stage0_Phase": false,
+                          "Stage0_LockFrequency": false,
+                          "Stage0_Filter1Gain": 0,
+                          "Stage0_Filter1Gain_Min": -15,
+                          "Stage0_Filter1Gain_Max": 15,
+                          "Stage0_Filter2Gain": 0,
+                          "Stage0_Filter2Gain_Min": -15,
+                          "Stage0_Filter2Gain_Max": 15,
+                          "Stage0_FirstFilterActive": true,
+                          "Stage0_SecondFilterActive": true,
+                          "Stage0_Filter1FirstOrderType": 1,
+                          "Stage0_Filter2FirstOrderType": 0,
+                          "Stage0_B0": 0.06522795,
+                          "Stage0_B1": 0.00210223,
+                          "Stage0_B2": -0.06312573,
+                          "Stage0_A1": -1.86685955,
+                          "Stage0_A2": 0.86728426,
+                          "PrecisionType": "DoublePrecision",
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 249.71428571428555,
+                          "Y": 766.0
+                        },
+                        "Size": {
+                          "Height": 171.0,
+                          "Width": 113.0
+                        },
+                        "Label": "GenSecondOrder_0_1",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -8278,78 +8222,6 @@
                           {
                             "X": 569.357142857143,
                             "Y": 262.23809523809507
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_48",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output3",
-                        "TargetUid": "ParametricEQ_0",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 181.03896103896113,
-                            "Y": 248.0087619047618
-                          },
-                          {
-                            "X": 181.03896103896113,
-                            "Y": 293.93587301587286
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_47",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "ParametricEQ_0",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 189.857142857143,
-                            "Y": 229.39942857142842
-                          },
-                          {
-                            "X": 189.857142857143,
-                            "Y": 268.25365079365065
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_50",
-                        "SourceUid": "ParametricEQ_0",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SingleVolumeControl_3",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 352.85714285714295,
-                            "Y": 293.93587301587286
-                          },
-                          {
-                            "X": 352.85714285714295,
-                            "Y": 466.57142857142844
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_49",
-                        "SourceUid": "ParametricEQ_0",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SingleVolumeControl_3",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 386.85714285714295,
-                            "Y": 268.25365079365065
-                          },
-                          {
-                            "X": 386.85714285714295,
-                            "Y": 382.57142857142844
                           }
                         ]
                       },
@@ -8521,78 +8393,6 @@
                           {
                             "X": 577.35714285714312,
                             "Y": 711.23809523809507
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_89",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output3",
-                        "TargetUid": "ParametricEQ_1",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 200.22077922077938,
-                            "Y": 689.00876190476174
-                          },
-                          {
-                            "X": 200.22077922077938,
-                            "Y": 734.93587301587286
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_90",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "ParametricEQ_1",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 215.54945054945074,
-                            "Y": 670.39942857142842
-                          },
-                          {
-                            "X": 215.54945054945074,
-                            "Y": 709.25365079365065
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_91",
-                        "SourceUid": "ParametricEQ_1",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SingleVolumeControl_6",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 355.1298701298702,
-                            "Y": 734.93587301587286
-                          },
-                          {
-                            "X": 355.1298701298702,
-                            "Y": 906.57142857142844
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_92",
-                        "SourceUid": "ParametricEQ_1",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SingleVolumeControl_6",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 394.22077922077932,
-                            "Y": 709.25365079365065
-                          },
-                          {
-                            "X": 394.22077922077932,
-                            "Y": 822.57142857142844
                           }
                         ]
                       },
@@ -10380,6 +10180,132 @@
                           {
                             "X": 1698.319327731092,
                             "Y": 518.2637
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_295",
+                        "SourceUid": "GenSecondOrder_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleVolumeControl_3",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_296",
+                        "SourceUid": "GenSecondOrder_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleVolumeControl_3",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 399.0,
+                            "Y": 440.0
+                          },
+                          {
+                            "X": 399.0,
+                            "Y": 467.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_297",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "GenSecondOrder_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 206.0,
+                            "Y": 229.828
+                          },
+                          {
+                            "X": 206.0,
+                            "Y": 383.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_298",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output3",
+                        "TargetUid": "GenSecondOrder_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 186.42857142857133,
+                            "Y": 248.4373
+                          },
+                          {
+                            "X": 186.42857142857133,
+                            "Y": 440.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_299",
+                        "SourceUid": "GenSecondOrder_1",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleVolumeControl_6",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_300",
+                        "SourceUid": "GenSecondOrder_1",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleVolumeControl_6",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 399.0,
+                            "Y": 880.0
+                          },
+                          {
+                            "X": 399.0,
+                            "Y": 907.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_301",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "GenSecondOrder_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 226.0,
+                            "Y": 670.828
+                          },
+                          {
+                            "X": 226.0,
+                            "Y": 823.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_302",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output3",
+                        "TargetUid": "GenSecondOrder_1",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 204.14285714285711,
+                            "Y": 689.4373
+                          },
+                          {
+                            "X": 204.14285714285711,
+                            "Y": 880.0
                           }
                         ]
                       }
