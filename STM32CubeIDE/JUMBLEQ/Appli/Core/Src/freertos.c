@@ -43,6 +43,11 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TASK_INIT_DONE_TARGET_COUNT 4U  /* USB, Audio, LED, ADC */
+#define TASK_INIT_TURN_AUDIO        (1U << 0)
+#define TASK_INIT_TURN_LED          (1U << 1)
+#define TASK_INIT_TURN_ADC          (1U << 2)
+#define TASK_INIT_TURN_OLED         (1U << 3)
+#define TASK_INIT_TURN_USB          (1U << 4)
 
 /* USER CODE END PD */
 
@@ -58,6 +63,25 @@
 __attribute__((aligned(8)))
 uint8_t ucHeap[configTOTAL_HEAP_SIZE];
 static volatile uint32_t s_task_init_done_count = 0U;
+static osEventFlagsId_t s_task_init_seq_flags = NULL;
+static const osEventFlagsAttr_t s_task_init_seq_flags_attributes = {
+    .name = "taskInitSeqFlags"};
+
+static void wait_task_init_turn(uint32_t turn_flag)
+{
+    if (s_task_init_seq_flags != NULL)
+    {
+        (void) osEventFlagsWait(s_task_init_seq_flags, turn_flag, osFlagsWaitAny, osWaitForever);
+    }
+}
+
+static void release_next_task_init_turn(uint32_t next_turn_flag)
+{
+    if (s_task_init_seq_flags != NULL)
+    {
+        (void) osEventFlagsSet(s_task_init_seq_flags, next_turn_flag);
+    }
+}
 
 static void mark_task_init_done(void)
 {
@@ -187,6 +211,7 @@ void vApplicationMallocFailedHook(void)
 void MX_FREERTOS_Init(void)
 {
     /* USER CODE BEGIN Init */
+    s_task_init_seq_flags = osEventFlagsNew(&s_task_init_seq_flags_attributes);
 
     /* USER CODE END Init */
     /* Create the mutex(es) */
@@ -239,6 +264,7 @@ void MX_FREERTOS_Init(void)
     oledTaskHandle = osThreadNew(StartOLEDTask, NULL, &oledTask_attributes);
 
     /* USER CODE BEGIN RTOS_THREADS */
+    release_next_task_init_turn(TASK_INIT_TURN_AUDIO);
     /* add threads, ... */
     /* USER CODE END RTOS_THREADS */
 
@@ -278,6 +304,7 @@ void StartUSBTask(void* argument)
 {
     /* USER CODE BEGIN StartUSBTask */
     (void) argument;
+    wait_task_init_turn(TASK_INIT_TURN_USB);
 
     tusb_rhport_init_t dev_init = {
         .role  = TUSB_ROLE_DEVICE,
@@ -347,6 +374,7 @@ void StartAudioTask(void* argument)
 {
     /* USER CODE BEGIN StartAudioTask */
     (void) argument;
+    wait_task_init_turn(TASK_INIT_TURN_AUDIO);
     audio_control_register_task();
 
     HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, 0);
@@ -377,6 +405,7 @@ void StartAudioTask(void* argument)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
     mark_task_init_done();
+    release_next_task_init_turn(TASK_INIT_TURN_LED);
 
     /* Infinite loop */
     for (;;)
@@ -397,11 +426,14 @@ void StartAudioTask(void* argument)
 void StartLEDTask(void* argument)
 {
     /* USER CODE BEGIN StartLEDTask */
+    (void) argument;
+    wait_task_init_turn(TASK_INIT_TURN_LED);
     reset_led_buffer();
 
     set_led_color(0, 0, 0, 0);
     renew();
     mark_task_init_done();
+    release_next_task_init_turn(TASK_INIT_TURN_ADC);
 
     /* Infinite loop */
     for (;;)
@@ -425,10 +457,12 @@ void StartADCTask(void* argument)
 {
     /* USER CODE BEGIN StartADCTask */
     (void) argument;
+    wait_task_init_turn(TASK_INIT_TURN_ADC);
 
     start_adc();
     osDelay(100);
     mark_task_init_done();
+    release_next_task_init_turn(TASK_INIT_TURN_OLED);
 
     /* Infinite loop */
     for (;;)
@@ -450,9 +484,11 @@ void StartOLEDTask(void* argument)
 {
     /* USER CODE BEGIN StartOLEDTask */
     (void) argument;
+    wait_task_init_turn(TASK_INIT_TURN_OLED);
 
     OLED_Init();
     OLED_ShowInitStatus("Waiting tasks...");
+    release_next_task_init_turn(TASK_INIT_TURN_USB);
 
     while (s_task_init_done_count < TASK_INIT_DONE_TARGET_COUNT)
     {
