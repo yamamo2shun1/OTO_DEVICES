@@ -36,6 +36,7 @@
 
 uint32_t get_tx_blink_interval_ms(void);
 uint32_t get_rx_blink_interval_ms(void);
+uint32_t get_current_sample_rate_hz(void);
 void reset_audio_buffer(void);
 void AUDIO_LoadAndApplyRoutingFromEEPROM(void);
 

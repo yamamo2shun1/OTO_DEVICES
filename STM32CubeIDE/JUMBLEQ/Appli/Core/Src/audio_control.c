@@ -251,6 +251,11 @@ uint32_t get_rx_blink_interval_ms(void)
     return rx_blink_interval_ms;
 }
 
+uint32_t get_current_sample_rate_hz(void)
+{
+    return current_sample_rate;
+}
+
 //--------------------------------------------------------------------+
 // Device callbacks
 //--------------------------------------------------------------------+
