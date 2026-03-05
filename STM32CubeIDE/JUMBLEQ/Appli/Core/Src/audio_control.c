@@ -1172,6 +1172,15 @@ static volatile uint32_t audio_task_last_tick  = 0;
 static volatile uint32_t audio_task_frequency  = 0;  // 呼び出し回数/秒
 void audio_task(void)
 {
+    // USBスタック初期化前にtud_* APIへ入らないようにする。
+    if (!tud_inited())
+    {
+        spk_data_size  = 0;
+        usb_tx_pending = false;
+        usb_rx_pending = false;
+        return;
+    }
+
     // 呼び出し頻度計測
     audio_task_call_count++;
     uint32_t now = HAL_GetTick();
@@ -1523,3 +1532,4 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     prev_hz = new_hz;
 }
+
