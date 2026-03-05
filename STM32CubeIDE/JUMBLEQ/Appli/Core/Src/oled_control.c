@@ -172,8 +172,7 @@ void OLED_UpdateTask(void)
     char line1_mst[16];
     char line2_c1[16];
     char line2_dw[16];
-    char line3_x3[16];
-    char line3_x2[16];
+    char line3_sr[16];
     char line_edit_mode[20];
     char line_edit_a[20];
     char line_edit_b[20];
@@ -181,8 +180,7 @@ void OLED_UpdateTask(void)
     static char prev_line1_mst[16] = {0};
     static char prev_line2_c1[16]  = {0};
     static char prev_line2_dw[16]  = {0};
-    static char prev_line3_x3[16]  = {0};
-    static char prev_line3_x2[16]  = {0};
+    static char prev_line3_sr[16]  = {0};
     static char prev_line_edit_mode[20] = {0};
     static char prev_line_edit_a[20]    = {0};
     static char prev_line_edit_b[20]    = {0};
@@ -211,8 +209,7 @@ void OLED_UpdateTask(void)
         memset(prev_line1_mst, 0, sizeof(prev_line1_mst));
         memset(prev_line2_c1, 0, sizeof(prev_line2_c1));
         memset(prev_line2_dw, 0, sizeof(prev_line2_dw));
-        memset(prev_line3_x3, 0, sizeof(prev_line3_x3));
-        memset(prev_line3_x2, 0, sizeof(prev_line3_x2));
+        memset(prev_line3_sr, 0, sizeof(prev_line3_sr));
         memset(prev_line_edit_mode, 0, sizeof(prev_line_edit_mode));
         memset(prev_line_edit_a, 0, sizeof(prev_line_edit_a));
         memset(prev_line_edit_b, 0, sizeof(prev_line_edit_b));
@@ -232,17 +229,21 @@ void OLED_UpdateTask(void)
 
         snprintf(line2_c1, sizeof(line2_c1), "C1:%3ddB", get_current_ch1_db());
         snprintf(line2_dw, sizeof(line2_dw), "D/W:%3d%%", get_current_dry_wet());
-        uint8_t x2 = get_current_xfade2_cc_value();
-        uint8_t x3 = get_current_xfade3_cc_value();
-        snprintf(line3_x3, sizeof(line3_x3), "X3:%3u", x3);
-        snprintf(line3_x2, sizeof(line3_x2), "X2:%3u", x2);
+        uint32_t sample_rate_hz = get_current_sample_rate_hz();
+        if ((sample_rate_hz % 1000U) == 0U)
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "S/R: %luk", (unsigned long) (sample_rate_hz / 1000U));
+        }
+        else
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "S/R: %lu", (unsigned long) sample_rate_hz);
+        }
 
         update_main_text_block(prev_line1_ch2, sizeof(prev_line1_ch2), line1_ch2, 0, 0, 63, 10, line1_ch2_x, line1_y, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
         update_main_text_block(prev_line1_mst, sizeof(prev_line1_mst), line1_mst, 64, 0, 127, 10, line1_mst_x, line1_y, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
         update_main_text_block(prev_line2_c1, sizeof(prev_line2_c1), line2_c1, 0, 11, 63, 21, line2_c1_x, line2_y, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
         update_main_text_block(prev_line2_dw, sizeof(prev_line2_dw), line2_dw, 64, 11, 127, 21, line2_dw_x, line2_y, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line3_x3, sizeof(prev_line3_x3), line3_x3, 0, 22, 63, 31, 0, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line3_x2, sizeof(prev_line3_x2), line3_x2, 64, 22, 127, 31, 71, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
+        update_main_text_block(prev_line3_sr, sizeof(prev_line3_sr), line3_sr, 0, 22, 127, 31, 64, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
     }
     else
     {
