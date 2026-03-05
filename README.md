@@ -13,7 +13,7 @@
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x6 and Pot x8
 
 ## for Windows User
-I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
+I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
 
 ## Firmware Update
 JUMBLEQ uses a UF2 bootloader.
