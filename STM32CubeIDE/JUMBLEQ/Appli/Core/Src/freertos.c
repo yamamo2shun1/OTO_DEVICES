@@ -48,6 +48,7 @@
 #define TASK_INIT_TURN_ADC          (1U << 2)
 #define TASK_INIT_TURN_OLED         (1U << 3)
 #define TASK_INIT_TURN_USB          (1U << 4)
+#define TASK_SYNC_USB_READY         (1U << 8)
 
 /* USER CODE END PD */
 
@@ -310,6 +311,7 @@ void StartUSBTask(void* argument)
         .role  = TUSB_ROLE_DEVICE,
         .speed = TUSB_SPEED_HIGH};
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
+    release_next_task_init_turn(TASK_SYNC_USB_READY);
     mark_task_init_done();
 
     uint32_t usb_loop_count      = 0;
@@ -406,6 +408,11 @@ void StartAudioTask(void* argument)
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
     mark_task_init_done();
     release_next_task_init_turn(TASK_INIT_TURN_LED);
+
+    if (s_task_init_seq_flags != NULL)
+    {
+        (void) osEventFlagsWait(s_task_init_seq_flags, TASK_SYNC_USB_READY, osFlagsWaitAny | osFlagsNoClear, osWaitForever);
+    }
 
     /* Infinite loop */
     for (;;)
