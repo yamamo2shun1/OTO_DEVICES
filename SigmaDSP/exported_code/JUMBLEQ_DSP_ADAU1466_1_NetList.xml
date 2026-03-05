@@ -132,28 +132,28 @@
         <Link pin="Input1" dir="in" link="Link_273" id="Link_292" />
       </Algorithm>
       <Algorithm name="GenSecondOrder_0" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Input0" dir="in" link="Link_297" id="Link_297" />
-        <Link pin="Input1" dir="in" link="Link_298" id="Link_298" />
-        <Link pin="Output0" dir="out" link="Link_303" id="Link_303" />
-        <Link pin="Output1" dir="out" link="Link_304" id="Link_304" />
+        <Link pin="Output0" dir="out" link="Link_321" id="Link_321" />
+        <Link pin="Input0" dir="in" link="Link_322" id="Link_322" />
+        <Link pin="Input1" dir="in" link="Link_325" id="Link_325" />
+        <Link pin="Output1" dir="out" link="Link_326" id="Link_326" />
       </Algorithm>
       <Algorithm name="GenSecondOrder_1" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Input0" dir="in" link="Link_301" id="Link_301" />
-        <Link pin="Input1" dir="in" link="Link_302" id="Link_302" />
-        <Link pin="Output0" dir="out" link="Link_307" id="Link_307" />
-        <Link pin="Output1" dir="out" link="Link_308" id="Link_308" />
+        <Link pin="Output0" dir="out" link="Link_310" id="Link_310" />
+        <Link pin="Input0" dir="in" link="Link_311" id="Link_311" />
+        <Link pin="Input1" dir="in" link="Link_319" id="Link_319" />
+        <Link pin="Output1" dir="out" link="Link_320" id="Link_320" />
       </Algorithm>
       <Algorithm name="GenSecondOrder_2" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Input0" dir="in" link="Link_303" id="Link_303" />
-        <Link pin="Input1" dir="in" link="Link_304" id="Link_304" />
-        <Link pin="Output0" dir="out" link="Link_305" id="Link_305" />
-        <Link pin="Output1" dir="out" link="Link_306" id="Link_306" />
+        <Link pin="Output0" dir="out" link="Link_322" id="Link_322" />
+        <Link pin="Input0" dir="in" link="Link_323" id="Link_323" />
+        <Link pin="Input1" dir="in" link="Link_324" id="Link_324" />
+        <Link pin="Output1" dir="out" link="Link_325" id="Link_325" />
       </Algorithm>
       <Algorithm name="GenSecondOrder_3" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Input0" dir="in" link="Link_307" id="Link_307" />
-        <Link pin="Input1" dir="in" link="Link_308" id="Link_308" />
-        <Link pin="Output0" dir="out" link="Link_309" id="Link_309" />
-        <Link pin="Output1" dir="out" link="Link_310" id="Link_310" />
+        <Link pin="Output0" dir="out" link="Link_311" id="Link_311" />
+        <Link pin="Input0" dir="in" link="Link_316" id="Link_316" />
+        <Link pin="Input1" dir="in" link="Link_317" id="Link_317" />
+        <Link pin="Output1" dir="out" link="Link_319" id="Link_319" />
       </Algorithm>
     </Schematic>
   </Core>
