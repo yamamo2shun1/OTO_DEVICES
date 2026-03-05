@@ -43,12 +43,12 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TASK_INIT_DONE_TARGET_COUNT 4U  /* USB, Audio, LED, ADC */
-#define TASK_INIT_TURN_AUDIO        (1U << 0)
+#define TASK_INIT_TURN_OLED         (1U << 0)
 #define TASK_INIT_TURN_LED          (1U << 1)
 #define TASK_INIT_TURN_ADC          (1U << 2)
-#define TASK_INIT_TURN_OLED         (1U << 3)
+#define TASK_INIT_TURN_AUDIO        (1U << 3)
 #define TASK_INIT_TURN_USB          (1U << 4)
-#define TASK_SYNC_USB_READY         (1U << 8)
+#define TASK_SYNC_USB_READY         (1U << 8)  /* TinyUSB未初期化でaudio_task()がtud_*へ入るとHardFaultするため、USB ready同期に使用 */
 
 /* USER CODE END PD */
 
@@ -265,7 +265,7 @@ void MX_FREERTOS_Init(void)
     oledTaskHandle = osThreadNew(StartOLEDTask, NULL, &oledTask_attributes);
 
     /* USER CODE BEGIN RTOS_THREADS */
-    release_next_task_init_turn(TASK_INIT_TURN_AUDIO);
+    release_next_task_init_turn(TASK_INIT_TURN_OLED);
     /* add threads, ... */
     /* USER CODE END RTOS_THREADS */
 
@@ -407,7 +407,7 @@ void StartAudioTask(void* argument)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
     HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
     mark_task_init_done();
-    release_next_task_init_turn(TASK_INIT_TURN_LED);
+    release_next_task_init_turn(TASK_INIT_TURN_USB);
 
     if (s_task_init_seq_flags != NULL)
     {
@@ -469,7 +469,7 @@ void StartADCTask(void* argument)
     start_adc();
     osDelay(100);
     mark_task_init_done();
-    release_next_task_init_turn(TASK_INIT_TURN_OLED);
+    release_next_task_init_turn(TASK_INIT_TURN_AUDIO);
 
     /* Infinite loop */
     for (;;)
@@ -495,7 +495,7 @@ void StartOLEDTask(void* argument)
 
     OLED_Init();
     OLED_ShowInitStatus("Waiting tasks...");
-    release_next_task_init_turn(TASK_INIT_TURN_USB);
+    release_next_task_init_turn(TASK_INIT_TURN_LED);
 
     while (s_task_init_done_count < TASK_INIT_DONE_TARGET_COUNT)
     {
