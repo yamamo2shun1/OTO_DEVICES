@@ -137,15 +137,15 @@ typedef enum
 // fade_up_idx * fade_down_idx -> curved scalar -> ADAU1466 DC input.
 static const xfade_pair_runtime_t s_xfade_pairs[] = {
     {
-     .fade_up_idx      = 5,
-     .fade_down_idx    = 4,
+     .fade_up_idx      = 0,
+     .fade_down_idx    = 1,
      .prev_idx         = XFADE_PAIR_A,
      .current_position = &s_ui.xf.position_a,
      .set_dc           = set_dc_inputA,
      },
     {
-     .fade_up_idx      = 0,
-     .fade_down_idx    = 1,
+     .fade_up_idx      = 5,
+     .fade_down_idx    = 4,
      .prev_idx         = XFADE_PAIR_B,
      .current_position = &s_ui.xf.position_b,
      .set_dc           = set_dc_inputB,
@@ -1021,7 +1021,7 @@ static void emit_xfade_cc_if_needed(uint8_t i)
     // MIDI CC updates use a larger threshold to limit traffic and jitter.
     if (fabs(s_ui.xf.raw[i] - s_ui.xf.prev[i]) > XFADE_CC_UPDATE_THRESHOLD)
     {
-        send_control_change(10 + (5 - i), xfade_to_cc(s_ui.xf.raw[i]), 0);
+        send_control_change(20 + i, xfade_to_cc(s_ui.xf.raw[i]), 0);
         s_ui.xf.prev[i] = s_ui.xf.raw[i];
     }
 }
