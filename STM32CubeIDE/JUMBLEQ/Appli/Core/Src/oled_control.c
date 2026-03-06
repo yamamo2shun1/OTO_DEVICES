@@ -159,91 +159,73 @@ void OLED_ShowInitStatus(const char* text)
     main_oled_SetCursor(0, 4);
     main_oled_WriteString("System Init", Font_7x10, White);
     main_oled_SetCursor(0, 18);
-    main_oled_WriteString((char*)msg, Font_7x10, White);
+    main_oled_WriteString((char*) msg, Font_7x10, White);
     main_oled_UpdateScreen();
 }
 
 void OLED_UpdateTask(void)
 {
-    const bool curve_edit_mode = ui_control_is_curve_edit_mode_enabled();
+    const bool curve_edit_mode       = ui_control_is_curve_edit_mode_enabled();
     static bool prev_curve_edit_mode = false;
 
-    char line1_ch2[16];
-    char line1_mst[16];
-    char line2_c1[16];
-    char line2_dw[16];
-    char line3_sr[16];
+    char line1_ch2[24];
+    char line2_c1[24];
+    char line3_sr[24];
     char line_edit_mode[20];
     char line_edit_a[20];
     char line_edit_b[20];
-    static char prev_line1_ch2[16] = {0};
-    static char prev_line1_mst[16] = {0};
-    static char prev_line2_c1[16]  = {0};
-    static char prev_line2_dw[16]  = {0};
-    static char prev_line3_sr[16]  = {0};
+    static char prev_line1_ch2[24]      = {0};
+    static char prev_line2_c1[24]       = {0};
+    static char prev_line3_sr[24]       = {0};
     static char prev_line_edit_mode[20] = {0};
     static char prev_line_edit_a[20]    = {0};
     static char prev_line_edit_b[20]    = {0};
-    static char prev_srcA[32]      = {0};
-    static char prev_srcB[32]      = {0};
-    static char prev_typeA[32]     = {0};
-    static char prev_typeB[32]     = {0};
-    static char prev_srcP[32]      = {0};
-    static bool prev_dvsA_show     = false;
-    static bool prev_dvsA_enabled  = false;
-    static bool prev_dvsB_show     = false;
-    static bool prev_dvsB_enabled  = false;
-    static bool sub_initialized    = false;
-    bool dirty                     = false;
-    uint8_t dirty_start_page       = 0xFF;
-    uint8_t dirty_end_page         = 0;
-
-    const uint8_t line1_ch2_x = 0;
-    const uint8_t line1_mst_x = 64;
-    const uint8_t line1_y     = 0;
+    static char prev_srcA[32]           = {0};
+    static char prev_srcB[32]           = {0};
+    static char prev_typeA[32]          = {0};
+    static char prev_typeB[32]          = {0};
+    static char prev_srcP[32]           = {0};
+    static bool prev_dvsA_show          = false;
+    static bool prev_dvsA_enabled       = false;
+    static bool prev_dvsB_show          = false;
+    static bool prev_dvsB_enabled       = false;
+    static bool sub_initialized         = false;
+    bool dirty                          = false;
+    uint8_t dirty_start_page            = 0xFF;
+    uint8_t dirty_end_page              = 0;
 
     if (curve_edit_mode != prev_curve_edit_mode)
     {
         main_oled_Fill(Black);
         memset(prev_line1_ch2, 0, sizeof(prev_line1_ch2));
-        memset(prev_line1_mst, 0, sizeof(prev_line1_mst));
         memset(prev_line2_c1, 0, sizeof(prev_line2_c1));
-        memset(prev_line2_dw, 0, sizeof(prev_line2_dw));
         memset(prev_line3_sr, 0, sizeof(prev_line3_sr));
         memset(prev_line_edit_mode, 0, sizeof(prev_line_edit_mode));
         memset(prev_line_edit_a, 0, sizeof(prev_line_edit_a));
         memset(prev_line_edit_b, 0, sizeof(prev_line_edit_b));
-        dirty            = true;
-        dirty_start_page = 0;
-        dirty_end_page   = (uint8_t) ((MAIN_OLED_HEIGHT / 8U) - 1U);
+        dirty                = true;
+        dirty_start_page     = 0;
+        dirty_end_page       = (uint8_t) ((MAIN_OLED_HEIGHT / 8U) - 1U);
         prev_curve_edit_mode = curve_edit_mode;
     }
 
     if (!curve_edit_mode)
     {
-        snprintf(line1_ch2, sizeof(line1_ch2), "C2:%3ddB", get_current_ch2_db());
-        snprintf(line1_mst, sizeof(line1_mst), "Mst:%3ddB", get_current_master_db());
-        const uint8_t line2_c1_x = 0;
-        const uint8_t line2_dw_x = 64;
-        const uint8_t line2_y    = 11;
-
-        snprintf(line2_c1, sizeof(line2_c1), "C1:%3ddB", get_current_ch1_db());
-        snprintf(line2_dw, sizeof(line2_dw), "D/W:%3d%%", get_current_dry_wet());
         uint32_t sample_rate_hz = get_current_sample_rate_hz();
         if ((sample_rate_hz % 1000U) == 0U)
         {
-            snprintf(line3_sr, sizeof(line3_sr), "S/R: %luk", (unsigned long) (sample_rate_hz / 1000U));
+            snprintf(line1_ch2, sizeof(line1_ch2), "%luk %3d|C2|%3d dB", (unsigned long) (sample_rate_hz / 1000U), get_current_ch2_in_db(), get_current_ch2_out_db());
         }
         else
         {
-            snprintf(line3_sr, sizeof(line3_sr), "S/R: %lu", (unsigned long) sample_rate_hz);
+            snprintf(line1_ch2, sizeof(line1_ch2), "%lu %3d|C2|%3d dB", (unsigned long) sample_rate_hz, get_current_ch2_in_db(), get_current_ch2_out_db());
         }
+        snprintf(line2_c1, sizeof(line2_c1), "    %3d|C1|%3d dB", get_current_ch1_in_db(), get_current_ch1_out_db());
+        snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
 
-        update_main_text_block(prev_line1_ch2, sizeof(prev_line1_ch2), line1_ch2, 0, 0, 63, 10, line1_ch2_x, line1_y, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line1_mst, sizeof(prev_line1_mst), line1_mst, 64, 0, 127, 10, line1_mst_x, line1_y, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line2_c1, sizeof(prev_line2_c1), line2_c1, 0, 11, 63, 21, line2_c1_x, line2_y, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line2_dw, sizeof(prev_line2_dw), line2_dw, 64, 11, 127, 21, line2_dw_x, line2_y, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line3_sr, sizeof(prev_line3_sr), line3_sr, 0, 22, 127, 31, 64, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
+        update_main_text_block(prev_line1_ch2, sizeof(prev_line1_ch2), line1_ch2, 0, 0, 127, 10, 0, 0, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
+        update_main_text_block(prev_line2_c1, sizeof(prev_line2_c1), line2_c1, 0, 10, 127, 21, 0, 10, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
+        update_main_text_block(prev_line3_sr, sizeof(prev_line3_sr), line3_sr, 0, 22, 127, 31, 0, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
     }
     else
     {
@@ -252,7 +234,7 @@ void OLED_UpdateTask(void)
         snprintf(line_edit_b, sizeof(line_edit_b), "B:%5.2f CC%3u", (double) ui_control_get_curve_exp_b(), (unsigned) ui_control_get_curve_exp_b_cc());
 
         update_main_text_block(prev_line_edit_mode, sizeof(prev_line_edit_mode), line_edit_mode, 0, 0, 127, 10, 0, 0, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line_edit_a, sizeof(prev_line_edit_a), line_edit_a, 0, 11, 127, 21, 0, 11, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
+        update_main_text_block(prev_line_edit_a, sizeof(prev_line_edit_a), line_edit_a, 0, 10, 127, 21, 0, 10, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
         update_main_text_block(prev_line_edit_b, sizeof(prev_line_edit_b), line_edit_b, 0, 22, 127, 31, 0, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
     }
 

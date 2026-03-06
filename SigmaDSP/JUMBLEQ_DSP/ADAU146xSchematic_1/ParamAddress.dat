@@ -80,11 +80,12 @@ SignalMerger_11.gain	154
 SignalMerger_10.gain	156
 SingleVolumeControl_13.Gain	158
 SignalMerger_3.gain	159
-SignalMerger_2.gain	163
-SingleVolumeControl_5.Gain	167
-SingleControlSplitter_3.Gain	168
-SingleControlSplitter_2.Gain	169
-__DM0_PADDING__.__DM0_PADDING__	170
+SingleControlSplitter_3.Gain	163
+SignalMerger_2.gain	164
+SingleControlSplitter_2.Gain	168
+SingleVolumeControl_17.Gain	169
+SingleVolumeControl_5.Gain	170
+__DM0_PADDING__.__DM0_PADDING__	171
 __SafeLoad_Module__.data_SafeLoad	24576
 __SafeLoad_Module__.address_SafeLoad	24581
 __SafeLoad_Module__.num_SafeLoad_lower	24582

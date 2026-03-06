@@ -28,12 +28,14 @@ typedef struct
 
 uint8_t get_current_xfA_position(void);
 uint8_t get_current_xfB_position(void);
-int16_t get_current_ch1_db(void);
-int16_t get_current_ch2_db(void);
-int16_t get_current_master_db(void);
+int16_t get_current_ch1_in_db(void);
+int16_t get_current_ch2_in_db(void);
+int16_t get_current_ch1_out_db(void);
+int16_t get_current_ch2_out_db(void);
+int16_t get_current_return_db(void);
 int16_t get_current_dry_wet(void);
-uint8_t get_current_xfade2_cc_value(void); // same value as send_control_change for xfade[2]
-uint8_t get_current_xfade3_cc_value(void); // same value as send_control_change for xfade[3]
+uint8_t get_current_xfade2_cc_value(void);  // same value as send_control_change for xfade[2]
+uint8_t get_current_xfade3_cc_value(void);  // same value as send_control_change for xfade[3]
 char* get_current_input_typeA_str(void);
 char* get_current_input_typeB_str(void);
 char* get_current_input_srcA_str(void);
@@ -53,7 +55,7 @@ void start_adc(void);
 void ui_control_task(void);
 void start_audio_control(void);
 bool is_started_audio_control(void);
-void ui_control_get_persist_state(UI_ControlPersistState_t *state);
-bool ui_control_apply_persist_state(const UI_ControlPersistState_t *state);
+void ui_control_get_persist_state(UI_ControlPersistState_t* state);
+bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state);
 
 #endif /* INC_UI_CONTROL_H_ */

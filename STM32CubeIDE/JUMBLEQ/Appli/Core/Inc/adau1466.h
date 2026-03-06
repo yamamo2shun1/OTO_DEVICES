@@ -27,26 +27,26 @@ enum
 
 enum
 {
-    CH1_LINE = 0,
-    CH1_PHONO = 1,
-    CH2_LINE = 2,
-    CH2_PHONO = 3,
-    XF_ASSIGN_A_CH1 = 4,
-    XF_ASSIGN_A_CH2 = 5,
-    XF_ASSIGN_A_USB12 = 6,
-    XF_ASSIGN_A_USB34 = 7,
-    XF_ASSIGN_B_CH1 = 8,
-    XF_ASSIGN_B_CH2 = 9,
-    XF_ASSIGN_B_USB12 = 10,
-    XF_ASSIGN_B_USB34 = 11,
-    XF_ASSIGN_POST_CH1 = 12,
-    XF_ASSIGN_POST_CH2 = 13,
+    CH1_LINE             = 0,
+    CH1_PHONO            = 1,
+    CH2_LINE             = 2,
+    CH2_PHONO            = 3,
+    XF_ASSIGN_A_CH1      = 4,
+    XF_ASSIGN_A_CH2      = 5,
+    XF_ASSIGN_A_USB12    = 6,
+    XF_ASSIGN_A_USB34    = 7,
+    XF_ASSIGN_B_CH1      = 8,
+    XF_ASSIGN_B_CH2      = 9,
+    XF_ASSIGN_B_USB12    = 10,
+    XF_ASSIGN_B_USB34    = 11,
+    XF_ASSIGN_POST_CH1   = 12,
+    XF_ASSIGN_POST_CH2   = 13,
     XF_ASSIGN_POST_USB12 = 14,
     XF_ASSIGN_POST_USB34 = 15,
-    CH1_DVS_DISABLE = 16,
-    CH1_DVS_ENABLE = 17,
-    CH2_DVS_DISABLE = 18,
-    CH2_DVS_ENABLE = 19,
+    CH1_DVS_DISABLE      = 16,
+    CH1_DVS_ENABLE       = 17,
+    CH2_DVS_DISABLE      = 18,
+    CH2_DVS_ENABLE       = 19,
 };
 
 double convert_pot2dB(uint16_t adc_val);
@@ -70,7 +70,8 @@ void control_dryA_out_gain(const uint16_t adc_val);
 void control_dryB_out_gain(const uint16_t adc_val);
 
 void control_wet_out_gain(const uint16_t adc_val);
-void control_master_out_gain(const uint16_t adc_val);
+void control_ch1_out_gain(const uint16_t adc_val);
+void control_ch2_out_gain(const uint16_t adc_val);
 
 void select_input_type(uint8_t ch, uint8_t type);
 void enable_dvs(uint8_t ch, bool enable);

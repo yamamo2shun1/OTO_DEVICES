@@ -200,7 +200,7 @@ Parameter Data :
 
 Module Name			= SignalMerger_2
 Parameter Name		= gain
-Parameter Address	= 163
+Parameter Address	= 164
 Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
@@ -237,9 +237,9 @@ Parameter Data :
 
 
 
-Module Name			= master_output
+Module Name			= ch1_output
 Parameter Name		= Gain
-Parameter Address	= 167
+Parameter Address	= 170
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -307,7 +307,7 @@ Parameter Data :
 
 Module Name			= SingleControlSplitter_2
 Parameter Name		= Gain
-Parameter Address	= 169
+Parameter Address	= 168
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -318,7 +318,7 @@ Parameter Data :
 
 Module Name			= SingleControlSplitter_3
 Parameter Name		= Gain
-Parameter Address	= 168
+Parameter Address	= 163
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -919,6 +919,17 @@ Parameter Data :
 Module Name			= input_from_usb4
 Parameter Name		= Gain
 Parameter Address	= 112
+Parameter Value		= 1
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x00, 0x00, 0x00, 
+
+
+
+Module Name			= ch2_output
+Parameter Name		= Gain
+Parameter Address	= 169
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
