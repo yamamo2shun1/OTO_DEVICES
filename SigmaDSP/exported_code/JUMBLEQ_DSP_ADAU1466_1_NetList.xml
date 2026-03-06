@@ -29,8 +29,8 @@
       <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
         <Link pin="Ch0_out" dir="out" link="Link_221" id="Link_221" />
         <Link pin="Ch2_out" dir="out" link="Link_223" id="Link_223" />
-        <Link pin="Ch1_out" dir="out" link="Link_327" id="Link_327" />
-        <Link pin="Ch3_out" dir="out" link="Link_329" id="Link_329" />
+        <Link pin="Ch3_out" dir="out" link="Link_337" id="Link_337" />
+        <Link pin="Ch1_out" dir="out" link="Link_338" id="Link_338" />
       </Algorithm>
       <Algorithm name="Output_4" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_140" id="Link_140" />
@@ -91,8 +91,8 @@
       <Algorithm name="SignalMerger_A" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="DSPReadBack_A" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design" />
       <Algorithm name="RunningAverage_A" friendlyname="Signal Measurement Envelope Generator" />
-      <Algorithm name="input_from_usb12" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
-      <Algorithm name="input_from_usb34" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb3" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="Output_8" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_247" id="Link_247" />
       </Algorithm>
@@ -154,6 +154,8 @@
       </Algorithm>
       <Algorithm name="send1_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="input_from_return" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="input_from_usb4" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
     </Schematic>
   </Core>
 </IC>

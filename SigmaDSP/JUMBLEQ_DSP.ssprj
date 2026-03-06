@@ -2614,16 +2614,16 @@
                             "Link_324",
                             "Link_325",
                             "Link_326",
-                            "Link_327",
-                            "Link_328",
-                            "Link_329",
-                            "Link_330",
                             "Link_277",
                             "Link_276",
                             "Link_117",
                             "Link_116",
                             "Link_333",
-                            "Link_334"
+                            "Link_334",
+                            "Link_335",
+                            "Link_336",
+                            "Link_337",
+                            "Link_338"
                           ]
                         }
                       },
@@ -2898,8 +2898,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 210.32967032967031,
-                          "Y": -516.58241758241741
+                          "X": 172.6826115061408,
+                          "Y": -1098.7672915319972
                         },
                         "Size": {
                           "Height": 424.0,
@@ -3003,13 +3003,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 198.32967032967031,
-                          "Y": -580.58241758241763
+                          "X": 160.6826115061408,
+                          "Y": -1162.7672915319972
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3041,7 +3041,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3079,7 +3079,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3117,7 +3117,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3660,7 +3660,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -4271,8 +4271,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 515.45665445665429,
-                          "Y": -511.58241758241741
+                          "X": 477.80959563312479,
+                          "Y": -1051.7672915319972
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4355,8 +4355,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 515.45665445665429,
-                          "Y": -427.58241758241741
+                          "X": 477.8095956331249,
+                          "Y": -765.99999999999977
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4608,8 +4608,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 515.45665445665418,
-                          "Y": -221.75702075702077
+                          "X": 485.87682252388066,
+                          "Y": -480.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4693,8 +4693,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 515.45665445665429,
-                          "Y": -137.75702075702077
+                          "X": 485.87682252388078,
+                          "Y": -190.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6148,7 +6148,7 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "NumChannels": "2",
+                          "NumChannels": "1",
                           "Gain": 0.0,
                           "GainMax": 10.0,
                           "GainMin": -80,
@@ -6160,14 +6160,14 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 382.32967032967031,
-                          "Y": -583.58241758241741
+                          "X": 344.6826115061408,
+                          "Y": -1165.7672915319972
                         },
                         "Size": {
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "input_from_usb12",
+                        "Label": "input_from_usb1",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -6191,7 +6191,7 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "NumChannels": "2",
+                          "NumChannels": "1",
                           "Gain": 0.0,
                           "GainMax": 10.0,
                           "GainMin": -80,
@@ -6203,14 +6203,14 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 382.32967032967031,
-                          "Y": -293.75702075702077
+                          "X": 344.6826115061408,
+                          "Y": -594.0
                         },
                         "Size": {
                           "Height": 252.0,
                           "Width": 92.0
                         },
-                        "Label": "input_from_usb34",
+                        "Label": "input_from_usb3",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -8307,6 +8307,92 @@
                         "WriteableLinks": [],
                         "AltShapes": [],
                         "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                        "Name": "Single Volume Control",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleVolumeControl_15",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": "1",
+                          "Gain": 0.0,
+                          "GainMax": 10.0,
+                          "GainMin": -80,
+                          "GainResolution": 1,
+                          "IsDBChosen": true,
+                          "SlewType": "No Slew",
+                          "CustomVal": 8330.0,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 344.6826115061408,
+                          "Y": -879.99999999999977
+                        },
+                        "Size": {
+                          "Height": 252.0,
+                          "Width": 92.0
+                        },
+                        "Label": "input_from_usb2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                        "Name": "Single Volume Control",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleVolumeControl_16",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": "1",
+                          "Gain": 0.0,
+                          "GainMax": 10.0,
+                          "GainMin": -80,
+                          "GainResolution": 1,
+                          "IsDBChosen": true,
+                          "SlewType": "No Slew",
+                          "CustomVal": 8330.0,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 344.6826115061408,
+                          "Y": -304.0
+                        },
+                        "Size": {
+                          "Height": 252.0,
+                          "Width": 92.0
+                        },
+                        "Label": "input_from_usb4",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
                       }
                     ],
                     "WriteableLinks": [
@@ -9269,12 +9355,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 357.31379731379729,
-                            "Y": -457.69351758241748
+                            "X": 319.66673849026779,
+                            "Y": -1039.8784026431083
                           },
                           {
-                            "X": 357.31379731379729,
-                            "Y": -499.58241758241752
+                            "X": 319.66673849026779,
+                            "Y": -1039.7672915319972
                           }
                         ]
                       },
@@ -9287,12 +9373,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 338.26617826617809,
-                            "Y": -412.82581758241747
+                            "X": 297.14285714285694,
+                            "Y": -995.0107
                           },
                           {
-                            "X": 338.26617826617809,
-                            "Y": -209.75701758241758
+                            "X": 297.14285714285694,
+                            "Y": -468.0
                           }
                         ]
                       },
@@ -10355,60 +10441,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_327",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch1_out",
-                        "TargetUid": "SingleVolumeControl_9",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 358.32967032967031,
-                            "Y": -435.25961758241749
-                          },
-                          {
-                            "X": 358.32967032967031,
-                            "Y": -415.58241758241752
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_328",
-                        "SourceUid": "SingleVolumeControl_9",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "AliasInput_3",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_329",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch3_out",
-                        "TargetUid": "SingleVolumeControl_11",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 311.59951159951146,
-                            "Y": -390.39191758241748
-                          },
-                          {
-                            "X": 311.59951159951146,
-                            "Y": -125.75701758241758
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_330",
-                        "SourceUid": "SingleVolumeControl_11",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "AliasInput_7",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
                         "Uid": "Link_277",
                         "SourceUid": "SignalMerger_9",
                         "SourcePinName": "Output",
@@ -10495,6 +10527,60 @@
                           {
                             "X": 2973.9285714285716,
                             "Y": 90.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_335",
+                        "SourceUid": "SingleVolumeControl_16",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "AliasInput_7",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_336",
+                        "SourceUid": "SingleVolumeControl_15",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "AliasInput_3",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_337",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch3_out",
+                        "TargetUid": "SingleVolumeControl_16",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 274.95798319327713,
+                            "Y": -972.576815341521
+                          },
+                          {
+                            "X": 274.95798319327713,
+                            "Y": -178.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_338",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch1_out",
+                        "TargetUid": "SingleVolumeControl_15",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 321.0,
+                            "Y": -1017.4445
+                          },
+                          {
+                            "X": 321.0,
+                            "Y": -754.0
                           }
                         ]
                       }
