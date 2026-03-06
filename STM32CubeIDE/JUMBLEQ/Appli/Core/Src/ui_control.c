@@ -101,28 +101,28 @@ static ui_control_state_t s_ui = {
 
 static volatile bool is_adc_complete = false;
 
-static const float XFADE_CC_UPDATE_THRESHOLD          = 0.01f;
-static const float XFADE_EXTREMA_HYSTERESIS           = 0.002f;
-static const float XFADE_EXTREMA_SEND_THRESHOLD       = 0.002f;
-static const float XFADE_PAIR_RESET_THRESHOLD         = 0.98f;
-static const float XFADE_MIN_RESET_CUTOFF             = 0.05f;
-static const float XFADE_CURVE_EXP_MIN                = 0.5f;
-static const float XFADE_CURVE_EXP_MAX                = 50.0f;
+static const float XFADE_CC_UPDATE_THRESHOLD    = 0.01f;
+static const float XFADE_EXTREMA_HYSTERESIS     = 0.002f;
+static const float XFADE_EXTREMA_SEND_THRESHOLD = 0.002f;
+static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
+static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
+static const float XFADE_CURVE_EXP_MIN          = 0.5f;
+static const float XFADE_CURVE_EXP_MAX          = 50.0f;
 
-static const uint8_t MIDI_CH_15 = 14U; // zero-based MIDI channel index.
-static const uint8_t MIDI_CC_XFADE_CURVE_EXP_A = 20U;
-static const uint8_t MIDI_CC_XFADE_CURVE_EXP_B = 21U;
+static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
+static const uint8_t MIDI_CC_XFADE_CURVE_EXP_A   = 20U;
+static const uint8_t MIDI_CC_XFADE_CURVE_EXP_B   = 21U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_OFF = 120U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_ON  = 121U;
 static const uint8_t MIDI_PC_REQUEST_EEPROM_DUMP = 126U;
-static const uint8_t MIDI_PC_SAVE_EEPROM = 127U;
+static const uint8_t MIDI_PC_SAVE_EEPROM         = 127U;
 
 typedef struct
 {
     uint8_t fade_up_idx;
     uint8_t fade_down_idx;
     uint8_t prev_idx;
-    uint8_t *current_position;
+    uint8_t* current_position;
     void (*set_dc)(float xf_pos);
 } xfade_pair_runtime_t;
 
@@ -137,19 +137,19 @@ typedef enum
 // fade_up_idx * fade_down_idx -> curved scalar -> ADAU1466 DC input.
 static const xfade_pair_runtime_t s_xfade_pairs[] = {
     {
-        .fade_up_idx = 5,
-        .fade_down_idx = 4,
-        .prev_idx = XFADE_PAIR_A,
-        .current_position = &s_ui.xf.position_a,
-        .set_dc = set_dc_inputA,
-    },
+     .fade_up_idx      = 5,
+     .fade_down_idx    = 4,
+     .prev_idx         = XFADE_PAIR_A,
+     .current_position = &s_ui.xf.position_a,
+     .set_dc           = set_dc_inputA,
+     },
     {
-        .fade_up_idx = 0,
-        .fade_down_idx = 1,
-        .prev_idx = XFADE_PAIR_B,
-        .current_position = &s_ui.xf.position_b,
-        .set_dc = set_dc_inputB,
-    },
+     .fade_up_idx      = 0,
+     .fade_down_idx    = 1,
+     .prev_idx         = XFADE_PAIR_B,
+     .current_position = &s_ui.xf.position_b,
+     .set_dc           = set_dc_inputB,
+     },
 };
 
 static void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
@@ -189,7 +189,7 @@ static void mark_xfade_curve_dirty(void)
 
 static float midi_cc_to_curve_exp(uint8_t value)
 {
-    const float t = (float) value / 127.0f;
+    const float t     = (float) value / 127.0f;
     const float ratio = XFADE_CURVE_EXP_MAX / XFADE_CURVE_EXP_MIN;
 
     return XFADE_CURVE_EXP_MIN * powf(ratio, t);
@@ -244,24 +244,34 @@ uint8_t get_current_xfB_position(void)
     return s_ui.xf.position_b;
 }
 
-int16_t get_current_ch1_db(void)
+int16_t get_current_ch1_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[6]);
+    return convert_pot2dB_int(s_ui.pot_val[10]);
 }
 
-int16_t get_current_ch2_db(void)
+int16_t get_current_ch2_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[4]);
+    return convert_pot2dB_int(s_ui.pot_val[7]);
 }
 
-int16_t get_current_master_db(void)
+int16_t get_current_ch1_out_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[5]);
+    return convert_pot2dB_int(s_ui.pot_val[11]);
+}
+
+int16_t get_current_ch2_out_db(void)
+{
+    return convert_pot2dB_int(s_ui.pot_val[8]);
+}
+
+int16_t get_current_return_db(void)
+{
+    return convert_pot2dB_int(s_ui.pot_val[9]);
 }
 
 int16_t get_current_dry_wet(void)
 {
-    int16_t pct = (int16_t) (((double) s_ui.pot_val[7] / 1023.0 * 100.0) + 0.5);
+    int16_t pct = (int16_t) (((double) s_ui.pot_val[6] / 1023.0 * 100.0) + 0.5);
     if (pct < 0)
     {
         pct = 0;
@@ -706,7 +716,7 @@ static uint8_t midi_program_for_dvs(uint8_t input_ch, uint8_t enable)
     return CH1_DVS_DISABLE;
 }
 
-static void send_midi_config_dump(const EEPROM_DeviceConfig_t *cfg)
+static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
 {
     if (cfg == NULL)
     {
@@ -726,15 +736,23 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t *cfg)
 
 static void set_pot_mux_channel(uint8_t channel)
 {
-    static const uint8_t mux_bits[POT_NUM][3] = {
-        {0, 0, 0},
-        {0, 1, 0},
-        {0, 0, 1},
-        {0, 1, 1},
-        {1, 0, 0},
-        {1, 1, 0},
-        {1, 0, 1},
-        {1, 1, 1},
+    static const uint8_t mux_bits[POT_NUM][4] = {
+        {0, 0, 0, 0}, // 0  l0
+        {0, 1, 0, 0}, // 2  l2
+        {0, 0, 1, 0}, // 4  l4
+        {1, 0, 0, 0}, // 1  l1
+        {1, 1, 0, 0}, // 3  l3
+        {0, 1, 0, 1}, // 10 r4
+        {0, 1, 1, 0}, // 6  r0
+        {0, 0, 0, 1}, // 8  r2
+        {1, 0, 1, 0}, // 5  l5
+        {1, 1, 1, 0}, // 7  r1
+        {1, 0, 0, 1}, // 9  r3
+        {1, 1, 0, 1}, // 11 r5
+        {0, 0, 1, 1}, // 12 sub_keys
+        {0, 1, 1, 1}, // 14
+        {1, 0, 1, 1}, // 13
+        {1, 1, 1, 1}, // 15
     };
 
     if (channel >= POT_NUM)
@@ -745,6 +763,7 @@ static void set_pot_mux_channel(uint8_t channel)
     HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, mux_bits[channel][0]);
     HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, mux_bits[channel][1]);
     HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, mux_bits[channel][2]);
+    HAL_GPIO_WritePin(S3_GPIO_Port, S3_Pin, mux_bits[channel][3]);
 }
 
 static void apply_pot_value(uint8_t channel, uint16_t value)
@@ -755,21 +774,35 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     case 1:
     case 2:
     case 3:
+    case 4:
+    case 5:
         send_control_change(channel, value, 0);
         break;
-    case 4:
-        control_input_from_ch2_gain(value);
-        break;
-    case 5:
-        control_master_out_gain(value);
-        break;
     case 6:
-        control_input_from_ch1_gain(value);
-        break;
-    case 7:
         control_dryB_out_gain(value);
         control_wet_out_gain(value);
         break;
+    case 7:
+        control_input_from_ch2_gain(value);
+        break;
+    case 8:
+        control_ch2_out_gain(value);
+        break;
+    case 9:
+        control_input_from_return_gain(value);
+        break;
+    case 10:
+        control_input_from_ch1_gain(value);
+        break;
+    case 11:
+        control_ch1_out_gain(value);
+        break;
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    	send_control_change(channel, value, 0);
+    	break;
     default:
         break;
     }
@@ -779,16 +812,25 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
 {
     switch (channel)
     {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
+    case 0:  // l0
+    case 1:  // l1
+    case 2:  // l2
+    case 3:  // l5
+    case 4:  // r0
+    case 5:  // r1
         return adc_raw >> 5;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
+    case 6:   // l3
+    case 7:   // l4
+    case 8:   // r2
+    case 9:   // r3
+    case 10:  // r4
+    case 11:  // r5
         return adc_raw >> 2;
+    case 12:  // sub_key6
+    case 13:  // sub_key7
+    case 14:  // sub_key8
+    case 15:  // sub_key9
+        return adc_raw >> 4;
     default:
         return 0;
     }
@@ -985,17 +1027,17 @@ static void emit_xfade_cc_if_needed(uint8_t i)
 }
 
 // Compute and commit one pair output (A or B) from tracked extrema.
-static void update_xfade_pair_output(const xfade_pair_runtime_t *pair)
+static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
     // DSP writes are driven by extrema deltas, not raw sample deltas.
-    const float up_now = s_ui.xf.up_peak[pair->fade_up_idx];
-    const float down_now = s_ui.xf.down_floor[pair->fade_down_idx];
+    const float up_now         = s_ui.xf.up_peak[pair->fade_up_idx];
+    const float down_now       = s_ui.xf.down_floor[pair->fade_down_idx];
     const bool extrema_changed = (fabs(up_now - s_ui.xf.up_peak_prev[pair->prev_idx]) > XFADE_EXTREMA_SEND_THRESHOLD) || (fabs(down_now - s_ui.xf.down_floor_prev[pair->prev_idx]) > XFADE_EXTREMA_SEND_THRESHOLD);
 
     if (extrema_changed)
     {
         const float curve_exp = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.curve_exp_a : s_ui.curve_exp_b;
-        float base = up_now * down_now;
+        float base            = up_now * down_now;
         if (base < 0.0f)
         {
             base = 0.0f;
@@ -1015,7 +1057,7 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t *pair)
         }
     }
 
-    s_ui.xf.up_peak_prev[pair->prev_idx] = up_now;
+    s_ui.xf.up_peak_prev[pair->prev_idx]    = up_now;
     s_ui.xf.down_floor_prev[pair->prev_idx] = down_now;
 }
 
@@ -1031,7 +1073,7 @@ static void apply_xfade_updates(void)
     {
         for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
         {
-            s_ui.xf.up_peak_prev[s_xfade_pairs[i].prev_idx] = s_ui.xf.up_peak[s_xfade_pairs[i].fade_up_idx];
+            s_ui.xf.up_peak_prev[s_xfade_pairs[i].prev_idx]    = s_ui.xf.up_peak[s_xfade_pairs[i].fade_up_idx];
             s_ui.xf.down_floor_prev[s_xfade_pairs[i].prev_idx] = s_ui.xf.down_floor[s_xfade_pairs[i].fade_down_idx];
         }
         s_ui.xf.extrema_prev_valid = true;
@@ -1121,17 +1163,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0,
-                          "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
-                          (unsigned) cfg.current_ch1_input_type,
-                          (unsigned) cfg.current_ch2_input_type,
-                          (unsigned) cfg.current_xfA_assign,
-                          (unsigned) cfg.current_xfB_assign,
-                          (unsigned) cfg.current_xfpost_assign,
-                          (unsigned) cfg.current_ch1_dvs_enable,
-                          (unsigned) cfg.current_ch2_dvs_enable,
-                          (double) cfg.current_xf_curve_exp_a,
-                          (double) cfg.current_xf_curve_exp_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
 
         return true;
     }
@@ -1144,17 +1176,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0,
-                              "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
-                              (unsigned) cfg.current_ch1_input_type,
-                              (unsigned) cfg.current_ch2_input_type,
-                              (unsigned) cfg.current_xfA_assign,
-                              (unsigned) cfg.current_xfB_assign,
-                              (unsigned) cfg.current_xfpost_assign,
-                              (unsigned) cfg.current_ch1_dvs_enable,
-                              (unsigned) cfg.current_ch2_dvs_enable,
-                              (double) cfg.current_xf_curve_exp_a,
-                              (double) cfg.current_xf_curve_exp_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
         }
         else
         {
@@ -1389,8 +1411,8 @@ void ui_control_reset_state(void)
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
-        s_ui.xf.raw[i]  = 1.0f;
-        s_ui.xf.prev[i] = 1.0f;
+        s_ui.xf.raw[i]        = 1.0f;
+        s_ui.xf.prev[i]       = 1.0f;
         s_ui.xf.down_floor[i] = 1.0f;
         s_ui.xf.up_peak[i]    = 0.0f;
     }
