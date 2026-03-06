@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
- * Created:	Friday, 06 March 2026 8:59 AM
+ * Created:	Friday, 06 March 2026 19:13 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -165,7 +165,7 @@
 /* Module SignalMerger_2 - Signal Merger */
 #define MOD_SIGNALMERGER_2_COUNT               1
 #define MOD_SIGNALMERGER_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_2_GAIN_ADDR           163
+#define MOD_SIGNALMERGER_2_GAIN_ADDR           164
 #define MOD_SIGNALMERGER_2_GAIN_FIXPT          0x00400000004000000040000000400000
 #define MOD_SIGNALMERGER_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -198,17 +198,17 @@
 #define MOD_INPUT_FROM_CH1_GAIN_DATA_MEMORY    "DM0"
 #define MOD_INPUT_FROM_CH1_GAIN_MEM_PAGE       0
 
-/* Module master_output - Single Volume Control */
-#define MOD_MASTER_OUTPUT_COUNT               1
-#define MOD_MASTER_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_MASTER_OUTPUT_GAIN_ADDR           167
-#define MOD_MASTER_OUTPUT_GAIN_FIXPT          0x01000000
-#define MOD_MASTER_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
-#define MOD_MASTER_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
-#define MOD_MASTER_OUTPUT_GAIN_DATA_MEMORY    "DM0"
-#define MOD_MASTER_OUTPUT_GAIN_MEM_PAGE       0
-#define MOD_MASTER_OUTPUT_GAIN_DATA_MEMORY    "DM0"
-#define MOD_MASTER_OUTPUT_GAIN_MEM_PAGE       0
+/* Module ch1_output - Single Volume Control */
+#define MOD_CH1_OUTPUT_COUNT               1
+#define MOD_CH1_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
+#define MOD_CH1_OUTPUT_GAIN_ADDR           170
+#define MOD_CH1_OUTPUT_GAIN_FIXPT          0x01000000
+#define MOD_CH1_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_CH1_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_CH1_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_CH1_OUTPUT_GAIN_MEM_PAGE       0
+#define MOD_CH1_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_CH1_OUTPUT_GAIN_MEM_PAGE       0
 
 /* Module Ln_Pn_SW_2 - 2xN Switch */
 #define MOD_LN_PN_SW_2_COUNT                         2
@@ -269,7 +269,7 @@
 /* Module SingleControlSplitter_2 - Single Control Splitter */
 #define MOD_SINGLECONTROLSPLITTER_2_COUNT               1
 #define MOD_SINGLECONTROLSPLITTER_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_ADDR           169
+#define MOD_SINGLECONTROLSPLITTER_2_GAIN_ADDR           168
 #define MOD_SINGLECONTROLSPLITTER_2_GAIN_FIXPT          0x01000000
 #define MOD_SINGLECONTROLSPLITTER_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_SINGLECONTROLSPLITTER_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -281,7 +281,7 @@
 /* Module SingleControlSplitter_3 - Single Control Splitter */
 #define MOD_SINGLECONTROLSPLITTER_3_COUNT               1
 #define MOD_SINGLECONTROLSPLITTER_3_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_ADDR           168
+#define MOD_SINGLECONTROLSPLITTER_3_GAIN_ADDR           163
 #define MOD_SINGLECONTROLSPLITTER_3_GAIN_FIXPT          0x01000000
 #define MOD_SINGLECONTROLSPLITTER_3_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_SINGLECONTROLSPLITTER_3_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -851,5 +851,17 @@
 #define MOD_INPUT_FROM_USB4_GAIN_MEM_PAGE       0
 #define MOD_INPUT_FROM_USB4_GAIN_DATA_MEMORY    "DM0"
 #define MOD_INPUT_FROM_USB4_GAIN_MEM_PAGE       0
+
+/* Module ch2_output - Single Volume Control */
+#define MOD_CH2_OUTPUT_COUNT               1
+#define MOD_CH2_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
+#define MOD_CH2_OUTPUT_GAIN_ADDR           169
+#define MOD_CH2_OUTPUT_GAIN_FIXPT          0x01000000
+#define MOD_CH2_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_CH2_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_CH2_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_CH2_OUTPUT_GAIN_MEM_PAGE       0
+#define MOD_CH2_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_CH2_OUTPUT_GAIN_MEM_PAGE       0
 
 #endif

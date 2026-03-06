@@ -274,11 +274,18 @@ void control_wet_out_gain(const uint16_t adc_val)
     write_q8_24(MOD_DCINPUT_WET_DCVALUE_ADDR, rate);
 }
 
-void control_master_out_gain(const uint16_t adc_val)
+void control_ch1_out_gain(const uint16_t adc_val)
 {
     const double db   = (double) convert_pot2dB_int(adc_val);
     const double gain = convert_dB2gain(db);
-    write_q8_24(MOD_MASTER_OUTPUT_GAIN_ADDR, gain);
+    write_q8_24(MOD_CH1_OUTPUT_GAIN_ADDR, gain);
+}
+
+void control_ch2_out_gain(const uint16_t adc_val)
+{
+    const double db   = (double) convert_pot2dB_int(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_CH2_OUTPUT_GAIN_ADDR, gain);
 }
 
 void set_ch1_line()
