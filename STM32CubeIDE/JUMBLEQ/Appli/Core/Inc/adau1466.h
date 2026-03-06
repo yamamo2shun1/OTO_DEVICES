@@ -61,6 +61,7 @@ void set_dc_inputB(float xf_pos);
 void control_input_from_usb_gain(uint8_t ch, int16_t db);
 void control_input_from_ch1_gain(const uint16_t adc_val);
 void control_input_from_ch2_gain(const uint16_t adc_val);
+void control_input_from_return_gain(const uint16_t adc_val);
 
 void control_send1_out_gain(const uint16_t adc_val);
 void control_send2_out_gain(const uint16_t adc_val);
