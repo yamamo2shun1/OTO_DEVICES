@@ -28,7 +28,7 @@ When you connect the USB cable while holding down SW3, it is recognized as a USB
 - [TX](./Docs/MIDI_TX_SPEC.md)
 
 ## Block Diagram
-<img width="811" height="701" alt="JUMBLEQ_diagram" src="https://github.com/user-attachments/assets/09df1829-d854-44bf-9779-de79fafe3dac" />
+<img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
 
 ## Pinout (main board rev.C)
 ![JUMBLEQ_main_pinout_revC](https://github.com/user-attachments/assets/fcb13605-1c4f-45cb-ab58-35bc1016bd3e)
