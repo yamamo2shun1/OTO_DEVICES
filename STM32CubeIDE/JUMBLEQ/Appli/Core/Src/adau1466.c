@@ -235,6 +235,13 @@ void control_input_from_ch2_gain(const uint16_t adc_val)
     write_q8_24(MOD_INPUT_FROM_CH2_GAIN_ADDR, gain);
 }
 
+void control_input_from_return_gain(const uint16_t adc_val)
+{
+    const double db   = (double) convert_pot2dB_int(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_INPUT_FROM_RETURN_GAIN_ADDR, gain);
+}
+
 void control_send1_out_gain(const uint16_t adc_val)
 {
     const double db   = (double) convert_pot2dB_int(adc_val);
