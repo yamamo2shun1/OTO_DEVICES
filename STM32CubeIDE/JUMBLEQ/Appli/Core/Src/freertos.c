@@ -42,13 +42,13 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define TASK_INIT_DONE_TARGET_COUNT 4U  /* USB, Audio, LED, ADC */
+#define TASK_INIT_DONE_TARGET_COUNT 4U /* USB, Audio, LED, ADC */
 #define TASK_INIT_TURN_OLED         (1U << 0)
 #define TASK_INIT_TURN_LED          (1U << 1)
 #define TASK_INIT_TURN_ADC          (1U << 2)
 #define TASK_INIT_TURN_AUDIO        (1U << 3)
 #define TASK_INIT_TURN_USB          (1U << 4)
-#define TASK_SYNC_USB_READY         (1U << 8)  /* TinyUSB未初期化でaudio_task()がtud_*へ入るとHardFaultするため、USB ready同期に使用 */
+#define TASK_SYNC_USB_READY         (1U << 8) /* TinyUSB未初期化でaudio_task()がtud_*へ入るとHardFaultするため、USB ready同期に使用 */
 
 /* USER CODE END PD */
 
@@ -63,8 +63,8 @@
 // configAPPLICATION_ALLOCATED_HEAP=1 で有効化
 __attribute__((aligned(8)))
 uint8_t ucHeap[configTOTAL_HEAP_SIZE];
-static volatile uint32_t s_task_init_done_count = 0U;
-static osEventFlagsId_t s_task_init_seq_flags = NULL;
+static volatile uint32_t s_task_init_done_count                  = 0U;
+static osEventFlagsId_t s_task_init_seq_flags                    = NULL;
 static const osEventFlagsAttr_t s_task_init_seq_flags_attributes = {
     .name = "taskInitSeqFlags"};
 
