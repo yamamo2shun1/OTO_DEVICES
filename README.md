@@ -1,6 +1,12 @@
 # JUMBLEQ
 “JUMBLEQ” is short for “jumbled equipment”
 
+## Gallery
+- [Prototype3](./Gallery/prototype3.md)
+- [Prototype2](./Gallery/prototype2.md)
+- [Prototype1](./Gallery/prototype1.md)
+- [Main Board(rev.C)](./Gallery/main_board.md)
+
 ## Audio Spec.
 - Analog: 4in/4out
 - USB: 4in/4out(USB Audio Class 2.0) and MIDI in/out
@@ -44,6 +50,5 @@ Magnetic Switch & POT Module
 [SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
 
 ## Byte Options
-
 <img width="1494" height="94" alt="XSPI1_HSLV" src="https://github.com/user-attachments/assets/ebc3223b-eeab-4298-8f9b-c5c720aa8761" />
 <img width="1499" height="283" alt="DTCM_AXI_SHARE" src="https://github.com/user-attachments/assets/3e3834df-2523-460f-911c-b9adc2ca7339" />
