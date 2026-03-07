@@ -1,0 +1,8 @@
+# JUMBLEQ prototype3 (firmware v0.9.4)
+![DSCF6900](https://github.com/user-attachments/assets/b022214f-9dd0-40a2-941e-4e20b6c94112)
+![DSCF6901](https://github.com/user-attachments/assets/093d76c1-9378-4942-8cd6-7f4f7fda62fd)
+![DSCF6902](https://github.com/user-attachments/assets/d7053fe1-3266-400d-938c-0cfd95f64914)
+![DSCF6903](https://github.com/user-attachments/assets/f64fbce4-8fe2-4a0b-9f17-71940784a42e)
+![DSCF6906](https://github.com/user-attachments/assets/3d9ff214-3795-42f0-9aed-298b8ee798c1)
+![DSCF6908](https://github.com/user-attachments/assets/1b776a20-bccb-4f5d-8734-d493ad11ca2c)
+![DSCF6910](https://github.com/user-attachments/assets/23db7244-6820-4ffe-9181-a84d18df2712)
