@@ -1,3 +1,3 @@
-# Main board
-![OTO_overall](https://github.com/user-attachments/assets/7e5d887a-9eaa-4ffe-a4b5-3ef646b3e20a)
-![OTO_top](https://github.com/user-attachments/assets/bd03cb58-2311-4a0e-bf9f-21e4cad265d9)
+# Main board (rev.C)
+![overall](https://github.com/user-attachments/assets/58c6b0ac-f3cb-4772-bfd0-b2c366a97ef1)
+![top](https://github.com/user-attachments/assets/b7b0107a-1f1f-4ec7-9dc3-f27a3c932d75)
