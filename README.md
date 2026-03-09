@@ -5,7 +5,6 @@
 - [Prototype3](./Gallery/prototype3.md)
 - [Prototype2](./Gallery/prototype2.md)
 - [Prototype1](./Gallery/prototype1.md)
-- [Main Board(rev.C)](./Gallery/main_board.md)
 
 ## Audio Spec.
 - Analog: 4in/4out
@@ -16,7 +15,7 @@
 - MCU: [STM32H7S3Z8](https://www.st.com/en/microcontrollers-microprocessors/stm32h7s3z8.html)
 - DSP: [ADAU1466](https://www.analog.com/jp/products/adau1466.html)
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
-- IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x6 and Pot x8
+- IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x10 and 10 k POT x12
 
 ## for Windows User
 I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
@@ -36,19 +35,13 @@ When you connect the USB cable while holding down SW3, it is recognized as a USB
 ## Block Diagram
 <img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
 
-## Pinout (main board rev.C)
-![JUMBLEQ_main_pinout_revC](https://github.com/user-attachments/assets/fcb13605-1c4f-45cb-ab58-35bc1016bd3e)
-
 ## Modules
 - Original  
-[AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
-Magnetic Switch & POT Module
+  - [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board)  
+  - [AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
+  - [MagneticSwitch & POT Module](https://github.com/YamamotoWorksDev/MagneticSwitch_and_POT_Module)
 
 - Third party  
-[0.96インチ 128×64ドット有機ELディスプレイ(OLED) 白色](https://akizukidenshi.com/catalog/g/g112031/)  
-[SparkFun Qwiic OLED Display (0.91 in., 128x32)](https://www.sparkfun.com/sparkfun-qwiic-oled-display-0-91-in-128x32-lcd-24606.html)  
-[SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
-
-## Byte Options
-<img width="1494" height="94" alt="XSPI1_HSLV" src="https://github.com/user-attachments/assets/ebc3223b-eeab-4298-8f9b-c5c720aa8761" />
-<img width="1499" height="283" alt="DTCM_AXI_SHARE" src="https://github.com/user-attachments/assets/3e3834df-2523-460f-911c-b9adc2ca7339" />
+  - [0.96インチ 128×64ドット有機ELディスプレイ(OLED) 白色](https://akizukidenshi.com/catalog/g/g112031/)  
+  - [SparkFun Qwiic OLED Display (0.91 in., 128x32)](https://www.sparkfun.com/sparkfun-qwiic-oled-display-0-91-in-128x32-lcd-24606.html)  
+  - [SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
