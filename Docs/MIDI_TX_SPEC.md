@@ -39,6 +39,7 @@
 | 12/13/14/15 | Post XFaderソース（Ch.1 / Ch.2 / USB[1/2] / USB[3/4]） |
 | 16/17 | Ch.1 DVS（Off / On） |
 | 18/19 | Ch.2 DVS（Off / On） |
+| 122/123 | 磁気スイッチ送信MIDI（CC / Note） |
 
 ### 4.2 Control Change（Device -> Host, Ch.15）
 

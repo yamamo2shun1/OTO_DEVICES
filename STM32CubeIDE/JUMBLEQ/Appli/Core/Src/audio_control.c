@@ -194,6 +194,7 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
+        ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
         ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
         ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
 
@@ -226,6 +227,7 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
+        ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
         ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
         ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
         (void)ui_control_apply_persist_state(&ui_state);
@@ -1537,4 +1539,3 @@ void AUDIO_SAI_Reset_ForNewRate(void)
 
     prev_hz = new_hz;
 }
-

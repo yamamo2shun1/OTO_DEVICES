@@ -19,6 +19,7 @@ typedef struct
     uint8_t current_xfpost_assign;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
+    bool  mag_out_as_note;
     float current_xf_curve_exp_a;
     float current_xf_curve_exp_b;
 } UI_ControlPersistState_t;
