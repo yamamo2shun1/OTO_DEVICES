@@ -78,6 +78,7 @@ typedef struct
     xfade_state_t xf;
     float curve_exp_a;
     float curve_exp_b;
+    bool mag_out_as_note;
     bool curve_edit_mode;
     bool is_start_audio_control;
 } ui_control_state_t;
@@ -92,6 +93,7 @@ static ui_control_state_t s_ui = {
     .current_ch2_dvs_enable = 0U,
     .curve_exp_a            = UI_XFADE_CURVE_EXP_A_DEFAULT,
     .curve_exp_b            = UI_XFADE_CURVE_EXP_B_DEFAULT,
+    .mag_out_as_note        = false,
     .curve_edit_mode        = false,
     .xf.position_a          = 0,
     .xf.position_b          = 0,
@@ -105,7 +107,7 @@ static ui_control_state_t s_ui = {
     .is_start_audio_control = false,
 };
 
-static volatile bool is_adc_complete = false;
+static volatile bool is_adc_complete  = false;
 static const uint8_t POT_MAG_CH_FIRST = 12U;
 static const uint8_t POT_MAG_CH_LAST  = 15U;
 
@@ -122,6 +124,8 @@ static const uint8_t MIDI_CC_XFADE_CURVE_EXP_A   = 20U;
 static const uint8_t MIDI_CC_XFADE_CURVE_EXP_B   = 21U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_OFF = 120U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_ON  = 121U;
+static const uint8_t MIDI_PC_MUX_OUTPUT_CC       = 122U;
+static const uint8_t MIDI_PC_MUX_OUTPUT_NOTE     = 123U;
 static const uint8_t MIDI_PC_REQUEST_EEPROM_DUMP = 126U;
 static const uint8_t MIDI_PC_SAVE_EEPROM         = 127U;
 
@@ -164,6 +168,38 @@ static void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
 {
     uint8_t control_change[3] = {0xB0 | channel, number, value};
     tud_midi_stream_write(0, control_change, 3);
+}
+
+static void send_note(uint8_t note, uint8_t velocity, uint8_t channel)
+{
+    uint8_t note_msg[3];
+
+    if (velocity == 0U)
+    {
+        note_msg[0] = 0x80U | channel;
+        note_msg[1] = note;
+        note_msg[2] = 0U;
+    }
+    else
+    {
+        note_msg[0] = 0x90U | channel;
+        note_msg[1] = note;
+        note_msg[2] = velocity;
+    }
+
+    tud_midi_stream_write(0, note_msg, 3);
+}
+
+static void emit_mag_output(uint8_t cc_number, uint8_t note_number, uint8_t value)
+{
+    if (s_ui.mag_out_as_note)
+    {
+        send_note(note_number, value, 0U);
+    }
+    else
+    {
+        send_control_change(cc_number, value, 0U);
+    }
 }
 
 static void send_program_change(uint8_t program, uint8_t channel)
@@ -740,6 +776,14 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
     send_control_change(MIDI_CC_XFADE_CURVE_EXP_A, curve_exp_to_midi_cc(cfg->current_xf_curve_exp_a), MIDI_CH_15);
     send_control_change(MIDI_CC_XFADE_CURVE_EXP_B, curve_exp_to_midi_cc(cfg->current_xf_curve_exp_b), MIDI_CH_15);
+    if ((cfg->mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U)
+    {
+        send_program_change(MIDI_PC_MUX_OUTPUT_NOTE, MIDI_CH_15);
+    }
+    else
+    {
+        send_program_change(MIDI_PC_MUX_OUTPUT_CC, MIDI_CH_15);
+    }
 }
 
 static void set_pot_mux_channel(uint8_t channel)
@@ -809,8 +853,8 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     case 13:
     case 14:
     case 15:
-    	send_control_change(channel, value, 0);
-    	break;
+        emit_mag_output(channel, (uint8_t) (68U + (channel - POT_MAG_CH_FIRST)), (uint8_t) value);
+        break;
     default:
         break;
     }
@@ -863,8 +907,8 @@ static void process_pot(void)
     }
     else if (s_ui.pot_ch_counter >= POT_CH_SEL_WAIT)
     {
-        const uint8_t ch = s_ui.pot_ch;
-        const uint16_t sample_now = (uint16_t) read_pot_sample_from_adc(ch, adc_val[6]);
+        const uint8_t ch                           = s_ui.pot_ch;
+        const uint16_t sample_now                  = (uint16_t) read_pot_sample_from_adc(ch, adc_val[6]);
         s_ui.pot_val_ma[ch][s_ui.pot_ma_index[ch]] = sample_now;
         s_ui.pot_ma_index[ch]                      = (s_ui.pot_ma_index[ch] + 1) % POT_MA_SIZE;
 
@@ -909,7 +953,7 @@ static void process_pot(void)
         }
         else
         {
-            const uint8_t idx = pot_mag_index(ch);
+            const uint8_t idx     = pot_mag_index(ch);
             const uint16_t sample = s_ui.pot_val[ch];
 
             if (s_ui.pot_mag_calibration_count[idx] < MAG_CALIBRATION_COUNT_MAX)
@@ -934,7 +978,7 @@ static void process_pot(void)
                 else if (sample <= (uint16_t) (offset + MAG_XFADE_RANGE))
                 {
                     const uint16_t normalized = (uint16_t) (sample - offset - MAG_XFADE_CUTOFF);
-                    candidate = (uint8_t) ((uint32_t) normalized * 127U / MAG_XFADE_RANGE);
+                    candidate                 = (uint8_t) ((uint32_t) normalized * 127U / MAG_XFADE_RANGE);
                 }
                 else
                 {
@@ -947,7 +991,7 @@ static void process_pot(void)
 
                 {
                     const uint8_t filtered = s_ui.pot_mag_candidate[idx];
-                    const uint8_t diff = (filtered > s_ui.pot_mag_state[idx]) ? (uint8_t) (filtered - s_ui.pot_mag_state[idx]) : (uint8_t) (s_ui.pot_mag_state[idx] - filtered);
+                    const uint8_t diff     = (filtered > s_ui.pot_mag_state[idx]) ? (uint8_t) (filtered - s_ui.pot_mag_state[idx]) : (uint8_t) (s_ui.pot_mag_state[idx] - filtered);
                     if (diff >= 1U)
                     {
                         s_ui.pot_mag_state[idx] = filtered;
@@ -1101,11 +1145,18 @@ static void emit_xfade_cc_if_needed(uint8_t i)
     // MIDI CC updates use a larger threshold to limit traffic and jitter.
     if (fabs(s_ui.xf.raw[i] - s_ui.xf.prev[i]) > XFADE_CC_UPDATE_THRESHOLD)
     {
-        send_control_change(20 + i, xfade_to_cc(s_ui.xf.raw[i]), 0);
+        const uint8_t note = (uint8_t) (60U + i);
+        uint8_t value      = xfade_to_cc(s_ui.xf.raw[i]);
+
+        if ((note == 60U) || (note == 65U))
+        {
+            value = (uint8_t) (127U - value);
+        }
+
+        emit_mag_output((uint8_t) (20U + i), note, value);
         s_ui.xf.prev[i] = s_ui.xf.raw[i];
     }
 }
-
 // Compute and commit one pair output (A or B) from tracked extrema.
 static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
@@ -1237,13 +1288,27 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         return true;
     }
 
+    if (program == MIDI_PC_MUX_OUTPUT_CC)
+    {
+        s_ui.mag_out_as_note = false;
+        SEGGER_RTT_printf(0, "Mag/pot_mag output mode: CC (PC%u)\r\n", (unsigned) program);
+        return true;
+    }
+
+    if (program == MIDI_PC_MUX_OUTPUT_NOTE)
+    {
+        s_ui.mag_out_as_note = true;
+        SEGGER_RTT_printf(0, "Mag/pot_mag output mode: Note (PC%u)\r\n", (unsigned) program);
+        return true;
+    }
+
     if (program == MIDI_PC_REQUEST_EEPROM_DUMP)
     {
         EEPROM_DeviceConfig_t cfg;
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
 
         return true;
     }
@@ -1407,6 +1472,7 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_ch2_dvs_enable = s_ui.current_ch2_dvs_enable;
     state->current_xf_curve_exp_a = s_ui.curve_exp_a;
     state->current_xf_curve_exp_b = s_ui.curve_exp_b;
+    state->mag_out_as_note = s_ui.mag_out_as_note;
 }
 
 bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
@@ -1444,6 +1510,7 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
     s_ui.curve_exp_a = clamp_curve_exp(state->current_xf_curve_exp_a);
     s_ui.curve_exp_b = clamp_curve_exp(state->current_xf_curve_exp_b);
+    s_ui.mag_out_as_note = state->mag_out_as_note;
     mark_xfade_curve_dirty();
 
     return true;
