@@ -47,6 +47,10 @@ typedef struct
     float up_peak_prev[2];
     float down_floor_prev[2];
     bool extrema_prev_valid;
+    uint8_t note_peak_vel[MAG_SW_NUM];
+    uint32_t note_scan_start_ms[MAG_SW_NUM];
+    bool note_is_on[MAG_SW_NUM];
+    bool note_scan_active[MAG_SW_NUM];
 } xfade_state_t;
 
 // Aggregated UI runtime state (ADC-derived controls + persisted selections).
@@ -128,6 +132,15 @@ static const uint8_t MIDI_PC_MUX_OUTPUT_CC       = 122U;
 static const uint8_t MIDI_PC_MUX_OUTPUT_NOTE     = 123U;
 static const uint8_t MIDI_PC_REQUEST_EEPROM_DUMP = 126U;
 static const uint8_t MIDI_PC_SAVE_EEPROM         = 127U;
+static const uint8_t MIDI_NOTE_ON_THRESHOLD      = 4U;
+static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
+static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
+static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
+
+static uint8_t s_note_peak_vel[128];
+static uint32_t s_note_scan_start_ms[128];
+static bool s_note_is_on[128];
+static bool s_note_scan_active[128];
 
 typedef struct
 {
@@ -190,11 +203,72 @@ static void send_note(uint8_t note, uint8_t velocity, uint8_t channel)
     tud_midi_stream_write(0, note_msg, 3);
 }
 
+static void clear_note_edge_state(uint8_t note)
+{
+    s_note_peak_vel[note]      = 0U;
+    s_note_scan_start_ms[note] = 0U;
+    s_note_is_on[note]         = false;
+    s_note_scan_active[note]   = false;
+}
+
+static void emit_note_edge_if_needed(uint8_t note, uint8_t value)
+{
+    const uint32_t now_ms = HAL_GetTick();
+
+    if (s_note_is_on[note])
+    {
+        if (value <= MIDI_NOTE_OFF_THRESHOLD)
+        {
+            send_note(note, 0U, 0U);
+            clear_note_edge_state(note);
+        }
+        return;
+    }
+
+    if (!s_note_scan_active[note])
+    {
+        if (value >= MIDI_NOTE_ON_THRESHOLD)
+        {
+            s_note_scan_active[note]   = true;
+            s_note_scan_start_ms[note] = now_ms;
+            s_note_peak_vel[note]      = value;
+        }
+        return;
+    }
+
+    if (value > s_note_peak_vel[note])
+    {
+        s_note_peak_vel[note] = value;
+    }
+
+    if (value <= MIDI_NOTE_OFF_THRESHOLD)
+    {
+        clear_note_edge_state(note);
+        return;
+    }
+
+    if ((now_ms - s_note_scan_start_ms[note]) >= MIDI_NOTE_VEL_WINDOW_MS)
+    {
+        uint8_t velocity = s_note_peak_vel[note];
+        if (velocity == 0U)
+        {
+            velocity = 1U;
+        }
+
+        float n = (float) velocity / 127.0f;
+        n       = powf(n, MIDI_NOTE_VEL_GAMMA);
+        velocity = (uint8_t) (1.0f + n * 126.0f);
+
+        send_note(note, velocity, 0U);
+        s_note_is_on[note]       = true;
+        s_note_scan_active[note] = false;
+    }
+}
 static void emit_mag_output(uint8_t cc_number, uint8_t note_number, uint8_t value)
 {
     if (s_ui.mag_out_as_note)
     {
-        send_note(note_number, value, 0U);
+        emit_note_edge_if_needed(note_number, value);
     }
     else
     {
@@ -202,6 +276,67 @@ static void emit_mag_output(uint8_t cc_number, uint8_t note_number, uint8_t valu
     }
 }
 
+static void clear_xfade_note_state(uint8_t i)
+{
+    s_ui.xf.note_peak_vel[i]      = 0U;
+    s_ui.xf.note_scan_start_ms[i] = 0U;
+    s_ui.xf.note_is_on[i]         = false;
+    s_ui.xf.note_scan_active[i]   = false;
+}
+
+static void emit_xfade_note_if_needed(uint8_t i, uint8_t note, uint8_t value)
+{
+    const uint32_t now_ms = HAL_GetTick();
+
+    if (s_ui.xf.note_is_on[i])
+    {
+        if (value <= MIDI_NOTE_OFF_THRESHOLD)
+        {
+            send_note(note, 0U, 0U);
+            clear_xfade_note_state(i);
+        }
+        return;
+    }
+
+    if (!s_ui.xf.note_scan_active[i])
+    {
+        if (value >= MIDI_NOTE_ON_THRESHOLD)
+        {
+            s_ui.xf.note_scan_active[i]   = true;
+            s_ui.xf.note_scan_start_ms[i] = now_ms;
+            s_ui.xf.note_peak_vel[i]      = value;
+        }
+        return;
+    }
+
+    if (value > s_ui.xf.note_peak_vel[i])
+    {
+        s_ui.xf.note_peak_vel[i] = value;
+    }
+
+    if (value <= MIDI_NOTE_OFF_THRESHOLD)
+    {
+        clear_xfade_note_state(i);
+        return;
+    }
+
+    if ((now_ms - s_ui.xf.note_scan_start_ms[i]) >= MIDI_NOTE_VEL_WINDOW_MS)
+    {
+        uint8_t velocity = s_ui.xf.note_peak_vel[i];
+        if (velocity == 0U)
+        {
+            velocity = 1U;
+        }
+
+        float n = (float) velocity / 127.0f;
+        n       = powf(n, MIDI_NOTE_VEL_GAMMA);
+        velocity = (uint8_t) (1.0f + n * 126.0f);
+
+        send_note(note, velocity, 0U);
+        s_ui.xf.note_is_on[i]       = true;
+        s_ui.xf.note_scan_active[i] = false;
+    }
+}
 static void send_program_change(uint8_t program, uint8_t channel)
 {
     uint8_t program_change[2] = {0xC0 | channel, program};
@@ -1142,22 +1277,37 @@ static void update_xfade_from_mag(void)
 // Emit MIDI CC only when raw xfade changes enough to justify traffic.
 static void emit_xfade_cc_if_needed(uint8_t i)
 {
+    const uint8_t note = (uint8_t) (60U + i);
+    uint8_t value      = xfade_to_cc(s_ui.xf.raw[i]);
+
+    if ((note == 60U) || (note == 65U))
+    {
+        value = (uint8_t) (127U - value);
+    }
+
+    if (s_ui.mag_out_as_note)
+    {
+        emit_xfade_note_if_needed(i, note, value);
+        s_ui.xf.prev[i] = s_ui.xf.raw[i];
+        return;
+    }
+
+    if (s_ui.xf.note_is_on[i] || s_ui.xf.note_scan_active[i])
+    {
+        if (s_ui.xf.note_is_on[i])
+        {
+            send_note(note, 0U, 0U);
+        }
+        clear_xfade_note_state(i);
+    }
+
     // MIDI CC updates use a larger threshold to limit traffic and jitter.
     if (fabs(s_ui.xf.raw[i] - s_ui.xf.prev[i]) > XFADE_CC_UPDATE_THRESHOLD)
     {
-        const uint8_t note = (uint8_t) (60U + i);
-        uint8_t value      = xfade_to_cc(s_ui.xf.raw[i]);
-
-        if ((note == 60U) || (note == 65U))
-        {
-            value = (uint8_t) (127U - value);
-        }
-
         emit_mag_output((uint8_t) (20U + i), note, value);
         s_ui.xf.prev[i] = s_ui.xf.raw[i];
     }
-}
-// Compute and commit one pair output (A or B) from tracked extrema.
+}// Compute and commit one pair output (A or B) from tracked extrema.
 static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
     // DSP writes are driven by extrema deltas, not raw sample deltas.
@@ -1571,6 +1721,10 @@ void ui_control_reset_state(void)
         s_ui.xf.prev[i]       = 1.0f;
         s_ui.xf.down_floor[i] = 1.0f;
         s_ui.xf.up_peak[i]    = 0.0f;
+        s_ui.xf.note_peak_vel[i]      = 0U;
+        s_ui.xf.note_scan_start_ms[i] = 0U;
+        s_ui.xf.note_is_on[i]         = false;
+        s_ui.xf.note_scan_active[i]   = false;
     }
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
@@ -1580,6 +1734,13 @@ void ui_control_reset_state(void)
     mark_xfade_curve_dirty();
     s_ui.xf.extrema_prev_valid = false;
 
+    for (uint16_t i = 0; i < 128U; i++)
+    {
+        s_note_peak_vel[i]      = 0U;
+        s_note_scan_start_ms[i] = 0U;
+        s_note_is_on[i]         = false;
+        s_note_scan_active[i]   = false;
+    }
     s_ui.pot_ch         = 0;
     s_ui.pot_ch_counter = 0;
     is_adc_complete     = false;
