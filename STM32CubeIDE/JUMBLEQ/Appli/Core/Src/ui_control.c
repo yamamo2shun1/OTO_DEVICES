@@ -255,8 +255,8 @@ static void emit_note_edge_if_needed(uint8_t note, uint8_t value)
             velocity = 1U;
         }
 
-        float n = (float) velocity / 127.0f;
-        n       = powf(n, MIDI_NOTE_VEL_GAMMA);
+        float n  = (float) velocity / 127.0f;
+        n        = powf(n, MIDI_NOTE_VEL_GAMMA);
         velocity = (uint8_t) (1.0f + n * 126.0f);
 
         send_note(note, velocity, 0U);
@@ -328,8 +328,8 @@ static void emit_xfade_note_if_needed(uint8_t i, uint8_t note, uint8_t value)
             velocity = 1U;
         }
 
-        float n = (float) velocity / 127.0f;
-        n       = powf(n, MIDI_NOTE_VEL_GAMMA);
+        float n  = (float) velocity / 127.0f;
+        n        = powf(n, MIDI_NOTE_VEL_GAMMA);
         velocity = (uint8_t) (1.0f + n * 126.0f);
 
         send_note(note, velocity, 0U);
@@ -1307,7 +1307,7 @@ static void emit_xfade_cc_if_needed(uint8_t i)
         emit_mag_output((uint8_t) (20U + i), note, value);
         s_ui.xf.prev[i] = s_ui.xf.raw[i];
     }
-}// Compute and commit one pair output (A or B) from tracked extrema.
+}  // Compute and commit one pair output (A or B) from tracked extrema.
 static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
     // DSP writes are driven by extrema deltas, not raw sample deltas.
@@ -1622,7 +1622,7 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_ch2_dvs_enable = s_ui.current_ch2_dvs_enable;
     state->current_xf_curve_exp_a = s_ui.curve_exp_a;
     state->current_xf_curve_exp_b = s_ui.curve_exp_b;
-    state->mag_out_as_note = s_ui.mag_out_as_note;
+    state->mag_out_as_note        = s_ui.mag_out_as_note;
 }
 
 bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
@@ -1658,8 +1658,8 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_xf_assign_post(input_ch_post);
     apply_dvs_state(INPUT_CH1, state->current_ch1_dvs_enable != 0U);
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
-    s_ui.curve_exp_a = clamp_curve_exp(state->current_xf_curve_exp_a);
-    s_ui.curve_exp_b = clamp_curve_exp(state->current_xf_curve_exp_b);
+    s_ui.curve_exp_a     = clamp_curve_exp(state->current_xf_curve_exp_a);
+    s_ui.curve_exp_b     = clamp_curve_exp(state->current_xf_curve_exp_b);
     s_ui.mag_out_as_note = state->mag_out_as_note;
     mark_xfade_curve_dirty();
 
@@ -1717,10 +1717,10 @@ void ui_control_reset_state(void)
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
-        s_ui.xf.raw[i]        = 1.0f;
-        s_ui.xf.prev[i]       = 1.0f;
-        s_ui.xf.down_floor[i] = 1.0f;
-        s_ui.xf.up_peak[i]    = 0.0f;
+        s_ui.xf.raw[i]                = 1.0f;
+        s_ui.xf.prev[i]               = 1.0f;
+        s_ui.xf.down_floor[i]         = 1.0f;
+        s_ui.xf.up_peak[i]            = 0.0f;
         s_ui.xf.note_peak_vel[i]      = 0U;
         s_ui.xf.note_scan_start_ms[i] = 0U;
         s_ui.xf.note_is_on[i]         = false;
