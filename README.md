@@ -1,10 +1,24 @@
 # JUMBLEQ
-“JUMBLEQ” is short for “jumbled equipment”
+“JUMBLEQ” is short for “jumbled equipment”.
 
 ## Gallery
 - [Prototype3](./Gallery/prototype3.md)
 - [Prototype2](./Gallery/prototype2.md)
 - [Prototype1](./Gallery/prototype1.md)
+
+## Hardware
+- Original  
+  - [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board)  
+  - [AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
+  - [MagneticSwitch & POT Module](https://github.com/YamamotoWorksDev/MagneticSwitch_and_POT_Module)
+
+- Third party  
+  - [0.96インチ 128×64ドット有機ELディスプレイ(OLED) 白色](https://akizukidenshi.com/catalog/g/g112031/)  
+  - [SparkFun Qwiic OLED Display (0.91 in., 128x32)](https://www.sparkfun.com/sparkfun-qwiic-oled-display-0-91-in-128x32-lcd-24606.html)  
+  - [SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
+
+## Block Diagram
+<img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
 
 ## Audio Spec.
 - Analog: 4in/4out
@@ -17,6 +31,10 @@
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x10 and 10 k POT x12
 
+## MIDI Spec.
+- [RX](./Docs/MIDI_RX_SPEC.md)
+- [TX](./Docs/MIDI_TX_SPEC.md)
+
 ## for Windows User
 I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
 
@@ -28,20 +46,9 @@ When you connect the USB cable while holding down SW3, it is recognized as a USB
 > python uf2conv.py -c -b 0x90010000 -f STM32H7RS -o app.uf2 app.bin
 ```
 
-## MIDI Spec.
-- [RX](./Docs/MIDI_RX_SPEC.md)
-- [TX](./Docs/MIDI_TX_SPEC.md)
+## Mitigation for Errata 2.2.15
+For the STM32H7S3xx erratum:
 
-## Block Diagram
-<img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
+- [Errata 2.2.15 "I/O compensation could alter duty-cycle of high-frequency output signal"](https://www.st.com/resource/en/errata_sheet/es0596-stm32h7rxx7sxx-device-errata-stmicroelectronics.pdf)
 
-## Modules
-- Original  
-  - [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board)  
-  - [AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
-  - [MagneticSwitch & POT Module](https://github.com/YamamotoWorksDev/MagneticSwitch_and_POT_Module)
-
-- Third party  
-  - [0.96インチ 128×64ドット有機ELディスプレイ(OLED) 白色](https://akizukidenshi.com/catalog/g/g112031/)  
-  - [SparkFun Qwiic OLED Display (0.91 in., 128x32)](https://www.sparkfun.com/sparkfun-qwiic-oled-display-0-91-in-128x32-lcd-24606.html)  
-  - [SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
+the workaround has already been implemented in the boot-side code: [sbs.c](https://github.com/yamamo2shun1/JUMBLEQ/blob/main/STM32CubeIDE/MX25UW25645GXDI00_STM32H7S3Z8T/Boot/Core/Src/sbs.c)
