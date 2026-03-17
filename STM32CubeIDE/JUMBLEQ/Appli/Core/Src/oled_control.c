@@ -37,21 +37,6 @@ static void merge_dirty_pages(bool* dirty, uint8_t* dirty_start_page, uint8_t* d
     }
 }
 
-static void update_main_text_block(char* prev, size_t prev_size, const char* text, uint8_t clear_x1, uint8_t clear_y1, uint8_t clear_x2, uint8_t clear_y2, uint8_t cursor_x, uint8_t cursor_y, uint8_t page_start, uint8_t page_end, bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page)
-{
-    if (strcmp(prev, text) == 0)
-    {
-        return;
-    }
-
-    main_oled_FillRectangle(clear_x1, clear_y1, clear_x2, clear_y2, Black);
-    main_oled_SetCursor(cursor_x, cursor_y);
-    main_oled_WriteString((char*) text, Font_7x10, White);
-    snprintf(prev, prev_size, "%s", text);
-
-    merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, page_start, page_end);
-}
-
 static void update_sub_text_block(char* prev, size_t prev_size, const char* text, uint8_t clear_x1, uint8_t clear_y1, uint8_t clear_x2, uint8_t clear_y2, uint8_t cursor_x, uint8_t cursor_y, uint8_t page_start, uint8_t page_end, bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page)
 {
     if (strcmp(prev, text) == 0)
@@ -211,6 +196,7 @@ void OLED_UpdateTask(void)
 
     if (!curve_edit_mode)
     {
+        bool main_redraw = dirty;
         uint32_t sample_rate_hz = get_current_sample_rate_hz();
         if ((sample_rate_hz % 1000U) == 0U)
         {
@@ -223,19 +209,64 @@ void OLED_UpdateTask(void)
         snprintf(line2_c1, sizeof(line2_c1), "    %3d|C1|%3d dB", get_current_ch1_in_db(), get_current_ch1_out_db());
         snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
 
-        update_main_text_block(prev_line1_ch2, sizeof(prev_line1_ch2), line1_ch2, 0, 0, 127, 10, 0, 0, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line2_c1, sizeof(prev_line2_c1), line2_c1, 0, 10, 127, 21, 0, 10, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line3_sr, sizeof(prev_line3_sr), line3_sr, 0, 22, 127, 31, 0, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
+        if ((strcmp(prev_line1_ch2, line1_ch2) != 0) ||
+            (strcmp(prev_line2_c1, line2_c1) != 0) ||
+            (strcmp(prev_line3_sr, line3_sr) != 0))
+        {
+            main_redraw = true;
+        }
+
+        if (main_redraw)
+        {
+            main_oled_Fill(Black);
+            main_oled_SetCursor(0, 0);
+            main_oled_WriteString(line1_ch2, Font_7x10, White);
+            main_oled_SetCursor(0, 10);
+            main_oled_WriteString(line2_c1, Font_7x10, White);
+            main_oled_SetCursor(0, 22);
+            main_oled_WriteString(line3_sr, Font_7x10, White);
+
+            snprintf(prev_line1_ch2, sizeof(prev_line1_ch2), "%s", line1_ch2);
+            snprintf(prev_line2_c1, sizeof(prev_line2_c1), "%s", line2_c1);
+            snprintf(prev_line3_sr, sizeof(prev_line3_sr), "%s", line3_sr);
+
+            dirty            = true;
+            dirty_start_page = 0;
+            dirty_end_page   = (uint8_t) ((MAIN_OLED_HEIGHT / 8U) - 1U);
+        }
     }
     else
     {
+        bool main_redraw = dirty;
         snprintf(line_edit_mode, sizeof(line_edit_mode), "CURVE EDIT [ON]");
         snprintf(line_edit_a, sizeof(line_edit_a), "A:%5.2f CC%3u", (double) ui_control_get_curve_exp_a(), (unsigned) ui_control_get_curve_exp_a_cc());
         snprintf(line_edit_b, sizeof(line_edit_b), "B:%5.2f CC%3u", (double) ui_control_get_curve_exp_b(), (unsigned) ui_control_get_curve_exp_b_cc());
 
-        update_main_text_block(prev_line_edit_mode, sizeof(prev_line_edit_mode), line_edit_mode, 0, 0, 127, 10, 0, 0, 0, 1, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line_edit_a, sizeof(prev_line_edit_a), line_edit_a, 0, 10, 127, 21, 0, 10, 1, 2, &dirty, &dirty_start_page, &dirty_end_page);
-        update_main_text_block(prev_line_edit_b, sizeof(prev_line_edit_b), line_edit_b, 0, 22, 127, 31, 0, 22, 2, 3, &dirty, &dirty_start_page, &dirty_end_page);
+        if ((strcmp(prev_line_edit_mode, line_edit_mode) != 0) ||
+            (strcmp(prev_line_edit_a, line_edit_a) != 0) ||
+            (strcmp(prev_line_edit_b, line_edit_b) != 0))
+        {
+            main_redraw = true;
+        }
+
+        if (main_redraw)
+        {
+            main_oled_Fill(Black);
+            main_oled_SetCursor(0, 0);
+            main_oled_WriteString(line_edit_mode, Font_7x10, White);
+            main_oled_SetCursor(0, 10);
+            main_oled_WriteString(line_edit_a, Font_7x10, White);
+            main_oled_SetCursor(0, 22);
+            main_oled_WriteString(line_edit_b, Font_7x10, White);
+
+            snprintf(prev_line_edit_mode, sizeof(prev_line_edit_mode), "%s", line_edit_mode);
+            snprintf(prev_line_edit_a, sizeof(prev_line_edit_a), "%s", line_edit_a);
+            snprintf(prev_line_edit_b, sizeof(prev_line_edit_b), "%s", line_edit_b);
+
+            dirty            = true;
+            dirty_start_page = 0;
+            dirty_end_page   = (uint8_t) ((MAIN_OLED_HEIGHT / 8U) - 1U);
+        }
     }
 
     if (dirty)
