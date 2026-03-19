@@ -157,6 +157,7 @@
       <Algorithm name="input_from_usb2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="input_from_usb4" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="ch2_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="return_ch_SW" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
     </Schematic>
   </Core>
 </IC>

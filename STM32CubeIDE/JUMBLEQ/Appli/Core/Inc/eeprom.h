@@ -23,6 +23,7 @@ typedef struct
     uint8_t current_xfA_assign;
     uint8_t current_xfB_assign;
     uint8_t current_xfpost_assign;
+    uint8_t current_return_assign;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     uint8_t mag_output_mode_flags;
@@ -32,7 +33,7 @@ typedef struct
 
 #define EEPROM_CONFIG_ADDR               (0x0000U)
 #define EEPROM_CONFIG_MAGIC              (0x51424D4AU) /* "JMBQ" */
-#define EEPROM_CONFIG_VERSION            (0x0003U)
+#define EEPROM_CONFIG_VERSION            (0x0004U)
 
 #define EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE   (0x01U)
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef *hi2c);

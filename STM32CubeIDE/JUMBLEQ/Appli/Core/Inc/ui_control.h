@@ -17,6 +17,7 @@ typedef struct
     uint8_t current_xfA_assign;
     uint8_t current_xfB_assign;
     uint8_t current_xfpost_assign;
+    uint8_t current_return_assign;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     bool  mag_out_as_note;
@@ -42,6 +43,7 @@ char* get_current_input_typeB_str(void);
 char* get_current_input_srcA_str(void);
 char* get_current_input_srcB_str(void);
 char* get_current_input_srcP_str(void);
+char* get_current_return_src_str(void);
 uint8_t get_current_input_srcA_channel(void);  // 0:none, 1:CH1, 2:CH2
 uint8_t get_current_input_srcB_channel(void);  // 0:none, 1:CH1, 2:CH2
 bool get_current_ch1_dvs_enabled(void);
