@@ -20,6 +20,9 @@
 ## Block Diagram
 <img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
 
+## Audio Routing and Signal Flow Diagram
+<img width="689" height="1179" alt="audio_routing drawio" src="https://github.com/user-attachments/assets/b611c090-2154-4270-a017-2703561b34f9" />
+
 ## Audio Spec.
 - Analog: 4in/4out
 - USB: 4in/4out(USB Audio Class 2.0) and MIDI in/out
