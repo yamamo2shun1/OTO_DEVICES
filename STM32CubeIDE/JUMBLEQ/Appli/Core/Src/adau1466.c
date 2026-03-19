@@ -486,3 +486,22 @@ void select_xf_assignPost_source(uint8_t ch)
 
     SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
 }
+
+void select_return_ch_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case INPUT_USB12:
+        Mode0[3] = 0x00;
+        break;
+    case INPUT_USB34:
+        Mode0[3] = 0x01;
+        break;
+    default:
+        return;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_RETURN_CH_SW_INDEX_ADDR, 4, Mode0);
+}

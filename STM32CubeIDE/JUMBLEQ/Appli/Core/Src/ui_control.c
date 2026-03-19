@@ -61,6 +61,7 @@ typedef struct
     uint8_t current_xfA_assign;
     uint8_t current_xfB_assign;
     uint8_t current_xfpost_assign;
+    uint8_t current_return_assign;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     uint8_t pot_ch;
@@ -93,6 +94,7 @@ static ui_control_state_t s_ui = {
     .current_xfA_assign     = INPUT_SRC_CH2_LN,
     .current_xfB_assign     = INPUT_SRC_CH1_LN,
     .current_xfpost_assign  = INPUT_SRC_USB12,
+    .current_return_assign  = INPUT_SRC_USB34,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
     .curve_exp_a            = UI_XFADE_CURVE_EXP_A_DEFAULT,
@@ -567,6 +569,19 @@ char* get_current_input_srcP_str(void)
     }
 }
 
+char* get_current_return_src_str(void)
+{
+    switch (s_ui.current_return_assign)
+    {
+    case INPUT_SRC_USB12:
+        return "U12";
+    case INPUT_SRC_USB34:
+        return "U34";
+    default:
+        return "U--";
+    }
+}
+
 uint8_t get_current_input_srcA_channel(void)
 {
     switch (s_ui.current_xfA_assign)
@@ -767,6 +782,12 @@ static void apply_xf_assign_post(uint8_t input_ch)
     s_ui.current_xfpost_assign = current_input_src_from_channel(input_ch);
 }
 
+static void apply_return_source(uint8_t input_ch)
+{
+    select_return_ch_source(input_ch);
+    s_ui.current_return_assign = current_input_src_from_channel(input_ch);
+}
+
 static void apply_dvs_state(uint8_t input_ch, bool enable)
 {
     enable_dvs(input_ch, enable);
@@ -797,6 +818,26 @@ static bool assign_to_input_ch(uint8_t assign, uint8_t* input_ch)
     case INPUT_SRC_CH2_PN:
         *input_ch = INPUT_CH2;
         return true;
+    case INPUT_SRC_USB12:
+        *input_ch = INPUT_USB12;
+        return true;
+    case INPUT_SRC_USB34:
+        *input_ch = INPUT_USB34;
+        return true;
+    default:
+        return false;
+    }
+}
+
+static bool assign_to_return_input_ch(uint8_t assign, uint8_t* input_ch)
+{
+    if (input_ch == NULL)
+    {
+        return false;
+    }
+
+    switch (assign)
+    {
     case INPUT_SRC_USB12:
         *input_ch = INPUT_USB12;
         return true;
@@ -895,6 +936,19 @@ static uint8_t midi_program_for_dvs(uint8_t input_ch, uint8_t enable)
     return CH1_DVS_DISABLE;
 }
 
+static uint8_t midi_program_for_return_assign(uint8_t assign)
+{
+    switch (assign)
+    {
+    case INPUT_SRC_USB12:
+        return RETURN_CH_USB12;
+    case INPUT_SRC_USB34:
+        return RETURN_CH_USB34;
+    default:
+        return RETURN_CH_USB34;
+    }
+}
+
 static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
 {
     if (cfg == NULL)
@@ -907,6 +961,7 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
     send_program_change(midi_program_for_xf_assign_a(cfg->current_xfA_assign), MIDI_CH_15);
     send_program_change(midi_program_for_xf_assign_b(cfg->current_xfB_assign), MIDI_CH_15);
     send_program_change(midi_program_for_xf_assign_post(cfg->current_xfpost_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_return_assign(cfg->current_return_assign), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH1, cfg->current_ch1_dvs_enable), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
     send_control_change(MIDI_CC_XFADE_CURVE_EXP_A, curve_exp_to_midi_cc(cfg->current_xf_curve_exp_a), MIDI_CH_15);
@@ -966,7 +1021,14 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         send_control_change(channel, value, 0);
         break;
     case 6:
-        control_dryB_out_gain(value);
+        if (s_ui.current_return_assign == INPUT_SRC_USB12)
+        {
+            control_dryA_out_gain(value);
+        }
+        else
+        {
+            control_dryB_out_gain(value);
+        }
         control_wet_out_gain(value);
         break;
     case 7:
@@ -1410,6 +1472,11 @@ static void midi_program_apply_xf_post(uint8_t input_ch)
     apply_xf_assign_post(input_ch);
 }
 
+static void midi_program_apply_return(uint8_t input_ch)
+{
+    apply_return_source(input_ch);
+}
+
 static void midi_program_enable_dvs(uint8_t arg)
 {
     uint8_t input_ch = (arg >> 4) & 0x0F;
@@ -1458,7 +1525,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
 
         return true;
     }
@@ -1471,7 +1538,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xf_curve_exp_a, (double) cfg.current_xf_curve_exp_b);
         }
         else
         {
@@ -1501,6 +1568,8 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         {CH1_DVS_ENABLE,       midi_program_enable_dvs,     (uint8_t) ((INPUT_CH1 << 4) | 1U)              },
         {CH2_DVS_DISABLE,      midi_program_enable_dvs,     (uint8_t) ((INPUT_CH2 << 4) | 0U)              },
         {CH2_DVS_ENABLE,       midi_program_enable_dvs,     (uint8_t) ((INPUT_CH2 << 4) | 1U)              },
+        {RETURN_CH_USB12,      midi_program_apply_return,   INPUT_USB12                                    },
+        {RETURN_CH_USB34,      midi_program_apply_return,   INPUT_USB34                                    },
     };
 
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(commands); i++)
@@ -1618,6 +1687,7 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_xfA_assign     = s_ui.current_xfA_assign;
     state->current_xfB_assign     = s_ui.current_xfB_assign;
     state->current_xfpost_assign  = s_ui.current_xfpost_assign;
+    state->current_return_assign  = s_ui.current_return_assign;
     state->current_ch1_dvs_enable = s_ui.current_ch1_dvs_enable;
     state->current_ch2_dvs_enable = s_ui.current_ch2_dvs_enable;
     state->current_xf_curve_exp_a = s_ui.curve_exp_a;
@@ -1630,6 +1700,7 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     uint8_t input_ch_a;
     uint8_t input_ch_b;
     uint8_t input_ch_post;
+    uint8_t input_ch_return;
 
     if (state == NULL)
     {
@@ -1646,7 +1717,8 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
 
     if (!assign_to_input_ch(state->current_xfA_assign, &input_ch_a) ||
         !assign_to_input_ch(state->current_xfB_assign, &input_ch_b) ||
-        !assign_to_input_ch(state->current_xfpost_assign, &input_ch_post))
+        !assign_to_input_ch(state->current_xfpost_assign, &input_ch_post) ||
+        !assign_to_return_input_ch(state->current_return_assign, &input_ch_return))
     {
         return false;
     }
@@ -1656,6 +1728,7 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_xf_assign_a(input_ch_a);
     apply_xf_assign_b(input_ch_b);
     apply_xf_assign_post(input_ch_post);
+    apply_return_source(input_ch_return);
     apply_dvs_state(INPUT_CH1, state->current_ch1_dvs_enable != 0U);
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
     s_ui.curve_exp_a     = clamp_curve_exp(state->current_xf_curve_exp_a);
@@ -1707,6 +1780,7 @@ void ui_control_reset_state(void)
     s_ui.current_xfA_assign     = INPUT_SRC_CH2_LN;
     s_ui.current_xfB_assign     = INPUT_SRC_CH1_LN;
     s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
+    s_ui.current_return_assign  = INPUT_SRC_USB34;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
     s_ui.curve_exp_a            = UI_XFADE_CURVE_EXP_A_DEFAULT;
