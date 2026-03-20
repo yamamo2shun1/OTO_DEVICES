@@ -154,6 +154,8 @@ void SIGMA_SAFELOAD_WRITE_DATA(uint8_t devAddress, uint16_t dataAddress, uint16_
             data[i + 3] = pData[i];
         }
 
+        while (osSemaphoreAcquire(spiTxBinarySemHandle, 0) == osOK)
+        {}
         HAL_StatusTypeDef status = HAL_SPI_Transmit_IT(&hspi5, data, 1 + 2 + length);
         if (status == HAL_OK)
         {

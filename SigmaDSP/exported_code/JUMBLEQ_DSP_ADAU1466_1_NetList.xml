@@ -108,26 +108,6 @@
       <Algorithm name="SingleSlewExtVol_dryA" friendlyname="External Control of the Volume Gain" />
       <Algorithm name="DVS_SW_1" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="DVS_SW_2" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
-      <Algorithm name="SignalMerger_8" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
-        <Link pin="Input0" dir="in" link="Link_193" id="Link_280" />
-        <Link pin="Input1" dir="in" link="Link_274" id="Link_284" />
-        <Link pin="Output" dir="out" link="Link_276" id="Link_276" />
-      </Algorithm>
-      <Algorithm name="SignalMerger_9" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
-        <Link pin="Input0" dir="in" link="Link_192" id="Link_281" />
-        <Link pin="Input1" dir="in" link="Link_275" id="Link_285" />
-        <Link pin="Output" dir="out" link="Link_277" id="Link_277" />
-      </Algorithm>
-      <Algorithm name="SignalMerger_10" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
-        <Link pin="Output" dir="out" link="Link_278" id="Link_278" />
-        <Link pin="Input0" dir="in" link="Link_196" id="Link_282" />
-        <Link pin="Input1" dir="in" link="Link_272" id="Link_286" />
-      </Algorithm>
-      <Algorithm name="SignalMerger_11" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs">
-        <Link pin="Output" dir="out" link="Link_279" id="Link_279" />
-        <Link pin="Input0" dir="in" link="Link_197" id="Link_283" />
-        <Link pin="Input1" dir="in" link="Link_273" id="Link_292" />
-      </Algorithm>
       <Algorithm name="GenSecondOrder_0" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
         <Link pin="Output0" dir="out" link="Link_321" id="Link_321" />
         <Link pin="Input0" dir="in" link="Link_322" id="Link_322" />
@@ -158,6 +138,8 @@
       <Algorithm name="input_from_usb4" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="ch2_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="return_ch_SW" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="send_sw_1" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="send_sw_2" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
     </Schematic>
   </Core>
 </IC>
