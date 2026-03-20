@@ -122,6 +122,7 @@ static const float XFADE_EXTREMA_HYSTERESIS     = 0.002f;
 static const float XFADE_EXTREMA_SEND_THRESHOLD = 0.002f;
 static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
+static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
 static const float XFADE_CURVE_EXP_MIN          = 0.5f;
 static const float XFADE_CURVE_EXP_MAX          = 50.0f;
 
@@ -1237,6 +1238,44 @@ static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
     return (fade_down_idx < MAG_SW_NUM) ? map[fade_down_idx] : -1;
 }
 
+// Add a small touch-onset deadband for pair tracking so untouched sensors do not
+// perturb the held crossfader state when curve_exp is large.
+static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
+{
+    if (raw < 0.0f)
+    {
+        raw = 0.0f;
+    }
+    else if (raw > 1.0f)
+    {
+        raw = 1.0f;
+    }
+
+    if (get_pair_fade_down_index_from_up(i) >= 0)
+    {
+        if (raw <= XFADE_PAIR_ONSET_DEADBAND)
+        {
+            return 0.0f;
+        }
+
+        return (raw - XFADE_PAIR_ONSET_DEADBAND) / (1.0f - XFADE_PAIR_ONSET_DEADBAND);
+    }
+
+    if (get_pair_fade_up_index_from_down(i) >= 0)
+    {
+        const float high_deadband = 1.0f - XFADE_PAIR_ONSET_DEADBAND;
+
+        if (raw >= high_deadband)
+        {
+            return 1.0f;
+        }
+
+        return raw / high_deadband;
+    }
+
+    return raw;
+}
+
 // Convert one magnetic sensor sample into normalized xfade raw [0..1].
 static void update_raw_xfade_from_mag(uint8_t i)
 {
@@ -1276,12 +1315,14 @@ static void update_raw_xfade_from_mag(uint8_t i)
 // Update peak/valley trackers used to build stable pair outputs.
 static void update_xfade_extrema(uint8_t i)
 {
+    const float pair_raw = apply_xfade_pair_onset_deadband(i, s_ui.xf.raw[i]);
+
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
         // Track fade-up peak; paired fade-down floor is synchronized from this edge.
-        if (s_ui.xf.raw[i] > (s_ui.xf.up_peak[i] + XFADE_EXTREMA_HYSTERESIS))
+        if (pair_raw > (s_ui.xf.up_peak[i] + XFADE_EXTREMA_HYSTERESIS))
         {
-            s_ui.xf.up_peak[i] = s_ui.xf.raw[i];
+            s_ui.xf.up_peak[i] = pair_raw;
 
             const int8_t fade_down_idx = get_pair_fade_down_index_from_up((uint8_t) i);
             if (fade_down_idx >= 0)
@@ -1292,21 +1333,21 @@ static void update_xfade_extrema(uint8_t i)
 
         // Keep paired minimum re-synchronized while the source side stays near full scale.
         // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
-        if (s_ui.xf.raw[i] >= XFADE_PAIR_RESET_THRESHOLD)
+        if (pair_raw >= XFADE_PAIR_RESET_THRESHOLD)
         {
             const int8_t fade_down_idx = get_pair_fade_down_index_from_up((uint8_t) i);
             if (fade_down_idx >= 0)
             {
-                s_ui.xf.down_floor[(uint8_t) fade_down_idx] = s_ui.xf.raw[i];
+                s_ui.xf.down_floor[(uint8_t) fade_down_idx] = pair_raw;
             }
         }
     }
     else if (get_pair_fade_up_index_from_down(i) >= 0)
     {
         // Track fade-down floor; when near zero, clear paired fade-up peak.
-        if (s_ui.xf.raw[i] < (s_ui.xf.down_floor[i] - XFADE_EXTREMA_HYSTERESIS))
+        if (pair_raw < (s_ui.xf.down_floor[i] - XFADE_EXTREMA_HYSTERESIS))
         {
-            s_ui.xf.down_floor[i] = s_ui.xf.raw[i];
+            s_ui.xf.down_floor[i] = pair_raw;
 
             if (s_ui.xf.down_floor[i] < XFADE_MIN_RESET_CUTOFF)
             {
