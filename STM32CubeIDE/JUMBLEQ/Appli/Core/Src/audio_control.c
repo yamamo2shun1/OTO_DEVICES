@@ -1423,15 +1423,17 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     memset(usb_out_buf, 0, sizeof(usb_out_buf));
     __DSB();
 
+    // AK4619 <-> ADAU1466 link is fixed at 96 kHz in this design.
+    // Host sample-rate changes only affect the USB/STM32 <-> ADAU1466 side,
+    // so the codec must continue to be initialized for 96 kHz here.
     AUDIO_Init_AK4619(96000);
 #if RESET_FROM_FW
-    if (!AUDIO_Update_ADAU1466_SampleRate(new_hz))
-    {
-        SEGGER_RTT_printf(0, "[SAI] ADAU1466 sample-rate update failed (%lu Hz)\n", (unsigned long) new_hz);
-        SEGGER_RTT_printf(0, "[SAI] fallback to ADAU1466 HW re-init\n");
-        AUDIO_Init_ADAU1466(new_hz);
-        AUDIO_LoadAndApplyRoutingFromEEPROM();
-    }
+    // ADAU1466 is the SAI master. Runtime sample-rate update alone has proven
+    // insufficient after host rate changes, causing the SAI clocks to stop and
+    // audio to go silent. Re-run the full ADAU1466 init and then restore the
+    // EEPROM-backed routing state every time the host sample rate changes.
+    AUDIO_Init_ADAU1466(new_hz);
+    AUDIO_LoadAndApplyRoutingFromEEPROM();
 #endif
 
     /* Re-init DMA channels (linked-list mode) */
