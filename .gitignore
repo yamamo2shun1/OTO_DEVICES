@@ -3,6 +3,9 @@ Datasheets/
 
 FlexASIO.toml
 
+### macOS
+.DS_Store
+
 ### Kicad
 *.zip
 fp-info-cache
@@ -36,5 +39,6 @@ STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_ROMxspi1_RAMxspi2.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_RAMxspi1_ROMxspi2.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_OEMiROT_Appli.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_default.ld
-
 STM32CubeIDE/JUMBLEQ/Appli/build/
+
+Max/jumbleq_configurator_win/
