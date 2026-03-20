@@ -72,12 +72,20 @@ static volatile uint8_t rx_pending_mask = 0;      // bit0: first-half, bit1: sec
 static volatile bool usb_tx_pending     = false;  // USB TX送信要求フラグ (ISR→Task通知用)
 static volatile bool usb_rx_pending     = false;  // USB RX受信通知フラグ (ISR→Task通知用)
 static TaskHandle_t s_audio_task_handle = NULL;
-static uint32_t s_last_usb_io_tick      = 0xFFFFFFFFu;
-static volatile uint32_t s_last_rx_notify_tick = 0xFFFFFFFFu;
 
 void audio_control_register_task(void)
 {
     s_audio_task_handle = xTaskGetCurrentTaskHandle();
+}
+
+static inline void audio_task_notify(void)
+{
+    if (s_audio_task_handle == NULL)
+    {
+        return;
+    }
+
+    xTaskNotifyGive(s_audio_task_handle);
 }
 
 static inline void audio_task_notify_from_isr(void)
@@ -149,7 +157,6 @@ void control_input_from_usb_gain(uint8_t ch, int16_t db);
 void reset_audio_buffer(void)
 {
     ui_control_reset_state();
-    s_last_usb_io_tick = 0xFFFFFFFFu;
 
     for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_2_EP_IN_SW_BUF_SZ / 4; i++)
     {
@@ -514,8 +521,6 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
         s_streaming_out      = false;
         spk_data_size        = 0;
         usb_rx_pending       = false;
-        s_last_usb_io_tick   = 0xFFFFFFFFu;
-        s_last_rx_notify_tick = 0xFFFFFFFFu;
         sai_tx_rng_buf_index = 0;
         sai_transmit_index   = 0;
         tx_pending_mask      = 0;  // DMAフラグをクリア
@@ -525,7 +530,7 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
     {
         rx_blink_interval_ms = BLINK_MOUNTED;
         s_streaming_in       = false;
-        s_last_usb_io_tick   = 0xFFFFFFFFu;
+        usb_tx_pending       = false;
         sai_rx_rng_buf_index = 0;
         sai_receive_index    = 0;
         rx_pending_mask      = 0;  // DMAフラグをクリア
@@ -548,16 +553,15 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
         s_streaming_out = true;
         spk_data_size   = 0;
         usb_rx_pending  = false;
-        s_last_usb_io_tick = 0xFFFFFFFFu;
-        s_last_rx_notify_tick = 0xFFFFFFFFu;
     }
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt != 0)
     {
         rx_blink_interval_ms = BLINK_STREAMING;
 
-        s_streaming_in    = true;
-        s_last_usb_io_tick = 0xFFFFFFFFu;
+        s_streaming_in  = true;
+        usb_tx_pending  = true;
+        audio_task_notify();
     }
 
     // Clear buffer when streaming is changed
@@ -1032,32 +1036,28 @@ static uint32_t audio_frames_per_ms(void)
     return current_sample_rate / AUDIO_MS_PER_SECOND;
 }
 
-static uint16_t audio_out_bytes_per_ms(void)
+static uint16_t audio_out_read_budget_bytes(void)
 {
-    // Host -> Device (speaker OUT) stream bytes per 1ms
-    // 48/96kHz are integer frames per ms in this project.
-    uint32_t bytes = audio_frames_per_ms() * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX * AUDIO_BYTES_PER_SAMPLE_32;
-    if (bytes > sizeof(usb_in_buf))
+    int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
+    if (used < 0)
     {
-        bytes = sizeof(usb_in_buf);
+        used = 0;
     }
-    return (uint16_t) bytes;
-}
-
-static uint16_t audio_out_bytes_for_elapsed_ms(uint32_t elapsed_ms)
-{
-    uint32_t bytes_per_ms = audio_out_bytes_per_ms();
-    if (elapsed_ms == 0U)
+    if (used > (int32_t) SAI_RNG_BUF_SIZE)
     {
-        elapsed_ms = 1U;
-    }
-    // Catch up delayed task wakeups without requesting an excessively large burst.
-    if (elapsed_ms > 4U)
-    {
-        elapsed_ms = 4U;
+        used = (int32_t) SAI_RNG_BUF_SIZE;
     }
 
-    uint32_t bytes = bytes_per_ms * elapsed_ms;
+    // Keep the TX ring around target + one DMA half-buffer.
+    int32_t budget_words = (int32_t) SAI_TX_TARGET_LEVEL_WORDS + (int32_t) (SAI_TX_BUF_SIZE / 2) - used;
+    if (budget_words <= 0)
+    {
+        return 0;
+    }
+
+    budget_words = (budget_words / (int32_t) AUDIO_RING_FRAME_WORDS) * (int32_t) AUDIO_RING_FRAME_WORDS;
+
+    uint32_t bytes = (uint32_t) budget_words * sizeof(int32_t);
     if (bytes > sizeof(usb_in_buf))
     {
         bytes = sizeof(usb_in_buf);
@@ -1152,6 +1152,7 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
 
     // ISRではフラグのみ立てる。実際の送信はタスクコンテキストで行う
     usb_tx_pending = true;
+    audio_task_notify_from_isr();
     return true;
 }
 
@@ -1167,12 +1168,7 @@ bool tud_audio_rx_done_isr(uint8_t rhport, uint16_t n_bytes_received, uint8_t fu
     }
 
     usb_rx_pending = true;
-    uint32_t now = HAL_GetTick();
-    if (now != s_last_rx_notify_tick)
-    {
-        s_last_rx_notify_tick = now;
-        audio_task_notify_from_isr();
-    }
+    audio_task_notify_from_isr();
     return true;
 }
 
@@ -1247,47 +1243,29 @@ void audio_task(void)
     }
     else
     {
-        bool usb_io_slot = (now != s_last_usb_io_tick);
-        uint32_t usb_io_elapsed_ms = 1U;
         bool usb_rx_event = false;
-        if (usb_io_slot)
-        {
-            if (s_last_usb_io_tick != 0xFFFFFFFFu)
-            {
-                usb_io_elapsed_ms = now - s_last_usb_io_tick;
-            }
-            s_last_usb_io_tick = now;
-        }
+        bool usb_tx_event = false;
 
+        uint32_t primask = __get_PRIMASK();
+        __disable_irq();
         if (usb_rx_pending)
         {
-            uint32_t primask = __get_PRIMASK();
-            __disable_irq();
-            if (usb_rx_pending)
-            {
-                usb_rx_pending = false;
-                usb_rx_event   = true;
-            }
-            __set_PRIMASK(primask);
+            usb_rx_pending = false;
+            usb_rx_event   = true;
         }
-
-        // Feedback EPがFIFO水位を使って送信レート制御するため、
-        // 毎msで「必要な分だけ」読む。過剰に吸い出すと水位制御が崩れる
-        if (usb_io_slot || usb_rx_event)
+        if (usb_tx_pending)
         {
-            uint16_t budget = audio_out_bytes_for_elapsed_ms(usb_io_elapsed_ms);
-            uint16_t min_budget = audio_out_bytes_per_ms();
-            if (budget < min_budget)
-            {
-                budget = min_budget;
-            }
+            usb_tx_pending = false;
+            usb_tx_event   = true;
+        }
+        __set_PRIMASK(primask);
 
+        // USB OUTは受信通知とFIFO残量に追従して即時に吸い出す。
+        if (usb_rx_event || tud_audio_n_available(AUDIO_FUNC_ID_OUT) > 0U)
+        {
+            uint16_t budget = audio_out_read_budget_bytes();
             uint16_t avail = tud_audio_n_available(AUDIO_FUNC_ID_OUT);
-            uint16_t to_read = avail;
-            if (to_read > budget)
-            {
-                to_read = budget;
-            }
+            uint16_t to_read = (avail < budget) ? avail : budget;
             if (to_read > sizeof(usb_in_buf))
             {
                 to_read = (uint16_t) sizeof(usb_in_buf);
@@ -1332,10 +1310,9 @@ void audio_task(void)
         // SAI -> USB
         copybuf_sai2ring();
 
-        // USB TX送信 (ISRからのフラグ通知、またはストリーミング中は常に試行)
-        if (usb_io_slot && (usb_tx_pending || s_streaming_in))
+        // USB INはIN完了通知ごとに次の塊を積む。開始直後は set_itf_cb() で初回通知する。
+        if (usb_tx_event && s_streaming_in)
         {
-            usb_tx_pending = false;
             copybuf_ring2usb_and_send();
         }
 
@@ -1386,7 +1363,6 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     sai_rx_rng_buf_index = 0;
     sai_transmit_index   = 0;
     sai_receive_index    = 0;
-    s_last_usb_io_tick   = 0xFFFFFFFFu;
     tx_pending_mask      = 0;
     rx_pending_mask      = 0;
 
