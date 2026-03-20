@@ -59,6 +59,7 @@ bool AUDIO_Update_ADAU1466_SampleRate(uint32_t hz);
 
 void set_dc_inputA(float xf_pos);
 void set_dc_inputB(float xf_pos);
+void safeload_write_q8_24(uint16_t addr, uint8_t mem_page, double val);
 
 void control_input_from_usb_gain(uint8_t ch, int16_t db);
 void control_input_from_ch1_gain(const uint16_t adc_val);
