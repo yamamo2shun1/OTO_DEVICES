@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
- * Created:	Thursday, 19 March 2026 20:53 PM
+ * Created:	Saturday, 21 March 2026 15:52 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -142,8 +142,8 @@
 #define MOD_DCINPUT_A_COUNT                  1
 #define MOD_DCINPUT_A_SCHEMATIC              "ADAU146xSchematic_1"
 #define MOD_DCINPUT_A_DCVALUE_ADDR           109
-#define MOD_DCINPUT_A_DCVALUE_FIXPT          0x01000000
-#define MOD_DCINPUT_A_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_DCINPUT_A_DCVALUE_FIXPT          0x00000000
+#define MOD_DCINPUT_A_DCVALUE_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_DCINPUT_A_DCVALUE_TYPE           SIGMASTUDIOTYPE_8_24
 #define MOD_DCINPUT_A_DCVALUE_DATA_MEMORY    "DM0"
 #define MOD_DCINPUT_A_DCVALUE_MEM_PAGE       0
