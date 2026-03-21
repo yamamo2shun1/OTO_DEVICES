@@ -41,7 +41,7 @@
 JUMBLEQ also provides a configurator for changing settings via MIDI: [JUMBLEQ Configurator](https://github.com/yamamo2shun1/JUMBLEQ/tree/main/Max).  
 JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max) and is available for Windows and macOS, but requires Max 9 to be installed.
 
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/d5b5909a-52b2-4bdf-8a6f-fa1c8d16d5f6" />
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/59c24ce4-497c-4eb8-8bc4-daf22562fdbd" />
 
 ## for Windows User
 I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
