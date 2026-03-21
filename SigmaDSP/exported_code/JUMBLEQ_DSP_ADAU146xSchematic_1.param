@@ -179,11 +179,11 @@ Parameter Data :
 Module Name			= DCInput_A
 Parameter Name		= DCValue
 Parameter Address	= 109
-Parameter Value		= 1
+Parameter Value		= 0
 Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
-0x01, 0x00, 0x00, 0x00, 
+0x00, 0x00, 0x00, 0x00, 
 
 
 
