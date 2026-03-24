@@ -9,16 +9,29 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 974.0, 272.0, 558.0, 439.0 ],
+        "rect": [ 115.0, 278.0, 545.0, 422.0 ],
         "openinpresentation": 1,
         "boxes": [
+            {
+                "box": {
+                    "id": "obj-164",
+                    "maxclass": "button",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [ "bang" ],
+                    "parameter_enable": 0,
+                    "patching_rect": [ 279.0, 253.0, 24.0, 24.0 ],
+                    "presentation": 1,
+                    "presentation_rect": [ 9.5, 288.0, 24.0, 24.0 ]
+                }
+            },
             {
                 "box": {
                     "id": "obj-177",
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 248.0, 253.0, 150.0, 20.0 ],
+                    "patching_rect": [ 1586.0, 443.0, 150.0, 20.0 ],
                     "presentation": 1,
                     "presentation_rect": [ 214.0, 246.0, 101.0, 20.0 ],
                     "text": "Send MIDI Type"
@@ -30,7 +43,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 245.0, 420.0, 150.0, 20.0 ],
+                    "patching_rect": [ 1681.0000000000002, 633.0, 150.0, 20.0 ],
                     "presentation": 1,
                     "presentation_rect": [ 412.0, 391.0, 96.0, 20.0 ],
                     "text": "Note Velocity"
@@ -42,7 +55,7 @@
                     "maxclass": "comment",
                     "numinlets": 1,
                     "numoutlets": 0,
-                    "patching_rect": [ 230.0, 405.0, 150.0, 20.0 ],
+                    "patching_rect": [ 621.0, 343.0, 150.0, 20.0 ],
                     "presentation": 1,
                     "presentation_rect": [ 226.0, 391.0, 96.0, 20.0 ],
                     "text": "Control Change"
@@ -58,7 +71,7 @@
                     "patching_rect": [ 340.0, 24.0, 150.0, 20.0 ],
                     "presentation": 1,
                     "presentation_rect": [ 216.0, 13.0, 52.0, 20.0 ],
-                    "text": "260321"
+                    "text": "260324"
                 }
             },
             {
@@ -2534,6 +2547,14 @@
             {
                 "patchline": {
                     "destination": [ "obj-13", 0 ],
+                    "order": 1,
+                    "source": [ "obj-3", 2 ]
+                }
+            },
+            {
+                "patchline": {
+                    "destination": [ "obj-164", 0 ],
+                    "order": 0,
                     "source": [ "obj-3", 2 ]
                 }
             },
