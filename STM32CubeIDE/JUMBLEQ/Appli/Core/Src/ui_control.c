@@ -20,6 +20,14 @@
 
 #include <math.h>
 
+#define POT_CH_SEL_WAIT           1
+#define POT_MA_SIZE               4  // 移動平均のサンプル数
+#define POT_NUM                   16
+#define MAG_SW_NUM                6
+#define MAG_CALIBRATION_COUNT_MAX 100
+#define MAG_XFADE_CUTOFF          16
+#define MAG_XFADE_RANGE           1400
+
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
 enum
@@ -981,16 +989,16 @@ static void set_pot_mux_channel(uint8_t channel)
 {
     static const uint8_t mux_bits[POT_NUM][4] = {
         {0, 0, 0, 0}, // 0  l0
-        {0, 1, 0, 0}, // 2  l2
-        {0, 0, 1, 0}, // 4  l4
         {1, 0, 0, 0}, // 1  l1
+        {0, 1, 0, 0}, // 2  l2
         {1, 1, 0, 0}, // 3  l3
-        {0, 1, 0, 1}, // 10 r4
-        {0, 1, 1, 0}, // 6  r0
-        {0, 0, 0, 1}, // 8  r2
+        {0, 0, 1, 0}, // 4  l4
         {1, 0, 1, 0}, // 5  l5
+        {0, 1, 1, 0}, // 6  r0
         {1, 1, 1, 0}, // 7  r1
+        {0, 0, 0, 1}, // 8  l2
         {1, 0, 0, 1}, // 9  r3
+        {0, 1, 0, 1}, // 10 r4
         {1, 1, 0, 1}, // 11 r5
         {0, 0, 1, 1}, // 12 sub_keys
         {0, 1, 1, 1}, // 14
@@ -1075,12 +1083,12 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
     case 0:  // l0
     case 1:  // l1
     case 2:  // l2
-    case 3:  // l5
-    case 4:  // r0
-    case 5:  // r1
+    case 3:  // l3
+    case 4:  // l4
+    case 5:  // l5
         return adc_raw >> 5;
-    case 6:   // l3
-    case 7:   // l4
+    case 6:   // r0
+    case 7:   // r1
     case 8:   // r2
     case 9:   // r3
     case 10:  // r4

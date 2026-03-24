@@ -10,6 +10,8 @@
 #include "main.h"
 #include <stdbool.h>
 
+#define ADC_NUM 8
+
 typedef struct
 {
     uint8_t current_ch1_input_type;
