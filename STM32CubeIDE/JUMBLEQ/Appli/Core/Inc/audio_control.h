@@ -21,15 +21,6 @@
 // DMAバッファ縮小後は half-buffer より少し低めにして平均滞留量をさらに下げる。
 #define SAI_TX_TARGET_LEVEL_WORDS 96
 
-#define POT_CH_SEL_WAIT           1
-#define ADC_NUM                   8
-#define POT_MA_SIZE               4  // 移動平均のサンプル数
-#define POT_NUM                   16
-#define MAG_SW_NUM                6
-#define MAG_CALIBRATION_COUNT_MAX 100
-#define MAG_XFADE_CUTOFF          16
-#define MAG_XFADE_RANGE           850
-
 // Runtime DSP parameter update switch for A/B diagnosis.
 // 0: disable ui_control_task() DSP writes (noise root-cause test mode)
 // 1: enable normal runtime control updates
