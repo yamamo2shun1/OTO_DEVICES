@@ -23,6 +23,8 @@
 #define POT_CH_SEL_WAIT           1
 #define POT_MA_SIZE               4  // 移動平均のサンプル数
 #define POT_NUM                   16
+#define POT_HYSTERESIS_NUM        12
+#define POT_CC_HYSTERESIS_RAW     8U
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
@@ -75,9 +77,13 @@ typedef struct
     uint8_t pot_ch;
     uint8_t pot_ch_counter;
     uint16_t pot_ma_index[POT_NUM];
+    uint8_t pot_sample_count[POT_NUM];
     uint32_t pot_val_ma[POT_NUM][POT_MA_SIZE];
     uint16_t pot_val[POT_NUM];
     uint16_t pot_val_prev[POT_NUM][2];
+    uint16_t pot_hysteresis_raw_ma[POT_HYSTERESIS_NUM][POT_MA_SIZE];
+    uint16_t pot_hysteresis_last_sent[POT_HYSTERESIS_NUM];
+    bool pot_hysteresis_has_last_sent[POT_HYSTERESIS_NUM];
     uint16_t pot_mag_calibration_count[4];
     uint32_t pot_mag_offset_sum[4];
     uint16_t pot_mag_offset[4];
@@ -1076,6 +1082,11 @@ static uint8_t pot_mag_index(uint8_t channel)
     return (uint8_t) (channel - POT_MAG_CH_FIRST);
 }
 
+static bool is_pot_hysteresis_channel(uint8_t channel)
+{
+    return channel < POT_HYSTERESIS_NUM;
+}
+
 static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
 {
     switch (channel)
@@ -1104,6 +1115,70 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
     }
 }
 
+static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
+{
+    if (channel < 6U)
+    {
+        uint32_t value = ((uint32_t) adc_raw + 16U) >> 5;
+        if (value > 127U)
+        {
+            value = 127U;
+        }
+        return (uint16_t) value;
+    }
+
+    {
+        uint32_t value = (uint32_t) adc_raw >> 2;
+        if (value > 1023U)
+        {
+            value = 1023U;
+        }
+        return (uint16_t) value;
+    }
+}
+
+static bool should_apply_pot_hysteresis(uint8_t channel, uint16_t raw_avg, uint16_t* value_out)
+{
+    const uint8_t idx = channel;
+    const uint8_t shift = (channel < 6U) ? 5U : 2U;
+    const uint16_t candidate = quantize_pot_hysteresis_value(channel, raw_avg);
+
+    if (!s_ui.pot_hysteresis_has_last_sent[idx])
+    {
+        s_ui.pot_hysteresis_last_sent[idx]     = candidate;
+        s_ui.pot_hysteresis_has_last_sent[idx] = true;
+        *value_out = candidate;
+        return true;
+    }
+
+    const uint16_t last_sent = s_ui.pot_hysteresis_last_sent[idx];
+    if (candidate == last_sent)
+    {
+        return false;
+    }
+
+    if (candidate > last_sent)
+    {
+        const uint32_t threshold = (((uint32_t) last_sent + 1U) << shift) + POT_CC_HYSTERESIS_RAW;
+        if ((uint32_t) raw_avg < threshold)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        const uint32_t threshold = ((uint32_t) last_sent << shift);
+        if (((uint32_t) raw_avg + POT_CC_HYSTERESIS_RAW) >= threshold)
+        {
+            return false;
+        }
+    }
+
+    s_ui.pot_hysteresis_last_sent[idx] = candidate;
+    *value_out = candidate;
+    return true;
+}
+
 static void process_pot(void)
 {
     if (s_ui.pot_ch_counter < POT_CH_SEL_WAIT)
@@ -1113,10 +1188,22 @@ static void process_pot(void)
     }
     else if (s_ui.pot_ch_counter >= POT_CH_SEL_WAIT)
     {
-        const uint8_t ch                           = s_ui.pot_ch;
-        const uint16_t sample_now                  = (uint16_t) read_pot_sample_from_adc(ch, adc_val[6]);
-        s_ui.pot_val_ma[ch][s_ui.pot_ma_index[ch]] = sample_now;
-        s_ui.pot_ma_index[ch]                      = (s_ui.pot_ma_index[ch] + 1) % POT_MA_SIZE;
+        const uint8_t ch = s_ui.pot_ch;
+        const uint16_t ma_index = s_ui.pot_ma_index[ch];
+        const uint16_t sample_now = (uint16_t) read_pot_sample_from_adc(ch, adc_val[6]);
+
+        s_ui.pot_val_ma[ch][ma_index] = sample_now;
+        if (s_ui.pot_sample_count[ch] < POT_MA_SIZE)
+        {
+            s_ui.pot_sample_count[ch]++;
+        }
+
+        if (is_pot_hysteresis_channel(ch))
+        {
+            s_ui.pot_hysteresis_raw_ma[ch][ma_index] = (uint16_t) adc_val[6];
+        }
+
+        s_ui.pot_ma_index[ch] = (ma_index + 1U) % POT_MA_SIZE;
 
         if (is_pot_mag_channel(ch))
         {
@@ -1126,36 +1213,33 @@ static void process_pot(void)
         else
         {
             float pot_sum = 0.0f;
-            for (int j = 0; j < POT_MA_SIZE; j++)
+            const uint8_t sample_count = s_ui.pot_sample_count[ch];
+            for (uint8_t j = 0; j < sample_count; j++)
             {
                 pot_sum += (float) s_ui.pot_val_ma[ch][j];
             }
-            s_ui.pot_val[ch] = round(pot_sum / (float) POT_MA_SIZE);
+            s_ui.pot_val[ch] = round(pot_sum / (float) sample_count);
         }
 
         if (!is_pot_mag_channel(ch))
         {
-            uint8_t stable_count = 0;
-            if (s_ui.pot_val[ch] == s_ui.pot_val_prev[ch][0])
+            if (is_pot_hysteresis_channel(ch))
             {
-                stable_count++;
-            }
-            if (s_ui.pot_val[ch] == s_ui.pot_val_prev[ch][1])
-            {
-                stable_count++;
-            }
-            if (s_ui.pot_val_prev[ch][0] == s_ui.pot_val_prev[ch][1])
-            {
-                stable_count++;
-            }
+                uint32_t raw_sum = 0U;
+                const uint8_t sample_count = s_ui.pot_sample_count[ch];
+                uint16_t stabilized_value = s_ui.pot_val[ch];
 
-            if (stable_count <= 1)
-            {
-                apply_pot_value(ch, s_ui.pot_val[ch]);
-            }
+                for (uint8_t j = 0; j < sample_count; j++)
+                {
+                    raw_sum += s_ui.pot_hysteresis_raw_ma[ch][j];
+                }
 
-            s_ui.pot_val_prev[ch][1] = s_ui.pot_val_prev[ch][0];
-            s_ui.pot_val_prev[ch][0] = s_ui.pot_val[ch];
+                if (should_apply_pot_hysteresis(ch, (uint16_t) (raw_sum / sample_count), &stabilized_value))
+                {
+                    s_ui.pot_val[ch] = stabilized_value;
+                    apply_pot_value(ch, stabilized_value);
+                }
+            }
         }
         else
         {
@@ -1798,12 +1882,22 @@ void ui_control_reset_state(void)
     for (uint16_t i = 0; i < POT_NUM; i++)
     {
         s_ui.pot_ma_index[i]    = 0;
+        s_ui.pot_sample_count[i] = 0U;
         s_ui.pot_val[i]         = 0;
         s_ui.pot_val_prev[i][0] = 0;
         s_ui.pot_val_prev[i][1] = 0;
         for (uint16_t j = 0; j < POT_MA_SIZE; j++)
         {
             s_ui.pot_val_ma[i][j] = 0;
+        }
+    }
+    for (uint16_t i = 0; i < POT_HYSTERESIS_NUM; i++)
+    {
+        s_ui.pot_hysteresis_last_sent[i]     = 0U;
+        s_ui.pot_hysteresis_has_last_sent[i] = false;
+        for (uint16_t j = 0; j < POT_MA_SIZE; j++)
+        {
+            s_ui.pot_hysteresis_raw_ma[i][j] = 0U;
         }
     }
 
