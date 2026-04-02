@@ -442,17 +442,17 @@ uint8_t get_current_xfB_position(void)
 
 int16_t get_current_ch1_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[10]);
+    return convert_pot2dB_int(s_ui.pot_val[11]);
 }
 
 int16_t get_current_ch2_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[7]);
+    return convert_pot2dB_int(s_ui.pot_val[10]);
 }
 
 int16_t get_current_ch1_out_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[11]);
+    return convert_pot2dB_int(s_ui.pot_val[7]);
 }
 
 int16_t get_current_ch2_out_db(void)
@@ -1056,10 +1056,10 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         control_wet_out_gain(value);
         break;
     case 7:
-        control_input_from_ch2_gain(value);
+        control_ch2_out_gain(value);
         break;
     case 8:
-        control_ch2_out_gain(value);
+        control_ch1_out_gain(value);
         break;
     case 9:
         control_input_from_return_gain(value);
@@ -1068,7 +1068,7 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         control_input_from_ch1_gain(value);
         break;
     case 11:
-        control_ch1_out_gain(value);
+        control_input_from_ch2_gain(value);
         break;
     case 12:
     case 13:
