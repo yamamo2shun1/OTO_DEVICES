@@ -201,14 +201,14 @@ void OLED_UpdateTask(void)
         const char* return_src = nonnull_str(get_current_return_src_str());
         if ((sample_rate_hz % 1000U) == 0U)
         {
-            snprintf(line1_ch2, sizeof(line1_ch2), "%luk %3d|C2|%3d dB", (unsigned long) (sample_rate_hz / 1000U), get_current_ch2_in_db(), get_current_ch2_out_db());
+            snprintf(line1_ch2, sizeof(line1_ch2), "%luk %3d|Out|%3d dB", (unsigned long) (sample_rate_hz / 1000U), get_current_ch1_out_db(), get_current_ch2_out_db());
         }
         else
         {
-            snprintf(line1_ch2, sizeof(line1_ch2), "%lu %3d|C2|%3d dB", (unsigned long) sample_rate_hz, get_current_ch2_in_db(), get_current_ch2_out_db());
+            snprintf(line1_ch2, sizeof(line1_ch2), "%lu %3d|Out|%3d dB", (unsigned long) sample_rate_hz, get_current_ch1_out_db(), get_current_ch2_out_db());
         }
-        snprintf(line2_c1, sizeof(line2_c1), "%-3s %3d|C1|%3d dB", return_src, get_current_ch1_in_db(), get_current_ch1_out_db());
-        snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
+        snprintf(line2_c1, sizeof(line2_c1), "%-3s %3d|In |%3d dB", return_src, get_current_ch2_in_db(), get_current_ch1_in_db());
+        snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d%% RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
 
         if ((strcmp(prev_line1_ch2, line1_ch2) != 0) ||
             (strcmp(prev_line2_c1, line2_c1) != 0) ||
