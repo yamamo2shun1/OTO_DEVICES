@@ -467,6 +467,15 @@ int16_t get_current_return_db(void)
 
 int16_t get_current_dry_wet(void)
 {
+    if (s_ui.pot_val[6] <= 8U)
+    {
+        return 0;
+    }
+    if (s_ui.pot_val[6] >= 1015U)
+    {
+        return 100;
+    }
+
     int16_t pct = (int16_t) (((double) s_ui.pot_val[6] / 1023.0 * 100.0) + 0.5);
     if (pct < 0)
     {
