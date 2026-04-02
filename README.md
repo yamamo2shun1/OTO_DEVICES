@@ -10,11 +10,12 @@ Although it is faderless, the magnetic switches behave like faders. JUMBLEQ also
 As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/O with 24-bit / 48 kHz / 96 kHz formats. Since it is USB class-compliant, no driver installation is required. It can be used immediately not only with Windows and macOS, but also with iPhone, iPad, and Android devices simply by connecting it.
 
 ## Gallery
+- [Prototype4](./Gallery/prototype4.md)
 - [Prototype3](./Gallery/prototype3.md)
 - [Prototype2](./Gallery/prototype2.md)
 - [Prototype1](./Gallery/prototype1.md)
 
-## Hardware
+## PCB Modules
 - Original  
   - [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board)  
   - [AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
