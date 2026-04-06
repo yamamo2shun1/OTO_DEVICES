@@ -168,7 +168,7 @@ static float read_dbfs_from_sigma(uint16_t addr)
     const float full_scale = 16777216.0f; // SigmaDSP 8.24 fixed-point unity gain = 0x01000000.
     ADI_REG_TYPE rx_data[4] = {0};
     SIGMA_READ_REGISTER(DEVICE_ADDR_ADAU146XSCHEMATIC_1, addr, 4, rx_data);
-    uint32_t val = rx_data[0] << 24 | rx_data[1] << 16 | rx_data[2] << 8 | rx_data[3];
+    uint32_t val = ((uint32_t) rx_data[0] << 24) | ((uint32_t) rx_data[1] << 16) | ((uint32_t) rx_data[2] << 8) | (uint32_t) rx_data[3];
 
     if (val == 0 || val == 0xFFFFFFFF)
     {
