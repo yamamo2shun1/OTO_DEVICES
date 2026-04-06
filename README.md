@@ -29,7 +29,8 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
   - [SparkFun Qwiic EEPROM Breakout - 512Kbit](https://www.sparkfun.com/sparkfun-qwiic-eeprom-breakout-512kbit.html)
 
 ## Block Diagram
-<img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/c128b5be-d37b-4ea0-b850-8cb77ad1910e" />
+<img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/966f1396-498a-4aa9-8add-3a8f13c7d79a" />
+
 
 ## Audio Routing and Signal Flow Diagram
 <img width="689" height="1179" alt="audio_routing drawio" src="https://github.com/user-attachments/assets/b611c090-2154-4270-a017-2703561b34f9" />
