@@ -1564,7 +1564,7 @@
               "SERIAL_BYTE_5_1_reg_CLK_DOMAIN": "Clock generator 1 (48 kHz (FS) generator)",
               "SERIAL_BYTE_5_1_reg_TRISTATE": "Drive every output channel",
               "SERIAL_BYTE_5_1_regRESERVED369 Reserved": 0,
-              "SERIAL_BYTE_6_0_reg_TDM_MODE": "4 channels, 32 bit/channel",
+              "SERIAL_BYTE_6_0_reg_TDM_MODE": "2 channels, 32 bit/channel",
               "SERIAL_BYTE_6_0_reg_DATA_FMT": "I2S - BCLK delay by 1",
               "SERIAL_BYTE_6_0_reg_WORD_LEN": "32 bits",
               "SERIAL_BYTE_6_0_reg_BCLK_POL": "Negative polarity",
@@ -2371,8 +2371,8 @@
                       "OutputCh29": false,
                       "OutputCh30": false,
                       "OutputCh31": false,
-                      "OutputCh32": false,
-                      "OutputCh33": false,
+                      "OutputCh32": true,
+                      "OutputCh33": true,
                       "OutputCh34": false,
                       "OutputCh35": false,
                       "OutputCh36": false,
@@ -2627,7 +2627,11 @@
                             "Link_359",
                             "Link_360",
                             "Link_361",
-                            "Link_362"
+                            "Link_362",
+                            "Link_373",
+                            "Link_374",
+                            "Link_372",
+                            "Link_371"
                           ]
                         }
                       },
@@ -3899,7 +3903,7 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "NumChannels": "2",
+                          "NumChannels": "3",
                           "Gain": 0,
                           "GainMin": -40.0,
                           "GainMax": 8.0,
@@ -3941,7 +3945,7 @@
                           "BlockSize": 64,
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
-                          "NumChannels": "2",
+                          "NumChannels": "3",
                           "Gain": 0,
                           "GainMin": -40.0,
                           "GainMax": 8.0,
@@ -8499,6 +8503,159 @@
                         "WriteableLinks": [],
                         "AltShapes": [],
                         "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                        "Name": "Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "Output_10",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedOPChannel": "Ch32",
+                          "DataFormat": "Default (8.24 Format)"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3911.0,
+                          "Y": 39.0
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "Output_10",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.Output_v1.0.0.0",
+                        "Name": "Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "Output_11",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedOPChannel": "Ch33",
+                          "DataFormat": "Default (8.24 Format)"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3911.0,
+                          "Y": 123.0
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "Output_11",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                        "Name": "Single Volume Control",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleVolumeControl_18",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 0.0,
+                          "GainMax": 10.0,
+                          "GainMin": -80,
+                          "GainResolution": 1,
+                          "IsDBChosen": true,
+                          "SlewType": "No Slew",
+                          "CustomVal": 8330.0,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3742.0,
+                          "Y": -13.0
+                        },
+                        "Size": {
+                          "Height": 252.0,
+                          "Width": 92.0
+                        },
+                        "Label": "hp_output",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.UserComment_v1.0.0.0",
+                        "Name": "Comment",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "UserComment_5",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "UserText": "SDATA_OUT2\r\n(Ch.32-39)\r\nto TAD5142",
+                          "ResetSize": true,
+                          "RestrictResize": true
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3909.0,
+                          "Y": -27.0
+                        },
+                        "Size": {
+                          "Height": 55.569999999999993,
+                          "Width": 100.0
+                        },
+                        "Label": "UserComment_3_2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
                       }
                     ],
                     "WriteableLinks": [
@@ -10438,12 +10595,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3718.0,
-                            "Y": -538.3333
+                            "X": 3737.0,
+                            "Y": -552.25
                           },
                           {
-                            "X": 3718.0,
-                            "Y": -552.5
+                            "X": 3737.0,
+                            "Y": -552.0
                           }
                         ]
                       },
@@ -10465,11 +10622,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3718.0,
-                            "Y": -199.6667
+                            "X": 3732.0,
+                            "Y": -227.5
                           },
                           {
-                            "X": 3718.0,
+                            "X": 3732.0,
                             "Y": -181.0
                           }
                         ]
@@ -10492,12 +10649,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3718.0,
-                            "Y": -255.3333
+                            "X": 3732.0,
+                            "Y": -269.25
                           },
                           {
-                            "X": 3718.0,
-                            "Y": -468.5
+                            "X": 3732.0,
+                            "Y": -468.0
                           }
                         ]
                       },
@@ -10510,11 +10667,11 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3691.0,
-                            "Y": -482.6667
+                            "X": 3701.7647058823522,
+                            "Y": -510.5
                           },
                           {
-                            "X": 3691.0,
+                            "X": 3701.7647058823522,
                             "Y": -265.0
                           }
                         ]
@@ -10810,6 +10967,60 @@
                             "Y": 891.0
                           }
                         ]
+                      },
+                      {
+                        "Uid": "Link_373",
+                        "SourceUid": "SingleControlSplitter_2",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "SingleVolumeControl_18",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3674.7058823529405,
+                            "Y": -468.75
+                          },
+                          {
+                            "X": 3674.7058823529405,
+                            "Y": 71.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_374",
+                        "SourceUid": "SingleControlSplitter_3",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "SingleVolumeControl_18",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3657.6470588235288,
+                            "Y": -185.75
+                          },
+                          {
+                            "X": 3657.6470588235288,
+                            "Y": 155.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_372",
+                        "SourceUid": "SingleVolumeControl_18",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_11",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_371",
+                        "SourceUid": "SingleVolumeControl_18",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "Output_10",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
                       }
                     ],
                     "AltShapes": [],
@@ -10863,8 +11074,8 @@
     "AltShapes": [],
     "PropertyPresets": {}
   },
-  "LastActiveTabUid": "ADAU146xSchematic_1",
-  "LastActiveTabName": "ADAU146xSchematic_1",
-  "LastActiveTabIsConfig": false,
-  "LastActiveTabIsEditable": true
+  "LastActiveTabUid": "ADAU1466_1",
+  "LastActiveTabName": "Settings",
+  "LastActiveTabIsConfig": true,
+  "LastActiveTabIsEditable": false
 }

@@ -1,6 +1,6 @@
 /* 
- * File:	C:\Users\shuni\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
- * Created:	Saturday, 21 March 2026 15:52 PM
+ * File:	C:\Users\shun\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
+ * Created:	Monday, 06 April 2026 17:14 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -201,7 +201,7 @@
 /* Module ch1_output - Single Volume Control */
 #define MOD_CH1_OUTPUT_COUNT               1
 #define MOD_CH1_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH1_OUTPUT_GAIN_ADDR           165
+#define MOD_CH1_OUTPUT_GAIN_ADDR           166
 #define MOD_CH1_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH1_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH1_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -807,7 +807,7 @@
 /* Module ch2_output - Single Volume Control */
 #define MOD_CH2_OUTPUT_COUNT               1
 #define MOD_CH2_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH2_OUTPUT_GAIN_ADDR           164
+#define MOD_CH2_OUTPUT_GAIN_ADDR           165
 #define MOD_CH2_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH2_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH2_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -851,5 +851,19 @@
 #define MOD_SEND_SW_2_INDEX_MEM_PAGE       0
 #define MOD_SEND_SW_2_INDEX_DATA_MEMORY    "DM0"
 #define MOD_SEND_SW_2_INDEX_MEM_PAGE       0
+
+
+
+/* Module hp_output - Single Volume Control */
+#define MOD_HP_OUTPUT_COUNT               1
+#define MOD_HP_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
+#define MOD_HP_OUTPUT_GAIN_ADDR           164
+#define MOD_HP_OUTPUT_GAIN_FIXPT          0x01000000
+#define MOD_HP_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
+#define MOD_HP_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_HP_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_HP_OUTPUT_GAIN_MEM_PAGE       0
+#define MOD_HP_OUTPUT_GAIN_DATA_MEMORY    "DM0"
+#define MOD_HP_OUTPUT_GAIN_MEM_PAGE       0
 
 #endif
