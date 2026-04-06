@@ -19,7 +19,9 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - Original  
   - [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board)  
   - [AK4619 Audio Module](https://github.com/YamamotoWorksDev/AK4619_Module)  
+  - [TAD5142 HP Module](https://github.com/YamamotoWorksDev/TAD5142_Module)
   - [MagneticSwitch & POT Module](https://github.com/YamamotoWorksDev/MagneticSwitch_and_POT_Module)
+  - [JST PH2 Bus Module](https://github.com/YamamotoWorksDev/JST_PH2_BUS)
 
 - Third party  
   - [0.96インチ 128×64ドット有機ELディスプレイ(OLED) 白色](https://akizukidenshi.com/catalog/g/g112031/)  
@@ -33,7 +35,7 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 <img width="689" height="1179" alt="audio_routing drawio" src="https://github.com/user-attachments/assets/b611c090-2154-4270-a017-2703561b34f9" />
 
 ## Audio Spec.
-- Analog: 4in/4out
+- Analog: 4in/4out+2out(Headphone)
 - USB: 4in/4out(USB Audio Class 2.0) and MIDI in/out
 - Format: 24bit, 48kHz/96kHz
 
