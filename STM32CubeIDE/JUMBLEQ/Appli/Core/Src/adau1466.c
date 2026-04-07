@@ -388,6 +388,13 @@ void control_ch2_out_gain(const uint16_t adc_val)
     write_q8_24(MOD_CH2_OUTPUT_GAIN_ADDR, gain);
 }
 
+void control_hp_out_gain(const uint16_t adc_val)
+{
+    const double db   = (double) convert_pot2dB_int(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_HP_OUTPUT_GAIN_ADDR, gain);
+}
+
 void set_ch1_line()
 {
     ADI_REG_TYPE Mode0_0[4]  = {0x01, 0x00, 0x00, 0x00};

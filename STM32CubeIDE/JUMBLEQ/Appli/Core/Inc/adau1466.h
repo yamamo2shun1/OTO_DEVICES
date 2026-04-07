@@ -76,6 +76,7 @@ void control_dryB_out_gain(const uint16_t adc_val);
 void control_wet_out_gain(const uint16_t adc_val);
 void control_ch1_out_gain(const uint16_t adc_val);
 void control_ch2_out_gain(const uint16_t adc_val);
+void control_hp_out_gain(const uint16_t adc_val);
 
 void select_input_type(uint8_t ch, uint8_t type);
 void enable_dvs(uint8_t ch, bool enable);
