@@ -17,6 +17,7 @@ enum
     INPUT_CH2,
     INPUT_USB12,
     INPUT_USB34,
+    INPUT_MASTER,
 };
 
 enum
@@ -83,5 +84,6 @@ void select_xf_assignA_source(uint8_t ch);
 void select_xf_assignB_source(uint8_t ch);
 void select_xf_assignPost_source(uint8_t ch);
 void select_return_ch_source(uint8_t ch);
+void select_hp_out_source(uint8_t ch);
 
 #endif /* INC_ADAU1466_H_ */
