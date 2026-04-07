@@ -2628,10 +2628,12 @@
                             "Link_360",
                             "Link_361",
                             "Link_362",
-                            "Link_373",
-                            "Link_374",
                             "Link_372",
-                            "Link_371"
+                            "Link_371",
+                            "Link_383",
+                            "Link_384",
+                            "Link_387",
+                            "Link_388"
                           ]
                         }
                       },
@@ -2699,7 +2701,17 @@
                             "Link_367",
                             "Link_368",
                             "Link_369",
-                            "Link_370"
+                            "Link_370",
+                            "Link_375",
+                            "Link_376",
+                            "Link_377",
+                            "Link_378",
+                            "Link_379",
+                            "Link_380",
+                            "Link_381",
+                            "Link_382",
+                            "Link_385",
+                            "Link_386"
                           ]
                         }
                       }
@@ -2944,8 +2956,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3909.0,
-                          "Y": -584.0
+                          "X": 4027.6627906976746,
+                          "Y": -1013.3992248062015
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2980,8 +2992,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3909.0,
-                          "Y": -500.0
+                          "X": 4027.6627906976746,
+                          "Y": -929.39922480620146
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3132,8 +3144,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3909.0,
-                          "Y": -653.0
+                          "X": 4027.6627906976746,
+                          "Y": -1082.3992248062014
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3168,8 +3180,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3911.0,
-                          "Y": -297.0
+                          "X": 4029.6627906976746,
+                          "Y": -726.39922480620146
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3204,8 +3216,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3911.0,
-                          "Y": -213.0
+                          "X": 4029.6627906976746,
+                          "Y": -642.39922480620146
                         },
                         "Size": {
                           "Height": 64.0,
@@ -3558,8 +3570,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3382.0,
-                          "Y": -484.0
+                          "X": 3433.1627906976746,
+                          "Y": -914.23255813953483
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3594,8 +3606,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3382.0,
-                          "Y": -329.0
+                          "X": 3433.1627906976746,
+                          "Y": -759.23255813953483
                         },
                         "Size": {
                           "Height": 62.0,
@@ -3675,8 +3687,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3905.0,
-                          "Y": -365.0
+                          "X": 4023.6627906976746,
+                          "Y": -794.39922480620146
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3718,8 +3730,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3742.0,
-                          "Y": -636.0
+                          "X": 3860.6627906976746,
+                          "Y": -1065.3992248062014
                         },
                         "Size": {
                           "Height": 252.0,
@@ -3914,8 +3926,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3532.0,
-                          "Y": -594.0
+                          "X": 3583.1627906976746,
+                          "Y": -1024.2325581395348
                         },
                         "Size": {
                           "Height": 167.0,
@@ -3956,8 +3968,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3532.0,
-                          "Y": -311.0
+                          "X": 3583.1627906976746,
+                          "Y": -741.23255813953483
                         },
                         "Size": {
                           "Height": 167.0,
@@ -4107,7 +4119,8 @@
                             "$values": [
                               "AliasOutput_0",
                               "AliasOutput_8",
-                              "AliasOutput_16"
+                              "AliasOutput_16",
+                              "AliasOutput_58"
                             ]
                           }
                         },
@@ -4191,7 +4204,8 @@
                             "$values": [
                               "AliasOutput_1",
                               "AliasOutput_9",
-                              "AliasOutput_17"
+                              "AliasOutput_17",
+                              "AliasOutput_59"
                             ]
                           }
                         },
@@ -4276,7 +4290,8 @@
                               "AliasOutput_2",
                               "AliasOutput_12",
                               "AliasOutput_14",
-                              "AliasOutput_52"
+                              "AliasOutput_52",
+                              "AliasOutput_54"
                             ]
                           }
                         },
@@ -4361,7 +4376,8 @@
                               "AliasOutput_3",
                               "AliasOutput_13",
                               "AliasOutput_15",
-                              "AliasOutput_53"
+                              "AliasOutput_53",
+                              "AliasOutput_55"
                             ]
                           }
                         },
@@ -4445,7 +4461,8 @@
                             "$values": [
                               "AliasOutput_4",
                               "AliasOutput_10",
-                              "AliasOutput_18"
+                              "AliasOutput_18",
+                              "AliasOutput_60"
                             ]
                           }
                         },
@@ -4529,7 +4546,8 @@
                             "$values": [
                               "AliasOutput_5",
                               "AliasOutput_11",
-                              "AliasOutput_19"
+                              "AliasOutput_19",
+                              "AliasOutput_61"
                             ]
                           }
                         },
@@ -4614,7 +4632,8 @@
                               "AliasOutput_6",
                               "AliasOutput_46",
                               "AliasOutput_48",
-                              "AliasOutput_50"
+                              "AliasOutput_50",
+                              "AliasOutput_56"
                             ]
                           }
                         },
@@ -4661,8 +4680,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2548.0,
-                          "Y": 179.0
+                          "X": 2599.1627906976746,
+                          "Y": -251.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -4699,7 +4718,8 @@
                               "AliasOutput_7",
                               "AliasOutput_47",
                               "AliasOutput_49",
-                              "AliasOutput_51"
+                              "AliasOutput_51",
+                              "AliasOutput_57"
                             ]
                           }
                         },
@@ -4746,8 +4766,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2546.0,
-                          "Y": 227.0
+                          "X": 2597.1627906976751,
+                          "Y": -203.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5399,8 +5419,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2834.0,
-                          "Y": -665.0
+                          "X": 2885.1627906976746,
+                          "Y": -1095.2325581395348
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5482,8 +5502,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2832.0,
-                          "Y": -608.0
+                          "X": 2883.1627906976746,
+                          "Y": -1038.2325581395348
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5604,8 +5624,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2834.0,
-                          "Y": -298.0
+                          "X": 2885.1627906976746,
+                          "Y": -728.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5687,8 +5707,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2833.0,
-                          "Y": -225.0
+                          "X": 2884.1627906976742,
+                          "Y": -655.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5933,8 +5953,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3191.0,
-                          "Y": -459.0
+                          "X": 3242.1627906976751,
+                          "Y": -889.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6015,8 +6035,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3197.0,
-                          "Y": -285.0
+                          "X": 3248.1627906976746,
+                          "Y": -715.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6866,8 +6886,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2788.0,
-                          "Y": -473.0
+                          "X": 2839.1627906976746,
+                          "Y": -903.23255813953483
                         },
                         "Size": {
                           "Height": 143.0,
@@ -6908,8 +6928,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2926.0,
-                          "Y": -364.0
+                          "X": 2977.1627906976746,
+                          "Y": -794.23255813953483
                         },
                         "Size": {
                           "Height": 156.0,
@@ -6948,8 +6968,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2860.0,
-                          "Y": -136.0
+                          "X": 2911.1627906976746,
+                          "Y": -566.23255813953483
                         },
                         "Size": {
                           "Height": 143.0,
@@ -6990,8 +7010,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2998.0,
-                          "Y": -27.0
+                          "X": 3049.1627906976746,
+                          "Y": -457.23255813953483
                         },
                         "Size": {
                           "Height": 156.0,
@@ -7030,8 +7050,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2802.0,
-                          "Y": -840.0
+                          "X": 2853.1627906976746,
+                          "Y": -1270.2325581395348
                         },
                         "Size": {
                           "Height": 143.0,
@@ -7072,8 +7092,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2940.0,
-                          "Y": -731.0
+                          "X": 2991.1627906976746,
+                          "Y": -1161.2325581395348
                         },
                         "Size": {
                           "Height": 156.0,
@@ -8162,8 +8182,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2802.0,
-                          "Y": 53.0
+                          "X": 2853.1627906976746,
+                          "Y": -377.23255813953483
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8291,8 +8311,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3742.0,
-                          "Y": -349.0
+                          "X": 3860.6627906976746,
+                          "Y": -778.39922480620146
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8330,8 +8350,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2695.0,
-                          "Y": 106.0
+                          "X": 2746.1627906976746,
+                          "Y": -324.23255813953483
                         },
                         "Size": {
                           "Height": 93.046666666666667,
@@ -8371,8 +8391,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2555.0,
-                          "Y": 84.0
+                          "X": 2606.1627906976746,
+                          "Y": -346.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8412,8 +8432,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2555.0,
-                          "Y": 131.0
+                          "X": 2606.1627906976746,
+                          "Y": -299.23255813953483
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8526,8 +8546,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3911.0,
-                          "Y": 39.0
+                          "X": 4233.8622540250444,
+                          "Y": -206.20572450805025
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8562,8 +8582,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3911.0,
-                          "Y": 123.0
+                          "X": 4233.8622540250444,
+                          "Y": -122.20572450805025
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8605,8 +8625,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3742.0,
-                          "Y": -13.0
+                          "X": 4064.8622540250444,
+                          "Y": -258.20572450805025
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8643,14 +8663,545 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3909.0,
-                          "Y": -27.0
+                          "X": 4231.8622540250444,
+                          "Y": -272.20572450805025
                         },
                         "Size": {
                           "Height": 55.569999999999993,
                           "Width": 100.0
                         },
                         "Label": "UserComment_3_2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0",
+                        "Name": "Nx2 Switch",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "StereoSwitchNx2_8",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumStereoChannels": "5",
+                          "SelectedVal": 4,
+                          "CustomSlew": 8330,
+                          "SetTunable": false,
+                          "SlewType": "No Slew"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3941.9438075695389,
+                          "Y": -225.74418604651169
+                        },
+                        "Size": {
+                          "Height": 153.04666666666668,
+                          "Width": 56.0
+                        },
+                        "Label": "hp_out_sw",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_54",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_2"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3702.4524677002591,
+                          "Y": -31.281767745858588
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 59.786666666666669
+                        },
+                        "Label": "usb12_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_55",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_3"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3701.3891343669256,
+                          "Y": 19.144702842377228
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 60.85
+                        },
+                        "Label": "usb12_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_56",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_6"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3694.6658010335923,
+                          "Y": 72.80156558747467
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 67.573333333333338
+                        },
+                        "Label": "usb_34_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_57",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_7"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3693.60246770026,
+                          "Y": 124.96823225414141
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 68.63666666666667
+                        },
+                        "Label": "usb_34_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_58",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_0"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3717.7758010335924,
+                          "Y": -223.5956675279931
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 44.463333333333338
+                        },
+                        "Label": "ch1_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_59",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_1"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3716.7124677002589,
+                          "Y": -176.85529715762277
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 45.526666666666671
+                        },
+                        "Label": "ch1_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_60",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_4"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3715.612467700259,
+                          "Y": -130.85529715762277
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 46.626666666666672
+                        },
+                        "Label": "ch2_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_61",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_5"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3714.5491343669269,
+                          "Y": -80.355297157622772
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 47.690000000000005
+                        },
+                        "Label": "ch2_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasInput_v1.0.0.0",
+                        "Name": "Alias Pin",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasInput_22",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasOutput_62"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3712.3161240310083,
+                          "Y": -910.23255813953483
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 65.846666666666664
+                        },
+                        "Label": "master_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_62",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_22"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3693.6024677002606,
+                          "Y": 173.25581395348831
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 65.846666666666664
+                        },
+                        "Label": "master_L",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasInput_v1.0.0.0",
+                        "Name": "Alias Pin",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasInput_23",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasOutput_63"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3711.2527906976748,
+                          "Y": -631.23255813953483
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 66.91
+                        },
+                        "Label": "master_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Visuals.AliasOutput_v1.0.0.0",
+                        "Name": "AnalogDevices.Plugins.Visuals.AliasOutput",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IVisual",
+                        "Uid": "AliasOutput_63",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "CanvasSize": {
+                            "$type": "AnalogDevices.TypeDefinitions.Size, TypeDefinitions",
+                            "Height": 1080.0,
+                            "Width": 1920.0
+                          },
+                          "FS": 48000,
+                          "Link": false,
+                          "Partners": {
+                            "$type": "System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib",
+                            "$values": [
+                              "AliasInput_23"
+                            ]
+                          }
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3693.0708010335939,
+                          "Y": 217.25581395348831
+                        },
+                        "Size": {
+                          "Height": 24.0,
+                          "Width": 66.91
+                        },
+                        "Label": "master_R",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -9427,7 +9978,16 @@
                         "TargetUid": "SignalMerger_2",
                         "TargetPinName": "Input2",
                         "LinkType": "Analog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": 3423.1627906976746,
+                            "Y": -877.23255813953483
+                          },
+                          {
+                            "X": 3423.1627906976746,
+                            "Y": -877.03255813953479
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_209",
@@ -9438,12 +9998,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 3310.475,
-                            "Y": -272.79999999999995
+                            "X": 3361.6377906976745,
+                            "Y": -703.23255813953483
                           },
                           {
-                            "X": 3310.475,
-                            "Y": -291.8
+                            "X": 3361.6377906976745,
+                            "Y": -722.03255813953479
                           }
                         ]
                       },
@@ -9767,12 +10327,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2896.2619047619046,
-                            "Y": -401.64285714285711
+                            "X": 2947.4246954595792,
+                            "Y": -831.73255813953483
                           },
                           {
-                            "X": 2896.2619047619046,
-                            "Y": -325.14285714285711
+                            "X": 2947.4246954595792,
+                            "Y": -755.23255813953483
                           }
                         ]
                       },
@@ -9785,12 +10345,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2969.261904761905,
-                            "Y": -64.5
+                            "X": 3020.4246954595797,
+                            "Y": -494.73255813953483
                           },
                           {
-                            "X": 2969.261904761905,
-                            "Y": 12.0
+                            "X": 3020.4246954595797,
+                            "Y": -418.23255813953483
                           }
                         ]
                       },
@@ -9812,12 +10372,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 2916.4285714285716,
-                            "Y": -213.14285714285711
+                            "X": 2967.5913621262462,
+                            "Y": -643.23255813953483
                           },
                           {
-                            "X": 2916.4285714285716,
-                            "Y": -247.14285714285711
+                            "X": 2967.5913621262462,
+                            "Y": -677.23255813953483
                           }
                         ]
                       },
@@ -9830,12 +10390,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3358.4285714285716,
-                            "Y": -312.14285714285717
+                            "X": 3409.5913621262462,
+                            "Y": -742.23255813953483
                           },
                           {
-                            "X": 3358.4285714285716,
-                            "Y": -459.34285714285716
+                            "X": 3409.5913621262462,
+                            "Y": -889.43255813953488
                           }
                         ]
                       },
@@ -9848,12 +10408,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3184.0952380952376,
-                            "Y": -260.14285714285717
+                            "X": 3235.2580287929122,
+                            "Y": -690.23255813953483
                           },
                           {
-                            "X": 3184.0952380952376,
-                            "Y": -304.34285714285716
+                            "X": 3235.2580287929122,
+                            "Y": -734.43255813953488
                           }
                         ]
                       },
@@ -9866,12 +10426,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3340.7142857142858,
-                            "Y": 24.999999999999996
+                            "X": 3391.8770764119604,
+                            "Y": -405.23255813953494
                           },
                           {
-                            "X": 3340.7142857142858,
-                            "Y": -434.4
+                            "X": 3391.8770764119604,
+                            "Y": -864.63255813953492
                           }
                         ]
                       },
@@ -9884,12 +10444,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3372.0,
-                            "Y": 77.0
+                            "X": 3423.1627906976746,
+                            "Y": -353.23255813953483
                           },
                           {
-                            "X": 3372.0,
-                            "Y": -279.4
+                            "X": 3423.1627906976746,
+                            "Y": -709.63255813953481
                           }
                         ]
                       },
@@ -9902,12 +10462,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2911.761904761905,
-                            "Y": -768.64285714285711
+                            "X": 2962.9246954595797,
+                            "Y": -1198.7325581395348
                           },
                           {
-                            "X": 2911.761904761905,
-                            "Y": -692.14285714285711
+                            "X": 2962.9246954595797,
+                            "Y": -1122.2325581395348
                           }
                         ]
                       },
@@ -9929,12 +10489,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 2916.4285714285716,
-                            "Y": -596.14285714285711
+                            "X": 2967.5913621262462,
+                            "Y": -1026.2325581395348
                           },
                           {
-                            "X": 2916.4285714285716,
-                            "Y": -614.14285714285711
+                            "X": 2967.5913621262462,
+                            "Y": -1044.2325581395348
                           }
                         ]
                       },
@@ -9947,12 +10507,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3358.4285714285716,
-                            "Y": -679.14285714285711
+                            "X": 3409.5913621262462,
+                            "Y": -1109.2325581395348
                           },
                           {
-                            "X": 3358.4285714285716,
-                            "Y": -471.74285714285713
+                            "X": 3409.5913621262462,
+                            "Y": -901.83255813953485
                           }
                         ]
                       },
@@ -9965,12 +10525,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3322.0952380952376,
-                            "Y": -627.14285714285711
+                            "X": 3373.2580287929122,
+                            "Y": -1057.2325581395348
                           },
                           {
-                            "X": 3322.0952380952376,
-                            "Y": -316.74285714285713
+                            "X": 3373.2580287929122,
+                            "Y": -746.83255813953485
                           }
                         ]
                       },
@@ -10469,12 +11029,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2949.6428571428573,
-                            "Y": 137.0
+                            "X": 3000.8056478405319,
+                            "Y": -293.23255813953483
                           },
                           {
-                            "X": 2949.6428571428573,
-                            "Y": 51.0
+                            "X": 3000.8056478405319,
+                            "Y": -379.23255813953483
                           }
                         ]
                       },
@@ -10487,12 +11047,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2973.9285714285716,
-                            "Y": 221.0
+                            "X": 3025.0913621262462,
+                            "Y": -209.23255813953483
                           },
                           {
-                            "X": 2973.9285714285716,
-                            "Y": 90.0
+                            "X": 3025.0913621262462,
+                            "Y": -340.23255813953483
                           }
                         ]
                       },
@@ -10559,12 +11119,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3522.0,
-                            "Y": -453.0
+                            "X": 3573.1627906976746,
+                            "Y": -883.23255813953483
                           },
                           {
-                            "X": 3522.0,
-                            "Y": -510.5
+                            "X": 3573.1627906976746,
+                            "Y": -940.73255813953483
                           }
                         ]
                       },
@@ -10577,12 +11137,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3522.0,
-                            "Y": -298.0
+                            "X": 3573.1627906976746,
+                            "Y": -728.23255813953483
                           },
                           {
-                            "X": 3522.0,
-                            "Y": -227.5
+                            "X": 3573.1627906976746,
+                            "Y": -657.73255813953483
                           }
                         ]
                       },
@@ -10595,12 +11155,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3737.0,
-                            "Y": -552.25
+                            "X": 3851.1627906976746,
+                            "Y": -982.48255813953483
                           },
                           {
-                            "X": 3737.0,
-                            "Y": -552.0
+                            "X": 3851.1627906976746,
+                            "Y": -981.39925813953482
                           }
                         ]
                       },
@@ -10622,12 +11182,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3732.0,
-                            "Y": -227.5
+                            "X": 3851.1627906976746,
+                            "Y": -657.73255813953483
                           },
                           {
-                            "X": 3732.0,
-                            "Y": -181.0
+                            "X": 3851.1627906976746,
+                            "Y": -610.39925813953482
                           }
                         ]
                       },
@@ -10649,12 +11209,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3732.0,
-                            "Y": -269.25
+                            "X": 3792.0718816067651,
+                            "Y": -699.48255813953472
                           },
                           {
-                            "X": 3732.0,
-                            "Y": -468.0
+                            "X": 3792.0718816067651,
+                            "Y": -897.39922480620135
                           }
                         ]
                       },
@@ -10667,12 +11227,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 3701.7647058823522,
-                            "Y": -510.5
+                            "X": 3820.7082452431287,
+                            "Y": -940.73255813953483
                           },
                           {
-                            "X": 3701.7647058823522,
-                            "Y": -265.0
+                            "X": 3820.7082452431287,
+                            "Y": -694.39925813953482
                           }
                         ]
                       },
@@ -10701,7 +11261,16 @@
                         "TargetUid": "SingleVolumeControl_14",
                         "TargetPinName": "Input0",
                         "LinkType": "SampleAnalog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": 2843.1627906976746,
+                            "Y": -293.21695813953482
+                          },
+                          {
+                            "X": 2843.1627906976746,
+                            "Y": -293.23255813953483
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_354",
@@ -10712,12 +11281,12 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 2792.0,
-                            "Y": 168.0156
+                            "X": 2843.1627906976746,
+                            "Y": -262.20144702842373
                           },
                           {
-                            "X": 2792.0,
-                            "Y": 221.0
+                            "X": 2843.1627906976746,
+                            "Y": -209.23255813953483
                           }
                         ]
                       },
@@ -10730,12 +11299,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 2651.2087912087909,
-                            "Y": 191.0
+                            "X": 2702.371581906466,
+                            "Y": -239.23255813953483
                           },
                           {
-                            "X": 2651.2087912087909,
-                            "Y": 161.8124
+                            "X": 2702.371581906466,
+                            "Y": -268.40455813953486
                           }
                         ]
                       },
@@ -10748,12 +11317,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 2671.8681318681315,
-                            "Y": 239.0
+                            "X": 2723.0309225658061,
+                            "Y": -191.23255813953483
                           },
                           {
-                            "X": 2671.8681318681315,
-                            "Y": 180.4218
+                            "X": 2723.0309225658061,
+                            "Y": -249.79522480620148
                           }
                         ]
                       },
@@ -10766,12 +11335,12 @@
                         "LinkType": "Analog",
                         "Points": [
                           {
-                            "X": 2651.6483516483513,
-                            "Y": 96.0
+                            "X": 2702.8111423460259,
+                            "Y": -334.23255813953483
                           },
                           {
-                            "X": 2651.6483516483513,
-                            "Y": 124.5938
+                            "X": 2702.8111423460259,
+                            "Y": -305.62322480620151
                           }
                         ]
                       },
@@ -10782,7 +11351,16 @@
                         "TargetUid": "StereoSwitchNx2_5",
                         "TargetPinName": "Input1",
                         "LinkType": "Analog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": 2736.1627906976751,
+                            "Y": -287.23255813953483
+                          },
+                          {
+                            "X": 2736.1627906976751,
+                            "Y": -287.01385813953482
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_359",
@@ -10969,42 +11547,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_373",
-                        "SourceUid": "SingleControlSplitter_2",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "SingleVolumeControl_18",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 3674.7058823529405,
-                            "Y": -468.75
-                          },
-                          {
-                            "X": 3674.7058823529405,
-                            "Y": 71.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_374",
-                        "SourceUid": "SingleControlSplitter_3",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "SingleVolumeControl_18",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 3657.6470588235288,
-                            "Y": -185.75
-                          },
-                          {
-                            "X": 3657.6470588235288,
-                            "Y": 155.0
-                          }
-                        ]
-                      },
-                      {
                         "Uid": "Link_372",
                         "SourceUid": "SingleVolumeControl_18",
                         "SourcePinName": "Output1",
@@ -11021,6 +11563,250 @@
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
                         "Points": []
+                      },
+                      {
+                        "Uid": "Link_375",
+                        "SourceUid": "AliasOutput_58",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input0",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3932.0930232558135,
+                            "Y": -211.59568604651167
+                          },
+                          {
+                            "X": 3932.0930232558135,
+                            "Y": -211.83088604651169
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_376",
+                        "SourceUid": "AliasOutput_59",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input1",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3782.3708010335913,
+                            "Y": -164.85529715762277
+                          },
+                          {
+                            "X": 3782.3708010335913,
+                            "Y": -197.91751937984503
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_377",
+                        "SourceUid": "AliasOutput_60",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input2",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3797.7874677002592,
+                            "Y": -118.85529715762277
+                          },
+                          {
+                            "X": 3797.7874677002592,
+                            "Y": -184.00418604651168
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_378",
+                        "SourceUid": "AliasOutput_61",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input3",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3814.8708010335927,
+                            "Y": -68.355297157622772
+                          },
+                          {
+                            "X": 3814.8708010335927,
+                            "Y": -170.09085271317832
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_379",
+                        "SourceUid": "AliasOutput_54",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input4",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3832.3708010335927,
+                            "Y": -19.281767745858588
+                          },
+                          {
+                            "X": 3832.3708010335927,
+                            "Y": -156.17751937984502
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_380",
+                        "SourceUid": "AliasOutput_55",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input5",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3850.2874677002592,
+                            "Y": 31.144702842377228
+                          },
+                          {
+                            "X": 3850.2874677002592,
+                            "Y": -142.26418604651167
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_381",
+                        "SourceUid": "AliasOutput_56",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input6",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3866.5374677002592,
+                            "Y": 84.80156558747467
+                          },
+                          {
+                            "X": 3866.5374677002592,
+                            "Y": -128.35085271317837
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_382",
+                        "SourceUid": "AliasOutput_57",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input7",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3883.6208010335927,
+                            "Y": 136.96823225414141
+                          },
+                          {
+                            "X": 3883.6208010335927,
+                            "Y": -114.43751937984501
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_383",
+                        "SourceUid": "SingleControlSplitter_2",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "AliasInput_22",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3712.3160906976746,
+                            "Y": -898.98255813953483
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_384",
+                        "SourceUid": "SingleControlSplitter_3",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "AliasInput_23",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3711.1627906976746,
+                            "Y": -615.98255813953483
+                          },
+                          {
+                            "X": 3711.1627906976746,
+                            "Y": -619.23255813953483
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_385",
+                        "SourceUid": "AliasOutput_62",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input8",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3905.0341997264009,
+                            "Y": 185.25581395348831
+                          },
+                          {
+                            "X": 3905.0341997264009,
+                            "Y": -100.52418604651166
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_386",
+                        "SourceUid": "AliasOutput_63",
+                        "SourcePinName": "Output",
+                        "TargetUid": "StereoSwitchNx2_8",
+                        "TargetPinName": "Input9",
+                        "LinkType": "Analog",
+                        "Points": [
+                          {
+                            "X": 3927.387140902872,
+                            "Y": 229.25581395348831
+                          },
+                          {
+                            "X": 3927.387140902872,
+                            "Y": -86.61085271317836
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_387",
+                        "SourceUid": "StereoSwitchNx2_8",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleVolumeControl_18",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 4064.8622232558137,
+                            "Y": -174.72858604651168
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_388",
+                        "SourceUid": "StereoSwitchNx2_8",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleVolumeControl_18",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 4041.0930232558139,
+                            "Y": -123.71308604651171
+                          },
+                          {
+                            "X": 4041.0930232558139,
+                            "Y": -90.205686046511687
+                          }
+                        ]
                       }
                     ],
                     "AltShapes": [],
@@ -11074,8 +11860,8 @@
     "AltShapes": [],
     "PropertyPresets": {}
   },
-  "LastActiveTabUid": "ADAU1466_1",
-  "LastActiveTabName": "Settings",
-  "LastActiveTabIsConfig": true,
-  "LastActiveTabIsEditable": false
+  "LastActiveTabUid": "ADAU146xSchematic_1",
+  "LastActiveTabName": "ADAU146xSchematic_1",
+  "LastActiveTabIsConfig": false,
+  "LastActiveTabIsEditable": true
 }
