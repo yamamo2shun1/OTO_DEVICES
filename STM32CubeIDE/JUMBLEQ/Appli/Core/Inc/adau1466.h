@@ -52,6 +52,14 @@ enum
     RETURN_CH_USB34      = 21,
 };
 
+enum
+{
+    CUE_SEL_XF_A = 0,
+    CUE_SEL_XF_B = 1,
+    CUE_SEL_THRU = 2,
+	CUE_SEL_MST  = 3,
+};
+
 double convert_pot2dB(uint16_t adc_val);
 int16_t convert_pot2dB_int(uint16_t adc_val);
 

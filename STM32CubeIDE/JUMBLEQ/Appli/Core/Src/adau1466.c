@@ -655,21 +655,20 @@ void select_hp_out_source(uint8_t ch)
 
     switch (ch)
     {
-    case INPUT_CH1:
+    case CUE_SEL_XF_A:
         Mode0[3] = 0x00;
         break;
-    case INPUT_CH2:
+    case CUE_SEL_XF_B:
         Mode0[3] = 0x01;
         break;
-    case INPUT_USB12:
+    case CUE_SEL_THRU:
         Mode0[3] = 0x02;
         break;
-    case INPUT_USB34:
+    case CUE_SEL_MST:
         Mode0[3] = 0x03;
         break;
-    case INPUT_MASTER:
-        Mode0[3] = 0x04;
-        break;
+    default:
+    	break;
     }
 
     SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_HP_OUT_SW_INDEX_ADDR, 4, Mode0);
