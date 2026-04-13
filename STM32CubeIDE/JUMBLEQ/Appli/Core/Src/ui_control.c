@@ -444,12 +444,13 @@ uint8_t get_current_xfB_position(void)
 
 int16_t get_current_ch1_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[11]);
+    // Input display order follows the physical POT assignment: 10 -> CH1, 11 -> CH2.
+    return convert_pot2dB_int(s_ui.pot_val[10]);
 }
 
 int16_t get_current_ch2_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[10]);
+    return convert_pot2dB_int(s_ui.pot_val[11]);
 }
 
 int16_t get_current_ch1_out_db(void)
@@ -1106,15 +1107,17 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     case 6:
     	control_hp_out_gain(value);
     	break;
+    // Physical output pots are wired as 7 -> CH1, 8 -> CH2.
     case 7:
-        control_ch2_out_gain(value);
+        control_ch1_out_gain(value);
         break;
     case 8:
-        control_ch1_out_gain(value);
+        control_ch2_out_gain(value);
         break;
     case 9:
         control_input_from_return_gain(value);
         break;
+    // Physical input pots are wired as 10 -> CH1, 11 -> CH2.
     case 10:
         control_input_from_ch1_gain(value);
         break;
