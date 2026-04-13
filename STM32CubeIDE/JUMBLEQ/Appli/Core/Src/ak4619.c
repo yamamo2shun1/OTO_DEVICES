@@ -111,7 +111,8 @@ void AUDIO_Init_AK4619(uint32_t hz)
 
     // DAC Input Select Setting
     // sndData[0] = 0x0E;  // 00 00 11 10 (ADC1 -> DAC1, ADC2 -> DAC2)
-    if (ak4619_write_reg(0x12, 0x04) != HAL_OK)  // 00 00 01 00 (SDIN2 -> DAC2, SDIN1 -> DAC1)
+    // Swap DAC1/DAC2 here to match the current PCB output jack order.
+    if (ak4619_write_reg(0x12, 0x01) != HAL_OK)  // 00 00 00 01 (SDIN2 -> DAC1, SDIN1 -> DAC2)
     {
         return;
     }
