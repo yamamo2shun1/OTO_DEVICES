@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <string.h>
 
+static void draw_sub_headphones_icon(uint8_t x, uint8_t y);
+
 static void merge_dirty_pages(bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page, uint8_t page_start, uint8_t page_end)
 {
     if (!*dirty)
@@ -71,6 +73,29 @@ static void update_sub_dvs_badge(bool show, bool enabled, uint8_t x, uint8_t y, 
     *prev_show    = show;
     *prev_enabled = enabled;
     merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, 0, 1);
+}
+
+static void update_sub_bottom_status(char* prev_srcP, size_t prev_srcP_size, char* prev_hp_src, size_t prev_hp_src_size, const char* srcP, const char* hp_src, bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page)
+{
+    const bool srcP_changed   = (strcmp(prev_srcP, srcP) != 0);
+    const bool hp_src_changed = (strcmp(prev_hp_src, hp_src) != 0);
+
+    if (!srcP_changed && !hp_src_changed)
+    {
+        return;
+    }
+
+    // Treat the bottom row as one unit so overlapping redraw regions never erase the HP label.
+    sub_oled_FillRectangle(0, 50, 127, 59, Black);
+    sub_oled_SetCursor(1, 50);
+    sub_oled_WriteString((char*) srcP, Font_7x10, White);
+    draw_sub_headphones_icon(103, 50);
+    sub_oled_SetCursor(120, 51);
+    sub_oled_WriteString((char*) hp_src, Font_7x10, White);
+
+    snprintf(prev_srcP, prev_srcP_size, "%s", srcP);
+    snprintf(prev_hp_src, prev_hp_src_size, "%s", hp_src);
+    merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, 6, 7);
 }
 
 static const char* nonnull_str(const char* text)
@@ -299,7 +324,6 @@ void OLED_UpdateTask(void)
     const char* typeB = nonnull_str(get_current_input_typeB_str());
     const char* srcP  = nonnull_str(get_current_input_srcP_str());
     const char* hpSrc = nonnull_str(get_current_hp_out_src_str());
-    const bool srcP_changed = (strcmp(prev_srcP, srcP) != 0);
 
     bool sub_dirty               = false;
     uint8_t sub_dirty_start_page = 0xFF;
@@ -325,13 +349,7 @@ void OLED_UpdateTask(void)
     update_sub_text_block(prev_srcB, sizeof(prev_srcB), srcB, 93, 5, 127, 14, 93, 5, 0, 1, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_typeA, sizeof(prev_typeA), typeA, 0, 30, 55, 39, 1, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_typeB, sizeof(prev_typeB), typeB, 73, 30, 127, 39, 77, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
-    update_sub_text_block(prev_srcP, sizeof(prev_srcP), srcP, 0, 50, 127, 59, 1, 50, 6, 7, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
-    draw_sub_headphones_icon(103, 50);
-    if (srcP_changed)
-    {
-        prev_hp_src[0] = '\0';
-    }
-    update_sub_text_block(prev_hp_src, sizeof(prev_hp_src), hpSrc, 119, 50, 127, 59, 120, 51, 6, 7, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
+    update_sub_bottom_status(prev_srcP, sizeof(prev_srcP), prev_hp_src, sizeof(prev_hp_src), srcP, hpSrc, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
 
     uint8_t srcA_channel = get_current_input_srcA_channel();
     bool srcA_show_dvs   = (srcA_channel != 0U);
