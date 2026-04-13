@@ -102,6 +102,23 @@ static uint16_t oled_text_width_px(SSD1306_Font_t const* font, const char* text)
     return width;
 }
 
+static const unsigned char sub_headphones_icon_16x10[] = {
+    0x03, 0xC0, // 00000011 11000000
+    0x0E, 0x70, // 00001110 01110000
+    0x18, 0x18, // 00011000 00011000
+    0x30, 0x0C, // 00110000 00001100
+    0x20, 0x04, // 00100000 00000100
+    0x20, 0x04, // 00100000 00000100
+    0x36, 0x6C, // 00110110 01101100
+    0x3E, 0x7C, // 00111110 01111100
+    0x1E, 0x78, // 00011110 01111000
+    0x0E, 0x70, // 00001110 01110000
+};
+
+static void draw_sub_headphones_icon(uint8_t x, uint8_t y)
+{
+    sub_oled_DrawBitmap(x, y, sub_headphones_icon_16x10, 16, 10, White);
+}
 static bool wait_main_oled_ready(uint32_t timeout_ms)
 {
     uint32_t start = HAL_GetTick();
@@ -295,7 +312,6 @@ void OLED_UpdateTask(void)
         sub_oled_FillRectangle(60, 27, 68, 15, White);
         sub_oled_FillCircle(64, 15, 4, White);
         sub_oled_FillCircle(64, 27, 4, White);
-
         sub_dirty            = true;
         sub_dirty_start_page = 0;
         sub_dirty_end_page   = (uint8_t) ((SUB_OLED_HEIGHT / 8U) - 1U);
@@ -307,6 +323,9 @@ void OLED_UpdateTask(void)
     update_sub_text_block(prev_typeA, sizeof(prev_typeA), typeA, 0, 30, 55, 39, 1, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_typeB, sizeof(prev_typeB), typeB, 73, 30, 127, 39, 77, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_srcP, sizeof(prev_srcP), srcP, 0, 50, 127, 59, 1, 50, 6, 7, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
+    draw_sub_headphones_icon(103, 50);
+    sub_oled_SetCursor(120, 51);
+    sub_oled_WriteString("M", Font_7x10, White);
 
     uint8_t srcA_channel = get_current_input_srcA_channel();
     bool srcA_show_dvs   = (srcA_channel != 0U);
