@@ -196,13 +196,13 @@ void OLED_UpdateTask(void)
     static bool prev_curve_edit_mode = false;
 
     char line1_ch2[24];
-    char line2_c1[24];
+    char line2_ch1[24];
     char line3_sr[24];
     char line_edit_mode[20];
     char line_edit_a[20];
     char line_edit_b[20];
     static char prev_line1_ch2[24]      = {0};
-    static char prev_line2_c1[24]       = {0};
+    static char prev_line2_ch1[24]      = {0};
     static char prev_line3_sr[24]       = {0};
     static char prev_line_edit_mode[20] = {0};
     static char prev_line_edit_a[20]    = {0};
@@ -226,7 +226,7 @@ void OLED_UpdateTask(void)
     {
         main_oled_Fill(Black);
         memset(prev_line1_ch2, 0, sizeof(prev_line1_ch2));
-        memset(prev_line2_c1, 0, sizeof(prev_line2_c1));
+        memset(prev_line2_ch1, 0, sizeof(prev_line2_ch1));
         memset(prev_line3_sr, 0, sizeof(prev_line3_sr));
         memset(prev_line_edit_mode, 0, sizeof(prev_line_edit_mode));
         memset(prev_line_edit_a, 0, sizeof(prev_line_edit_a));
@@ -250,11 +250,12 @@ void OLED_UpdateTask(void)
         {
             snprintf(line1_ch2, sizeof(line1_ch2), "%lu %3d|Out|%3d dB", (unsigned long) sample_rate_hz, get_current_ch1_out_db(), get_current_ch2_out_db());
         }
-        snprintf(line2_c1, sizeof(line2_c1), "%-3s %3d|In |%3d dB", return_src, get_current_ch2_in_db(), get_current_ch1_in_db());
+        // MAIN OLED shows both Out and In as CH1, CH2.
+        snprintf(line2_ch1, sizeof(line2_ch1), "%-3s %3d|In |%3d dB", return_src, get_current_ch1_in_db(), get_current_ch2_in_db());
         snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d%% RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
 
         if ((strcmp(prev_line1_ch2, line1_ch2) != 0) ||
-            (strcmp(prev_line2_c1, line2_c1) != 0) ||
+            (strcmp(prev_line2_ch1, line2_ch1) != 0) ||
             (strcmp(prev_line3_sr, line3_sr) != 0))
         {
             main_redraw = true;
@@ -266,12 +267,12 @@ void OLED_UpdateTask(void)
             main_oled_SetCursor(0, 0);
             main_oled_WriteString(line1_ch2, Font_7x10, White);
             main_oled_SetCursor(0, 10);
-            main_oled_WriteString(line2_c1, Font_7x10, White);
+            main_oled_WriteString(line2_ch1, Font_7x10, White);
             main_oled_SetCursor(0, 22);
             main_oled_WriteString(line3_sr, Font_7x10, White);
 
             snprintf(prev_line1_ch2, sizeof(prev_line1_ch2), "%s", line1_ch2);
-            snprintf(prev_line2_c1, sizeof(prev_line2_c1), "%s", line2_c1);
+            snprintf(prev_line2_ch1, sizeof(prev_line2_ch1), "%s", line2_ch1);
             snprintf(prev_line3_sr, sizeof(prev_line3_sr), "%s", line3_sr);
 
             dirty            = true;
