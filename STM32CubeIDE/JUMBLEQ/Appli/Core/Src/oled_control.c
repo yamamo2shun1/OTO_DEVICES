@@ -187,6 +187,7 @@ void OLED_UpdateTask(void)
     static char prev_typeA[32]          = {0};
     static char prev_typeB[32]          = {0};
     static char prev_srcP[32]           = {0};
+    static char prev_hp_src[8]          = {0};
     static bool prev_dvsA_show          = false;
     static bool prev_dvsA_enabled       = false;
     static bool prev_dvsB_show          = false;
@@ -297,6 +298,8 @@ void OLED_UpdateTask(void)
     const char* typeA = nonnull_str(get_current_input_typeA_str());
     const char* typeB = nonnull_str(get_current_input_typeB_str());
     const char* srcP  = nonnull_str(get_current_input_srcP_str());
+    const char* hpSrc = nonnull_str(get_current_hp_out_src_str());
+    const bool srcP_changed = (strcmp(prev_srcP, srcP) != 0);
 
     bool sub_dirty               = false;
     uint8_t sub_dirty_start_page = 0xFF;
@@ -324,8 +327,11 @@ void OLED_UpdateTask(void)
     update_sub_text_block(prev_typeB, sizeof(prev_typeB), typeB, 73, 30, 127, 39, 77, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_srcP, sizeof(prev_srcP), srcP, 0, 50, 127, 59, 1, 50, 6, 7, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     draw_sub_headphones_icon(103, 50);
-    sub_oled_SetCursor(120, 51);
-    sub_oled_WriteString("M", Font_7x10, White);
+    if (srcP_changed)
+    {
+        prev_hp_src[0] = '\0';
+    }
+    update_sub_text_block(prev_hp_src, sizeof(prev_hp_src), hpSrc, 119, 50, 127, 59, 120, 51, 6, 7, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
 
     uint8_t srcA_channel = get_current_input_srcA_channel();
     bool srcA_show_dvs   = (srcA_channel != 0U);

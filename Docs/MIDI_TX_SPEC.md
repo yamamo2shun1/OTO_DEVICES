@@ -40,6 +40,7 @@
 | 16/17 | Ch.1 DVS（Off / On） |
 | 18/19 | Ch.2 DVS（Off / On） |
 | 20/21 | Returnソース（USB[1/2] / USB[3/4]） |
+| 22/23/24/25 | HP出力ソース（XF_A / XF_B / THRU / MASTER） |
 | 122/123 | 磁気スイッチ送信MIDI（CC / Note） |
 
 ### 4.2 Control Change（Device -> Host, Ch.15）
