@@ -43,6 +43,26 @@ enum
     INPUT_SRC_NONE,
 };
 
+enum
+{
+    POT_CH_CC0 = 0,
+    POT_CH_CC1,
+    POT_CH_CH1_IN,
+    POT_CH_CC2,
+    POT_CH_CC3,
+    POT_CH_CC4,
+    POT_CH_CH2_IN,
+    POT_CH_CH1_OUT,
+    POT_CH_CH2_OUT,
+    POT_CH_DRY_WET,
+    POT_CH_RETURN_IN,
+    POT_CH_HP_OUT,
+    POT_CH_MAG0,
+    POT_CH_MAG1,
+    POT_CH_MAG2,
+    POT_CH_MAG3,
+};
+
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
 // State used by magnetic-switch crossfader processing.
@@ -130,8 +150,8 @@ static ui_control_state_t s_ui = {
 };
 
 static volatile bool is_adc_complete  = false;
-static const uint8_t POT_MAG_CH_FIRST = 12U;
-static const uint8_t POT_MAG_CH_LAST  = 15U;
+static const uint8_t POT_MAG_CH_FIRST = POT_CH_MAG0;
+static const uint8_t POT_MAG_CH_LAST  = POT_CH_MAG3;
 
 static const float XFADE_CC_UPDATE_THRESHOLD    = 0.01f;
 static const float XFADE_EXTREMA_HYSTERESIS     = 0.002f;
@@ -444,42 +464,42 @@ uint8_t get_current_xfB_position(void)
 
 int16_t get_current_ch1_in_db(void)
 {
-    // Input display order follows the physical POT assignment: 10 -> CH1, 11 -> CH2.
-    return convert_pot2dB_int(s_ui.pot_val[10]);
+    // Input display order follows the current physical POT assignment.
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_CH1_IN]);
 }
 
 int16_t get_current_ch2_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[11]);
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_CH2_IN]);
 }
 
 int16_t get_current_ch1_out_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[7]);
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_CH1_OUT]);
 }
 
 int16_t get_current_ch2_out_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[8]);
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_CH2_OUT]);
 }
 
 int16_t get_current_return_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[9]);
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_RETURN_IN]);
 }
 
 int16_t get_current_dry_wet(void)
 {
-    if (s_ui.pot_val[5] <= POT_10BIT_MIN_DEADZONE)
+    if (s_ui.pot_val[POT_CH_DRY_WET] <= POT_10BIT_MIN_DEADZONE)
     {
         return 0;
     }
-    if (s_ui.pot_val[5] >= POT_10BIT_DW_MAX_SNAP_START)
+    if (s_ui.pot_val[POT_CH_DRY_WET] >= POT_10BIT_DW_MAX_SNAP_START)
     {
         return 100;
     }
 
-    int16_t pct = (int16_t) ((((double) (s_ui.pot_val[5] - POT_10BIT_MIN_DEADZONE)) /
+    int16_t pct = (int16_t) ((((double) (s_ui.pot_val[POT_CH_DRY_WET] - POT_10BIT_MIN_DEADZONE)) /
                               ((double) (POT_10BIT_DW_MAX_SNAP_START - POT_10BIT_MIN_DEADZONE)) * 100.0) + 0.5);
     if (pct < 0)
     {
@@ -723,7 +743,7 @@ void start_adc(void)
     HAL_GPIO_WritePin(S0_GPIO_Port, S0_Pin, 0);
     HAL_GPIO_WritePin(S1_GPIO_Port, S1_Pin, 0);
     HAL_GPIO_WritePin(S2_GPIO_Port, S2_Pin, 0);
-    s_ui.pot_ch = 1;
+    s_ui.pot_ch = POT_CH_CC1;
 
     if (HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED) != HAL_OK)
     {
@@ -1086,14 +1106,34 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
 {
     switch (channel)
     {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-        send_control_change(channel, value, 0);
+    case POT_CH_CC0:
+        send_control_change(0, value, 0);
         break;
-    case 5:
+    case POT_CH_CC1:
+        send_control_change(1, value, 0);
+        break;
+    case POT_CH_CH1_IN:
+        control_input_from_ch1_gain(value);
+        break;
+    case POT_CH_CC2:
+        send_control_change(2, value, 0);
+        break;
+    case POT_CH_CC3:
+        send_control_change(3, value, 0);
+        break;
+    case POT_CH_CC4:
+        send_control_change(4, value, 0);
+        break;
+    case POT_CH_CH2_IN:
+        control_input_from_ch2_gain(value);
+        break;
+    case POT_CH_CH1_OUT:
+        control_ch1_out_gain(value);
+        break;
+    case POT_CH_CH2_OUT:
+        control_ch2_out_gain(value);
+        break;
+    case POT_CH_DRY_WET:
         if (s_ui.current_return_assign == INPUT_SRC_USB12)
         {
             control_dryA_out_gain(value);
@@ -1104,30 +1144,16 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         }
         control_wet_out_gain(value);
         break;
-    case 6:
-    	control_hp_out_gain(value);
-    	break;
-    // Physical output pots are wired as 7 -> CH1, 8 -> CH2.
-    case 7:
-        control_ch1_out_gain(value);
-        break;
-    case 8:
-        control_ch2_out_gain(value);
-        break;
-    case 9:
+    case POT_CH_RETURN_IN:
         control_input_from_return_gain(value);
         break;
-    // Physical input pots are wired as 10 -> CH1, 11 -> CH2.
-    case 10:
-        control_input_from_ch1_gain(value);
+    case POT_CH_HP_OUT:
+        control_hp_out_gain(value);
         break;
-    case 11:
-        control_input_from_ch2_gain(value);
-        break;
-    case 12:
-    case 13:
-    case 14:
-    case 15:
+    case POT_CH_MAG0:
+    case POT_CH_MAG1:
+    case POT_CH_MAG2:
+    case POT_CH_MAG3:
         emit_mag_output(channel, (uint8_t) (68U + (channel - POT_MAG_CH_FIRST)), (uint8_t) value);
         break;
     default:
@@ -1150,28 +1176,42 @@ static bool is_pot_hysteresis_channel(uint8_t channel)
     return channel < POT_HYSTERESIS_NUM;
 }
 
-static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
+static bool is_pot_cc_channel(uint8_t channel)
 {
     switch (channel)
     {
-    case 0:  // l0
-    case 1:  // l1
-    case 2:  // l2
-    case 3:  // l3
-    case 4:  // l4
+    case POT_CH_CC0:
+    case POT_CH_CC1:
+    case POT_CH_CC2:
+    case POT_CH_CC3:
+    case POT_CH_CC4:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
+{
+    if (is_pot_cc_channel(channel))
+    {
         return adc_raw >> 5;
-    case 5:  // l5
-    case 6:  // r0
-    case 7:  // r1
-    case 8:  // r2
-    case 9:  // r3
-    case 10: // r4
-    case 11: // r5
+    }
+
+    switch (channel)
+    {
+    case POT_CH_CH1_IN:   // l2
+    case POT_CH_CH2_IN:   // r0
+    case POT_CH_CH1_OUT:  // r1
+    case POT_CH_CH2_OUT:  // r2
+    case POT_CH_DRY_WET:  // r3
+    case POT_CH_RETURN_IN: // r4
+    case POT_CH_HP_OUT:   // r5
         return adc_raw >> 2;
-    case 12: // sub_key6
-    case 13: // sub_key7
-    case 14: // sub_key8
-    case 15: // sub_key9
+    case POT_CH_MAG0: // sub_key6
+    case POT_CH_MAG1: // sub_key7
+    case POT_CH_MAG2: // sub_key8
+    case POT_CH_MAG3: // sub_key9
         return adc_raw;
     default:
         return 0;
@@ -1180,7 +1220,7 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
 
 static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 {
-    if (channel < 5U)
+    if (is_pot_cc_channel(channel))
     {
         uint32_t value = ((uint32_t) adc_raw + 16U) >> 5;
         if (value > 127U)
@@ -1203,7 +1243,7 @@ static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 static bool should_apply_pot_hysteresis(uint8_t channel, uint16_t raw_avg, uint16_t* value_out)
 {
     const uint8_t idx = channel;
-    const uint8_t shift = (channel < 5U) ? 5U : 2U;
+    const uint8_t shift = is_pot_cc_channel(channel) ? 5U : 2U;
     const uint16_t candidate = quantize_pot_hysteresis_value(channel, raw_avg);
 
     if (!s_ui.pot_hysteresis_has_last_sent[idx])
@@ -2034,7 +2074,7 @@ void ui_control_reset_state(void)
         s_note_is_on[i]         = false;
         s_note_scan_active[i]   = false;
     }
-    s_ui.pot_ch         = 0;
+    s_ui.pot_ch         = POT_CH_CC0;
     s_ui.pot_ch_counter = 0;
     is_adc_complete     = false;
 }

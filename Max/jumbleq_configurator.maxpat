@@ -9,7 +9,7 @@
             "modernui": 1
         },
         "classnamespace": "box",
-        "rect": [ 68.0, 163.0, 554.0, 434.0 ],
+        "rect": [ 68.0, 163.0, 562.0, 417.0 ],
         "openinpresentation": 1,
         "boxes": [
             {
@@ -792,7 +792,7 @@
                     "parameter_enable": 0,
                     "patching_rect": [ 338.0, 441.0, 40.0, 40.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 91.5, 333.0, 40.0, 40.0 ]
+                    "presentation_rect": [ 141.0, 333.0, 40.0, 40.0 ]
                 }
             },
             {
@@ -1941,7 +1941,7 @@
                     "parameter_enable": 0,
                     "patching_rect": [ 280.0, 441.0, 40.0, 40.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 43.5, 333.0, 40.0, 40.0 ]
+                    "presentation_rect": [ 91.5, 333.0, 40.0, 40.0 ]
                 }
             },
             {
@@ -1954,7 +1954,7 @@
                     "parameter_enable": 0,
                     "patching_rect": [ 222.0, 441.0, 40.0, 40.0 ],
                     "presentation": 1,
-                    "presentation_rect": [ 141.0, 287.0, 40.0, 40.0 ]
+                    "presentation_rect": [ 44.5, 333.0, 40.0, 40.0 ]
                 }
             },
             {
