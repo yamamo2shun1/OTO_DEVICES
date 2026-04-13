@@ -20,7 +20,7 @@
 #define ADAU1466_REG_MCLK_OUT   0xF005U
 #define ADAU1466_REG_CLK_GEN1_M 0xF020U
 
-#define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
+#define ADAU1466_PLL_LOCK_TIMEOUT_MS    200U
 #define ADAU1466_DEFAULT_SAMPLE_RATE_HZ 48000U
 
 typedef struct
@@ -225,7 +225,7 @@ double convert_dB2gain(double db)
 static void write_q8_24(const uint16_t addr, const double val)
 {
     uint8_t gain_array[4] = {0x00};
-    uint32_t raw = adau1466_q8_24_to_raw(val);
+    uint32_t raw          = adau1466_q8_24_to_raw(val);
 
     adau1466_store_be32(raw, gain_array);
 
@@ -388,10 +388,17 @@ void control_ch2_out_gain(const uint16_t adc_val)
     write_q8_24(MOD_CH2_OUTPUT_GAIN_ADDR, gain);
 }
 
+void control_hp_out_gain(const uint16_t adc_val)
+{
+    const double db   = (double) convert_pot2dB_int(adc_val);
+    const double gain = convert_dB2gain(db);
+    write_q8_24(MOD_HP_OUTPUT_GAIN_ADDR, gain);
+}
+
 void set_ch1_line()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x00, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -402,8 +409,8 @@ void set_ch1_line()
 
 void set_ch1_phono()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x01, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -414,8 +421,8 @@ void set_ch1_phono()
 
 void set_ch2_line()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x00, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -426,8 +433,8 @@ void set_ch2_line()
 
 void set_ch2_phono()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x01, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -470,8 +477,8 @@ void select_input_type(uint8_t ch, uint8_t type)
 
 void disable_ch1_dvs()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x00, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -481,8 +488,8 @@ void disable_ch1_dvs()
 
 void enable_ch1_dvs()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x01, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -499,8 +506,8 @@ void select_send_ch1_src(bool enable)
 
 void disable_ch2_dvs()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x01, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x00, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -510,8 +517,8 @@ void disable_ch2_dvs()
 
 void enable_ch2_dvs()
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, 0x00};
-    ADI_REG_TYPE Mode0_1[4] = {0x01, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_0[4]  = {0x00, 0x00, 0x00, 0x00};
+    ADI_REG_TYPE Mode0_1[4]  = {0x01, 0x00, 0x00, 0x00};
     uint8_t safeload_data[8] = {0x00};
 
     memcpy(&safeload_data[0], Mode0_0, sizeof(Mode0_0));
@@ -640,4 +647,29 @@ void select_return_ch_source(uint8_t ch)
     }
 
     SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_RETURN_CH_SW_INDEX_ADDR, 4, Mode0);
+}
+
+void select_hp_out_source(uint8_t ch)
+{
+    ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
+
+    switch (ch)
+    {
+    case CUE_SEL_XF_A:
+        Mode0[3] = 0x00;
+        break;
+    case CUE_SEL_XF_B:
+        Mode0[3] = 0x01;
+        break;
+    case CUE_SEL_THRU:
+        Mode0[3] = 0x02;
+        break;
+    case CUE_SEL_MST:
+        Mode0[3] = 0x03;
+        break;
+    default:
+    	break;
+    }
+
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_HP_OUT_SW_INDEX_ADDR, 4, Mode0);
 }

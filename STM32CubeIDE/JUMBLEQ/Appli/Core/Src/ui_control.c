@@ -467,16 +467,17 @@ int16_t get_current_return_db(void)
 
 int16_t get_current_dry_wet(void)
 {
-    if (s_ui.pot_val[6] <= 8U)
+    if (s_ui.pot_val[5] <= POT_10BIT_MIN_DEADZONE)
     {
         return 0;
     }
-    if (s_ui.pot_val[6] >= 1015U)
+    if (s_ui.pot_val[5] >= POT_10BIT_DW_MAX_SNAP_START)
     {
         return 100;
     }
 
-    int16_t pct = (int16_t) (((double) s_ui.pot_val[6] / 1023.0 * 100.0) + 0.5);
+    int16_t pct = (int16_t) ((((double) (s_ui.pot_val[5] - POT_10BIT_MIN_DEADZONE)) /
+                              ((double) (POT_10BIT_DW_MAX_SNAP_START - POT_10BIT_MIN_DEADZONE)) * 100.0) + 0.5);
     if (pct < 0)
     {
         pct = 0;
@@ -1041,10 +1042,9 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     case 2:
     case 3:
     case 4:
-    case 5:
         send_control_change(channel, value, 0);
         break;
-    case 6:
+    case 5:
         if (s_ui.current_return_assign == INPUT_SRC_USB12)
         {
             control_dryA_out_gain(value);
@@ -1055,6 +1055,9 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         }
         control_wet_out_gain(value);
         break;
+    case 6:
+    	control_hp_out_gain(value);
+    	break;
     case 7:
         control_ch2_out_gain(value);
         break;
@@ -1105,19 +1108,19 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
     case 2:  // l2
     case 3:  // l3
     case 4:  // l4
-    case 5:  // l5
         return adc_raw >> 5;
-    case 6:   // r0
-    case 7:   // r1
-    case 8:   // r2
-    case 9:   // r3
-    case 10:  // r4
-    case 11:  // r5
+    case 5:  // l5
+    case 6:  // r0
+    case 7:  // r1
+    case 8:  // r2
+    case 9:  // r3
+    case 10: // r4
+    case 11: // r5
         return adc_raw >> 2;
-    case 12:  // sub_key6
-    case 13:  // sub_key7
-    case 14:  // sub_key8
-    case 15:  // sub_key9
+    case 12: // sub_key6
+    case 13: // sub_key7
+    case 14: // sub_key8
+    case 15: // sub_key9
         return adc_raw;
     default:
         return 0;
@@ -1126,7 +1129,7 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
 
 static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 {
-    if (channel < 6U)
+    if (channel < 5U)
     {
         uint32_t value = ((uint32_t) adc_raw + 16U) >> 5;
         if (value > 127U)
@@ -1149,7 +1152,7 @@ static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 static bool should_apply_pot_hysteresis(uint8_t channel, uint16_t raw_avg, uint16_t* value_out)
 {
     const uint8_t idx = channel;
-    const uint8_t shift = (channel < 6U) ? 5U : 2U;
+    const uint8_t shift = (channel < 5U) ? 5U : 2U;
     const uint16_t candidate = quantize_pot_hysteresis_value(channel, raw_avg);
 
     if (!s_ui.pot_hysteresis_has_last_sent[idx])

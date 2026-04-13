@@ -76,13 +76,13 @@
         <Link pin="Input" dir="in" link="Link_339" id="Link_339" />
         <Link pin="Output0" dir="out" link="Link_341" id="Link_341" />
         <Link pin="Output1" dir="out" link="Link_350" id="Link_350" />
-        <Link pin="Output2" dir="out" link="Link_373" id="Link_373" />
+        <Link pin="Output2" dir="out" link="Link_383" id="Link_383" />
       </Algorithm>
       <Algorithm name="SingleControlSplitter_3" friendlyname="Splits one Input Signal into Multiple Outputs.&#xA; The Output is affected by the Gain Scaled by the Values Specified in the Gain Control Knob">
         <Link pin="Input" dir="in" link="Link_340" id="Link_340" />
         <Link pin="Output1" dir="out" link="Link_346" id="Link_346" />
         <Link pin="Output0" dir="out" link="Link_349" id="Link_349" />
-        <Link pin="Output2" dir="out" link="Link_374" id="Link_374" />
+        <Link pin="Output2" dir="out" link="Link_384" id="Link_384" />
       </Algorithm>
       <Algorithm name="SignalMerger_B" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="DSPReadBack_B" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design" />
@@ -149,6 +149,7 @@
         <Link pin="Input" dir="in" link="Link_372" id="Link_372" />
       </Algorithm>
       <Algorithm name="hp_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
+      <Algorithm name="hp_out_sw" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
     </Schematic>
   </Core>
 </IC>

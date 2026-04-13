@@ -17,6 +17,7 @@ enum
     INPUT_CH2,
     INPUT_USB12,
     INPUT_USB34,
+    INPUT_MASTER,
 };
 
 enum
@@ -51,6 +52,14 @@ enum
     RETURN_CH_USB34      = 21,
 };
 
+enum
+{
+    CUE_SEL_XF_A = 0,
+    CUE_SEL_XF_B = 1,
+    CUE_SEL_THRU = 2,
+	CUE_SEL_MST  = 3,
+};
+
 double convert_pot2dB(uint16_t adc_val);
 int16_t convert_pot2dB_int(uint16_t adc_val);
 
@@ -75,6 +84,7 @@ void control_dryB_out_gain(const uint16_t adc_val);
 void control_wet_out_gain(const uint16_t adc_val);
 void control_ch1_out_gain(const uint16_t adc_val);
 void control_ch2_out_gain(const uint16_t adc_val);
+void control_hp_out_gain(const uint16_t adc_val);
 
 void select_input_type(uint8_t ch, uint8_t type);
 void enable_dvs(uint8_t ch, bool enable);
@@ -83,5 +93,6 @@ void select_xf_assignA_source(uint8_t ch);
 void select_xf_assignB_source(uint8_t ch);
 void select_xf_assignPost_source(uint8_t ch);
 void select_return_ch_source(uint8_t ch);
+void select_hp_out_source(uint8_t ch);
 
 #endif /* INC_ADAU1466_H_ */
