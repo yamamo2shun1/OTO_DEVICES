@@ -444,13 +444,13 @@ uint8_t get_current_xfB_position(void)
 
 int16_t get_current_ch1_in_db(void)
 {
-    // Input display order follows the physical POT assignment: 10 -> CH1, 11 -> CH2.
-    return convert_pot2dB_int(s_ui.pot_val[10]);
+    // Input display order follows the current physical POT assignment: 2 -> CH1, 6 -> CH2.
+    return convert_pot2dB_int(s_ui.pot_val[2]);
 }
 
 int16_t get_current_ch2_in_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[11]);
+    return convert_pot2dB_int(s_ui.pot_val[6]);
 }
 
 int16_t get_current_ch1_out_db(void)
@@ -465,21 +465,21 @@ int16_t get_current_ch2_out_db(void)
 
 int16_t get_current_return_db(void)
 {
-    return convert_pot2dB_int(s_ui.pot_val[9]);
+    return convert_pot2dB_int(s_ui.pot_val[10]);
 }
 
 int16_t get_current_dry_wet(void)
 {
-    if (s_ui.pot_val[5] <= POT_10BIT_MIN_DEADZONE)
+    if (s_ui.pot_val[9] <= POT_10BIT_MIN_DEADZONE)
     {
         return 0;
     }
-    if (s_ui.pot_val[5] >= POT_10BIT_DW_MAX_SNAP_START)
+    if (s_ui.pot_val[9] >= POT_10BIT_DW_MAX_SNAP_START)
     {
         return 100;
     }
 
-    int16_t pct = (int16_t) ((((double) (s_ui.pot_val[5] - POT_10BIT_MIN_DEADZONE)) /
+    int16_t pct = (int16_t) ((((double) (s_ui.pot_val[9] - POT_10BIT_MIN_DEADZONE)) /
                               ((double) (POT_10BIT_DW_MAX_SNAP_START - POT_10BIT_MIN_DEADZONE)) * 100.0) + 0.5);
     if (pct < 0)
     {
@@ -1087,13 +1087,35 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     switch (channel)
     {
     case 0:
+        send_control_change(0, value, 0);
+        break;
     case 1:
+        send_control_change(1, value, 0);
+        break;
+    // Current physical input pots are wired as 2 -> CH1 and 6 -> CH2.
     case 2:
+        control_input_from_ch1_gain(value);
+        break;
     case 3:
+        send_control_change(2, value, 0);
+        break;
     case 4:
-        send_control_change(channel, value, 0);
+        send_control_change(3, value, 0);
         break;
     case 5:
+        send_control_change(4, value, 0);
+        break;
+    case 6:
+    	control_input_from_ch2_gain(value);
+    	break;
+    // Physical output pots are wired as 7 -> CH1, 8 -> CH2.
+    case 7:
+        control_ch1_out_gain(value);
+        break;
+    case 8:
+        control_ch2_out_gain(value);
+        break;
+    case 9:
         if (s_ui.current_return_assign == INPUT_SRC_USB12)
         {
             control_dryA_out_gain(value);
@@ -1104,26 +1126,12 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         }
         control_wet_out_gain(value);
         break;
-    case 6:
-    	control_hp_out_gain(value);
-    	break;
-    // Physical output pots are wired as 7 -> CH1, 8 -> CH2.
-    case 7:
-        control_ch1_out_gain(value);
-        break;
-    case 8:
-        control_ch2_out_gain(value);
-        break;
-    case 9:
+    case 10:
         control_input_from_return_gain(value);
         break;
-    // Physical input pots are wired as 10 -> CH1, 11 -> CH2.
-    case 10:
-        control_input_from_ch1_gain(value);
-        break;
     case 11:
-        control_input_from_ch2_gain(value);
-        break;
+    	control_hp_out_gain(value);
+    	break;
     case 12:
     case 13:
     case 14:
@@ -1150,17 +1158,31 @@ static bool is_pot_hysteresis_channel(uint8_t channel)
     return channel < POT_HYSTERESIS_NUM;
 }
 
-static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
+static bool is_pot_cc_channel(uint8_t channel)
 {
     switch (channel)
     {
-    case 0:  // l0
-    case 1:  // l1
-    case 2:  // l2
-    case 3:  // l3
-    case 4:  // l4
+    case 0:
+    case 1:
+    case 3:
+    case 4:
+    case 5:
+        return true;
+    default:
+        return false;
+    }
+}
+
+static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
+{
+    if (is_pot_cc_channel(channel))
+    {
         return adc_raw >> 5;
-    case 5:  // l5
+    }
+
+    switch (channel)
+    {
+    case 2:  // l2
     case 6:  // r0
     case 7:  // r1
     case 8:  // r2
@@ -1180,7 +1202,7 @@ static uint32_t read_pot_sample_from_adc(uint8_t channel, uint32_t adc_raw)
 
 static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 {
-    if (channel < 5U)
+    if (is_pot_cc_channel(channel))
     {
         uint32_t value = ((uint32_t) adc_raw + 16U) >> 5;
         if (value > 127U)
@@ -1203,7 +1225,7 @@ static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
 static bool should_apply_pot_hysteresis(uint8_t channel, uint16_t raw_avg, uint16_t* value_out)
 {
     const uint8_t idx = channel;
-    const uint8_t shift = (channel < 5U) ? 5U : 2U;
+    const uint8_t shift = is_pot_cc_channel(channel) ? 5U : 2U;
     const uint16_t candidate = quantize_pot_hysteresis_value(channel, raw_avg);
 
     if (!s_ui.pot_hysteresis_has_last_sent[idx])
