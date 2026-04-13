@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "adau1466.h"
 #include "ui_control.h"
 
 typedef struct
@@ -58,6 +59,7 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
     cfg->current_xfB_assign     = 0U; /* INPUT_SRC_CH1_LN */
     cfg->current_xfpost_assign  = 4U; /* INPUT_SRC_USB12 */
     cfg->current_return_assign  = 5U; /* INPUT_SRC_USB34 */
+    cfg->current_hp_out_source  = CUE_SEL_MST;
     cfg->current_ch1_dvs_enable = 0U; /* disabled */
     cfg->current_ch2_dvs_enable = 0U; /* disabled */
     cfg->mag_output_mode_flags  = 0U;
@@ -81,6 +83,7 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     cfg->current_xfB_assign     = state.current_xfB_assign;
     cfg->current_xfpost_assign  = state.current_xfpost_assign;
     cfg->current_return_assign  = state.current_return_assign;
+    cfg->current_hp_out_source  = state.current_hp_out_source;
     cfg->current_ch1_dvs_enable = state.current_ch1_dvs_enable;
     cfg->current_ch2_dvs_enable = state.current_ch2_dvs_enable;
     cfg->mag_output_mode_flags  = state.mag_out_as_note ? EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE : 0U;

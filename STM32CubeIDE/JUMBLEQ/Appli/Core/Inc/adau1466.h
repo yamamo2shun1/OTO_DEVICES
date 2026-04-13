@@ -50,6 +50,10 @@ enum
     CH2_DVS_ENABLE       = 19,
     RETURN_CH_USB12      = 20,
     RETURN_CH_USB34      = 21,
+    HP_OUT_XF_A          = 22,
+    HP_OUT_XF_B          = 23,
+    HP_OUT_THRU          = 24,
+    HP_OUT_MASTER        = 25,
 };
 
 enum

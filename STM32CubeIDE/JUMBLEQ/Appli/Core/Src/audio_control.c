@@ -200,6 +200,7 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfB_assign     = cfg.current_xfB_assign;
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_return_assign  = cfg.current_return_assign;
+        ui_state.current_hp_out_source  = cfg.current_hp_out_source;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
@@ -209,13 +210,14 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
                               (unsigned)cfg.current_xfA_assign,
                               (unsigned)cfg.current_xfB_assign,
                               (unsigned)cfg.current_xfpost_assign,
                               (unsigned)cfg.current_return_assign,
+                              (unsigned)cfg.current_hp_out_source,
                               (unsigned)cfg.current_ch1_dvs_enable,
                               (unsigned)cfg.current_ch2_dvs_enable,
                               (double)cfg.current_xf_curve_exp_a,
@@ -235,6 +237,7 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_xfB_assign     = cfg.current_xfB_assign;
         ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
         ui_state.current_return_assign  = cfg.current_return_assign;
+        ui_state.current_hp_out_source  = cfg.current_hp_out_source;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
