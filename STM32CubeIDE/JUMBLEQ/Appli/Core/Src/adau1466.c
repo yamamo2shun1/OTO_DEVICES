@@ -31,6 +31,36 @@ typedef struct
 
 static uint32_t adau1466_sample_rate_hz = ADAU1466_DEFAULT_SAMPLE_RATE_HZ;
 
+static float normalize_pot10_ratio(uint16_t adc_val)
+{
+    if (adc_val <= POT_10BIT_MIN_DEADZONE)
+    {
+        return 0.0f;
+    }
+    if (adc_val >= POT_10BIT_DB_MAX_SNAP_START)
+    {
+        return 1.0f;
+    }
+
+    return (float) (adc_val - POT_10BIT_MIN_DEADZONE) /
+           (float) (POT_10BIT_DB_MAX_SNAP_START - POT_10BIT_MIN_DEADZONE);
+}
+
+static float normalize_pot10_snap_ratio(uint16_t adc_val)
+{
+    if (adc_val <= POT_10BIT_MIN_DEADZONE)
+    {
+        return 0.0f;
+    }
+    if (adc_val >= POT_10BIT_DW_MAX_SNAP_START)
+    {
+        return 1.0f;
+    }
+
+    return (float) (adc_val - POT_10BIT_MIN_DEADZONE) /
+           (float) (POT_10BIT_DW_MAX_SNAP_START - POT_10BIT_MIN_DEADZONE);
+}
+
 static bool adau1466_get_sample_rate_cfg(uint32_t hz, adau1466_sample_rate_cfg_t* cfg)
 {
     if (cfg == NULL)
@@ -179,7 +209,7 @@ static bool adau1466_safeload_write_words(uint16_t addr, uint8_t mem_page, const
 
 double convert_pot2dB(uint16_t adc_val)
 {
-    double x  = (double) adc_val / 1023.0;
+    double x  = (double) normalize_pot10_ratio(adc_val);
     double db = 0.0;
     if (x < 0.7)
     {
@@ -195,11 +225,11 @@ double convert_pot2dB(uint16_t adc_val)
 int16_t convert_pot2dB_int(uint16_t adc_val)
 {
     // Pot end-stop付近のADCノイズで表示/制御値が揺れないように端点デッドゾーンを設ける
-    if (adc_val <= 5U)
+    if (adc_val <= POT_10BIT_MIN_DEADZONE)
     {
         return -80;
     }
-    if (adc_val >= (1023U - 5U))
+    if (adc_val >= POT_10BIT_DB_MAX_SNAP_START)
     {
         return 10;
     }
@@ -358,19 +388,19 @@ void control_send2_out_gain(const uint16_t adc_val)
 
 void control_dryA_out_gain(const uint16_t adc_val)
 {
-    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    const float rate = cos(pow(normalize_pot10_snap_ratio(adc_val), 2.0f) * M_PI_2);
     write_q8_24(MOD_DCINPUT_DRYA_DCVALUE_ADDR, rate);
 }
 
 void control_dryB_out_gain(const uint16_t adc_val)
 {
-    const float rate = cos(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    const float rate = cos(pow(normalize_pot10_snap_ratio(adc_val), 2.0f) * M_PI_2);
     write_q8_24(MOD_DCINPUT_DRYB_DCVALUE_ADDR, rate);
 }
 
 void control_wet_out_gain(const uint16_t adc_val)
 {
-    const float rate = sin(pow(adc_val / 1023.0f, 2.0f) * M_PI_2);
+    const float rate = sin(pow(normalize_pot10_snap_ratio(adc_val), 2.0f) * M_PI_2);
     write_q8_24(MOD_DCINPUT_WET_DCVALUE_ADDR, rate);
 }
 
