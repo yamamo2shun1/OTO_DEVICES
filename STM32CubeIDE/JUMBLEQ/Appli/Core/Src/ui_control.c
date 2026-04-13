@@ -1056,6 +1056,7 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         control_wet_out_gain(value);
         break;
     case 6:
+    	control_hp_out_gain(value);
     	break;
     case 7:
         control_ch2_out_gain(value);
