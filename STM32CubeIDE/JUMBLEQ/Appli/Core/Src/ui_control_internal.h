@@ -12,5 +12,7 @@
 void ui_control_reset_state(void);
 void ui_control_set_adc_complete(bool complete);
 void ui_control_dma_adc_cplt(DMA_HandleTypeDef* hdma);
+void ui_control_reapply_xfade_outputs(void);
+void ui_control_reapply_pot_outputs(void);
 
 #endif /* UI_CONTROL_INTERNAL_H_ */

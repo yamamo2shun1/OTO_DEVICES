@@ -1413,6 +1413,8 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     // EEPROM-backed routing state every time the host sample rate changes.
     AUDIO_Init_ADAU1466(new_hz);
     AUDIO_LoadAndApplyRoutingFromEEPROM();
+    ui_control_reapply_xfade_outputs();
+    ui_control_reapply_pot_outputs();
 #endif
 
     /* Re-init DMA channels (linked-list mode) */

@@ -1161,6 +1161,25 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
     }
 }
 
+void ui_control_reapply_pot_outputs(void)
+{
+    static const uint8_t s_pot_output_channels[] = {
+        POT_CH_CH1_IN,
+        POT_CH_CH2_IN,
+        POT_CH_CH1_OUT,
+        POT_CH_CH2_OUT,
+        POT_CH_DRY_WET,
+        POT_CH_RETURN_IN,
+        POT_CH_HP_OUT,
+    };
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_pot_output_channels); i++)
+    {
+        const uint8_t ch = s_pot_output_channels[i];
+        apply_pot_value(ch, s_ui.pot_val[ch]);
+    }
+}
+
 static bool is_pot_mag_channel(uint8_t channel)
 {
     return (channel >= POT_MAG_CH_FIRST) && (channel <= POT_MAG_CH_LAST);
@@ -1605,7 +1624,26 @@ static void emit_xfade_cc_if_needed(uint8_t i)
         emit_mag_output((uint8_t) (20U + i), note, value);
         s_ui.xf.prev[i] = s_ui.xf.raw[i];
     }
-}  // Compute and commit one pair output (A or B) from tracked extrema.
+}
+
+static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
+{
+    const float curve_exp = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.curve_exp_a : s_ui.curve_exp_b;
+    float base            = s_ui.xf.up_peak[pair->fade_up_idx] * s_ui.xf.down_floor[pair->fade_down_idx];
+
+    if (base < 0.0f)
+    {
+        base = 0.0f;
+    }
+    else if (base > 1.0f)
+    {
+        base = 1.0f;
+    }
+
+    return powf(base, curve_exp);
+}
+
+// Compute and commit one pair output (A or B) from tracked extrema.
 static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
     // DSP writes are driven by extrema deltas, not raw sample deltas.
@@ -1615,18 +1653,7 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 
     if (extrema_changed)
     {
-        const float curve_exp = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.curve_exp_a : s_ui.curve_exp_b;
-        float base            = up_now * down_now;
-        if (base < 0.0f)
-        {
-            base = 0.0f;
-        }
-        else if (base > 1.0f)
-        {
-            base = 1.0f;
-        }
-
-        const float xf      = powf(base, curve_exp);
+        const float xf      = compute_xfade_pair_value(pair);
         const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
         // Quantized position gate avoids redundant SPI writes.
         if (xf_cc != *pair->current_position)
@@ -1664,6 +1691,23 @@ static void apply_xfade_updates(void)
             update_xfade_pair_output(&s_xfade_pairs[i]);
         }
     }
+}
+
+void ui_control_reapply_xfade_outputs(void)
+{
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        const xfade_pair_runtime_t* pair = &s_xfade_pairs[i];
+        const float xf                   = compute_xfade_pair_value(pair);
+        const uint8_t xf_cc              = (uint8_t) (xf * 128.0f);
+
+        pair->set_dc(xf);
+        *pair->current_position = xf_cc;
+        s_ui.xf.up_peak_prev[pair->prev_idx]    = s_ui.xf.up_peak[pair->fade_up_idx];
+        s_ui.xf.down_floor_prev[pair->prev_idx] = s_ui.xf.down_floor[pair->fade_down_idx];
+    }
+
+    s_ui.xf.extrema_prev_valid = true;
 }
 
 static void process_mag(void)
