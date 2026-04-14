@@ -31,9 +31,8 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 ## Block Diagram
 <img width="811" height="701" alt="JUMBLEQ drawio" src="https://github.com/user-attachments/assets/966f1396-498a-4aa9-8add-3a8f13c7d79a" />
 
-
 ## Audio Routing and Signal Flow Diagram
-<img width="689" height="1179" alt="audio_routing drawio" src="https://github.com/user-attachments/assets/b611c090-2154-4270-a017-2703561b34f9" />
+<img width="720" alt="audio_routing drawio(1)" src="https://github.com/user-attachments/assets/4954fb3e-8d79-4b7a-84ab-fbf8a9f3d522" />
 
 ## Audio Spec.
 - Analog: 4in/4out+2out(Headphone)
