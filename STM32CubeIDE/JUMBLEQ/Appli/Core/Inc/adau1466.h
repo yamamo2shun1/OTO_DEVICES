@@ -66,7 +66,7 @@ enum
 
 // 10-bit POTs on the muxed ADC can stop slightly short of full-scale on hardware.
 #define POT_10BIT_ADC_MAX            1023U
-#define POT_10BIT_MIN_DEADZONE       5U
+#define POT_10BIT_MIN_DEADZONE      10U
 #define POT_10BIT_DB_MAX_SNAP_START 1005U
 #define POT_10BIT_DW_MAX_SNAP_START 1005U
 
