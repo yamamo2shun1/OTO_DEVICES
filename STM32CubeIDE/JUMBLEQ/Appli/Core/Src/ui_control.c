@@ -488,6 +488,11 @@ int16_t get_current_return_db(void)
     return convert_pot2dB_int(s_ui.pot_val[POT_CH_RETURN_IN]);
 }
 
+int16_t get_current_hp_out_db(void)
+{
+    return convert_pot2dB_int(s_ui.pot_val[POT_CH_HP_OUT]);
+}
+
 int16_t get_current_dry_wet(void)
 {
     if (s_ui.pot_val[POT_CH_DRY_WET] <= POT_10BIT_MIN_DEADZONE)
