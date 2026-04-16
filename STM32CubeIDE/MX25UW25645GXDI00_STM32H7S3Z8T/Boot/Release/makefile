@@ -59,6 +59,8 @@ RM := rm -rf
 -include tinyusb/src/class/bth/subdir.mk
 -include tinyusb/src/class/audio/subdir.mk
 -include tinyusb/src/subdir.mk
+-include Middlewares/ST/STM32_ExtMem_Manager/subdir.mk
+-include Drivers/STM32H7RSxx_HAL_Driver/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk
@@ -109,8 +111,8 @@ all: main-build
 main-build: MX25UW25645GXDI00_STM32H7S3Z8T_Boot.elf secondary-outputs
 
 # Tool invocations
-MX25UW25645GXDI00_STM32H7S3Z8T_Boot.elf MX25UW25645GXDI00_STM32H7S3Z8T_Boot.map: $(OBJS) $(USER_OBJS) C:\Users\shuni\JUMBLEQ\STM32CubeIDE\MX25UW25645GXDI00_STM32H7S3Z8T\Boot\STM32H7S3Z8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MX25UW25645GXDI00_STM32H7S3Z8T_Boot.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\shuni\JUMBLEQ\STM32CubeIDE\MX25UW25645GXDI00_STM32H7S3Z8T\Boot\STM32H7S3Z8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MX25UW25645GXDI00_STM32H7S3Z8T_Boot.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+MX25UW25645GXDI00_STM32H7S3Z8T_Boot.elf MX25UW25645GXDI00_STM32H7S3Z8T_Boot.map: $(OBJS) $(USER_OBJS) C:\Users\shun\JUMBLEQ\STM32CubeIDE\MX25UW25645GXDI00_STM32H7S3Z8T\Boot\STM32H7S3Z8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "MX25UW25645GXDI00_STM32H7S3Z8T_Boot.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\shun\JUMBLEQ\STM32CubeIDE\MX25UW25645GXDI00_STM32H7S3Z8T\Boot\STM32H7S3Z8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MX25UW25645GXDI00_STM32H7S3Z8T_Boot.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
