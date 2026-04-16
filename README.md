@@ -45,6 +45,9 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x10 and 10 k POT x12
 
+## Knob Assign
+<img width="768" alt="image" src="https://github.com/user-attachments/assets/23123ed1-6aa1-4a9c-919b-3d1c9a353c36" />
+
 ## MIDI Spec.
 - [RX](./Docs/MIDI_RX_SPEC.md)
 - [TX](./Docs/MIDI_TX_SPEC.md)
