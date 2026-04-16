@@ -41,6 +41,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define UF2_COMPLETE_SETTLE_MS 1500u
+#define UF2_WRITE_IDLE_RESET_MS 3000u
 
 /* USER CODE END PD */
 
@@ -64,6 +66,26 @@ static void MPU_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void boot_force_system_reset(void)
+{
+  HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+
+  for (volatile uint32_t i = 0u; i < 200000u; i++)
+  {
+    __NOP();
+  }
+
+  __disable_irq();
+  __DSB();
+  SCB->AIRCR = (0x5FAUL << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk;
+  __DSB();
+  while (1)
+  {
+    __NOP();
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -120,29 +142,49 @@ int main(void)
     led_status_set(LED_STATUS_UF2_IDLE);
     uf2_init();
     uf2_msc_init();
+    uint32_t uf2_complete_since = 0u;
+    uint32_t uf2_last_rx_tick = 0u;
+    uint32_t uf2_last_rx_count = 0u;
 
     while (1)
     {
       uf2_msc_task();
       led_status_tick(HAL_GetTick());
 
-      if (uf2_is_complete())
+      uint32_t now = HAL_GetTick();
+      uint32_t rx_count = uf2_received_blocks();
+      if (rx_count != uf2_last_rx_count)
       {
-        led_status_set(LED_STATUS_VERIFY);
-        if (uf2_finalize())
+        uf2_last_rx_count = rx_count;
+        uf2_last_rx_tick = now;
+        uf2_complete_since = 0u;
+      }
+
+      bool uf2_write_idle = (rx_count > 0u) &&
+                            (uf2_last_rx_tick != 0u) &&
+                            ((now - uf2_last_rx_tick) >= UF2_WRITE_IDLE_RESET_MS);
+
+      if (uf2_is_complete() || uf2_write_idle)
+      {
+        if (uf2_complete_since == 0u)
         {
-          led_status_set(LED_STATUS_VERIFY_OK);
-          HAL_Delay(250);
-          if (BOOT_OK != BOOT_Application())
-          {
-            Error_Handler();
-          }
+          uf2_complete_since = now;
+          led_status_set(LED_STATUS_VERIFY);
+          HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, GPIO_PIN_RESET);
+          HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+          HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
         }
-        else
+
+        if ((now - uf2_complete_since) < UF2_COMPLETE_SETTLE_MS)
         {
-          led_status_set(LED_STATUS_ERROR);
-          uf2_init();
+          continue;
         }
+
+        boot_force_system_reset();
+      }
+      else
+      {
+        uf2_complete_since = 0u;
       }
     }
   }

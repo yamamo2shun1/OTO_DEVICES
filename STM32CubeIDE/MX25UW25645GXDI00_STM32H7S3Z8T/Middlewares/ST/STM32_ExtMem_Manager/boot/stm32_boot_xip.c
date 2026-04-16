@@ -119,7 +119,6 @@ BOOTStatus_TypeDef MapMemory(void)
   */
 BOOTStatus_TypeDef JumpToApplication(void)
 {
-  uint32_t primask_bit;
   typedef  void (*pFunction)(void);
   static pFunction JumpToApp;
   uint32_t Application_vector;
@@ -129,8 +128,19 @@ BOOTStatus_TypeDef JumpToApplication(void)
     return BOOT_ERROR_INCOMPATIBLEMEMORY;
   }
 
-  /* Suspend SysTick */
-  HAL_SuspendTick();
+  __disable_irq();
+
+  /* Stop bootloader timing/interrupt sources before handing off. */
+  SysTick->CTRL = 0u;
+  SysTick->LOAD = 0u;
+  SysTick->VAL = 0u;
+  SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk | SCB_ICSR_PENDSVCLR_Msk;
+
+  for (uint32_t i = 0u; i < (sizeof(NVIC->ICER) / sizeof(NVIC->ICER[0])); i++)
+  {
+    NVIC->ICER[i] = 0xFFFFFFFFu;
+    NVIC->ICPR[i] = 0xFFFFFFFFu;
+  }
 
 #if defined(__ICACHE_PRESENT) && (__ICACHE_PRESENT == 1U)
   /* if I-Cache is enabled, disable I-Cache-----------------------------------*/
@@ -149,8 +159,6 @@ BOOTStatus_TypeDef JumpToApplication(void)
 #endif /* __DCACHE_PRESENT */
 
   /* Initialize user application's Stack Pointer & Jump to user application  */
-  primask_bit = __get_PRIMASK();
-  __disable_irq();
 
   /* Apply offsets for image location and vector table offset */
   Application_vector += EXTMEM_XIP_IMAGE_OFFSET + EXTMEM_HEADER_OFFSET;
@@ -170,9 +178,12 @@ BOOTStatus_TypeDef JumpToApplication(void)
 #endif  /* __ARM_ARCH_8M_MAIN__ or __ARM_ARCH_8_1M_MAIN__ or __ARM_ARCH_8M_BASE__ */
 
   __set_MSP(*(__IO uint32_t *) Application_vector);
+  __set_CONTROL(0u);
+  __DSB();
+  __ISB();
 
-  /* Re-enable the interrupts */
-  __set_PRIMASK(primask_bit);
+  /* Match reset state: global IRQs enabled, individual NVIC IRQs disabled. */
+  __enable_irq();
 
   JumpToApp();
   return BOOT_OK;
