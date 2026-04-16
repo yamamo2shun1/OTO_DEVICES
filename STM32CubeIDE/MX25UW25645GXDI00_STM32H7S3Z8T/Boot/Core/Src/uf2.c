@@ -1,6 +1,5 @@
 #include "uf2.h"
 #include "boot_config.h"
-#include "boot_meta.h"
 #include "stm32_extmem.h"
 #include "stm32_extmem_conf.h"
 #include <string.h>
@@ -186,35 +185,4 @@ uint32_t uf2_image_size(void)
     return 0u;
   }
   return g_uf2.max_addr - BOOT_APP_BASE;
-}
-
-bool uf2_finalize(void)
-{
-  BootMetaHeader meta;
-  uint32_t image_size = uf2_image_size();
-  uint32_t crc;
-
-  if (image_size == 0u)
-  {
-    return false;
-  }
-
-  crc = boot_crc32_extmem(BOOT_APP_OFFSET, image_size);
-  if (crc == 0u)
-  {
-    return false;
-  }
-
-  memset(&meta, 0, sizeof(meta));
-  meta.magic = BOOT_META_MAGIC;
-  meta.version = BOOT_META_VERSION;
-  meta.header_size = BOOT_META_HEADER_SIZE;
-  meta.flags = BOOT_META_FLAG_VALID;
-  meta.app_base = BOOT_APP_BASE;
-  meta.app_size = BOOT_APP_SIZE;
-  meta.app_crc32 = crc;
-  meta.build_id = 0u;
-  meta.image_size = image_size;
-
-  return boot_meta_write(&meta);
 }
