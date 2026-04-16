@@ -18,6 +18,7 @@
 #include <string.h>
 
 static void draw_sub_headphones_icon(uint8_t x, uint8_t y);
+static void draw_main_headphones_icon(uint8_t x, uint8_t y);
 
 static void merge_dirty_pages(bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page, uint8_t page_start, uint8_t page_end)
 {
@@ -127,7 +128,7 @@ static uint16_t oled_text_width_px(SSD1306_Font_t const* font, const char* text)
     return width;
 }
 
-static const unsigned char sub_headphones_icon_16x10[] = {
+static const unsigned char headphones_icon_16x10[] = {
     0x03, 0xC0, // 00000011 11000000
     0x0E, 0x70, // 00001110 01110000
     0x18, 0x18, // 00011000 00011000
@@ -142,7 +143,12 @@ static const unsigned char sub_headphones_icon_16x10[] = {
 
 static void draw_sub_headphones_icon(uint8_t x, uint8_t y)
 {
-    sub_oled_DrawBitmap(x, y, sub_headphones_icon_16x10, 16, 10, White);
+    sub_oled_DrawBitmap(x, y, headphones_icon_16x10, 16, 10, White);
+}
+
+static void draw_main_headphones_icon(uint8_t x, uint8_t y)
+{
+    main_oled_DrawBitmap(x, y, headphones_icon_16x10, 16, 10, White);
 }
 static bool wait_main_oled_ready(uint32_t timeout_ms)
 {
@@ -195,15 +201,19 @@ void OLED_UpdateTask(void)
     const bool curve_edit_mode       = ui_control_is_curve_edit_mode_enabled();
     static bool prev_curve_edit_mode = false;
 
-    char line1_ch2[24];
-    char line2_ch1[24];
-    char line3_sr[24];
+    char line1_sr[8];
+    char line1_ch2[32];
+    char line2_ch1[32];
+    char line3_sr[32];
+    char line3_hp[8];
     char line_edit_mode[20];
     char line_edit_a[20];
     char line_edit_b[20];
-    static char prev_line1_ch2[24]      = {0};
-    static char prev_line2_ch1[24]      = {0};
-    static char prev_line3_sr[24]       = {0};
+    static char prev_line1_sr[8]        = {0};
+    static char prev_line1_ch2[32]      = {0};
+    static char prev_line2_ch1[32]      = {0};
+    static char prev_line3_sr[32]       = {0};
+    static char prev_line3_hp[8]        = {0};
     static char prev_line_edit_mode[20] = {0};
     static char prev_line_edit_a[20]    = {0};
     static char prev_line_edit_b[20]    = {0};
@@ -225,9 +235,11 @@ void OLED_UpdateTask(void)
     if (curve_edit_mode != prev_curve_edit_mode)
     {
         main_oled_Fill(Black);
+        memset(prev_line1_sr, 0, sizeof(prev_line1_sr));
         memset(prev_line1_ch2, 0, sizeof(prev_line1_ch2));
         memset(prev_line2_ch1, 0, sizeof(prev_line2_ch1));
         memset(prev_line3_sr, 0, sizeof(prev_line3_sr));
+        memset(prev_line3_hp, 0, sizeof(prev_line3_hp));
         memset(prev_line_edit_mode, 0, sizeof(prev_line_edit_mode));
         memset(prev_line_edit_a, 0, sizeof(prev_line_edit_a));
         memset(prev_line_edit_b, 0, sizeof(prev_line_edit_b));
@@ -242,38 +254,57 @@ void OLED_UpdateTask(void)
         bool main_redraw = dirty;
         uint32_t sample_rate_hz = get_current_sample_rate_hz();
         const char* return_src = nonnull_str(get_current_return_src_str());
-        if ((sample_rate_hz % 1000U) == 0U)
-        {
-            snprintf(line1_ch2, sizeof(line1_ch2), "%luk %3d|Out|%3d dB", (unsigned long) (sample_rate_hz / 1000U), get_current_ch1_out_db(), get_current_ch2_out_db());
-        }
-        else
-        {
-            snprintf(line1_ch2, sizeof(line1_ch2), "%lu %3d|Out|%3d dB", (unsigned long) sample_rate_hz, get_current_ch1_out_db(), get_current_ch2_out_db());
-        }
-        // MAIN OLED shows both Out and In as CH1, CH2.
-        snprintf(line2_ch1, sizeof(line2_ch1), "%-3s %3d|In |%3d dB", return_src, get_current_ch1_in_db(), get_current_ch2_in_db());
-        snprintf(line3_sr, sizeof(line3_sr), "D/W:%3d%% RTN:%3ddB", get_current_dry_wet(), get_current_return_db());
+        snprintf(line1_sr, sizeof(line1_sr), "%luk", (unsigned long) (sample_rate_hz / 1000U));
+        snprintf(line1_ch2, sizeof(line1_ch2), "1:%3d 2:%3d", get_current_ch1_out_db(), get_current_ch2_out_db());
+        // MAIN OLED shows both Out and In as CH1 and CH2.
+        snprintf(line2_ch1, sizeof(line2_ch1), "    IN 1:%3d 2:%3d", get_current_ch1_in_db(), get_current_ch2_in_db());
+        snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:%3d ", return_src, get_current_return_db());
+        snprintf(line3_hp, sizeof(line3_hp), ":%3d", get_current_hp_out_db());
 
-        if ((strcmp(prev_line1_ch2, line1_ch2) != 0) ||
+        if ((strcmp(prev_line1_sr, line1_sr) != 0) ||
+            (strcmp(prev_line1_ch2, line1_ch2) != 0) ||
             (strcmp(prev_line2_ch1, line2_ch1) != 0) ||
-            (strcmp(prev_line3_sr, line3_sr) != 0))
+            (strcmp(prev_line3_sr, line3_sr) != 0) ||
+            (strcmp(prev_line3_hp, line3_hp) != 0))
         {
             main_redraw = true;
         }
 
         if (main_redraw)
         {
+            uint8_t line1_gain_x;
+            uint8_t line1_out_x;
+            uint8_t hp_icon_x;
+            uint8_t hp_text_x;
+            const int8_t line1_out_offset = -3;
+            const int8_t hp_block_offset = -2;
+
             main_oled_Fill(Black);
             main_oled_SetCursor(0, 0);
+            main_oled_WriteString(line1_sr, Font_7x10, White);
+            line1_out_x  = (uint8_t) ((int16_t) oled_text_width_px(&Font_7x10, line1_sr)
+                                     + (int16_t) oled_text_width_px(&Font_7x10, " ")
+                                     + line1_out_offset);
+            line1_gain_x = (uint8_t) (oled_text_width_px(&Font_7x10, line1_sr) + oled_text_width_px(&Font_7x10, " OUT"));
+            main_oled_SetCursor(line1_out_x, 0);
+            main_oled_WriteString("OUT", Font_7x10, White);
+            main_oled_SetCursor(line1_gain_x, 0);
             main_oled_WriteString(line1_ch2, Font_7x10, White);
             main_oled_SetCursor(0, 10);
             main_oled_WriteString(line2_ch1, Font_7x10, White);
             main_oled_SetCursor(0, 22);
             main_oled_WriteString(line3_sr, Font_7x10, White);
+            hp_icon_x = (uint8_t) ((int16_t) oled_text_width_px(&Font_7x10, line3_sr) + hp_block_offset);
+            draw_main_headphones_icon(hp_icon_x, 22);
+            hp_text_x = (uint8_t) (hp_icon_x + 16U);
+            main_oled_SetCursor(hp_text_x, 22);
+            main_oled_WriteString(line3_hp, Font_7x10, White);
 
+            snprintf(prev_line1_sr, sizeof(prev_line1_sr), "%s", line1_sr);
             snprintf(prev_line1_ch2, sizeof(prev_line1_ch2), "%s", line1_ch2);
             snprintf(prev_line2_ch1, sizeof(prev_line2_ch1), "%s", line2_ch1);
             snprintf(prev_line3_sr, sizeof(prev_line3_sr), "%s", line3_sr);
+            snprintf(prev_line3_hp, sizeof(prev_line3_hp), "%s", line3_hp);
 
             dirty            = true;
             dirty_start_page = 0;

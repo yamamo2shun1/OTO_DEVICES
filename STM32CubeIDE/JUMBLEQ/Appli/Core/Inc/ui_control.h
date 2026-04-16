@@ -38,6 +38,7 @@ int16_t get_current_ch2_in_db(void);
 int16_t get_current_ch1_out_db(void);
 int16_t get_current_ch2_out_db(void);
 int16_t get_current_return_db(void);
+int16_t get_current_hp_out_db(void);
 int16_t get_current_dry_wet(void);
 uint8_t get_current_xfade2_cc_value(void);  // same value as send_control_change for xfade[2]
 uint8_t get_current_xfade3_cc_value(void);  // same value as send_control_change for xfade[3]
