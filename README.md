@@ -1,6 +1,7 @@
 ## Overview
-<img width="517" height="171" alt="JUMBLEQ-logo" src="https://github.com/user-attachments/assets/49962aa6-4e38-4a65-9c84-690834918202" />
+<img width="517" height="126" alt="JUMBLEQ-logo" src="https://github.com/user-attachments/assets/0fec933e-3c29-45de-b90b-8d6eba264ed7" />  
 
+###
 “JUMBLEQ” is short for “jumbled equipment”.
 
 JUMBLEQ is a one-of-a-kind stereo 2-channel digital audio mixer that removes the traditional input faders and crossfader found on DJ mixers, replacing them with multiple magnetic switches.
