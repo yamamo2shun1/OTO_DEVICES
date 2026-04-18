@@ -160,7 +160,7 @@ static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
 static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
 static const float XFADE_CURVE_EXP_MIN          = 0.5f;
-static const float XFADE_CURVE_EXP_MAX          = 50.0f;
+static const float XFADE_CURVE_EXP_MAX          = 100.0f;
 
 static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
 static const uint8_t MIDI_CC_XFADE_CURVE_EXP_A   = 20U;
