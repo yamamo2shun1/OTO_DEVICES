@@ -25,6 +25,7 @@
 #define POT_NUM                   16
 #define POT_HYSTERESIS_NUM        12
 #define POT_CC_HYSTERESIS_RAW     8U
+#define POT_CC_MIN_DEADZONE_VALUE 2U
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
@@ -1250,6 +1251,10 @@ static uint16_t quantize_pot_hysteresis_value(uint8_t channel, uint16_t adc_raw)
         if (value > 127U)
         {
             value = 127U;
+        }
+        if (value <= POT_CC_MIN_DEADZONE_VALUE)
+        {
+            value = 0U;
         }
         return (uint16_t) value;
     }
