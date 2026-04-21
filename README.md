@@ -57,7 +57,7 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - [TX](./Docs/MIDI_TX_SPEC.md)
 
 JUMBLEQ also provides a configurator for changing settings via MIDI: [JUMBLEQ Configurator](https://github.com/yamamo2shun1/JUMBLEQ/tree/main/Max).  
-JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max) and is available for Windows and macOS, but requires Max 9 to be installed.
+JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). The standalone version is available for Windows and macOS, but requires Max 9 to be installed. A [Max for Live device version](./Max/JUMBLEQ_Configurator.amxd) is also included, allowing JUMBLEQ settings to be changed directly from within Ableton Live.
 
 <img width="600" alt="image" src="https://github.com/user-attachments/assets/12bdb115-7f15-489f-8334-a758076ccd83" />
 
