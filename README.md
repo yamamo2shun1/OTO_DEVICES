@@ -59,7 +59,11 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 JUMBLEQ also provides a configurator for changing settings via MIDI: [JUMBLEQ Configurator](https://github.com/yamamo2shun1/JUMBLEQ/tree/main/Max).  
 JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). The standalone version is available for Windows and macOS, but requires Max 9 to be installed. A [Max for Live device version](./Max/JUMBLEQ_Configurator.amxd) is also included, allowing JUMBLEQ settings to be changed directly from within Ableton Live.
 
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/12bdb115-7f15-489f-8334-a758076ccd83" />
+### Standalone version
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/12bdb115-7f15-489f-8334-a758076ccd83" />  
+
+### M4L version
+<img width="600" alt="JUMBLEQ_Configurator_m4l" src="https://github.com/user-attachments/assets/6469ff5f-7051-4b05-ac4a-afc732227630" />
 
 ## for Windows User
 I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
