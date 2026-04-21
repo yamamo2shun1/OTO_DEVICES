@@ -41,9 +41,9 @@ STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_OEMiROT_Appli.ld
 STM32CubeIDE/JUMBLEQ/Appli/STM32H7S3Z8TX_default.ld
 STM32CubeIDE/JUMBLEQ/Appli/build/
 
+### Max
 Max/jumbleq_configurator_win/
+
+### Plasticity
 *.3mf
-
-*.stp
-
 Plasticity/plasticity/
