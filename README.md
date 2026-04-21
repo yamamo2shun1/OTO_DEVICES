@@ -62,7 +62,7 @@ JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). 
 ### Standalone version
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/12bdb115-7f15-489f-8334-a758076ccd83" />  
 
-### M4L version
+### Max for Live version
 <img width="600" alt="JUMBLEQ_Configurator_m4l" src="https://github.com/user-attachments/assets/6469ff5f-7051-4b05-ac4a-afc732227630" />
 
 ## for Windows User
