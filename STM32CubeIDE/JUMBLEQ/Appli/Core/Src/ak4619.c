@@ -12,6 +12,11 @@
 
 extern osMutexId_t i2cMutexHandle;
 
+#define AK4619_REG_MIC_AMP_GAIN_ADC1 0x04U
+#define AK4619_REG_MIC_AMP_GAIN_ADC2 0x05U
+#define AK4619_MIC_GAIN_BITS_0DB     0x02U
+#define AK4619_MIC_GAIN_BITS_27DB    0x0BU
+
 static HAL_StatusTypeDef ak4619_write_reg(uint8_t reg, uint8_t value)
 {
     HAL_StatusTypeDef status = HAL_ERROR;
@@ -43,6 +48,13 @@ static HAL_StatusTypeDef ak4619_write_reg(uint8_t reg, uint8_t value)
     }
 
     return status;
+}
+
+static HAL_StatusTypeDef ak4619_write_mic_gain_reg(uint8_t reg, uint8_t gain_bits)
+{
+    const uint8_t value = (uint8_t)((gain_bits << 4) | gain_bits);
+
+    return ak4619_write_reg(reg, value);
 }
 
 void AUDIO_Init_AK4619(uint32_t hz)
@@ -138,4 +150,36 @@ void AUDIO_Init_AK4619(uint32_t hz)
     // Power Management
     (void) ak4619_write_reg(0x00, 0x37);  // 00 11 0 11 1
     // HAL_I2C_Mem_Read(&hi2c3, (0b0010001 << 1) | 1, 0x00, I2C_MEMADD_SIZE_8BIT, rcvData, sizeof(rcvData), 10000);
+}
+
+void AUDIO_Mic_Gain_AMP_Setting_Channel(uint8_t ch, uint8_t gain_db)
+{
+    uint8_t reg;
+    uint8_t gain_bits;
+
+    switch (ch)
+    {
+    case AK4619_MIC_GAIN_CH1:
+        reg = AK4619_REG_MIC_AMP_GAIN_ADC1;
+        break;
+    case AK4619_MIC_GAIN_CH2:
+        reg = AK4619_REG_MIC_AMP_GAIN_ADC2;
+        break;
+    default:
+        return;
+    }
+
+    switch (gain_db)
+    {
+    case AK4619_MIC_GAIN_DB_0:
+        gain_bits = AK4619_MIC_GAIN_BITS_0DB;
+        break;
+    case AK4619_MIC_GAIN_DB_27:
+        gain_bits = AK4619_MIC_GAIN_BITS_27DB;
+        break;
+    default:
+        return;
+    }
+
+    (void)ak4619_write_mic_gain_reg(reg, gain_bits);
 }

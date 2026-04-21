@@ -12,6 +12,7 @@
 #include "eeprom.h"
 #include "hpdma.h"
 #include "i2c.h"
+#include "ak4619.h"
 #include "led_control.h"
 #include "linked_list.h"
 
@@ -816,11 +817,45 @@ static void replace_assign_for_input_channel(uint8_t* assign, uint8_t input_ch, 
     }
 }
 
+static void apply_mic_gain_amp_setting(uint8_t input_ch, uint8_t input_type)
+{
+    uint8_t codec_ch;
+    uint8_t gain_db;
+
+    switch (input_ch)
+    {
+    case INPUT_CH1:
+        codec_ch = AK4619_MIC_GAIN_CH1;
+        break;
+    case INPUT_CH2:
+        codec_ch = AK4619_MIC_GAIN_CH2;
+        break;
+    default:
+        return;
+    }
+
+    switch (input_type)
+    {
+    case INPUT_TYPE_LINE:
+        gain_db = AK4619_MIC_GAIN_DB_0;
+        break;
+    case INPUT_TYPE_PHONO:
+        gain_db = AK4619_MIC_GAIN_DB_27;
+        break;
+    default:
+        return;
+    }
+
+    AUDIO_Mic_Gain_AMP_Setting_Channel(codec_ch, gain_db);
+}
+
 static void apply_input_type_change(uint8_t input_ch, uint8_t input_type)
 {
     const uint8_t new_src = input_src_from_channel_type(input_ch, input_type);
 
     select_input_type(input_ch, input_type);
+    apply_mic_gain_amp_setting(input_ch, input_type);
+
     if (input_ch == INPUT_CH1)
     {
         s_ui.current_ch1_input_type = input_type;
