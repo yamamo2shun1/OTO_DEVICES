@@ -1,4 +1,4 @@
-# JUMBLEQ prototype3 (firmware v0.9.4)
+# Functional Prototype (firmware v0.9.4)
 ![DSCF6900](https://github.com/user-attachments/assets/b022214f-9dd0-40a2-941e-4e20b6c94112)
 ![DSCF6901](https://github.com/user-attachments/assets/093d76c1-9378-4942-8cd6-7f4f7fda62fd)
 ![DSCF6902](https://github.com/user-attachments/assets/d7053fe1-3266-400d-938c-0cfd95f64914)

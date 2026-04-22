@@ -1,3 +1,4 @@
+# Alpha Prototype (firmware v0.9.7)
 ![1](https://github.com/user-attachments/assets/cc31ab59-d255-43b3-9ac0-f99f97db7b38)
 ![2](https://github.com/user-attachments/assets/24db1d9a-a25a-4093-a346-f7b9a0c93f48)
 ![3](https://github.com/user-attachments/assets/911474bb-1072-4bcf-b14e-621672d57f24)
