@@ -1715,10 +1715,12 @@ static float get_xfade_pair_fade_down_raw(const xfade_pair_runtime_t* pair)
 static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 {
     const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
-    const float base             = clamp01(s_ui.xf.up_peak[pair->fade_up_idx] * s_ui.xf.down_floor[pair->fade_down_idx]);
+    const float fade_up          = s_ui.xf.up_peak[pair->fade_up_idx];
     const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
-    const float fade_down = get_xfade_pair_fade_down_raw(pair);
-    const float transition_width             = compute_xfade_pair_transition_width(margin);
+    const float fade_down        = get_xfade_pair_fade_down_raw(pair);
+    const float transition_width = compute_xfade_pair_transition_width(margin);
+    // fade-up starts opening once the paired sensor rises past the cut margin.
+    const float up_open_threshold             = margin;
     // fade-down starts cutting once the sensor moves this far from its unpressed (1.0) position.
     const float down_press_threshold           = 1.0f - margin;
     // Normal release path: require the fade-down side to return close to unpressed before reopening.
@@ -1733,6 +1735,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     bool fade_down_bottomed                 = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
     // Masks the normal fade-down press threshold while the sensor is returning after a bottomed reopen.
     bool fade_down_returning                = s_ui.xf.pair_fade_down_returning[pair->prev_idx];
+    float up_gain                           = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, transition_width);
+    float down_gain                         = 0.0f;
     float output                            = 0.0f;
 
     if (!fade_down_latched && !fade_down_returning && fade_down <= down_press_threshold)
@@ -1773,24 +1777,19 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 
     if (fade_down_latched)
     {
-        gate_open = false;
+        down_gain = 0.0f;
+    }
+    else if (fade_down_returning)
+    {
+        down_gain = compute_xfade_pair_threshold_ramp(fade_down, down_bottom_release_threshold, transition_width);
     }
     else
     {
-        gate_open = (base >= margin);
-
-        if (gate_open)
-        {
-            if (fade_down_returning)
-            {
-                output = compute_xfade_pair_threshold_ramp(fade_down, down_bottom_release_threshold, transition_width);
-            }
-            else
-            {
-                output = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, transition_width);
-            }
-        }
+        down_gain = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, transition_width);
     }
+
+    output    = up_gain * down_gain;
+    gate_open = (output > 0.0f);
 
     s_ui.xf.pair_gate_open[pair->prev_idx]           = gate_open;
     s_ui.xf.pair_fade_down_latched[pair->prev_idx]   = fade_down_latched;
