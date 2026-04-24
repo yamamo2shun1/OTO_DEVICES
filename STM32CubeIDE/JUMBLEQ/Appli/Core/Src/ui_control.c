@@ -78,6 +78,10 @@ typedef struct
     float up_peak[MAG_SW_NUM];
     float up_peak_prev[2];
     float down_floor_prev[2];
+    bool pair_gate_on[2];
+    bool pair_fade_down_latched[2];
+    bool pair_fade_down_bottomed[2];
+    bool pair_fade_down_returning[2];
     bool extrema_prev_valid;
     uint8_t note_peak_vel[MAG_SW_NUM];
     uint32_t note_scan_start_ms[MAG_SW_NUM];
@@ -147,6 +151,10 @@ static ui_control_state_t s_ui = {
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
     .xf.up_peak_prev        = {0.0f, 0.0f},
     .xf.down_floor_prev     = {1.0f, 1.0f},
+    .xf.pair_gate_on             = {false, false},
+    .xf.pair_fade_down_latched   = {false, false},
+    .xf.pair_fade_down_bottomed  = {false, false},
+    .xf.pair_fade_down_returning = {false, false},
     .xf.extrema_prev_valid  = false,
     .is_start_audio_control = false,
 };
@@ -161,6 +169,9 @@ static const float XFADE_EXTREMA_SEND_THRESHOLD = 0.002f;
 static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
 static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
+static const float XFADE_PAIR_CUT_MARGIN_MIN    = 0.04f;
+static const float XFADE_PAIR_CUT_MARGIN_MAX    = 0.45f;
+static const float XFADE_PAIR_CUT_MARGIN_SCALE  = 8.0f;
 static const float XFADE_CURVE_EXP_MIN          = 0.5f;
 static const float XFADE_CURVE_EXP_MAX          = 100.0f;
 
@@ -1671,21 +1682,112 @@ static void emit_xfade_cc_if_needed(uint8_t i)
     }
 }
 
+static float clamp01(float value)
+{
+    if (value < 0.0f)
+    {
+        return 0.0f;
+    }
+    if (value > 1.0f)
+    {
+        return 1.0f;
+    }
+
+    return value;
+}
+
+static float compute_xfade_pair_cut_margin(float curve_exp)
+{
+    float margin = XFADE_PAIR_CUT_MARGIN_SCALE / curve_exp;
+
+    if (margin < XFADE_PAIR_CUT_MARGIN_MIN)
+    {
+        return XFADE_PAIR_CUT_MARGIN_MIN;
+    }
+    if (margin > XFADE_PAIR_CUT_MARGIN_MAX)
+    {
+        return XFADE_PAIR_CUT_MARGIN_MAX;
+    }
+
+    return margin;
+}
+
+static float get_xfade_pair_fade_down_raw(const xfade_pair_runtime_t* pair)
+{
+    return apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
+}
+
 static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 {
     const float curve_exp = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.curve_exp_a : s_ui.curve_exp_b;
-    float base            = s_ui.xf.up_peak[pair->fade_up_idx] * s_ui.xf.down_floor[pair->fade_down_idx];
+    const float base      = clamp01(s_ui.xf.up_peak[pair->fade_up_idx] * s_ui.xf.down_floor[pair->fade_down_idx]);
+    const float margin    = compute_xfade_pair_cut_margin(curve_exp);
+    const float fade_down = get_xfade_pair_fade_down_raw(pair);
+    // fade-down starts cutting once the sensor moves this far from its unpressed (1.0) position.
+    const float down_press_threshold           = 1.0f - margin;
+    // Normal release path: require the fade-down side to return close to unpressed before reopening.
+    const float down_partial_release_threshold = 1.0f - (margin * 0.5f);
+    // "Deep" means the fade-down side reached near-bottom during the current gesture.
+    const float down_bottom_threshold       = margin * 0.5f;
+    // After bottoming out, allow reopening much earlier so a small lift can bring audio back.
+    const float down_bottom_release_threshold = margin;
+    bool gate_on                            = s_ui.xf.pair_gate_on[pair->prev_idx];
+    bool fade_down_latched                  = s_ui.xf.pair_fade_down_latched[pair->prev_idx];
+    // Remembers whether this fade-down gesture reached the bottom zone.
+    bool fade_down_bottomed                 = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
+    // Masks the normal fade-down press threshold while the sensor is returning after a bottomed reopen.
+    bool fade_down_returning                = s_ui.xf.pair_fade_down_returning[pair->prev_idx];
 
-    if (base < 0.0f)
+    if (!fade_down_latched && !fade_down_returning && fade_down <= down_press_threshold)
     {
-        base = 0.0f;
+        fade_down_latched  = true;
+        fade_down_bottomed = (fade_down <= down_bottom_threshold);
     }
-    else if (base > 1.0f)
+    else if (fade_down_latched)
     {
-        base = 1.0f;
+        if (fade_down <= down_bottom_threshold)
+        {
+            fade_down_bottomed = true;
+        }
+
+        // Release the fade-down latch when the sensor has returned far enough:
+        // use the earlier bottomed-release point after a bottom-out press, otherwise
+        // wait until the normal partial-release point near unpressed.
+        if (fade_down >= (fade_down_bottomed ? down_bottom_release_threshold : down_partial_release_threshold))
+        {
+            fade_down_latched   = false;
+            fade_down_returning = fade_down_bottomed;
+            fade_down_bottomed  = false;
+        }
+    }
+    else if (fade_down_returning)
+    {
+        if (fade_down >= down_partial_release_threshold)
+        {
+            fade_down_returning = false;
+        }
+        else if (fade_down <= down_bottom_threshold)
+        {
+            fade_down_latched   = true;
+            fade_down_bottomed  = true;
+            fade_down_returning = false;
+        }
     }
 
-    return powf(base, curve_exp);
+    if (fade_down_latched)
+    {
+        gate_on = false;
+    }
+    else
+    {
+        gate_on = (base >= margin);
+    }
+
+    s_ui.xf.pair_gate_on[pair->prev_idx]             = gate_on;
+    s_ui.xf.pair_fade_down_latched[pair->prev_idx]   = fade_down_latched;
+    s_ui.xf.pair_fade_down_bottomed[pair->prev_idx]  = fade_down_bottomed;
+    s_ui.xf.pair_fade_down_returning[pair->prev_idx] = fade_down_returning;
+    return gate_on ? 1.0f : 0.0f;
 }
 
 // Compute and commit one pair output (A or B) from tracked extrema.
@@ -2150,8 +2252,12 @@ void ui_control_reset_state(void)
     }
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
-        s_ui.xf.up_peak_prev[i]    = 0.0f;
-        s_ui.xf.down_floor_prev[i] = 1.0f;
+        s_ui.xf.up_peak_prev[i]             = 0.0f;
+        s_ui.xf.down_floor_prev[i]          = 1.0f;
+        s_ui.xf.pair_gate_on[i]             = false;
+        s_ui.xf.pair_fade_down_latched[i]   = false;
+        s_ui.xf.pair_fade_down_bottomed[i]  = false;
+        s_ui.xf.pair_fade_down_returning[i] = false;
     }
     mark_xfade_curve_dirty();
     s_ui.xf.extrema_prev_valid = false;
