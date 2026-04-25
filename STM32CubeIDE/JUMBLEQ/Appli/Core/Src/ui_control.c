@@ -1691,16 +1691,13 @@ static float clamp01(float value)
 
 static float compute_xfade_pair_threshold_ramp(float value, float threshold, float width)
 {
-    float t;
-    float smootherstep;
-
     if (width <= 0.0f)
     {
         return (value >= threshold) ? 1.0f : 0.0f;
     }
 
-    t = clamp01((value - threshold) / width);
-    smootherstep = t * t * t * (t * ((t * 6.0f) - 15.0f) + 10.0f);
+    const float t = clamp01((value - threshold) / width);
+    const float smootherstep = t * t * t * (t * ((t * 6.0f) - 15.0f) + 10.0f);
     return (XFADE_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - XFADE_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
 }
 
