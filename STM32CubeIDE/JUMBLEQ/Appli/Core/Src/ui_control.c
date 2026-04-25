@@ -79,14 +79,7 @@ typedef struct
     float pair_hold_value[2];  // Current held output value for each xfade pair.
     float up_peak_prev[2];  // Previous fade-up drive value used to detect when pair output needs recomputing.
     float down_floor_prev[2];  // Previous fade-down drive value used to detect when pair output needs recomputing.
-    float pair_fade_down_hold_floor[2];  // Legacy pair scratch value; cleared in the current hold-value model.
-    float pair_fade_up_hold_start[2];  // Legacy pair scratch value; cleared in the current hold-value model.
-    bool pair_fade_up_hold_rearmed[2];  // Legacy pair scratch flag; cleared in the current hold-value model.
-    bool pair_gate_open[2];  // Latest computed nonzero-output flag for each xfade pair.
-    bool pair_fade_down_held[2];  // Legacy pair scratch flag; kept reset in the current hold-value model.
-    bool pair_fade_down_latched[2];  // Legacy pair scratch flag; kept reset in the current hold-value model.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
-    bool pair_fade_down_returning[2];  // Legacy pair scratch flag; kept reset in the current hold-value model.
     bool extrema_prev_valid;  // Whether the previous pair-drive snapshots have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
@@ -154,18 +147,11 @@ static ui_control_state_t s_ui = {
     .xf.prev                = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xf.down_floor          = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-    .xf.pair_hold_value     = {0.0f, 0.0f},
-    .xf.up_peak_prev        = {0.0f, 0.0f},
-    .xf.down_floor_prev     = {1.0f, 1.0f},
-    .xf.pair_fade_down_hold_floor = {1.0f, 1.0f},
-    .xf.pair_fade_up_hold_start   = {0.0f, 0.0f},
-    .xf.pair_fade_up_hold_rearmed = {false, false},
-    .xf.pair_gate_open           = {false, false},
-    .xf.pair_fade_down_held      = {false, false},
-    .xf.pair_fade_down_latched   = {false, false},
+    .xf.pair_hold_value          = {0.0f, 0.0f},
+    .xf.up_peak_prev             = {0.0f, 0.0f},
+    .xf.down_floor_prev          = {1.0f, 1.0f},
     .xf.pair_fade_down_bottomed  = {false, false},
-    .xf.pair_fade_down_returning = {false, false},
-    .xf.extrema_prev_valid  = false,
+    .xf.extrema_prev_valid       = false,
     .is_start_audio_control = false,
 };
 
@@ -1780,15 +1766,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         output = hold_value;
     }
 
-    s_ui.xf.pair_gate_open[pair->prev_idx]           = (output > 0.0f);
-    s_ui.xf.pair_hold_value[pair->prev_idx]          = hold_value;
-    s_ui.xf.pair_fade_down_held[pair->prev_idx]      = false;
-    s_ui.xf.pair_fade_down_hold_floor[pair->prev_idx] = 1.0f;
-    s_ui.xf.pair_fade_up_hold_start[pair->prev_idx]   = 0.0f;
-    s_ui.xf.pair_fade_up_hold_rearmed[pair->prev_idx] = false;
-    s_ui.xf.pair_fade_down_latched[pair->prev_idx]   = false;
-    s_ui.xf.pair_fade_down_bottomed[pair->prev_idx]  = bottomed;
-    s_ui.xf.pair_fade_down_returning[pair->prev_idx] = false;
+    s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
+    s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
     return output;
 }
 
@@ -2253,17 +2232,10 @@ void ui_control_reset_state(void)
     }
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
-        s_ui.xf.up_peak_prev[i]             = 0.0f;
-        s_ui.xf.down_floor_prev[i]          = 1.0f;
-        s_ui.xf.pair_hold_value[i]          = 0.0f;
-        s_ui.xf.pair_fade_down_hold_floor[i] = 1.0f;
-        s_ui.xf.pair_fade_up_hold_start[i]   = 0.0f;
-        s_ui.xf.pair_fade_up_hold_rearmed[i] = false;
-        s_ui.xf.pair_gate_open[i]           = false;
-        s_ui.xf.pair_fade_down_held[i]      = false;
-        s_ui.xf.pair_fade_down_latched[i]   = false;
-        s_ui.xf.pair_fade_down_bottomed[i]  = false;
-        s_ui.xf.pair_fade_down_returning[i] = false;
+        s_ui.xf.up_peak_prev[i]            = 0.0f;
+        s_ui.xf.down_floor_prev[i]         = 1.0f;
+        s_ui.xf.pair_hold_value[i]         = 0.0f;
+        s_ui.xf.pair_fade_down_bottomed[i] = false;
     }
     mark_xfade_cut_margin_dirty();
     s_ui.xf.extrema_prev_valid = false;
