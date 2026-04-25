@@ -1722,8 +1722,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     // - releasing either side leaves the held output where it was
     // - pushing fade-down into the bottom zone forces the held output to 0
     const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
-    const float fade_up_raw      = get_xfade_pair_fade_up_raw(pair);
     const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
+    const float fade_up          = get_xfade_pair_fade_up_raw(pair);
     const float fade_down        = get_xfade_pair_fade_down_raw(pair);
     // fade-up opens across the first margin-wide slice of travel after onset deadband.
     const float up_open_threshold             = 0.0f;
@@ -1735,15 +1735,13 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float down_bottom_release_threshold = margin;
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
-    const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up_raw, up_open_threshold, margin);
+    const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
-    float output            = hold_value;
 
     if (fade_down <= down_bottom_threshold)
     {
         bottomed   = true;
         hold_value = 0.0f;
-        output     = 0.0f;
     }
     else
     {
@@ -1760,13 +1758,11 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         {
             hold_value = down_gain;
         }
-
-        output = hold_value;
     }
 
     s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
-    return output;
+    return hold_value;
 }
 
 // Compute and commit one pair output (A or B) from the current fade-up/fade-down drive values.
