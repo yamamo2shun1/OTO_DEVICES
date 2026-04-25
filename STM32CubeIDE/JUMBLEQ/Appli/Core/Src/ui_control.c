@@ -77,10 +77,10 @@ typedef struct
     float down_floor[MAG_SW_NUM];  // Per-sensor held minimum used by paired fade-down tracking.
     float up_peak[MAG_SW_NUM];  // Per-sensor held maximum used by paired fade-up tracking.
     float pair_hold_value[2];  // Current held output value for each xfade pair.
-    float up_peak_prev[2];  // Previous fade-up drive value used to detect when pair output needs recomputing.
-    float down_floor_prev[2];  // Previous fade-down drive value used to detect when pair output needs recomputing.
+    float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
+    float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
-    bool extrema_prev_valid;  // Whether the previous pair-drive snapshots have been initialized.
+    bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
     bool note_is_on[MAG_SW_NUM];  // Whether each xfade sensor note output is currently on.
@@ -148,10 +148,10 @@ static ui_control_state_t s_ui = {
     .xf.down_floor          = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
     .xf.pair_hold_value          = {0.0f, 0.0f},
-    .xf.up_peak_prev             = {0.0f, 0.0f},
-    .xf.down_floor_prev          = {1.0f, 1.0f},
+    .xf.fade_up_prev             = {0.0f, 0.0f},
+    .xf.fade_down_prev           = {1.0f, 1.0f},
     .xf.pair_fade_down_bottomed  = {false, false},
-    .xf.extrema_prev_valid       = false,
+    .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
 
@@ -161,7 +161,7 @@ static const uint8_t POT_MAG_CH_LAST  = POT_CH_MAG3;
 
 static const float XFADE_CC_UPDATE_THRESHOLD    = 0.01f;
 static const float XFADE_EXTREMA_HYSTERESIS     = 0.002f;
-static const float XFADE_EXTREMA_SEND_THRESHOLD = 0.002f;
+static const float XFADE_SEND_THRESHOLD         = 0.002f;
 static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
 static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
@@ -407,8 +407,8 @@ static void mark_xfade_cut_margin_dirty(void)
 {
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
-        s_ui.xf.up_peak_prev[i]    = -1.0f;
-        s_ui.xf.down_floor_prev[i] = -1.0f;
+        s_ui.xf.fade_up_prev[i]   = -1.0f;
+        s_ui.xf.fade_down_prev[i] = -1.0f;
     }
 }
 
@@ -1716,6 +1716,11 @@ static float get_xfade_pair_fade_up_raw(const xfade_pair_runtime_t* pair)
 
 static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 {
+    // Current hold-value model:
+    // - fade-up raises the held output toward its current ramped value
+    // - fade-down lowers the held output toward its current ramped value
+    // - releasing either side leaves the held output where it was
+    // - pushing fade-down into the bottom zone forces the held output to 0
     const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
     const float fade_up_raw      = get_xfade_pair_fade_up_raw(pair);
     const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
@@ -1769,9 +1774,9 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 {
     const float up_now          = get_xfade_pair_fade_up_raw(pair);
     const float down_now        = get_xfade_pair_fade_down_raw(pair);
-    const bool drive_changed    = (fabs(up_now - s_ui.xf.up_peak_prev[pair->prev_idx]) > XFADE_EXTREMA_SEND_THRESHOLD) || (fabs(down_now - s_ui.xf.down_floor_prev[pair->prev_idx]) > XFADE_EXTREMA_SEND_THRESHOLD);
+    const bool fade_changed     = (fabs(up_now - s_ui.xf.fade_up_prev[pair->prev_idx]) > XFADE_SEND_THRESHOLD) || (fabs(down_now - s_ui.xf.fade_down_prev[pair->prev_idx]) > XFADE_SEND_THRESHOLD);
 
-    if (drive_changed)
+    if (fade_changed)
     {
         const float xf      = compute_xfade_pair_value(pair);
         const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
@@ -1783,8 +1788,8 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
         }
     }
 
-    s_ui.xf.up_peak_prev[pair->prev_idx]    = up_now;
-    s_ui.xf.down_floor_prev[pair->prev_idx] = down_now;
+    s_ui.xf.fade_up_prev[pair->prev_idx]   = up_now;
+    s_ui.xf.fade_down_prev[pair->prev_idx] = down_now;
 }
 
 // Apply outgoing updates for xfade: MIDI CC stream and DSP DC controls.
@@ -1795,14 +1800,14 @@ static void apply_xfade_updates(void)
         emit_xfade_cc_if_needed((uint8_t) i);
     }
 
-    if (!s_ui.xf.extrema_prev_valid)
+    if (!s_ui.xf.fade_prev_valid)
     {
         for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
         {
-            s_ui.xf.up_peak_prev[s_xfade_pairs[i].prev_idx]    = get_xfade_pair_fade_up_raw(&s_xfade_pairs[i]);
-            s_ui.xf.down_floor_prev[s_xfade_pairs[i].prev_idx] = get_xfade_pair_fade_down_raw(&s_xfade_pairs[i]);
+            s_ui.xf.fade_up_prev[s_xfade_pairs[i].prev_idx]   = get_xfade_pair_fade_up_raw(&s_xfade_pairs[i]);
+            s_ui.xf.fade_down_prev[s_xfade_pairs[i].prev_idx] = get_xfade_pair_fade_down_raw(&s_xfade_pairs[i]);
         }
-        s_ui.xf.extrema_prev_valid = true;
+        s_ui.xf.fade_prev_valid = true;
     }
     else
     {
@@ -1823,11 +1828,11 @@ void ui_control_reapply_xfade_outputs(void)
 
         pair->set_dc(xf);
         *pair->current_position = xf_cc;
-        s_ui.xf.up_peak_prev[pair->prev_idx]    = get_xfade_pair_fade_up_raw(pair);
-        s_ui.xf.down_floor_prev[pair->prev_idx] = get_xfade_pair_fade_down_raw(pair);
+        s_ui.xf.fade_up_prev[pair->prev_idx]   = get_xfade_pair_fade_up_raw(pair);
+        s_ui.xf.fade_down_prev[pair->prev_idx] = get_xfade_pair_fade_down_raw(pair);
     }
 
-    s_ui.xf.extrema_prev_valid = true;
+    s_ui.xf.fade_prev_valid = true;
 }
 
 static void process_mag(void)
@@ -2225,13 +2230,13 @@ void ui_control_reset_state(void)
     }
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
-        s_ui.xf.up_peak_prev[i]            = 0.0f;
-        s_ui.xf.down_floor_prev[i]         = 1.0f;
+        s_ui.xf.fade_up_prev[i]           = 0.0f;
+        s_ui.xf.fade_down_prev[i]         = 1.0f;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
         s_ui.xf.pair_fade_down_bottomed[i] = false;
     }
     mark_xfade_cut_margin_dirty();
-    s_ui.xf.extrema_prev_valid = false;
+    s_ui.xf.fade_prev_valid = false;
 
     for (uint16_t i = 0; i < 128U; i++)
     {
