@@ -77,8 +77,11 @@ typedef struct
     float down_floor[MAG_SW_NUM];  // Per-sensor held minimum used by paired fade-down tracking.
     float up_peak[MAG_SW_NUM];  // Per-sensor held maximum used by paired fade-up tracking.
     float pair_hold_value[2];  // Current held output value for each xfade pair.
+    float pair_bottom_restore_value[2];  // Held output value to restore after leaving the fade-down bottom.
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
+    bool pair_fade_down_cut_active[2];  // Whether each pair is inside the current fade-down cut gesture.
+    bool pair_bottom_hold_active[2];  // Whether each pair is still forced muted at the bottom of a fade-down gesture.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
@@ -148,8 +151,11 @@ static ui_control_state_t s_ui = {
     .xf.down_floor          = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
     .xf.pair_hold_value          = {0.0f, 0.0f},
+    .xf.pair_bottom_restore_value = {0.0f, 0.0f},
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
+    .xf.pair_fade_down_cut_active = {false, false},
+    .xf.pair_bottom_hold_active  = {false, false},
     .xf.pair_fade_down_bottomed  = {false, false},
     .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
@@ -168,6 +174,8 @@ static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
 static const float XFADE_PAIR_CUT_MARGIN_MIN    = 0.04f;
 static const float XFADE_PAIR_CUT_MARGIN_MAX    = 0.45f;
 static const float XFADE_PAIR_RAMP_LINEAR_BLEND = 0.60f;
+static const float XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO = 0.125f;
+static const float XFADE_PAIR_BOTTOM_REHOLD_RATIO       = 0.04f;
 
 static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
 static const uint8_t MIDI_CC_XFADE_CUT_MARGIN_A  = 20U;
@@ -1728,23 +1736,61 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float down_press_threshold           = 1.0f - margin;
     // "Bottomed" means the fade-down side reached near-bottom during the current gesture.
     const float down_bottom_threshold       = margin * 0.5f;
-    // After bottoming out, ignore further fade-down cuts until the sensor has moved back out of the bottom zone.
-    const float down_bottom_release_threshold = margin;
+    const float down_bottom_hold_release_threshold = margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
+    const float down_bottom_rehold_threshold       = margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
+    // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
+    const float down_bottom_release_threshold = 1.0f;
+    bool cut_active         = s_ui.xf.pair_fade_down_cut_active[pair->prev_idx];
+    bool bottom_hold_active = s_ui.xf.pair_bottom_hold_active[pair->prev_idx];
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
+    bool bottom_entered     = false;
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
+    float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
 
-    if (fade_down <= down_bottom_threshold)
+    if (!cut_active && (fade_down <= down_press_threshold))
     {
-        bottomed   = true;
-        hold_value = 0.0f;
+        cut_active    = true;
+        restore_value = hold_value;
     }
-    else
+
+    if (!bottomed && (fade_down <= down_bottom_threshold))
+    {
+        bottomed           = true;
+        bottom_hold_active = true;
+        bottom_entered     = true;
+        hold_value         = 0.0f;
+    }
+
+    if (bottom_hold_active)
+    {
+        if (!bottom_entered && (fade_down >= down_bottom_hold_release_threshold))
+        {
+            bottom_hold_active = false;
+            if (restore_value > hold_value)
+            {
+                hold_value = restore_value;
+            }
+        }
+        else
+        {
+            hold_value = 0.0f;
+        }
+    }
+    else if (bottomed && (fade_down <= down_bottom_rehold_threshold))
+    {
+        bottom_hold_active = true;
+        hold_value         = 0.0f;
+    }
+
+    if (!bottom_hold_active)
     {
         if (bottomed && (fade_down >= down_bottom_release_threshold))
         {
-            bottomed = false;
+            bottomed           = false;
+            bottom_hold_active = false;
+            cut_active         = false;
         }
 
         if (up_gain > hold_value)
@@ -1758,6 +1804,9 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     }
 
     s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
+    s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+    s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
+    s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
     return hold_value;
 }
@@ -2226,6 +2275,9 @@ void ui_control_reset_state(void)
         s_ui.xf.fade_up_prev[i]           = 0.0f;
         s_ui.xf.fade_down_prev[i]         = 1.0f;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
+        s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
+        s_ui.xf.pair_fade_down_cut_active[i] = false;
+        s_ui.xf.pair_bottom_hold_active[i] = false;
         s_ui.xf.pair_fade_down_bottomed[i] = false;
     }
     mark_xfade_cut_margin_dirty();
