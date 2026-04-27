@@ -28,8 +28,8 @@ typedef struct
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     uint8_t mag_output_mode_flags;
-    float current_xf_curve_exp_a;
-    float current_xf_curve_exp_b;
+    float current_xfade_cut_margin_a;
+    float current_xfade_cut_margin_b;
 } EEPROM_DeviceConfig_t;
 
 #define EEPROM_CONFIG_ADDR               (0x0000U)

@@ -204,13 +204,13 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
-        ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
+        ui_state.current_xfade_cut_margin_a = cfg.current_xfade_cut_margin_a;
+        ui_state.current_xfade_cut_margin_b = cfg.current_xfade_cut_margin_b;
 
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u CURVE_A=%.4f CURVE_B=%.4f\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
                               (unsigned)cfg.current_xfA_assign,
@@ -220,8 +220,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
                               (unsigned)cfg.current_hp_out_source,
                               (unsigned)cfg.current_ch1_dvs_enable,
                               (unsigned)cfg.current_ch2_dvs_enable,
-                              (double)cfg.current_xf_curve_exp_a,
-                              (double)cfg.current_xf_curve_exp_b);
+                              (double)cfg.current_xfade_cut_margin_a,
+                              (double)cfg.current_xfade_cut_margin_b);
         }
         else
         {
@@ -241,8 +241,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xf_curve_exp_a = cfg.current_xf_curve_exp_a;
-        ui_state.current_xf_curve_exp_b = cfg.current_xf_curve_exp_b;
+        ui_state.current_xfade_cut_margin_a = cfg.current_xfade_cut_margin_a;
+        ui_state.current_xfade_cut_margin_b = cfg.current_xfade_cut_margin_b;
         (void)ui_control_apply_persist_state(&ui_state);
 
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)

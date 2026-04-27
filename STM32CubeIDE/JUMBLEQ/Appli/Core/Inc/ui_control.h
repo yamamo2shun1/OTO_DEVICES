@@ -24,12 +24,12 @@ typedef struct
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     bool  mag_out_as_note;
-    float current_xf_curve_exp_a;
-    float current_xf_curve_exp_b;
+    float current_xfade_cut_margin_a;
+    float current_xfade_cut_margin_b;
 } UI_ControlPersistState_t;
 
-#define UI_XFADE_CURVE_EXP_A_DEFAULT (0.5f)
-#define UI_XFADE_CURVE_EXP_B_DEFAULT (50.0f)
+#define UI_XFADE_CUT_MARGIN_A_DEFAULT (0.45f)
+#define UI_XFADE_CUT_MARGIN_B_DEFAULT (0.16f)
 
 uint8_t get_current_xfA_position(void);
 uint8_t get_current_xfB_position(void);
@@ -54,10 +54,10 @@ uint8_t get_current_input_srcB_channel(void);  // 0:none, 1:CH1, 2:CH2
 bool get_current_ch1_dvs_enabled(void);
 bool get_current_ch2_dvs_enabled(void);
 bool ui_control_is_curve_edit_mode_enabled(void);
-float ui_control_get_curve_exp_a(void);
-float ui_control_get_curve_exp_b(void);
-uint8_t ui_control_get_curve_exp_a_cc(void);
-uint8_t ui_control_get_curve_exp_b_cc(void);
+float ui_control_get_xfade_cut_margin_a(void);
+float ui_control_get_xfade_cut_margin_b(void);
+uint8_t ui_control_get_xfade_cut_margin_a_cc(void);
+uint8_t ui_control_get_xfade_cut_margin_b_cc(void);
 
 void start_adc(void);
 void ui_control_task(void);

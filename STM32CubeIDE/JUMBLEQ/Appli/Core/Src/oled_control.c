@@ -315,8 +315,8 @@ void OLED_UpdateTask(void)
     {
         bool main_redraw = dirty;
         snprintf(line_edit_mode, sizeof(line_edit_mode), "CURVE EDIT [ON]");
-        snprintf(line_edit_a, sizeof(line_edit_a), "A:%5.2f CC%3u", (double) ui_control_get_curve_exp_a(), (unsigned) ui_control_get_curve_exp_a_cc());
-        snprintf(line_edit_b, sizeof(line_edit_b), "B:%5.2f CC%3u", (double) ui_control_get_curve_exp_b(), (unsigned) ui_control_get_curve_exp_b_cc());
+        snprintf(line_edit_a, sizeof(line_edit_a), "A:%5.2f CC%3u", (double) ui_control_get_xfade_cut_margin_a(), (unsigned) ui_control_get_xfade_cut_margin_a_cc());
+        snprintf(line_edit_b, sizeof(line_edit_b), "B:%5.2f CC%3u", (double) ui_control_get_xfade_cut_margin_b(), (unsigned) ui_control_get_xfade_cut_margin_b_cc());
 
         if ((strcmp(prev_line_edit_mode, line_edit_mode) != 0) ||
             (strcmp(prev_line_edit_a, line_edit_a) != 0) ||

@@ -63,8 +63,8 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch1_dvs_enable = 0U; /* disabled */
     cfg->current_ch2_dvs_enable = 0U; /* disabled */
     cfg->mag_output_mode_flags  = 0U;
-    cfg->current_xf_curve_exp_a = UI_XFADE_CURVE_EXP_A_DEFAULT;
-    cfg->current_xf_curve_exp_b = UI_XFADE_CURVE_EXP_B_DEFAULT;
+    cfg->current_xfade_cut_margin_a = UI_XFADE_CUT_MARGIN_A_DEFAULT;
+    cfg->current_xfade_cut_margin_b = UI_XFADE_CUT_MARGIN_B_DEFAULT;
 }
 
 void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
@@ -87,8 +87,8 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch1_dvs_enable = state.current_ch1_dvs_enable;
     cfg->current_ch2_dvs_enable = state.current_ch2_dvs_enable;
     cfg->mag_output_mode_flags  = state.mag_out_as_note ? EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE : 0U;
-    cfg->current_xf_curve_exp_a = state.current_xf_curve_exp_a;
-    cfg->current_xf_curve_exp_b = state.current_xf_curve_exp_b;
+    cfg->current_xfade_cut_margin_a = state.current_xfade_cut_margin_a;
+    cfg->current_xfade_cut_margin_b = state.current_xfade_cut_margin_b;
 }
 
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef* hi2c)
