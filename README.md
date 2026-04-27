@@ -51,7 +51,7 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/23123ed1-6aa1-4a9c-919b-3d1c9a353c36" />
 
 ## Magnetic SW Assign
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/2c029f36-cb75-4e7c-aaaf-ac73f4f2e775" />
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/ef51deee-20a3-4ab7-88b8-02199ef1d582" />
 
 ## MIDI Spec.
 - [RX](./Docs/MIDI_RX_SPEC.md)
