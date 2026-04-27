@@ -80,6 +80,10 @@ typedef struct
     float pair_bottom_restore_value[2];  // Held output value to restore after leaving the fade-down bottom.
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
+    float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
+    float fade_down_source_prev[2][2];  // Previous fade-down source values used for retrigger detection.
+    uint8_t fade_down_active_source[2];  // Last fade-down source that started a cut gesture.
+    uint8_t fade_down_force_release_reads[2];  // Number of reads that should force a release before retriggering.
     bool pair_fade_down_cut_active[2];  // Whether each pair is inside the current fade-down cut gesture.
     bool pair_bottom_hold_active[2];  // Whether each pair is still forced muted at the bottom of a fade-down gesture.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
@@ -154,6 +158,10 @@ static ui_control_state_t s_ui = {
     .xf.pair_bottom_restore_value = {0.0f, 0.0f},
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
+    .xf.fade_down_combined_raw   = {1.0f, 1.0f},
+    .xf.fade_down_source_prev    = {{1.0f, 1.0f}, {1.0f, 1.0f}},
+    .xf.fade_down_active_source  = {0xFFU, 0xFFU},
+    .xf.fade_down_force_release_reads = {0U, 0U},
     .xf.pair_fade_down_cut_active = {false, false},
     .xf.pair_bottom_hold_active  = {false, false},
     .xf.pair_fade_down_bottomed  = {false, false},
@@ -171,6 +179,8 @@ static const float XFADE_SEND_THRESHOLD         = 0.002f;
 static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
 static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
 static const float XFADE_PAIR_ONSET_DEADBAND    = 0.05f;
+static const float XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD     = 0.95f;
+static const float XFADE_PAIR_FADE_DOWN_DEEPER_DELTA        = 0.03f;
 static const float XFADE_PAIR_CUT_MARGIN_MIN    = 0.04f;
 static const float XFADE_PAIR_CUT_MARGIN_MAX    = 0.45f;
 static const float XFADE_PAIR_RAMP_LINEAR_BLEND = 0.60f;
@@ -190,6 +200,10 @@ static const uint8_t MIDI_NOTE_ON_THRESHOLD      = 4U;
 static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
 static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
 static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
+static const uint8_t XFADE_PAIR_A_AUX_FADE_DOWN_IDX = 2U;
+static const uint8_t XFADE_PAIR_B_AUX_FADE_DOWN_IDX = 3U;
+static const uint8_t XFADE_FADE_DOWN_SOURCE_NONE    = 0xFFU;
+static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS = 8U;
 
 static uint8_t s_note_peak_vel[128];
 static uint32_t s_note_scan_start_ms[128];
@@ -1496,6 +1510,7 @@ static void update_mag_samples(void)
     }
 }
 
+// Lookup for paired xfade endpoints (fade-up side -> fade-down side).
 static int8_t get_pair_fade_down_index_from_up(uint8_t fade_up_idx)
 {
     static const int8_t map[MAG_SW_NUM] = {1, -1, -1, -1, -1, 4};
@@ -1595,7 +1610,7 @@ static void update_xfade_extrema(uint8_t i)
         {
             s_ui.xf.up_peak[i] = pair_raw;
 
-            const int8_t fade_down_idx = get_pair_fade_down_index_from_up((uint8_t) i);
+            const int8_t fade_down_idx = get_pair_fade_down_index_from_up(i);
             if (fade_down_idx >= 0)
             {
                 s_ui.xf.down_floor[(uint8_t) fade_down_idx] = s_ui.xf.up_peak[i];
@@ -1606,7 +1621,7 @@ static void update_xfade_extrema(uint8_t i)
         // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
         if (pair_raw >= XFADE_PAIR_RESET_THRESHOLD)
         {
-            const int8_t fade_down_idx = get_pair_fade_down_index_from_up((uint8_t) i);
+            const int8_t fade_down_idx = get_pair_fade_down_index_from_up(i);
             if (fade_down_idx >= 0)
             {
                 s_ui.xf.down_floor[(uint8_t) fade_down_idx] = pair_raw;
@@ -1622,7 +1637,7 @@ static void update_xfade_extrema(uint8_t i)
 
             if (s_ui.xf.down_floor[i] < XFADE_MIN_RESET_CUTOFF)
             {
-                const int8_t fade_up_idx = get_pair_fade_up_index_from_down((uint8_t) i);
+                const int8_t fade_up_idx = get_pair_fade_up_index_from_down(i);
                 if (fade_up_idx >= 0)
                 {
                     s_ui.xf.up_peak[(uint8_t) fade_up_idx] = 0.0f;
@@ -1709,16 +1724,151 @@ static float compute_xfade_pair_threshold_ramp(float value, float threshold, flo
     return (XFADE_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - XFADE_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
 }
 
-static float get_xfade_pair_fade_down_raw(const xfade_pair_runtime_t* pair)
+// Fade-down sensors idle near 1.0 and move toward 0.0 when pressed.
+// Keep a small high-end deadband so light touch/noise does not start a cut.
+static float apply_xfade_fade_down_onset_deadband(float raw)
 {
-    return apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
+    const float high_deadband = 1.0f - XFADE_PAIR_ONSET_DEADBAND;
+
+    raw = clamp01(raw);
+    if (raw >= high_deadband)
+    {
+        return 1.0f;
+    }
+
+    return raw / high_deadband;
 }
 
+// Arbitrate the two fade-down sensors assigned to one xfade pair.
+//
+// source0 is the original fade-down sensor (A:1, B:4), source1 is the
+// auxiliary sensor (A:2, B:3). The active source follows the most recently
+// started cut gesture. When control switches to the other sensor, briefly
+// force fade-down to "released" so repeated flick cuts remain audible even if
+// the previous sensor is still held near the bottom.
+static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float source1)
+{
+    float source[2] = {source0, source1};
+    uint8_t active  = s_ui.xf.fade_down_active_source[pair_idx];
+    uint8_t started = XFADE_FADE_DOWN_SOURCE_NONE;
+    bool force_release = false;
+
+    for (uint8_t i = 0; i < 2U; i++)
+    {
+        const float prev = s_ui.xf.fade_down_source_prev[pair_idx][i];
+        // Detect a new cut either from the idle zone or from a clear deeper
+        // push on the non-active sensor.
+        const bool newly_pressed = (prev >= XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD) &&
+                                   (source[i] < XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD);
+        const bool other_pressed_deeper = (i != active) &&
+                                          (source[i] < XFADE_PAIR_RESET_THRESHOLD) &&
+                                          ((prev - source[i]) >= XFADE_PAIR_FADE_DOWN_DEEPER_DELTA);
+
+        if (newly_pressed || other_pressed_deeper)
+        {
+            started = i;
+        }
+    }
+
+    if (started != XFADE_FADE_DOWN_SOURCE_NONE)
+    {
+        if ((active != XFADE_FADE_DOWN_SOURCE_NONE) && (started != active))
+        {
+            // Switching sources while the previous one is bottomed would
+            // otherwise keep the audio muted and hide the second cut.
+            if (s_ui.xf.pair_bottom_restore_value[pair_idx] > s_ui.xf.pair_hold_value[pair_idx])
+            {
+                s_ui.xf.pair_hold_value[pair_idx] = s_ui.xf.pair_bottom_restore_value[pair_idx];
+            }
+            s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
+            s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
+            s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
+            s_ui.xf.fade_down_force_release_reads[pair_idx] = XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS;
+        }
+        active = started;
+    }
+
+    // Once both fade-down sensors are released, the next press can claim
+    // ownership without being treated as a source switch.
+    if ((source[0] >= XFADE_PAIR_RESET_THRESHOLD) && (source[1] >= XFADE_PAIR_RESET_THRESHOLD))
+    {
+        active = XFADE_FADE_DOWN_SOURCE_NONE;
+    }
+
+    s_ui.xf.fade_down_active_source[pair_idx] = active;
+    s_ui.xf.fade_down_source_prev[pair_idx][0] = source[0];
+    s_ui.xf.fade_down_source_prev[pair_idx][1] = source[1];
+
+    force_release = (s_ui.xf.fade_down_force_release_reads[pair_idx] > 0U);
+    if (force_release)
+    {
+        // Emit a short "released" window before applying the newly active
+        // source. This creates the audible return between rapid cuts.
+        s_ui.xf.fade_down_force_release_reads[pair_idx]--;
+        s_ui.xf.fade_down_combined_raw[pair_idx] = 1.0f;
+        return;
+    }
+
+    if (active != XFADE_FADE_DOWN_SOURCE_NONE)
+    {
+        // During a gesture, only the active source drives fade-down. This lets
+        // the other sensor retrigger even if the first one remains deeper.
+        s_ui.xf.fade_down_combined_raw[pair_idx] = source[active];
+        return;
+    }
+
+    // Idle/fallback behavior: behave like the old dual-input minimum.
+    s_ui.xf.fade_down_combined_raw[pair_idx] = (source[0] < source[1]) ? source[0] : source[1];
+}
+
+// Convert each pair's physical fade-down sensor(s) into one cached value.
+// This is done once per xfade scan so retrigger state is not consumed by
+// multiple later reads of get_xfade_pair_fade_down_raw().
+static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
+{
+    float mag_raw = apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
+
+    if (pair->prev_idx == XFADE_PAIR_A)
+    {
+        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[XFADE_PAIR_A_AUX_FADE_DOWN_IDX]);
+        update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
+        return;
+    }
+    else if (pair->prev_idx == XFADE_PAIR_B)
+    {
+        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[XFADE_PAIR_B_AUX_FADE_DOWN_IDX]);
+        update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
+        return;
+    }
+
+    s_ui.xf.fade_down_combined_raw[pair->prev_idx] = mag_raw;
+}
+
+static void update_xfade_fade_down_sources(void)
+{
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        update_xfade_pair_fade_down_source(&s_xfade_pairs[i]);
+    }
+}
+
+static float get_xfade_pair_fade_down_raw(const xfade_pair_runtime_t* pair)
+{
+    return s_ui.xf.fade_down_combined_raw[pair->prev_idx];
+}
+
+// Fade-up sensors idle near 0.0 and rise toward 1.0 when pressed.
 static float get_xfade_pair_fade_up_raw(const xfade_pair_runtime_t* pair)
 {
     return apply_xfade_pair_onset_deadband(pair->fade_up_idx, s_ui.xf.raw[pair->fade_up_idx]);
 }
 
+// Update the held output value for one xfade pair.
+//
+// The output is not a direct mix of sensors. Fade-up can raise the held value,
+// fade-down can lower it, and releasing either side leaves the output where it
+// was. A full fade-down press enters a bottom-hold state so the cut stays muted
+// until the sensor leaves the bottom zone.
 static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 {
     // Current hold-value model:
@@ -1749,12 +1899,15 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
 
+    // Capture the value to restore if this fade-down gesture reaches bottom.
     if (!cut_active && (fade_down <= down_press_threshold))
     {
         cut_active    = true;
         restore_value = hold_value;
     }
 
+    // Bottom entry is a hard cut. The restore value is kept separately so a
+    // retrigger or bottom release can bring the sound back before the next cut.
     if (!bottomed && (fade_down <= down_bottom_threshold))
     {
         bottomed           = true;
@@ -1765,6 +1918,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 
     if (bottom_hold_active)
     {
+        // Keep output muted while the sensor remains very close to the bottom.
         if (!bottom_entered && (fade_down >= down_bottom_hold_release_threshold))
         {
             bottom_hold_active = false;
@@ -1780,12 +1934,14 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     }
     else if (bottomed && (fade_down <= down_bottom_rehold_threshold))
     {
+        // If a bottomed gesture dips back into the bottom zone, mute again.
         bottom_hold_active = true;
         hold_value         = 0.0f;
     }
 
     if (!bottom_hold_active)
     {
+        // Fully releasing fade-down arms the next normal cut gesture.
         if (bottomed && (fade_down >= down_bottom_release_threshold))
         {
             bottomed           = false;
@@ -1797,6 +1953,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         {
             hold_value = up_gain;
         }
+        // Fade-down can only reduce the held value during a non-bottomed cut.
         if (!bottomed && (down_gain < hold_value))
         {
             hold_value = down_gain;
@@ -1837,6 +1994,8 @@ static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
 // Apply outgoing updates for xfade: MIDI CC stream and DSP DC controls.
 static void apply_xfade_updates(void)
 {
+    update_xfade_fade_down_sources();
+
     for (uint32_t i = 0; i < MAG_SW_NUM; i++)
     {
         emit_xfade_cc_if_needed((uint8_t) i);
@@ -1862,6 +2021,8 @@ static void apply_xfade_updates(void)
 
 void ui_control_reapply_xfade_outputs(void)
 {
+    update_xfade_fade_down_sources();
+
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
     {
         const xfade_pair_runtime_t* pair = &s_xfade_pairs[i];
@@ -2274,6 +2435,11 @@ void ui_control_reset_state(void)
     {
         s_ui.xf.fade_up_prev[i]           = 0.0f;
         s_ui.xf.fade_down_prev[i]         = 1.0f;
+        s_ui.xf.fade_down_combined_raw[i] = 1.0f;
+        s_ui.xf.fade_down_source_prev[i][0] = 1.0f;
+        s_ui.xf.fade_down_source_prev[i][1] = 1.0f;
+        s_ui.xf.fade_down_active_source[i] = XFADE_FADE_DOWN_SOURCE_NONE;
+        s_ui.xf.fade_down_force_release_reads[i] = 0U;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
         s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
         s_ui.xf.pair_fade_down_cut_active[i] = false;
