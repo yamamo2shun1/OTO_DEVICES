@@ -1776,10 +1776,6 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
         {
             // Switching sources while the previous one is bottomed would
             // otherwise keep the audio muted and hide the second cut.
-            if (s_ui.xf.pair_bottom_restore_value[pair_idx] > s_ui.xf.pair_hold_value[pair_idx])
-            {
-                s_ui.xf.pair_hold_value[pair_idx] = s_ui.xf.pair_bottom_restore_value[pair_idx];
-            }
             s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
             s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
             s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
@@ -1898,12 +1894,13 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
+    const bool fade_up_active = (up_gain > 0.0f);
 
     // Capture the value to restore if this fade-down gesture reaches bottom.
     if (!cut_active && (fade_down <= down_press_threshold))
     {
         cut_active    = true;
-        restore_value = hold_value;
+        restore_value = fade_up_active ? hold_value : 0.0f;
     }
 
     // Bottom entry is a hard cut. The restore value is kept separately so a
@@ -1922,9 +1919,14 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         if (!bottom_entered && (fade_down >= down_bottom_hold_release_threshold))
         {
             bottom_hold_active = false;
-            if (restore_value > hold_value)
+            if (fade_up_active && (restore_value > hold_value))
             {
                 hold_value = restore_value;
+            }
+            else if (!fade_up_active)
+            {
+                hold_value    = 0.0f;
+                restore_value = 0.0f;
             }
         }
         else
