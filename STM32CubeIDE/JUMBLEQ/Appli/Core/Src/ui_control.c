@@ -65,6 +65,13 @@ enum
     POT_CH_MAG3,
 };
 
+typedef enum
+{
+    XFADE_GESTURE_PARENT_NONE = 0,
+    XFADE_GESTURE_PARENT_FADE_UP,
+    XFADE_GESTURE_PARENT_FADE_DOWN,
+} xfade_gesture_parent_t;
+
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
 // State used by magnetic-switch crossfader processing.
@@ -84,6 +91,9 @@ typedef struct
     float fade_down_source_prev[2][2];  // Previous fade-down source values used for retrigger detection.
     uint8_t fade_down_active_source[2];  // Last fade-down source that started a cut gesture.
     uint8_t fade_down_force_release_reads[2];  // Number of reads that should force a release before retriggering.
+    uint8_t pair_gesture_parent[2];  // First-pressed side that owns the current two-finger gesture.
+    bool pair_gesture_armed[2];  // Whether both sides were released and a new parent can be selected.
+    bool pair_gesture_child_active[2];  // Whether the child side has been operated during the current gesture.
     bool pair_fade_down_cut_active[2];  // Whether each pair is inside the current fade-down cut gesture.
     bool pair_bottom_hold_active[2];  // Whether each pair is still forced muted at the bottom of a fade-down gesture.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
@@ -162,6 +172,9 @@ static ui_control_state_t s_ui = {
     .xf.fade_down_source_prev    = {{1.0f, 1.0f}, {1.0f, 1.0f}},
     .xf.fade_down_active_source  = {0xFFU, 0xFFU},
     .xf.fade_down_force_release_reads = {0U, 0U},
+    .xf.pair_gesture_parent      = {XFADE_GESTURE_PARENT_NONE, XFADE_GESTURE_PARENT_NONE},
+    .xf.pair_gesture_armed       = {true, true},
+    .xf.pair_gesture_child_active = {false, false},
     .xf.pair_fade_down_cut_active = {false, false},
     .xf.pair_bottom_hold_active  = {false, false},
     .xf.pair_fade_down_bottomed  = {false, false},
@@ -1895,6 +1908,53 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
     const bool fade_up_active = (up_gain > 0.0f);
+    const bool fade_down_released = (fade_down >= XFADE_PAIR_RESET_THRESHOLD);
+    const bool fade_down_pressed = !fade_down_released;
+    const bool both_released = !fade_up_active && !fade_down_pressed;
+    uint8_t gesture_parent = s_ui.xf.pair_gesture_parent[pair->prev_idx];
+    bool gesture_armed = s_ui.xf.pair_gesture_armed[pair->prev_idx];
+    bool gesture_child_active = s_ui.xf.pair_gesture_child_active[pair->prev_idx];
+
+    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_UP) && !fade_up_active)
+    {
+        gesture_parent = fade_down_pressed ? XFADE_GESTURE_PARENT_FADE_DOWN : XFADE_GESTURE_PARENT_NONE;
+        gesture_armed  = (gesture_parent == XFADE_GESTURE_PARENT_NONE) && both_released;
+        gesture_child_active = false;
+    }
+    else if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && !fade_down_pressed)
+    {
+        gesture_parent = fade_up_active ? XFADE_GESTURE_PARENT_FADE_UP : XFADE_GESTURE_PARENT_NONE;
+        gesture_armed  = (gesture_parent == XFADE_GESTURE_PARENT_NONE) && both_released;
+        gesture_child_active = false;
+    }
+
+    if (gesture_parent == XFADE_GESTURE_PARENT_NONE)
+    {
+        if (both_released)
+        {
+            gesture_armed = true;
+        }
+        else if (gesture_armed)
+        {
+            if (fade_up_active && !fade_down_pressed)
+            {
+                gesture_parent = XFADE_GESTURE_PARENT_FADE_UP;
+                gesture_armed  = false;
+                gesture_child_active = false;
+            }
+            else if (fade_down_pressed && !fade_up_active)
+            {
+                gesture_parent = XFADE_GESTURE_PARENT_FADE_DOWN;
+                gesture_armed  = false;
+                gesture_child_active = false;
+            }
+            else
+            {
+                gesture_armed = false;
+                gesture_child_active = false;
+            }
+        }
+    }
 
     // Capture the value to restore if this fade-down gesture reaches bottom.
     if (!cut_active && (fade_down <= down_press_threshold))
@@ -1962,8 +2022,21 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         }
     }
 
+    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && fade_up_active)
+    {
+        gesture_child_active = true;
+    }
+
+    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && gesture_child_active)
+    {
+        hold_value = (up_gain > down_gain) ? up_gain : down_gain;
+    }
+
     s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
     s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+    s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
+    s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
+    s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
     s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
     s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
@@ -2442,6 +2515,9 @@ void ui_control_reset_state(void)
         s_ui.xf.fade_down_source_prev[i][1] = 1.0f;
         s_ui.xf.fade_down_active_source[i] = XFADE_FADE_DOWN_SOURCE_NONE;
         s_ui.xf.fade_down_force_release_reads[i] = 0U;
+        s_ui.xf.pair_gesture_parent[i] = XFADE_GESTURE_PARENT_NONE;
+        s_ui.xf.pair_gesture_armed[i] = true;
+        s_ui.xf.pair_gesture_child_active[i] = false;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
         s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
         s_ui.xf.pair_fade_down_cut_active[i] = false;
