@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shun\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
- * Created:	Tuesday, 21 April 2026 22:13 PM
+ * Created:	Friday, 29 May 2026 14:21 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -201,7 +201,7 @@
 /* Module ch1_output - Single Volume Control */
 #define MOD_CH1_OUTPUT_COUNT               1
 #define MOD_CH1_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH1_OUTPUT_GAIN_ADDR           175
+#define MOD_CH1_OUTPUT_GAIN_ADDR           176
 #define MOD_CH1_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH1_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH1_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -807,7 +807,7 @@
 /* Module ch2_output - Single Volume Control */
 #define MOD_CH2_OUTPUT_COUNT               1
 #define MOD_CH2_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH2_OUTPUT_GAIN_ADDR           174
+#define MOD_CH2_OUTPUT_GAIN_ADDR           175
 #define MOD_CH2_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH2_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH2_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -877,5 +877,17 @@
 #define MOD_HP_OUT_SW_INDEX_MEM_PAGE       0
 #define MOD_HP_OUT_SW_INDEX_DATA_MEMORY    "DM0"
 #define MOD_HP_OUT_SW_INDEX_MEM_PAGE       0
+
+/* Module SingleVolumeControl_19 - Single Volume Control */
+#define MOD_SINGLEVOLUMECONTROL_19_COUNT               1
+#define MOD_SINGLEVOLUMECONTROL_19_SCHEMATIC           "ADAU146xSchematic_1"
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_ADDR           174
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_FIXPT          0x014248F0
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1.25892541179417)
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_DATA_MEMORY    "DM0"
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_MEM_PAGE       0
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_DATA_MEMORY    "DM0"
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_MEM_PAGE       0
 
 #endif
