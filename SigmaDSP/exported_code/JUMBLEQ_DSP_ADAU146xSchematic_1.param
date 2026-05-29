@@ -239,7 +239,7 @@ Parameter Data :
 
 Module Name			= ch1_output
 Parameter Name		= Gain
-Parameter Address	= 175
+Parameter Address	= 176
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -881,7 +881,7 @@ Parameter Data :
 
 Module Name			= ch2_output
 Parameter Name		= Gain
-Parameter Address	= 174
+Parameter Address	= 175
 Parameter Value		= 1
 Data Memory			= DM0
 Mem Page			= 0
@@ -942,6 +942,17 @@ Data Memory			= DM0
 Mem Page			= 0
 Parameter Data :
 0x00, 0x00, 0x00, 0x03, 
+
+
+
+Module Name			= SingleVolumeControl_19
+Parameter Name		= Gain
+Parameter Address	= 174
+Parameter Value		= 1.25892541179417
+Data Memory			= DM0
+Mem Page			= 0
+Parameter Data :
+0x01, 0x42, 0x48, 0xF0, 
 
 
 

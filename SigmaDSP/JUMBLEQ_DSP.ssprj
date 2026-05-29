@@ -2628,13 +2628,15 @@
                             "Link_360",
                             "Link_361",
                             "Link_362",
-                            "Link_372",
-                            "Link_371",
                             "Link_383",
                             "Link_384",
                             "Link_387",
                             "Link_388",
-                            "Link_396"
+                            "Link_396",
+                            "Link_397",
+                            "Link_398",
+                            "Link_399",
+                            "Link_400"
                           ]
                         }
                       },
@@ -3023,7 +3025,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3061,7 +3063,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3099,7 +3101,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3137,7 +3139,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3680,7 +3682,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -8542,7 +8544,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4234.0,
+                          "X": 4483.2307692307695,
                           "Y": -214.0
                         },
                         "Size": {
@@ -8578,7 +8580,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4234.0,
+                          "X": 4483.2307692307695,
                           "Y": -122.0
                         },
                         "Size": {
@@ -8654,12 +8656,12 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT2\r\n(Ch.32-39)\r\nto TAD5142",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4220.0,
+                          "X": 4469.2307692307695,
                           "Y": -287.0
                         },
                         "Size": {
@@ -9116,6 +9118,49 @@
                           "Width": 51.95
                         },
                         "Label": "post_R",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
+                        "Name": "Single Volume Control",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SingleVolumeControl_19",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2,
+                          "Gain": 2.0,
+                          "GainMax": 10.0,
+                          "GainMin": -10.0,
+                          "GainResolution": 1,
+                          "IsDBChosen": true,
+                          "SlewType": "No Slew",
+                          "CustomVal": 8330.0,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 4241.8461538461543,
+                          "Y": -266.0
+                        },
+                        "Size": {
+                          "Height": 252.0,
+                          "Width": 92.0
+                        },
+                        "Label": "SingleVolumeControl_19",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -11461,33 +11506,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_372",
-                        "SourceUid": "SingleVolumeControl_18",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "Output_11",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 4224.0,
-                            "Y": -97.6511
-                          },
-                          {
-                            "X": 4224.0,
-                            "Y": -90.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_371",
-                        "SourceUid": "SingleVolumeControl_18",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "Output_10",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
                         "Uid": "Link_383",
                         "SourceUid": "SingleControlSplitter_2",
                         "SourcePinName": "Output2",
@@ -11695,6 +11713,51 @@
                           {
                             "X": 3856.0714475006976,
                             "Y": -107.73629629629632
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_397",
+                        "SourceUid": "SingleVolumeControl_18",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleVolumeControl_19",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_398",
+                        "SourceUid": "SingleVolumeControl_18",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleVolumeControl_19",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_399",
+                        "SourceUid": "SingleVolumeControl_19",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "Output_10",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_400",
+                        "SourceUid": "SingleVolumeControl_19",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_11",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 4459.0,
+                            "Y": -98.0
+                          },
+                          {
+                            "X": 4459.0,
+                            "Y": -90.0
                           }
                         ]
                       }

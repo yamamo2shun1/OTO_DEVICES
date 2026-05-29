@@ -143,13 +143,19 @@
       <Algorithm name="send_sw_1" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="send_sw_2" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="Output_10" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_371" id="Link_371" />
+        <Link pin="Input" dir="in" link="Link_399" id="Link_399" />
       </Algorithm>
       <Algorithm name="Output_11" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_372" id="Link_372" />
+        <Link pin="Input" dir="in" link="Link_400" id="Link_400" />
       </Algorithm>
       <Algorithm name="hp_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="hp_out_sw" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="SingleVolumeControl_19" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP">
+        <Link pin="Input0" dir="in" link="Link_397" id="Link_397" />
+        <Link pin="Input1" dir="in" link="Link_398" id="Link_398" />
+        <Link pin="Output0" dir="out" link="Link_399" id="Link_399" />
+        <Link pin="Output1" dir="out" link="Link_400" id="Link_400" />
+      </Algorithm>
     </Schematic>
   </Core>
 </IC>

@@ -86,9 +86,10 @@ SignalMerger_2.gain	167
 SingleControlSplitter_2.Gain	171
 StereoSwitchNx2_8.Index	172
 SingleVolumeControl_18.Gain	173
-SingleVolumeControl_17.Gain	174
-SingleVolumeControl_5.Gain	175
-__DM0_PADDING__.__DM0_PADDING__	176
+SingleVolumeControl_19.Gain	174
+SingleVolumeControl_17.Gain	175
+SingleVolumeControl_5.Gain	176
+__DM0_PADDING__.__DM0_PADDING__	177
 __SafeLoad_Module__.data_SafeLoad	24576
 __SafeLoad_Module__.address_SafeLoad	24581
 __SafeLoad_Module__.num_SafeLoad_lower	24582
@@ -103,4 +104,4 @@ SingleSlewExtVol_0.current	24590
 SingleSlewExtVol_0.slew_mode	24591
 SingleSlewExtVol_3.current	24592
 SingleSlewExtVol_3.slew_mode	24593
-__DM1_PADDING__.__DM1_PADDING__	24740
+__DM1_PADDING__.__DM1_PADDING__	24744
