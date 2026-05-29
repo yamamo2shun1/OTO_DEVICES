@@ -85,6 +85,7 @@ typedef struct
     float up_peak[MAG_SW_NUM];  // Per-sensor held maximum used by paired fade-up tracking.
     float pair_hold_value[2];  // Current held output value for each xfade pair.
     float pair_bottom_restore_value[2];  // Held output value to restore after leaving the fade-down bottom.
+    float pair_top_restore_value[2];  // Held output value to restore after leaving the fade-up top.
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
@@ -97,6 +98,8 @@ typedef struct
     bool pair_fade_down_cut_active[2];  // Whether each pair is inside the current fade-down cut gesture.
     bool pair_bottom_hold_active[2];  // Whether each pair is still forced muted at the bottom of a fade-down gesture.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
+    bool pair_top_hold_active[2];  // Whether each pair is still forced muted at the top of a fade-up gesture.
+    bool pair_fade_up_topped[2];  // Whether each pair is currently in the fade-up top zone.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
@@ -166,6 +169,7 @@ static ui_control_state_t s_ui = {
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
     .xf.pair_hold_value          = {0.0f, 0.0f},
     .xf.pair_bottom_restore_value = {0.0f, 0.0f},
+    .xf.pair_top_restore_value    = {0.0f, 0.0f},
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
     .xf.fade_down_combined_raw   = {1.0f, 1.0f},
@@ -178,6 +182,8 @@ static ui_control_state_t s_ui = {
     .xf.pair_fade_down_cut_active = {false, false},
     .xf.pair_bottom_hold_active  = {false, false},
     .xf.pair_fade_down_bottomed  = {false, false},
+    .xf.pair_top_hold_active     = {false, false},
+    .xf.pair_fade_up_topped      = {false, false},
     .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
@@ -213,8 +219,6 @@ static const uint8_t MIDI_NOTE_ON_THRESHOLD      = 4U;
 static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
 static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
 static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
-static const uint8_t XFADE_PAIR_A_AUX_FADE_DOWN_IDX = 2U;
-static const uint8_t XFADE_PAIR_B_AUX_FADE_DOWN_IDX = 3U;
 static const uint8_t XFADE_FADE_DOWN_SOURCE_NONE    = 0xFFU;
 static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS = 8U;
 
@@ -227,6 +231,7 @@ typedef struct
 {
     uint8_t fade_up_idx;
     uint8_t fade_down_idx;
+    uint8_t aux_fade_down_idx;
     uint8_t prev_idx;
     uint8_t* current_position;
     void (*set_dc)(float xf_pos);
@@ -240,21 +245,25 @@ typedef enum
 } xfade_pair_index_t;
 
 // Runtime mapping for each xfade bus:
-// fade_up_idx * fade_down_idx -> curved scalar -> ADAU1466 DC input.
+// Change these indices to reassign the magnetic switches used by each pair.
+// fade_up_idx and fade_down_idx produce the held scalar, and aux_fade_down_idx
+// can retrigger the same fade-down gesture path.
 static const xfade_pair_runtime_t s_xfade_pairs[] = {
     {
-     .fade_up_idx      = 0,
-     .fade_down_idx    = 1,
-     .prev_idx         = XFADE_PAIR_A,
-     .current_position = &s_ui.xf.position_a,
-     .set_dc           = set_dc_inputA,
+     .fade_up_idx       = 2,
+     .fade_down_idx     = 4,
+     .aux_fade_down_idx = 5,
+     .prev_idx          = XFADE_PAIR_A,
+     .current_position  = &s_ui.xf.position_a,
+     .set_dc            = set_dc_inputA,
      },
     {
-     .fade_up_idx      = 5,
-     .fade_down_idx    = 4,
-     .prev_idx         = XFADE_PAIR_B,
-     .current_position = &s_ui.xf.position_b,
-     .set_dc           = set_dc_inputB,
+     .fade_up_idx       = 3,
+     .fade_down_idx     = 1,
+     .aux_fade_down_idx = 0,
+     .prev_idx          = XFADE_PAIR_B,
+     .current_position  = &s_ui.xf.position_b,
+     .set_dc            = set_dc_inputB,
      },
 };
 
@@ -1526,15 +1535,39 @@ static void update_mag_samples(void)
 // Lookup for paired xfade endpoints (fade-up side -> fade-down side).
 static int8_t get_pair_fade_down_index_from_up(uint8_t fade_up_idx)
 {
-    static const int8_t map[MAG_SW_NUM] = {1, -1, -1, -1, -1, 4};
-    return (fade_up_idx < MAG_SW_NUM) ? map[fade_up_idx] : -1;
+    if (fade_up_idx >= MAG_SW_NUM)
+    {
+        return -1;
+    }
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        if (s_xfade_pairs[i].fade_up_idx == fade_up_idx)
+        {
+            return (int8_t) s_xfade_pairs[i].fade_down_idx;
+        }
+    }
+
+    return -1;
 }
 
 // Reverse lookup for paired xfade endpoints (fade-down side -> fade-up side).
 static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
 {
-    static const int8_t map[MAG_SW_NUM] = {-1, 0, -1, -1, 5, -1};
-    return (fade_down_idx < MAG_SW_NUM) ? map[fade_down_idx] : -1;
+    if (fade_down_idx >= MAG_SW_NUM)
+    {
+        return -1;
+    }
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        if (s_xfade_pairs[i].fade_down_idx == fade_down_idx)
+        {
+            return (int8_t) s_xfade_pairs[i].fade_up_idx;
+        }
+    }
+
+    return -1;
 }
 
 // Add a small touch-onset deadband for pair tracking so untouched sensors do not
@@ -1578,7 +1611,7 @@ static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
 // Convert one magnetic sensor sample into normalized xfade raw [0..1].
 static void update_raw_xfade_from_mag(uint8_t i)
 {
-    // End sensors (0,5) rise from 0->1, center-side sensors (1-4) invert 1->0.
+    // Fade-up sensors rise from 0->1; fade-down and aux sensors invert 1->0.
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
         if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
@@ -1660,19 +1693,45 @@ static void update_xfade_extrema(uint8_t i)
     }
     else
     {
-        // No extrema tracking for center pair-independent sensors (e.g. index 2,3).
+        // No extrema tracking for pair-independent aux sensors.
     }
+}
+
+static void update_one_xfade_index(uint8_t i, bool processed[MAG_SW_NUM])
+{
+    if ((i >= MAG_SW_NUM) || processed[i])
+    {
+        return;
+    }
+
+    update_raw_xfade_from_mag(i);
+    update_xfade_extrema(i);
+    processed[i] = true;
 }
 
 // Full per-scan xfade update pipeline: raw normalization then extrema tracking.
 static void update_xfade_from_mag(void)
 {
-    static const uint8_t index[MAG_SW_NUM] = {0, 5, 1, 2, 3, 4};
-    for (uint32_t j = 0; j < MAG_SW_NUM; j++)
+    bool processed[MAG_SW_NUM] = {false};
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
     {
-        const uint8_t i = index[j];
-        update_raw_xfade_from_mag(i);
-        update_xfade_extrema(i);
+        update_one_xfade_index(s_xfade_pairs[i].fade_up_idx, processed);
+    }
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        update_one_xfade_index(s_xfade_pairs[i].fade_down_idx, processed);
+    }
+
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    {
+        update_one_xfade_index(s_xfade_pairs[i].aux_fade_down_idx, processed);
+    }
+
+    for (uint8_t i = 0; i < MAG_SW_NUM; i++)
+    {
+        update_one_xfade_index(i, processed);
     }
 }
 
@@ -1682,7 +1741,7 @@ static void emit_xfade_cc_if_needed(uint8_t i)
     const uint8_t note = (uint8_t) (60U + i);
     uint8_t value      = xfade_to_cc(s_ui.xf.raw[i]);
 
-    if ((note == 60U) || (note == 65U))
+    if (get_pair_fade_down_index_from_up(i) >= 0)
     {
         value = (uint8_t) (127U - value);
     }
@@ -1754,11 +1813,11 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
 
 // Arbitrate the two fade-down sensors assigned to one xfade pair.
 //
-// source0 is the original fade-down sensor (A:1, B:4), source1 is the
-// auxiliary sensor (A:2, B:3). The active source follows the most recently
-// started cut gesture. When control switches to the other sensor, briefly
-// force fade-down to "released" so repeated flick cuts remain audible even if
-// the previous sensor is still held near the bottom.
+// source0 is the main fade-down sensor, and source1 is the auxiliary sensor.
+// The active source follows the most recently started cut gesture. When
+// control switches to the other sensor, briefly force fade-down to "released"
+// so repeated flick cuts remain audible even if the previous sensor is still
+// held near the bottom.
 static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float source1)
 {
     float source[2] = {source0, source1};
@@ -1792,6 +1851,9 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
             s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
             s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
             s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
+            s_ui.xf.pair_top_restore_value[pair_idx] = 0.0f;
+            s_ui.xf.pair_top_hold_active[pair_idx] = false;
+            s_ui.xf.pair_fade_up_topped[pair_idx] = false;
             s_ui.xf.fade_down_force_release_reads[pair_idx] = XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS;
         }
         active = started;
@@ -1837,15 +1899,9 @@ static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
 {
     float mag_raw = apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
 
-    if (pair->prev_idx == XFADE_PAIR_A)
+    if (pair->aux_fade_down_idx < MAG_SW_NUM)
     {
-        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[XFADE_PAIR_A_AUX_FADE_DOWN_IDX]);
-        update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
-        return;
-    }
-    else if (pair->prev_idx == XFADE_PAIR_B)
-    {
-        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[XFADE_PAIR_B_AUX_FADE_DOWN_IDX]);
+        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[pair->aux_fade_down_idx]);
         update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
         return;
     }
@@ -1885,6 +1941,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     // - fade-down lowers the held output toward its current ramped value
     // - releasing either side leaves the held output where it was
     // - pushing fade-down into the bottom zone forces the held output to 0
+    // - when fade-down owns a two-finger gesture, fade-up stays open at the
+    //   top and cuts when it backs away from the top
     const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
     const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
     const float fade_up          = get_xfade_pair_fade_up_raw(pair);
@@ -1897,14 +1955,21 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float down_bottom_threshold       = margin * 0.5f;
     const float down_bottom_hold_release_threshold = margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
     const float down_bottom_rehold_threshold       = margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
+    const float up_top_threshold            = 1.0f - (margin * 0.5f);
+    const float up_top_hold_release_threshold = 1.0f - (margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
+    const float up_top_rehold_threshold       = 1.0f - (margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO);
     // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
     const float down_bottom_release_threshold = 1.0f;
     bool cut_active         = s_ui.xf.pair_fade_down_cut_active[pair->prev_idx];
     bool bottom_hold_active = s_ui.xf.pair_bottom_hold_active[pair->prev_idx];
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
+    bool top_hold_active    = s_ui.xf.pair_top_hold_active[pair->prev_idx];
+    bool topped             = s_ui.xf.pair_fade_up_topped[pair->prev_idx];
     bool bottom_entered     = false;
+    bool top_entered        = false;
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
     float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
+    float top_restore_value = s_ui.xf.pair_top_restore_value[pair->prev_idx];
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
     const bool fade_up_active = (up_gain > 0.0f);
@@ -2032,14 +2097,60 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         hold_value = (up_gain > down_gain) ? up_gain : down_gain;
     }
 
+    const bool fade_up_top_hold_enabled = (gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) &&
+                                          fade_down_pressed &&
+                                          gesture_child_active &&
+                                          fade_up_active;
+    if (!fade_up_top_hold_enabled)
+    {
+        top_hold_active    = false;
+        topped             = false;
+        top_restore_value  = 0.0f;
+    }
+    else
+    {
+        if (!topped && (fade_up >= up_top_threshold))
+        {
+            topped            = true;
+            top_hold_active   = false;
+            top_entered       = true;
+            top_restore_value = up_gain;
+        }
+
+        if (topped && !top_entered && !top_hold_active && (fade_up <= up_top_hold_release_threshold))
+        {
+            top_hold_active = true;
+            hold_value      = 0.0f;
+        }
+
+        if (top_hold_active)
+        {
+            // Once fade-up has backed away from the top, keep it cut until it
+            // returns to the top zone.
+            if (fade_up >= up_top_rehold_threshold)
+            {
+                top_hold_active  = false;
+                top_restore_value = (up_gain > down_gain) ? up_gain : down_gain;
+                hold_value       = top_restore_value;
+            }
+            else
+            {
+                hold_value = 0.0f;
+            }
+        }
+    }
+
     s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
     s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+    s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
     s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
     s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
     s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
     s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
     s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+    s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+    s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
     return hold_value;
 }
 
@@ -2520,9 +2631,12 @@ void ui_control_reset_state(void)
         s_ui.xf.pair_gesture_child_active[i] = false;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
         s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
+        s_ui.xf.pair_top_restore_value[i] = 0.0f;
         s_ui.xf.pair_fade_down_cut_active[i] = false;
         s_ui.xf.pair_bottom_hold_active[i] = false;
         s_ui.xf.pair_fade_down_bottomed[i] = false;
+        s_ui.xf.pair_top_hold_active[i] = false;
+        s_ui.xf.pair_fade_up_topped[i] = false;
     }
     mark_xfade_cut_margin_dirty();
     s_ui.xf.fade_prev_valid = false;
