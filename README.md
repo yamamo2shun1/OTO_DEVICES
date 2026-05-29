@@ -41,6 +41,22 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - USB: 4in/4out(USB Audio Class 2.0) and MIDI in/out
 - Format: 24bit, 48kHz/96kHz
 
+### Line Input
+- Input impedance: approx. 25 kΩ
+- Test condition: 1 kHz sine, series resistor method with 10 kΩ
+
+### Line Output
+- Nominal output level: -10 dBV, 317 mVrms at LINE OUT 0 dB
+- Maximum user output level: 0 dBV / +2.2 dBu, 1.0 Vrms at LINE OUT +10 dB
+- Output impedance: approx. 235 Ω
+- Test condition: 1 kHz sine, USB input at 0 dBFS, no load
+
+### Headphone Output
+- Nominal output level: 281 mVrms into 100 Ω at HP OUT 0 dB
+- Maximum output level: 890 mVrms / 7.9 mW into 100 Ω at HP OUT +10 dB
+- Output impedance: approx. 9 Ω
+- Test condition: 1 kHz sine, 100 Ω load
+
 ## Electronic Spec.
 - MCU: [STM32H7S3Z8](https://www.st.com/en/microcontrollers-microprocessors/stm32h7s3z8.html)
 - DSP: [ADAU1466](https://www.analog.com/jp/products/adau1466.html)
