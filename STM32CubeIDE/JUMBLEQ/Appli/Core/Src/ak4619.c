@@ -130,19 +130,19 @@ void AUDIO_Init_AK4619(uint32_t hz)
     }
 
     // DAC digital volume
-    if (ak4619_write_reg(0x0E, 0x18) != HAL_OK)  // DAC1 Lch 0x18(0dB) -> 0xFF(-inf dB)
+    if (ak4619_write_reg(0x0E, 0x14) != HAL_OK)  // DAC1 Lch 0x14(+2dB), 0x18(0dB), 0xFF(-inf dB)
     {
         return;
     }
-    if (ak4619_write_reg(0x0F, 0x18) != HAL_OK)  // DAC1 Rch 0x18(0dB) -> 0xFF(-inf dB)
+    if (ak4619_write_reg(0x0F, 0x14) != HAL_OK)  // DAC1 Rch 0x14(+2dB), 0x18(0dB), 0xFF(-inf dB)
     {
         return;
     }
-    if (ak4619_write_reg(0x10, 0x18) != HAL_OK)  // DAC2 Lch 0x18(0dB) -> 0xFF(-inf dB)
+    if (ak4619_write_reg(0x10, 0x14) != HAL_OK)  // DAC2 Lch 0x14(+2dB), 0x18(0dB), 0xFF(-inf dB)
     {
         return;
     }
-    if (ak4619_write_reg(0x11, 0x18) != HAL_OK)  // DAC2 Rch 0x18(0dB) -> 0xFF(-infdB)
+    if (ak4619_write_reg(0x11, 0x14) != HAL_OK)  // DAC2 Rch 0x14(+2dB), 0x18(0dB), 0xFF(-inf dB)
     {
         return;
     }
