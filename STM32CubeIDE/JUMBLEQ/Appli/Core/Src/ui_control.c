@@ -85,6 +85,7 @@ typedef struct
     float up_peak[MAG_SW_NUM];  // Per-sensor held maximum used by paired fade-up tracking.
     float pair_hold_value[2];  // Current held output value for each xfade pair.
     float pair_bottom_restore_value[2];  // Held output value to restore after leaving the fade-down bottom.
+    float pair_top_restore_value[2];  // Held output value to restore after leaving the fade-up top.
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
@@ -97,6 +98,8 @@ typedef struct
     bool pair_fade_down_cut_active[2];  // Whether each pair is inside the current fade-down cut gesture.
     bool pair_bottom_hold_active[2];  // Whether each pair is still forced muted at the bottom of a fade-down gesture.
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
+    bool pair_top_hold_active[2];  // Whether each pair is still forced muted at the top of a fade-up gesture.
+    bool pair_fade_up_topped[2];  // Whether each pair is currently in the fade-up top zone.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
@@ -166,6 +169,7 @@ static ui_control_state_t s_ui = {
     .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
     .xf.pair_hold_value          = {0.0f, 0.0f},
     .xf.pair_bottom_restore_value = {0.0f, 0.0f},
+    .xf.pair_top_restore_value    = {0.0f, 0.0f},
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
     .xf.fade_down_combined_raw   = {1.0f, 1.0f},
@@ -178,6 +182,8 @@ static ui_control_state_t s_ui = {
     .xf.pair_fade_down_cut_active = {false, false},
     .xf.pair_bottom_hold_active  = {false, false},
     .xf.pair_fade_down_bottomed  = {false, false},
+    .xf.pair_top_hold_active     = {false, false},
+    .xf.pair_fade_up_topped      = {false, false},
     .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
@@ -1845,6 +1851,9 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
             s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
             s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
             s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
+            s_ui.xf.pair_top_restore_value[pair_idx] = 0.0f;
+            s_ui.xf.pair_top_hold_active[pair_idx] = false;
+            s_ui.xf.pair_fade_up_topped[pair_idx] = false;
             s_ui.xf.fade_down_force_release_reads[pair_idx] = XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS;
         }
         active = started;
@@ -1932,6 +1941,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     // - fade-down lowers the held output toward its current ramped value
     // - releasing either side leaves the held output where it was
     // - pushing fade-down into the bottom zone forces the held output to 0
+    // - when fade-down owns a two-finger gesture, fade-up stays open at the
+    //   top and cuts when it backs away from the top
     const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
     const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
     const float fade_up          = get_xfade_pair_fade_up_raw(pair);
@@ -1944,14 +1955,21 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     const float down_bottom_threshold       = margin * 0.5f;
     const float down_bottom_hold_release_threshold = margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
     const float down_bottom_rehold_threshold       = margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
+    const float up_top_threshold            = 1.0f - (margin * 0.5f);
+    const float up_top_hold_release_threshold = 1.0f - (margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
+    const float up_top_rehold_threshold       = 1.0f - (margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO);
     // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
     const float down_bottom_release_threshold = 1.0f;
     bool cut_active         = s_ui.xf.pair_fade_down_cut_active[pair->prev_idx];
     bool bottom_hold_active = s_ui.xf.pair_bottom_hold_active[pair->prev_idx];
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
+    bool top_hold_active    = s_ui.xf.pair_top_hold_active[pair->prev_idx];
+    bool topped             = s_ui.xf.pair_fade_up_topped[pair->prev_idx];
     bool bottom_entered     = false;
+    bool top_entered        = false;
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
     float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
+    float top_restore_value = s_ui.xf.pair_top_restore_value[pair->prev_idx];
     const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
     const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
     const bool fade_up_active = (up_gain > 0.0f);
@@ -2079,14 +2097,60 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         hold_value = (up_gain > down_gain) ? up_gain : down_gain;
     }
 
+    const bool fade_up_top_hold_enabled = (gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) &&
+                                          fade_down_pressed &&
+                                          gesture_child_active &&
+                                          fade_up_active;
+    if (!fade_up_top_hold_enabled)
+    {
+        top_hold_active    = false;
+        topped             = false;
+        top_restore_value  = 0.0f;
+    }
+    else
+    {
+        if (!topped && (fade_up >= up_top_threshold))
+        {
+            topped            = true;
+            top_hold_active   = false;
+            top_entered       = true;
+            top_restore_value = up_gain;
+        }
+
+        if (topped && !top_entered && !top_hold_active && (fade_up <= up_top_hold_release_threshold))
+        {
+            top_hold_active = true;
+            hold_value      = 0.0f;
+        }
+
+        if (top_hold_active)
+        {
+            // Once fade-up has backed away from the top, keep it cut until it
+            // returns to the top zone.
+            if (fade_up >= up_top_rehold_threshold)
+            {
+                top_hold_active  = false;
+                top_restore_value = (up_gain > down_gain) ? up_gain : down_gain;
+                hold_value       = top_restore_value;
+            }
+            else
+            {
+                hold_value = 0.0f;
+            }
+        }
+    }
+
     s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
     s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+    s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
     s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
     s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
     s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
     s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
     s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+    s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+    s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
     return hold_value;
 }
 
@@ -2567,9 +2631,12 @@ void ui_control_reset_state(void)
         s_ui.xf.pair_gesture_child_active[i] = false;
         s_ui.xf.pair_hold_value[i]         = 0.0f;
         s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
+        s_ui.xf.pair_top_restore_value[i] = 0.0f;
         s_ui.xf.pair_fade_down_cut_active[i] = false;
         s_ui.xf.pair_bottom_hold_active[i] = false;
         s_ui.xf.pair_fade_down_bottomed[i] = false;
+        s_ui.xf.pair_top_hold_active[i] = false;
+        s_ui.xf.pair_fade_up_topped[i] = false;
     }
     mark_xfade_cut_margin_dirty();
     s_ui.xf.fade_prev_valid = false;
