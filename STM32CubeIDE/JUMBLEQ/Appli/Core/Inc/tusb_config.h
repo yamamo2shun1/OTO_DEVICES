@@ -41,6 +41,10 @@ extern "C"
 
 #define CFG_TUSB_MCU              OPT_MCU_STM32H7RS
 #define CFG_TUSB_OS               OPT_OS_FREERTOS
+#ifndef pdTICKS_TO_MS
+    // TinyUSB 0.21.0 uses this macro, which is absent from the bundled FreeRTOS.
+    #define pdTICKS_TO_MS(ticks) ((uint32_t) ((((uint64_t) (ticks)) * 1000ULL) / configTICK_RATE_HZ))
+#endif
 #define BOARD_DEVICE_RHPORT_SPEED OPT_MODE_HIGH_SPEED
 #define BOARD_TUD_MAX_SPEED       OPT_MODE_HIGH_SPEED
 #define BOARD_DEVICE_RHPORT_NUM   1
