@@ -31,6 +31,7 @@
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
 #define MAG_XFADE_RANGE           1400
+#define XFADE_FADE_DOWN_SOURCE_COUNT 3U
 
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
@@ -89,7 +90,7 @@ typedef struct
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
-    float fade_down_source_prev[2][2];  // Previous fade-down source values used for retrigger detection.
+    float fade_down_source_prev[2][XFADE_FADE_DOWN_SOURCE_COUNT];  // Previous fade-down source values used for retrigger detection.
     uint8_t fade_down_active_source[2];  // Last fade-down source that started a cut gesture.
     uint8_t fade_down_force_release_reads[2];  // Number of reads that should force a release before retriggering.
     uint8_t pair_gesture_parent[2];  // First-pressed side that owns the current two-finger gesture.
@@ -174,7 +175,7 @@ static ui_control_state_t s_ui = {
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
     .xf.fade_down_combined_raw   = {1.0f, 1.0f},
-    .xf.fade_down_source_prev    = {{1.0f, 1.0f}, {1.0f, 1.0f}},
+    .xf.fade_down_source_prev    = {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
     .xf.fade_down_active_source  = {0xFFU, 0xFFU},
     .xf.fade_down_force_release_reads = {0U, 0U},
     .xf.pair_gesture_parent      = {XFADE_GESTURE_PARENT_NONE, XFADE_GESTURE_PARENT_NONE},
@@ -234,6 +235,7 @@ typedef struct
     uint8_t fade_up_idx;
     uint8_t fade_down_idx;
     uint8_t aux_fade_down_idx;
+    uint8_t aux2_fade_down_idx;
     uint8_t prev_idx;
     uint8_t* current_position;
     void (*set_dc)(float xf_pos);
@@ -248,21 +250,23 @@ typedef enum
 
 // Runtime mapping for each xfade bus:
 // Change these indices to reassign the magnetic switches used by each pair.
-// fade_up_idx and fade_down_idx produce the held scalar, and aux_fade_down_idx
-// can retrigger the same fade-down gesture path.
+// fade_up_idx and fade_down_idx produce the held scalar. Each valid auxiliary
+// fade-down index can retrigger the same fade-down gesture path.
 static const xfade_pair_runtime_t s_xfade_pairs[] = {
     {
-     .fade_up_idx       = 2,
-     .fade_down_idx     = 4,
-     .aux_fade_down_idx = 5,
+     .fade_up_idx       = 0,
+     .fade_down_idx     = 1,
+     .aux_fade_down_idx = MAG_SW_NUM,
+     .aux2_fade_down_idx = MAG_SW_NUM,
      .prev_idx          = XFADE_PAIR_A,
      .current_position  = &s_ui.xf.position_a,
      .set_dc            = set_dc_inputA,
      },
     {
-     .fade_up_idx       = 3,
-     .fade_down_idx     = 1,
-     .aux_fade_down_idx = 0,
+     .fade_up_idx       = 5,
+     .fade_down_idx     = 4,
+     .aux_fade_down_idx = 3,
+     .aux2_fade_down_idx = 2,
      .prev_idx          = XFADE_PAIR_B,
      .current_position  = &s_ui.xf.position_b,
      .set_dc            = set_dc_inputB,
@@ -1729,6 +1733,7 @@ static void update_xfade_from_mag(void)
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
     {
         update_one_xfade_index(s_xfade_pairs[i].aux_fade_down_idx, processed);
+        update_one_xfade_index(s_xfade_pairs[i].aux2_fade_down_idx, processed);
     }
 
     for (uint8_t i = 0; i < MAG_SW_NUM; i++)
@@ -1813,21 +1818,21 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
     return raw / high_deadband;
 }
 
-// Arbitrate the two fade-down sensors assigned to one xfade pair.
+// Arbitrate the fade-down sensors assigned to one xfade pair.
 //
-// source0 is the main fade-down sensor, and source1 is the auxiliary sensor.
+// source0 is the main fade-down sensor, and later sources are auxiliary sensors.
 // The active source follows the most recently started cut gesture. When
 // control switches to the other sensor, briefly force fade-down to "released"
 // so repeated flick cuts remain audible even if the previous sensor is still
 // held near the bottom.
-static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float source1)
+static void update_multi_fade_down_source(uint8_t pair_idx,
+                                          const float source[XFADE_FADE_DOWN_SOURCE_COUNT])
 {
-    float source[2] = {source0, source1};
     uint8_t active  = s_ui.xf.fade_down_active_source[pair_idx];
     uint8_t started = XFADE_FADE_DOWN_SOURCE_NONE;
     bool force_release = false;
 
-    for (uint8_t i = 0; i < 2U; i++)
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
     {
         const float prev = s_ui.xf.fade_down_source_prev[pair_idx][i];
         // Detect a new cut either from the idle zone or from a clear deeper
@@ -1861,16 +1866,27 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
         active = started;
     }
 
-    // Once both fade-down sensors are released, the next press can claim
+    // Once all fade-down sensors are released, the next press can claim
     // ownership without being treated as a source switch.
-    if ((source[0] >= XFADE_PAIR_RESET_THRESHOLD) && (source[1] >= XFADE_PAIR_RESET_THRESHOLD))
+    bool all_released = true;
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        if (source[i] < XFADE_PAIR_RESET_THRESHOLD)
+        {
+            all_released = false;
+            break;
+        }
+    }
+    if (all_released)
     {
         active = XFADE_FADE_DOWN_SOURCE_NONE;
     }
 
     s_ui.xf.fade_down_active_source[pair_idx] = active;
-    s_ui.xf.fade_down_source_prev[pair_idx][0] = source[0];
-    s_ui.xf.fade_down_source_prev[pair_idx][1] = source[1];
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        s_ui.xf.fade_down_source_prev[pair_idx][i] = source[i];
+    }
 
     force_release = (s_ui.xf.fade_down_force_release_reads[pair_idx] > 0U);
     if (force_release)
@@ -1890,8 +1906,16 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
         return;
     }
 
-    // Idle/fallback behavior: behave like the old dual-input minimum.
-    s_ui.xf.fade_down_combined_raw[pair_idx] = (source[0] < source[1]) ? source[0] : source[1];
+    // Idle/fallback behavior: use the deepest pressed fade-down source.
+    float combined = source[0];
+    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        if (source[i] < combined)
+        {
+            combined = source[i];
+        }
+    }
+    s_ui.xf.fade_down_combined_raw[pair_idx] = combined;
 }
 
 // Convert each pair's physical fade-down sensor(s) into one cached value.
@@ -1899,16 +1923,23 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
 // multiple later reads of get_xfade_pair_fade_down_raw().
 static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
 {
-    float mag_raw = apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
+    const uint8_t source_idx[XFADE_FADE_DOWN_SOURCE_COUNT] = {
+        pair->fade_down_idx,
+        pair->aux_fade_down_idx,
+        pair->aux2_fade_down_idx,
+    };
+    float source[XFADE_FADE_DOWN_SOURCE_COUNT] = {1.0f, 1.0f, 1.0f};
 
-    if (pair->aux_fade_down_idx < MAG_SW_NUM)
+    source[0] = apply_xfade_pair_onset_deadband(source_idx[0], s_ui.xf.raw[source_idx[0]]);
+    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
     {
-        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[pair->aux_fade_down_idx]);
-        update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
-        return;
+        if (source_idx[i] < MAG_SW_NUM)
+        {
+            source[i] = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[source_idx[i]]);
+        }
     }
 
-    s_ui.xf.fade_down_combined_raw[pair->prev_idx] = mag_raw;
+    update_multi_fade_down_source(pair->prev_idx, source);
 }
 
 static void update_xfade_fade_down_sources(void)
@@ -2681,8 +2712,10 @@ void ui_control_reset_state(void)
         s_ui.xf.fade_up_prev[i]           = 0.0f;
         s_ui.xf.fade_down_prev[i]         = 1.0f;
         s_ui.xf.fade_down_combined_raw[i] = 1.0f;
-        s_ui.xf.fade_down_source_prev[i][0] = 1.0f;
-        s_ui.xf.fade_down_source_prev[i][1] = 1.0f;
+        for (uint8_t source = 0; source < XFADE_FADE_DOWN_SOURCE_COUNT; source++)
+        {
+            s_ui.xf.fade_down_source_prev[i][source] = 1.0f;
+        }
         s_ui.xf.fade_down_active_source[i] = XFADE_FADE_DOWN_SOURCE_NONE;
         s_ui.xf.fade_down_force_release_reads[i] = 0U;
         s_ui.xf.pair_gesture_parent[i] = XFADE_GESTURE_PARENT_NONE;
