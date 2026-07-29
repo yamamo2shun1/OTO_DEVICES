@@ -100,6 +100,7 @@ typedef struct
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
     bool pair_top_hold_active[2];  // Whether each pair is still forced muted at the top of a fade-up gesture.
     bool pair_fade_up_topped[2];  // Whether each pair is currently in the fade-up top zone.
+    bool pair_reverse_fade_down_takeover[2];  // Whether fade-down owns reverse momentary output while fade-up is released.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
@@ -184,6 +185,7 @@ static ui_control_state_t s_ui = {
     .xf.pair_fade_down_bottomed  = {false, false},
     .xf.pair_top_hold_active     = {false, false},
     .xf.pair_fade_up_topped      = {false, false},
+    .xf.pair_reverse_fade_down_takeover = {false, false},
     .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
@@ -1965,6 +1967,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
     bool top_hold_active    = s_ui.xf.pair_top_hold_active[pair->prev_idx];
     bool topped             = s_ui.xf.pair_fade_up_topped[pair->prev_idx];
+    bool reverse_fade_down_takeover = s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx];
     bool bottom_entered     = false;
     bool top_entered        = false;
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
@@ -2020,6 +2023,61 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
             }
         }
     }
+
+    // With fade-up released, fade-down works as a reverse momentary control.
+    // Soft takeover keeps the fade-up hold behavior unchanged until the
+    // reversed fade-down curve reaches the current held value.
+    if (!fade_up_active)
+    {
+        const float reverse_down_gain = 1.0f - down_gain;
+
+        if (!reverse_fade_down_takeover &&
+            fade_down_pressed &&
+            ((reverse_down_gain + XFADE_SEND_THRESHOLD) >= hold_value))
+        {
+            reverse_fade_down_takeover = true;
+        }
+
+        if (reverse_fade_down_takeover)
+        {
+            if (fade_down_released)
+            {
+                hold_value = 0.0f;
+                reverse_fade_down_takeover = false;
+            }
+            else
+            {
+                hold_value = reverse_down_gain;
+            }
+        }
+
+        // The normal fade-down cut state is only used while fade-up is active.
+        cut_active          = false;
+        bottom_hold_active  = false;
+        bottomed            = false;
+        top_hold_active     = false;
+        topped              = false;
+        restore_value       = 0.0f;
+        top_restore_value   = 0.0f;
+        gesture_child_active = false;
+
+        s_ui.xf.pair_hold_value[pair->prev_idx] = hold_value;
+        s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+        s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
+        s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
+        s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
+        s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
+        s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
+        s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
+        s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+        s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+        s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
+        s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
+        return hold_value;
+    }
+
+    // Fade-up is active, so preserve the existing fade-down behavior.
+    reverse_fade_down_takeover = false;
 
     // Capture the value to restore if this fade-down gesture reaches bottom.
     if (!cut_active && (fade_down <= down_press_threshold))
@@ -2151,6 +2209,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
     s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
     s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
+    s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
     return hold_value;
 }
 
@@ -2637,6 +2696,7 @@ void ui_control_reset_state(void)
         s_ui.xf.pair_fade_down_bottomed[i] = false;
         s_ui.xf.pair_top_hold_active[i] = false;
         s_ui.xf.pair_fade_up_topped[i] = false;
+        s_ui.xf.pair_reverse_fade_down_takeover[i] = false;
     }
     mark_xfade_cut_margin_dirty();
     s_ui.xf.fade_prev_valid = false;
