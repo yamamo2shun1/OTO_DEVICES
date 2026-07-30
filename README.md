@@ -67,7 +67,7 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/23123ed1-6aa1-4a9c-919b-3d1c9a353c36" />
 
 ## Magnetic SW Assign
-<img width="640" alt="image" src="https://github.com/user-attachments/assets/ef51deee-20a3-4ab7-88b8-02199ef1d582" />
+<img width="640" alt="JUMBLEQ_mag_sw_ui" src="https://github.com/user-attachments/assets/7f4aec2a-a40a-4f53-9961-a0d403b15443" />
 
 ## MIDI Spec.
 - [RX](./Docs/MIDI_RX_SPEC.md)
@@ -77,7 +77,7 @@ JUMBLEQ also provides a configurator for changing settings via MIDI: [JUMBLEQ Co
 JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). The standalone version is available for Windows and macOS, but requires Max 9 to be installed. A [Max for Live device version](./Max/JUMBLEQ_Configurator.amxd) is also included, allowing JUMBLEQ settings to be changed directly from within Ableton Live.
 
 ### Standalone version
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/3659966d-30bb-400e-b8cf-ac8b83e5ac35" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/d568f29f-4c74-4a79-a0e7-26b0f5e07027" />
 
 ### Max for Live version
 <img width="600" alt="JUMBLEQ_Configurator_m4l" src="https://github.com/user-attachments/assets/4fddf9b7-5925-4448-b21a-bae903f854b2" />
