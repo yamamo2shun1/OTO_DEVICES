@@ -112,27 +112,15 @@
       <Algorithm name="DVS_SW_2" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="GenSecondOrder_0" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
         <Link pin="Output0" dir="out" link="Link_321" id="Link_321" />
-        <Link pin="Input0" dir="in" link="Link_322" id="Link_322" />
-        <Link pin="Input1" dir="in" link="Link_325" id="Link_325" />
         <Link pin="Output1" dir="out" link="Link_326" id="Link_326" />
+        <Link pin="Input0" dir="in" link="Link_403" id="Link_403" />
+        <Link pin="Input1" dir="in" link="Link_404" id="Link_404" />
       </Algorithm>
       <Algorithm name="GenSecondOrder_1" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
         <Link pin="Output0" dir="out" link="Link_310" id="Link_310" />
-        <Link pin="Input0" dir="in" link="Link_311" id="Link_311" />
-        <Link pin="Input1" dir="in" link="Link_319" id="Link_319" />
         <Link pin="Output1" dir="out" link="Link_320" id="Link_320" />
-      </Algorithm>
-      <Algorithm name="GenSecondOrder_2" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Output0" dir="out" link="Link_322" id="Link_322" />
-        <Link pin="Input0" dir="in" link="Link_323" id="Link_323" />
-        <Link pin="Input1" dir="in" link="Link_324" id="Link_324" />
-        <Link pin="Output1" dir="out" link="Link_325" id="Link_325" />
-      </Algorithm>
-      <Algorithm name="GenSecondOrder_3" friendlyname="Gives access to a variety of Second Order IIR filter algorithms.&#xA; Parametric, Shelving, General LP/HP/BP/BS, Tone Control etc.">
-        <Link pin="Output0" dir="out" link="Link_311" id="Link_311" />
-        <Link pin="Input0" dir="in" link="Link_316" id="Link_316" />
-        <Link pin="Input1" dir="in" link="Link_317" id="Link_317" />
-        <Link pin="Output1" dir="out" link="Link_319" id="Link_319" />
+        <Link pin="Input0" dir="in" link="Link_401" id="Link_401" />
+        <Link pin="Input1" dir="in" link="Link_402" id="Link_402" />
       </Algorithm>
       <Algorithm name="send1_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="input_from_return" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
@@ -155,6 +143,18 @@
         <Link pin="Input1" dir="in" link="Link_398" id="Link_398" />
         <Link pin="Output0" dir="out" link="Link_399" id="Link_399" />
         <Link pin="Output1" dir="out" link="Link_400" id="Link_400" />
+      </Algorithm>
+      <Algorithm name="NthOrderFilter_0" friendlyname="Nth Order Analog Filters">
+        <Link pin="Output0" dir="out" link="Link_403" id="Link_403" />
+        <Link pin="Output1" dir="out" link="Link_404" id="Link_404" />
+        <Link pin="Input0" dir="in" link="Link_405" id="Link_405" />
+        <Link pin="Input1" dir="in" link="Link_406" id="Link_406" />
+      </Algorithm>
+      <Algorithm name="NthOrderFilter_1" friendlyname="Nth Order Analog Filters">
+        <Link pin="Output0" dir="out" link="Link_401" id="Link_401" />
+        <Link pin="Output1" dir="out" link="Link_402" id="Link_402" />
+        <Link pin="Input0" dir="in" link="Link_407" id="Link_407" />
+        <Link pin="Input1" dir="in" link="Link_408" id="Link_408" />
       </Algorithm>
     </Schematic>
   </Core>

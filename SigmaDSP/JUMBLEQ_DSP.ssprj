@@ -1,6 +1,7 @@
 {
   "Name": "JUMBLEQ_DSP",
   "ProjectVersion": "1.0.0.0",
+  "ToolVersionSaved": "3.4.0.0",
   "Versions": {},
   "EnableVersionControl": false,
   "Presets": {
@@ -87,8 +88,8 @@
           "Y": 200.0
         },
         "Size": {
-          "Height": 113.0,
-          "Width": 116.0
+          "Height": 72.0,
+          "Width": 56.0
         },
         "Label": "PC_0",
         "WritableChannels": [],
@@ -116,8 +117,8 @@
           "Y": 273.0
         },
         "Size": {
-          "Height": 113.0,
-          "Width": 116.0
+          "Height": 150.0,
+          "Width": 146.0
         },
         "Label": "USBi_0",
         "WritableChannels": [],
@@ -151,8 +152,9 @@
                   "Y": 0.5
                 },
                 "IsEnabled": true,
+                "GPToolTipName": null,
                 "ChannelName": "AnalogDevices.Plugins.Channels.ControlChannel_v1.0.0.0",
-                "type": "AnalogDevices.TypeDefinitions.Plugins.ICommChannel, TypeDefinitions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=null",
+                "type": "AnalogDevices.TypeDefinitions.Plugins.ICommChannel, TypeDefinitions, Version=3.4.0.0, Culture=neutral, PublicKeyToken=null",
                 "TransferFunction": null,
                 "Label": ""
               }
@@ -172,7 +174,7 @@
           "Y": 510.0
         },
         "Size": {
-          "Height": 86.523333333333341,
+          "Height": 70.523333333333341,
           "Width": 116.0
         },
         "Label": "CustomPlatform_0",
@@ -2198,7 +2200,7 @@
               "Y": 301.0
             },
             "Size": {
-              "Height": 80.0,
+              "Height": 72.0,
               "Width": 80.79
             },
             "Label": "ADAU1466_1",
@@ -2593,16 +2595,8 @@
                             "Link_274",
                             "Link_275",
                             "Link_310",
-                            "Link_311",
-                            "Link_316",
-                            "Link_317",
-                            "Link_319",
                             "Link_320",
                             "Link_321",
-                            "Link_322",
-                            "Link_323",
-                            "Link_324",
-                            "Link_325",
                             "Link_326",
                             "Link_117",
                             "Link_116",
@@ -2636,7 +2630,15 @@
                             "Link_397",
                             "Link_398",
                             "Link_399",
-                            "Link_400"
+                            "Link_400",
+                            "Link_401",
+                            "Link_402",
+                            "Link_403",
+                            "Link_404",
+                            "Link_405",
+                            "Link_406",
+                            "Link_407",
+                            "Link_408"
                           ]
                         }
                       },
@@ -2831,7 +2833,7 @@
                         },
                         "Size": {
                           "Height": 424.0,
-                          "Width": 76.0
+                          "Width": 77.0
                         },
                         "Label": "Input16to31_1",
                         "WritableChannels": [],
@@ -3035,7 +3037,7 @@
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 86.48
                         },
                         "Label": "UserComment_0",
                         "WritableChannels": [],
@@ -3073,7 +3075,7 @@
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 89.736666666666665
                         },
                         "Label": "UserComment_1",
                         "WritableChannels": [],
@@ -3111,7 +3113,7 @@
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 91.936666666666667
                         },
                         "Label": "UserComment_2",
                         "WritableChannels": [],
@@ -3149,7 +3151,7 @@
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 90.01
                         },
                         "Label": "UserComment_3",
                         "WritableChannels": [],
@@ -3456,8 +3458,8 @@
                           "Y": -13.0
                         },
                         "Size": {
-                          "Height": 163.0,
-                          "Width": 161.68666666666667
+                          "Height": 156.0,
+                          "Width": 175.0
                         },
                         "Label": "SingleSlewExtVol_B",
                         "WritableChannels": [],
@@ -3538,8 +3540,8 @@
                           "Y": -496.0
                         },
                         "Size": {
-                          "Height": 163.0,
-                          "Width": 161.68666666666667
+                          "Height": 156.0,
+                          "Width": 175.0
                         },
                         "Label": "SingleSlewExtVol_A",
                         "WritableChannels": [],
@@ -3692,7 +3694,7 @@
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 90.01
                         },
                         "Label": "UserComment_3_1",
                         "WritableChannels": [],
@@ -7933,182 +7935,6 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.GenSecondOrder_v1.0.0.0",
-                        "Name": "General EQ",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "GenSecondOrder_2",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumStages": 1,
-                          "NumChannels": 2,
-                          "Stage0_Boost": 0,
-                          "Stage0_Boost_Min": -10,
-                          "Stage0_Boost_Max": 10,
-                          "Stage0_BoostT": 0,
-                          "Stage0_BoostT_Min": -10,
-                          "Stage0_BoostT_Max": 10,
-                          "Stage0_BoostB": 0,
-                          "Stage0_BoostB_Min": -10,
-                          "Stage0_BoostB_Max": 10,
-                          "Stage0_FrequencyEnabled": true,
-                          "Stage0_Frequency": 20.0,
-                          "Stage0_Frequency_Min": 0,
-                          "Stage0_Frequency_Max": 96000,
-                          "Stage0_Frequency2": 1000,
-                          "Stage0_Frequency2_Min": 0,
-                          "Stage0_Frequency2_Max": 96000,
-                          "Stage0_Q": 1.41,
-                          "Stage0_Q_Min": 0.05,
-                          "Stage0_Q_Max": 16,
-                          "Stage0_Slope": 1,
-                          "Stage0_Slope_Min": 0,
-                          "Stage0_Slope_Max": 2,
-                          "Stage0_Bandwidth": 1.41,
-                          "Stage0_Bandwidth_Min": 0.1,
-                          "Stage0_Bandwidth_Max": 11,
-                          "Stage0_Ripple": 0.1,
-                          "Stage0_Ripple_Min": 0.1,
-                          "Stage0_Ripple_Max": 10,
-                          "Stage0_Gain": 0,
-                          "Stage0_Gain_Min": -15,
-                          "Stage0_Gain_Max": 15,
-                          "Stage0_FilterType": 11,
-                          "Stage0_EnabledOrBypassed": true,
-                          "Stage0_Phase": false,
-                          "Stage0_LockFrequency": false,
-                          "Stage0_Filter1Gain": 0,
-                          "Stage0_Filter1Gain_Min": -15,
-                          "Stage0_Filter1Gain_Max": 15,
-                          "Stage0_Filter2Gain": 0,
-                          "Stage0_Filter2Gain_Min": -15,
-                          "Stage0_Filter2Gain_Max": 15,
-                          "Stage0_FirstFilterActive": true,
-                          "Stage0_SecondFilterActive": true,
-                          "Stage0_Filter1FirstOrderType": 1,
-                          "Stage0_Filter2FirstOrderType": 0,
-                          "Stage0_B0": 1,
-                          "Stage0_B1": 0,
-                          "Stage0_B2": 0,
-                          "Stage0_A1": 0,
-                          "Stage0_A2": 0,
-                          "PrecisionType": "DoublePrecision",
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 54.0,
-                          "Y": 326.0
-                        },
-                        "Size": {
-                          "Height": 171.0,
-                          "Width": 113.0
-                        },
-                        "Label": "GenSecondOrder_2",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.GenSecondOrder_v1.0.0.0",
-                        "Name": "General EQ",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "GenSecondOrder_3",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumStages": 1,
-                          "NumChannels": 2,
-                          "Stage0_Boost": 0,
-                          "Stage0_Boost_Min": -10,
-                          "Stage0_Boost_Max": 10,
-                          "Stage0_BoostT": 0,
-                          "Stage0_BoostT_Min": -10,
-                          "Stage0_BoostT_Max": 10,
-                          "Stage0_BoostB": 0,
-                          "Stage0_BoostB_Min": -10,
-                          "Stage0_BoostB_Max": 10,
-                          "Stage0_FrequencyEnabled": true,
-                          "Stage0_Frequency": 20.0,
-                          "Stage0_Frequency_Min": 0,
-                          "Stage0_Frequency_Max": 96000,
-                          "Stage0_Frequency2": 1000,
-                          "Stage0_Frequency2_Min": 0,
-                          "Stage0_Frequency2_Max": 96000,
-                          "Stage0_Q": 1.41,
-                          "Stage0_Q_Min": 0.05,
-                          "Stage0_Q_Max": 16,
-                          "Stage0_Slope": 1,
-                          "Stage0_Slope_Min": 0,
-                          "Stage0_Slope_Max": 2,
-                          "Stage0_Bandwidth": 1.41,
-                          "Stage0_Bandwidth_Min": 0.1,
-                          "Stage0_Bandwidth_Max": 11,
-                          "Stage0_Ripple": 0.1,
-                          "Stage0_Ripple_Min": 0.1,
-                          "Stage0_Ripple_Max": 10,
-                          "Stage0_Gain": 0,
-                          "Stage0_Gain_Min": -15,
-                          "Stage0_Gain_Max": 15,
-                          "Stage0_FilterType": 11,
-                          "Stage0_EnabledOrBypassed": true,
-                          "Stage0_Phase": false,
-                          "Stage0_LockFrequency": false,
-                          "Stage0_Filter1Gain": 0,
-                          "Stage0_Filter1Gain_Min": -15,
-                          "Stage0_Filter1Gain_Max": 15,
-                          "Stage0_Filter2Gain": 0,
-                          "Stage0_Filter2Gain_Min": -15,
-                          "Stage0_Filter2Gain_Max": 15,
-                          "Stage0_FirstFilterActive": true,
-                          "Stage0_SecondFilterActive": true,
-                          "Stage0_Filter1FirstOrderType": 1,
-                          "Stage0_Filter2FirstOrderType": 0,
-                          "Stage0_B0": 1,
-                          "Stage0_B1": 0,
-                          "Stage0_B2": 0,
-                          "Stage0_A1": 0,
-                          "Stage0_A2": 0,
-                          "PrecisionType": "DoublePrecision",
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 54.0,
-                          "Y": 766.0
-                        },
-                        "Size": {
-                          "Height": 171.0,
-                          "Width": 113.0
-                        },
-                        "Label": "GenSecondOrder_3",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
                         "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
                         "Name": "Single Volume Control",
                         "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
@@ -8544,7 +8370,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4483.2307692307695,
+                          "X": 4483.0,
                           "Y": -214.0
                         },
                         "Size": {
@@ -8580,7 +8406,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4483.2307692307695,
+                          "X": 4483.0,
                           "Y": -122.0
                         },
                         "Size": {
@@ -8661,12 +8487,12 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4469.2307692307695,
+                          "X": 4469.0,
                           "Y": -287.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
-                          "Width": 100.0
+                          "Width": 91.696666666666673
                         },
                         "Label": "UserComment_3_2",
                         "WritableChannels": [],
@@ -9153,7 +8979,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4241.8461538461543,
+                          "X": 4242.0,
                           "Y": -266.0
                         },
                         "Size": {
@@ -9161,6 +8987,104 @@
                           "Width": 92.0
                         },
                         "Label": "SingleVolumeControl_19",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.NthOrderFilter_v1.0.0.0",
+                        "Name": "Butterworth/Chebyshev Filter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "NthOrderFilter_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "FilterType": 0,
+                          "EnabledOrBypassed": true,
+                          "Phase": false,
+                          "IsLowPass": false,
+                          "NumChannels": 2,
+                          "Order": 4.0,
+                          "OrderMin": 2,
+                          "OrderMax": 20,
+                          "Frequency": 25.0,
+                          "FrequencyMin": 3,
+                          "FrequencyMax": 30000,
+                          "Ripple": 50,
+                          "RippleMin": 10,
+                          "RippleMax": 200,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 17.284159761717888,
+                          "Y": 289.7177796277341
+                        },
+                        "Size": {
+                          "Height": 241.0,
+                          "Width": 124.0
+                        },
+                        "Label": "NthOrderFilter_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Filters.Sigma300.Sample.NthOrderFilter_v1.0.0.0",
+                        "Name": "Butterworth/Chebyshev Filter",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "NthOrderFilter_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "FilterType": 0,
+                          "EnabledOrBypassed": true,
+                          "Phase": false,
+                          "IsLowPass": false,
+                          "NumChannels": 2,
+                          "Order": 4.0,
+                          "OrderMin": 2,
+                          "OrderMax": 20,
+                          "Frequency": 25.0,
+                          "FrequencyMin": 3,
+                          "FrequencyMax": 30000,
+                          "Ripple": 50,
+                          "RippleMin": 10,
+                          "RippleMax": 200,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 25.471612594921794,
+                          "Y": 732.60533245976558
+                        },
+                        "Size": {
+                          "Height": 241.0,
+                          "Width": 124.0
+                        },
+                        "Label": "NthOrderFilter_1",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -10805,64 +10729,6 @@
                         "Points": []
                       },
                       {
-                        "Uid": "Link_311",
-                        "SourceUid": "GenSecondOrder_3",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "GenSecondOrder_1",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_316",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "GenSecondOrder_3",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 30.0,
-                            "Y": 669.8756
-                          },
-                          {
-                            "X": 30.0,
-                            "Y": 823.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_317",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output3",
-                        "TargetUid": "GenSecondOrder_3",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": -38.476666666666468,
-                            "Y": 700.45464285714274
-                          },
-                          {
-                            "X": -0.87912087912089021,
-                            "Y": 700.45464285714274
-                          },
-                          {
-                            "X": -0.87912087912091152,
-                            "Y": 880.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_319",
-                        "SourceUid": "GenSecondOrder_3",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "GenSecondOrder_1",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
                         "Uid": "Link_320",
                         "SourceUid": "GenSecondOrder_1",
                         "SourcePinName": "Output1",
@@ -10886,60 +10752,6 @@
                         "SourcePinName": "Output0",
                         "TargetUid": "SingleVolumeControl_3",
                         "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_322",
-                        "SourceUid": "GenSecondOrder_2",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "GenSecondOrder_0",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_323",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output2",
-                        "TargetUid": "GenSecondOrder_2",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 30.0,
-                            "Y": 228.8756
-                          },
-                          {
-                            "X": 30.0,
-                            "Y": 383.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_324",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output3",
-                        "TargetUid": "GenSecondOrder_2",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 1.1904761904763568,
-                            "Y": 247.485
-                          },
-                          {
-                            "X": 1.1904761904763568,
-                            "Y": 440.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_325",
-                        "SourceUid": "GenSecondOrder_2",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "GenSecondOrder_0",
-                        "TargetPinName": "Input1",
                         "LinkType": "SampleAnalog",
                         "Points": []
                       },
@@ -11760,6 +11572,78 @@
                             "Y": -90.0
                           }
                         ]
+                      },
+                      {
+                        "Uid": "Link_401",
+                        "SourceUid": "NthOrderFilter_1",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "GenSecondOrder_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_402",
+                        "SourceUid": "NthOrderFilter_1",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "GenSecondOrder_1",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_403",
+                        "SourceUid": "NthOrderFilter_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "GenSecondOrder_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_404",
+                        "SourceUid": "NthOrderFilter_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "GenSecondOrder_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_405",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "NthOrderFilter_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_406",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output3",
+                        "TargetUid": "NthOrderFilter_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_407",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "NthOrderFilter_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_408",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output3",
+                        "TargetUid": "NthOrderFilter_1",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
                       }
                     ],
                     "AltShapes": [],
@@ -11816,5 +11700,6 @@
   "LastActiveTabUid": "ADAU146xSchematic_1",
   "LastActiveTabName": "ADAU146xSchematic_1",
   "LastActiveTabIsConfig": false,
-  "LastActiveTabIsEditable": true
+  "LastActiveTabIsEditable": true,
+  "ProjectResizedState": true
 }
