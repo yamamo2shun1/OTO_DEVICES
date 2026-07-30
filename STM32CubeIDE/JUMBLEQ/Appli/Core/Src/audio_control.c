@@ -26,7 +26,8 @@
 #include "SigmaStudioFW.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
-#define AUDIO_DIAG_LOG 0
+#define AUDIO_DIAG_LOG 1
+#define DBG_MIN_U32_INIT UINT32_MAX
 
 enum
 {
@@ -36,6 +37,7 @@ enum
     AUDIO_USB_FRAME_CHANNELS   = 4u,
     AUDIO_RING_FRAME_WORDS     = 4u,
     DBG_MIN_U16_INIT           = 0xFFFFu,
+    AUDIO_USB_HS_MICROFRAMES_PER_SECOND = 8000u,
     AUDIO_FUNC_ID              = 0u,
 };
 
@@ -125,17 +127,43 @@ static volatile uint32_t dbg_rx_half_rewrite_events = 0u;
 static volatile uint32_t dbg_rx_cplt_rewrite_events = 0u;
 static volatile uint16_t dbg_usb_read_size_min      = DBG_MIN_U16_INIT;
 static volatile uint16_t dbg_usb_read_size_max      = 0u;
+static volatile uint32_t dbg_usb_out_packet_events  = 0u;
+static volatile uint32_t dbg_usb_out_packet_bytes   = 0u;
+static volatile uint16_t dbg_usb_out_packet_size_min = DBG_MIN_U16_INIT;
+static volatile uint16_t dbg_usb_out_packet_size_max = 0u;
+static volatile uint32_t dbg_usb_out_gap_cycles_min = DBG_MIN_U32_INIT;
+static volatile uint32_t dbg_usb_out_gap_cycles_max = 0u;
+static volatile uint32_t dbg_usb_out_gap_late_events = 0u;
+static volatile uint32_t dbg_usb_out_prev_cycle     = 0u;
+static volatile bool dbg_usb_out_prev_cycle_valid   = false;
+static volatile uint32_t dbg_usb_out_coalesced_events = 0u;
+static volatile uint32_t dbg_usb_out_pending_cycle  = 0u;
+static volatile uint32_t dbg_usb_out_service_cycles_min = DBG_MIN_U32_INIT;
+static volatile uint32_t dbg_usb_out_service_cycles_max = 0u;
+static volatile uint16_t dbg_usb_out_fifo_min       = DBG_MIN_U16_INIT;
+static volatile uint16_t dbg_usb_out_fifo_max       = 0u;
 static volatile uint32_t dbg_usb_in_packet_events   = 0u;
 static volatile uint32_t dbg_usb_in_packet_zero_events = 0u;
 static volatile uint32_t dbg_usb_in_packet_bytes    = 0u;
 static volatile uint16_t dbg_usb_in_packet_size_min = DBG_MIN_U16_INIT;
 static volatile uint16_t dbg_usb_in_packet_size_max = 0u;
+static volatile uint32_t dbg_usb_in_notify_events   = 0u;
 static volatile uint32_t dbg_usb_in_source_wait_events = 0u;
 static volatile uint32_t dbg_usb_in_write_zero_events = 0u;
 static volatile uint32_t dbg_usb_in_write_partial_events = 0u;
 static volatile uint32_t dbg_usb_in_write_bytes     = 0u;
 static volatile uint16_t dbg_usb_in_fifo_min        = DBG_MIN_U16_INIT;
 static volatile uint16_t dbg_usb_in_fifo_max        = 0u;
+
+static uint32_t audio_diag_cycles_to_us(uint32_t cycles)
+{
+    if (SystemCoreClock == 0u)
+    {
+        return 0u;
+    }
+
+    return (uint32_t) ((((uint64_t) cycles * 1000000u) + (SystemCoreClock / 2u)) / SystemCoreClock);
+}
 #endif
 
 bool s_streaming_out = false;
@@ -543,6 +571,9 @@ bool tud_audio_set_itf_close_ep_cb(uint8_t rhport, tusb_control_request_t const*
         sai_tx_rng_buf_index = 0;
         sai_transmit_index   = 0;
         tx_pending_mask      = 0;  // DMAフラグをクリア
+#if AUDIO_DIAG_LOG
+        dbg_usb_out_prev_cycle_valid = false;
+#endif
     }
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt == 0)
@@ -572,6 +603,9 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
         s_streaming_out = true;
         spk_data_size   = 0;
         usb_rx_pending  = false;
+#if AUDIO_DIAG_LOG
+        dbg_usb_out_prev_cycle_valid = false;
+#endif
     }
 
     if (ITF_NUM_AUDIO_STREAMING_STEREO_IN == itf && alt != 0)
@@ -580,6 +614,9 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 
         s_streaming_in  = true;
         usb_tx_pending  = true;
+#if AUDIO_DIAG_LOG
+        dbg_usb_in_notify_events++;
+#endif
         audio_task_notify();
     }
 
@@ -729,11 +766,27 @@ void start_sai(void)
     dbg_rx_cplt_rewrite_events = 0u;
     dbg_usb_read_size_min      = DBG_MIN_U16_INIT;
     dbg_usb_read_size_max      = 0u;
+    dbg_usb_out_packet_events  = 0u;
+    dbg_usb_out_packet_bytes   = 0u;
+    dbg_usb_out_packet_size_min = DBG_MIN_U16_INIT;
+    dbg_usb_out_packet_size_max = 0u;
+    dbg_usb_out_gap_cycles_min = DBG_MIN_U32_INIT;
+    dbg_usb_out_gap_cycles_max = 0u;
+    dbg_usb_out_gap_late_events = 0u;
+    dbg_usb_out_prev_cycle     = 0u;
+    dbg_usb_out_prev_cycle_valid = false;
+    dbg_usb_out_coalesced_events = 0u;
+    dbg_usb_out_pending_cycle  = 0u;
+    dbg_usb_out_service_cycles_min = DBG_MIN_U32_INIT;
+    dbg_usb_out_service_cycles_max = 0u;
+    dbg_usb_out_fifo_min       = DBG_MIN_U16_INIT;
+    dbg_usb_out_fifo_max       = 0u;
     dbg_usb_in_packet_events   = 0u;
     dbg_usb_in_packet_zero_events = 0u;
     dbg_usb_in_packet_bytes    = 0u;
     dbg_usb_in_packet_size_min = DBG_MIN_U16_INIT;
     dbg_usb_in_packet_size_max = 0u;
+    dbg_usb_in_notify_events   = 0u;
     dbg_usb_in_source_wait_events = 0u;
     dbg_usb_in_write_zero_events = 0u;
     dbg_usb_in_write_partial_events = 0u;
@@ -1066,6 +1119,14 @@ static uint32_t audio_frames_per_ms(void)
     return current_sample_rate / AUDIO_MS_PER_SECOND;
 }
 
+static bool audio_usb_in_source_ready(void)
+{
+    const uint32_t required_words = audio_frames_per_ms() * AUDIO_RING_FRAME_WORDS;
+    const int32_t available_words = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
+
+    return available_words >= (int32_t) required_words;
+}
+
 static uint16_t audio_out_read_budget_bytes(void)
 {
     int32_t used = (int32_t) (sai_tx_rng_buf_index - sai_transmit_index);
@@ -1236,22 +1297,89 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) n_bytes_sent;
 #endif
 
-    // ISRではフラグのみ立てる。実際の送信はタスクコンテキストで行う
-    usb_tx_pending = true;
-    audio_task_notify_from_isr();
+    // HSでは125usごとに呼ばれるため、1ms分の送信元データがある時だけTaskを起こす。
+    if (s_streaming_in && !usb_tx_pending && audio_usb_in_source_ready())
+    {
+        usb_tx_pending = true;
+#if AUDIO_DIAG_LOG
+        dbg_usb_in_notify_events++;
+#endif
+        audio_task_notify_from_isr();
+    }
     return true;
 }
 
 bool tud_audio_rx_done_isr(uint8_t rhport, uint16_t n_bytes_received, uint8_t func_id, uint8_t ep_out, uint8_t cur_alt_setting)
 {
     (void) rhport;
-    (void) n_bytes_received;
     (void) ep_out;
     (void) cur_alt_setting;
     if (func_id != AUDIO_FUNC_ID)
     {
         return true;
     }
+
+#if AUDIO_DIAG_LOG
+    const uint32_t rx_cycle = DWT->CYCCNT;
+
+    dbg_usb_out_packet_events++;
+    dbg_usb_out_packet_bytes += n_bytes_received;
+    if (n_bytes_received < dbg_usb_out_packet_size_min)
+    {
+        dbg_usb_out_packet_size_min = n_bytes_received;
+    }
+    if (n_bytes_received > dbg_usb_out_packet_size_max)
+    {
+        dbg_usb_out_packet_size_max = n_bytes_received;
+    }
+
+    if (dbg_usb_out_prev_cycle_valid)
+    {
+        const uint32_t gap_cycles = rx_cycle - dbg_usb_out_prev_cycle;
+        const uint32_t expected_cycles = SystemCoreClock / AUDIO_USB_HS_MICROFRAMES_PER_SECOND;
+        const uint32_t late_threshold_cycles = expected_cycles + (expected_cycles / 2u);
+
+        if (gap_cycles < dbg_usb_out_gap_cycles_min)
+        {
+            dbg_usb_out_gap_cycles_min = gap_cycles;
+        }
+        if (gap_cycles > dbg_usb_out_gap_cycles_max)
+        {
+            dbg_usb_out_gap_cycles_max = gap_cycles;
+        }
+        if (gap_cycles > late_threshold_cycles)
+        {
+            dbg_usb_out_gap_late_events++;
+        }
+    }
+    dbg_usb_out_prev_cycle       = rx_cycle;
+    dbg_usb_out_prev_cycle_valid = true;
+
+    tu_fifo_t* ep_out_ff = tud_audio_n_get_ep_out_ff(AUDIO_FUNC_ID);
+    if (ep_out_ff != NULL)
+    {
+        const uint16_t fifo_count = tu_fifo_count(ep_out_ff);
+        if (fifo_count < dbg_usb_out_fifo_min)
+        {
+            dbg_usb_out_fifo_min = fifo_count;
+        }
+        if (fifo_count > dbg_usb_out_fifo_max)
+        {
+            dbg_usb_out_fifo_max = fifo_count;
+        }
+    }
+
+    if (usb_rx_pending)
+    {
+        dbg_usb_out_coalesced_events++;
+    }
+    else
+    {
+        dbg_usb_out_pending_cycle = rx_cycle;
+    }
+#else
+    (void) n_bytes_received;
+#endif
 
     usb_rx_pending = true;
     audio_task_notify_from_isr();
@@ -1290,7 +1418,21 @@ void audio_task(void)
             uint32_t sigma_err   = sigma_spi_it_write_errors;
             uint32_t sigma_to    = sigma_spi_it_write_timeouts;
             uint32_t sigma_mto   = sigma_spi_it_mutex_timeouts;
-            SEGGER_RTT_printf(0, "[AUD][TX] sr=%lu used_now=%ld used_min=%lu used_max=%lu und=%lu part=%lu drift+%lu drift-%lu usb0=%lu usbB=%lu usbMin=%u usbMax=%u inPkt=%lu inPkt0=%lu inPktB=%lu inPktMin=%u inPktMax=%u inWait=%lu inWr0=%lu inWrPart=%lu inWrB=%lu inFifo=%u/%u txRw=(%lu,%lu) rxRw=(%lu,%lu) dmae=%lu txe=%lu rxe=%lu txer=0x%08lX rxer=0x%08lX txsr=0x%08lX rxsr=0x%08lX spiC=%lu spiE=%lu spiT=%lu spiM=%lu task_hz=%lu\r\n", (unsigned long) current_sample_rate, (long) tx_used_now, (unsigned long) ((dbg_tx_used_min == 0xFFFFFFFFu) ? 0u : dbg_tx_used_min), (unsigned long) dbg_tx_used_max, (unsigned long) dbg_tx_underrun_events, (unsigned long) dbg_tx_partial_fill_events, (unsigned long) dbg_tx_drift_up_events, (unsigned long) dbg_tx_drift_dn_events, (unsigned long) dbg_usb_read_zero_events, (unsigned long) dbg_usb_read_bytes, (unsigned int) ((dbg_usb_read_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_read_size_min), (unsigned int) dbg_usb_read_size_max, (unsigned long) dbg_usb_in_packet_events, (unsigned long) dbg_usb_in_packet_zero_events, (unsigned long) dbg_usb_in_packet_bytes, (unsigned int) ((dbg_usb_in_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_packet_size_min), (unsigned int) dbg_usb_in_packet_size_max, (unsigned long) dbg_usb_in_source_wait_events, (unsigned long) dbg_usb_in_write_zero_events, (unsigned long) dbg_usb_in_write_partial_events, (unsigned long) dbg_usb_in_write_bytes, (unsigned int) ((dbg_usb_in_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_fifo_min), (unsigned int) dbg_usb_in_fifo_max, (unsigned long) dbg_tx_half_rewrite_events, (unsigned long) dbg_tx_cplt_rewrite_events, (unsigned long) dbg_rx_half_rewrite_events, (unsigned long) dbg_rx_cplt_rewrite_events, (unsigned long) dbg_dma_err_events, (unsigned long) dbg_sai_tx_err_events, (unsigned long) dbg_sai_rx_err_events, (unsigned long) dbg_sai_tx_last_err, (unsigned long) dbg_sai_rx_last_err, (unsigned long) dbg_sai_tx_sr_flags, (unsigned long) dbg_sai_rx_sr_flags, (unsigned long) (sigma_calls - dbg_sigma_calls_prev), (unsigned long) (sigma_err - dbg_sigma_err_prev), (unsigned long) (sigma_to - dbg_sigma_to_prev), (unsigned long) (sigma_mto - dbg_sigma_mto_prev), (unsigned long) audio_task_frequency);
+            SEGGER_RTT_printf(0, "[AUD][TX] sr=%lu used_now=%ld used_min=%lu used_max=%lu und=%lu part=%lu drift+%lu drift-%lu usb0=%lu usbB=%lu usbMin=%u usbMax=%u inPkt=%lu inPkt0=%lu inPktB=%lu inPktMin=%u inPktMax=%u inNtf=%lu inWait=%lu inWr0=%lu inWrPart=%lu inWrB=%lu inFifo=%u/%u txRw=(%lu,%lu) rxRw=(%lu,%lu) dmae=%lu txe=%lu rxe=%lu txer=0x%08lX rxer=0x%08lX txsr=0x%08lX rxsr=0x%08lX spiC=%lu spiE=%lu spiT=%lu spiM=%lu task_hz=%lu\r\n", (unsigned long) current_sample_rate, (long) tx_used_now, (unsigned long) ((dbg_tx_used_min == 0xFFFFFFFFu) ? 0u : dbg_tx_used_min), (unsigned long) dbg_tx_used_max, (unsigned long) dbg_tx_underrun_events, (unsigned long) dbg_tx_partial_fill_events, (unsigned long) dbg_tx_drift_up_events, (unsigned long) dbg_tx_drift_dn_events, (unsigned long) dbg_usb_read_zero_events, (unsigned long) dbg_usb_read_bytes, (unsigned int) ((dbg_usb_read_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_read_size_min), (unsigned int) dbg_usb_read_size_max, (unsigned long) dbg_usb_in_packet_events, (unsigned long) dbg_usb_in_packet_zero_events, (unsigned long) dbg_usb_in_packet_bytes, (unsigned int) ((dbg_usb_in_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_packet_size_min), (unsigned int) dbg_usb_in_packet_size_max, (unsigned long) dbg_usb_in_notify_events, (unsigned long) dbg_usb_in_source_wait_events, (unsigned long) dbg_usb_in_write_zero_events, (unsigned long) dbg_usb_in_write_partial_events, (unsigned long) dbg_usb_in_write_bytes, (unsigned int) ((dbg_usb_in_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_fifo_min), (unsigned int) dbg_usb_in_fifo_max, (unsigned long) dbg_tx_half_rewrite_events, (unsigned long) dbg_tx_cplt_rewrite_events, (unsigned long) dbg_rx_half_rewrite_events, (unsigned long) dbg_rx_cplt_rewrite_events, (unsigned long) dbg_dma_err_events, (unsigned long) dbg_sai_tx_err_events, (unsigned long) dbg_sai_rx_err_events, (unsigned long) dbg_sai_tx_last_err, (unsigned long) dbg_sai_rx_last_err, (unsigned long) dbg_sai_tx_sr_flags, (unsigned long) dbg_sai_rx_sr_flags, (unsigned long) (sigma_calls - dbg_sigma_calls_prev), (unsigned long) (sigma_err - dbg_sigma_err_prev), (unsigned long) (sigma_to - dbg_sigma_to_prev), (unsigned long) (sigma_mto - dbg_sigma_mto_prev), (unsigned long) audio_task_frequency);
+            SEGGER_RTT_printf(0,
+                              "[AUD][USB-OUT] pkt=%lu bytes=%lu size=%u/%u gap_us=%lu/%lu late=%lu coal=%lu svc_us=%lu/%lu fifo=%u/%u\r\n",
+                              (unsigned long) dbg_usb_out_packet_events,
+                              (unsigned long) dbg_usb_out_packet_bytes,
+                              (unsigned int) ((dbg_usb_out_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_packet_size_min),
+                              (unsigned int) dbg_usb_out_packet_size_max,
+                              (unsigned long) ((dbg_usb_out_gap_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_min)),
+                              (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_max),
+                              (unsigned long) dbg_usb_out_gap_late_events,
+                              (unsigned long) dbg_usb_out_coalesced_events,
+                              (unsigned long) ((dbg_usb_out_service_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_service_cycles_min)),
+                              (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_service_cycles_max),
+                              (unsigned int) ((dbg_usb_out_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_fifo_min),
+                              (unsigned int) dbg_usb_out_fifo_max);
             dbg_sigma_calls_prev = sigma_calls;
             dbg_sigma_err_prev   = sigma_err;
             dbg_sigma_to_prev    = sigma_to;
@@ -1317,11 +1459,24 @@ void audio_task(void)
         dbg_rx_cplt_rewrite_events = 0u;
         dbg_usb_read_size_min      = DBG_MIN_U16_INIT;
         dbg_usb_read_size_max      = 0u;
+        dbg_usb_out_packet_events  = 0u;
+        dbg_usb_out_packet_bytes   = 0u;
+        dbg_usb_out_packet_size_min = DBG_MIN_U16_INIT;
+        dbg_usb_out_packet_size_max = 0u;
+        dbg_usb_out_gap_cycles_min = DBG_MIN_U32_INIT;
+        dbg_usb_out_gap_cycles_max = 0u;
+        dbg_usb_out_gap_late_events = 0u;
+        dbg_usb_out_coalesced_events = 0u;
+        dbg_usb_out_service_cycles_min = DBG_MIN_U32_INIT;
+        dbg_usb_out_service_cycles_max = 0u;
+        dbg_usb_out_fifo_min       = DBG_MIN_U16_INIT;
+        dbg_usb_out_fifo_max       = 0u;
         dbg_usb_in_packet_events   = 0u;
         dbg_usb_in_packet_zero_events = 0u;
         dbg_usb_in_packet_bytes    = 0u;
         dbg_usb_in_packet_size_min = DBG_MIN_U16_INIT;
         dbg_usb_in_packet_size_max = 0u;
+        dbg_usb_in_notify_events   = 0u;
         dbg_usb_in_source_wait_events = 0u;
         dbg_usb_in_write_zero_events = 0u;
         dbg_usb_in_write_partial_events = 0u;
@@ -1342,6 +1497,9 @@ void audio_task(void)
     {
         bool usb_rx_event = false;
         bool usb_tx_event = false;
+#if AUDIO_DIAG_LOG
+        uint32_t usb_rx_event_cycle = 0u;
+#endif
 
         uint32_t primask = __get_PRIMASK();
         __disable_irq();
@@ -1349,6 +1507,9 @@ void audio_task(void)
         {
             usb_rx_pending = false;
             usb_rx_event   = true;
+#if AUDIO_DIAG_LOG
+            usb_rx_event_cycle = dbg_usb_out_pending_cycle;
+#endif
         }
         if (usb_tx_pending)
         {
@@ -1356,6 +1517,21 @@ void audio_task(void)
             usb_tx_event   = true;
         }
         __set_PRIMASK(primask);
+
+#if AUDIO_DIAG_LOG
+        if (usb_rx_event)
+        {
+            const uint32_t service_cycles = DWT->CYCCNT - usb_rx_event_cycle;
+            if (service_cycles < dbg_usb_out_service_cycles_min)
+            {
+                dbg_usb_out_service_cycles_min = service_cycles;
+            }
+            if (service_cycles > dbg_usb_out_service_cycles_max)
+            {
+                dbg_usb_out_service_cycles_max = service_cycles;
+            }
+        }
+#endif
 
         // USB OUTは受信通知とFIFO残量に追従して即時に吸い出す。
         if (usb_rx_event || tud_audio_n_available(AUDIO_FUNC_ID) > 0U)
@@ -1407,8 +1583,9 @@ void audio_task(void)
         // SAI -> USB
         copybuf_sai2ring();
 
-        // USB INはIN完了通知ごとに次の塊を積む。開始直後は set_itf_cb() で初回通知する。
-        if (usb_tx_event && s_streaming_in)
+        // USB INは1ms分の送信元データが揃った時だけ次の塊を積む。
+        // SAI RX DMA通知でも補充することで、IN FIFOが空になった場合の停止を防ぐ。
+        if (s_streaming_in && (usb_tx_event || audio_usb_in_source_ready()))
         {
             copybuf_ring2usb_and_send();
         }
@@ -1485,6 +1662,21 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     dbg_rx_cplt_rewrite_events = 0u;
     dbg_usb_read_size_min      = DBG_MIN_U16_INIT;
     dbg_usb_read_size_max      = 0u;
+    dbg_usb_out_packet_events  = 0u;
+    dbg_usb_out_packet_bytes   = 0u;
+    dbg_usb_out_packet_size_min = DBG_MIN_U16_INIT;
+    dbg_usb_out_packet_size_max = 0u;
+    dbg_usb_out_gap_cycles_min = DBG_MIN_U32_INIT;
+    dbg_usb_out_gap_cycles_max = 0u;
+    dbg_usb_out_gap_late_events = 0u;
+    dbg_usb_out_prev_cycle     = 0u;
+    dbg_usb_out_prev_cycle_valid = false;
+    dbg_usb_out_coalesced_events = 0u;
+    dbg_usb_out_pending_cycle  = 0u;
+    dbg_usb_out_service_cycles_min = DBG_MIN_U32_INIT;
+    dbg_usb_out_service_cycles_max = 0u;
+    dbg_usb_out_fifo_min       = DBG_MIN_U16_INIT;
+    dbg_usb_out_fifo_max       = 0u;
     dbg_usb_in_packet_events   = 0u;
     dbg_usb_in_packet_zero_events = 0u;
     dbg_usb_in_packet_bytes    = 0u;

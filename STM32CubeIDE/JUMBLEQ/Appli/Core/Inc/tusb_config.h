@@ -167,11 +167,18 @@ extern "C"
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
 #define CFG_TUD_AUDIO_ENABLE_EP_IN 1
 
-// UAC2 (High-Speed) Endpoint size calculation
-#define CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN TUD_AUDIO_EP_SIZE(true, CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE, CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX, CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
+// UAC2 High-Speed IN interval: 2^(3-1) microframes = 500 us.
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_INTERVAL         3
+#define CFG_TUD_AUDIO_FUNC_1_EP_IN_INTERVAL_UFRAMES (1U << (CFG_TUD_AUDIO_FUNC_1_EP_IN_INTERVAL - 1U))
+
+// Maximum IN packet size for the configured interval.
+#define CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN (((((CFG_TUD_AUDIO_FUNC_1_MAX_SAMPLE_RATE * CFG_TUD_AUDIO_FUNC_1_EP_IN_INTERVAL_UFRAMES) + 7999U) / 8000U) + 1U) * CFG_TUD_AUDIO_FUNC_1_FORMAT_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
 #define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN
+#if CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX > 1024U
+    #error High-Speed isochronous IN packet exceeds 1024 bytes
+#endif
 // Tx flow control needs buffer size >= 4* EP size to work correctly
-// Example write FIFO every 1ms (8 HS frames), so buffer size should be 8 times larger for HS device
+// Keep eight maximum packets to absorb scheduling jitter.
 #define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ (8 * CFG_TUD_AUDIO20_FUNC_1_FORMAT_1_EP_SZ_IN)
 
 // EP and buffer size - for isochronous EP´s, the buffer and EP size are equal (different sizes would not make sense)
