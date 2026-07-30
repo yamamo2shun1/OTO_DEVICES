@@ -15,40 +15,6 @@ typedef struct
     uint32_t crc32;
 } EEPROM_ConfigRecord_t;
 
-typedef struct
-{
-    uint8_t current_ch1_input_type;
-    uint8_t current_ch2_input_type;
-    uint8_t current_xfA_assign;
-    uint8_t current_xfB_assign;
-    uint8_t current_xfpost_assign;
-    uint8_t current_return_assign;
-    uint8_t current_hp_out_source;
-    uint8_t current_ch1_dvs_enable;
-    uint8_t current_ch2_dvs_enable;
-    uint8_t mag_output_mode_flags;
-    float current_xfade_cut_margin_a;
-    float current_xfade_cut_margin_b;
-} EEPROM_DeviceConfigV5_t;
-
-typedef struct
-{
-    uint32_t magic;
-    uint16_t version;
-    uint16_t payload_size;
-    EEPROM_DeviceConfigV5_t payload;
-    uint32_t crc32;
-} EEPROM_ConfigRecordV5_t;
-
-typedef struct
-{
-    uint32_t magic;
-    uint16_t version;
-    uint16_t payload_size;
-} EEPROM_ConfigHeader_t;
-
-#define EEPROM_CONFIG_VERSION_V5 (0x0005U)
-
 static uint32_t EEPROM_CRC32(const uint8_t* data, uint32_t len)
 {
     uint32_t crc = 0xFFFFFFFFUL;
@@ -253,7 +219,6 @@ HAL_StatusTypeDef EEPROM_SaveConfig(I2C_HandleTypeDef* hi2c, const EEPROM_Device
 
 HAL_StatusTypeDef EEPROM_LoadConfig(I2C_HandleTypeDef* hi2c, EEPROM_DeviceConfig_t* cfg)
 {
-    EEPROM_ConfigHeader_t header;
     EEPROM_ConfigRecord_t rec;
     uint32_t expected_crc;
     HAL_StatusTypeDef status;
@@ -263,57 +228,25 @@ HAL_StatusTypeDef EEPROM_LoadConfig(I2C_HandleTypeDef* hi2c, EEPROM_DeviceConfig
         return HAL_ERROR;
     }
 
-    status = EEPROM_Read(hi2c, EEPROM_CONFIG_ADDR, (uint8_t*) &header, (uint16_t) sizeof(header));
+    status = EEPROM_Read(hi2c, EEPROM_CONFIG_ADDR, (uint8_t*) &rec, (uint16_t) sizeof(rec));
     if (status != HAL_OK)
     {
         return status;
     }
 
-    if (header.magic != EEPROM_CONFIG_MAGIC)
+    if ((rec.magic != EEPROM_CONFIG_MAGIC) ||
+        (rec.version != EEPROM_CONFIG_VERSION) ||
+        (rec.payload_size != (uint16_t) sizeof(EEPROM_DeviceConfig_t)))
     {
         return HAL_ERROR;
     }
 
-    if ((header.version == EEPROM_CONFIG_VERSION) &&
-        (header.payload_size == (uint16_t) sizeof(EEPROM_DeviceConfig_t)))
+    expected_crc = EEPROM_CRC32((const uint8_t*) &rec, (uint32_t) offsetof(EEPROM_ConfigRecord_t, crc32));
+    if (expected_crc != rec.crc32)
     {
-        status = EEPROM_Read(hi2c, EEPROM_CONFIG_ADDR, (uint8_t*) &rec, (uint16_t) sizeof(rec));
-        if (status != HAL_OK)
-        {
-            return status;
-        }
-
-        expected_crc = EEPROM_CRC32((const uint8_t*) &rec, (uint32_t) offsetof(EEPROM_ConfigRecord_t, crc32));
-        if (expected_crc != rec.crc32)
-        {
-            return HAL_ERROR;
-        }
-
-        memcpy(cfg, &rec.payload, sizeof(*cfg));
-        return HAL_OK;
+        return HAL_ERROR;
     }
 
-    if ((header.version == EEPROM_CONFIG_VERSION_V5) &&
-        (header.payload_size == (uint16_t) sizeof(EEPROM_DeviceConfigV5_t)))
-    {
-        EEPROM_ConfigRecordV5_t rec_v5;
-
-        status = EEPROM_Read(hi2c, EEPROM_CONFIG_ADDR, (uint8_t*) &rec_v5, (uint16_t) sizeof(rec_v5));
-        if (status != HAL_OK)
-        {
-            return status;
-        }
-
-        expected_crc = EEPROM_CRC32((const uint8_t*) &rec_v5, (uint32_t) offsetof(EEPROM_ConfigRecordV5_t, crc32));
-        if (expected_crc != rec_v5.crc32)
-        {
-            return HAL_ERROR;
-        }
-
-        EEPROM_ConfigSetDefaults(cfg);
-        memcpy(cfg, &rec_v5.payload, sizeof(rec_v5.payload));
-        return HAL_OK;
-    }
-
-    return HAL_ERROR;
+    memcpy(cfg, &rec.payload, sizeof(*cfg));
+    return HAL_OK;
 }
