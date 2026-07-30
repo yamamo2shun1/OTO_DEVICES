@@ -15,6 +15,13 @@
 #include "cmsis_os2.h"
 #include <string.h>
 
+_Static_assert(PROGRAM_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
+               "SigmaStudio program data exceeds the SPI block transfer buffer");
+_Static_assert(DM0_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
+               "SigmaStudio DM0 data exceeds the SPI block transfer buffer");
+_Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
+               "SigmaStudio DM1 data exceeds the SPI block transfer buffer");
+
 #define ADAU1466_REG_PLL_ENABLE 0xF003U
 #define ADAU1466_REG_PLL_LOCK   0xF004U
 #define ADAU1466_REG_MCLK_OUT   0xF005U

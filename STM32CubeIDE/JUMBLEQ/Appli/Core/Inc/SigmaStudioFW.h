@@ -35,6 +35,7 @@ typedef unsigned char ADI_REG_TYPE;
 #define SIGMASTUDIOTYPE_INTEGER  1
 
 #define DEVICE_ADDR_ADAU146XSCHEMATIC_1 0x00
+#define SIGMA_WRITE_BLOCK_MAX_PAYLOAD    4093U
 
 /*
  * Write to a single Device register
