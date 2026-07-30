@@ -1,6 +1,6 @@
 # JUMBLEQ Firmware MIDI送信仕様
 
-本ドキュメントは、`JUMBLEQ/Appli/Core` 実装に基づくMIDI送信仕様（2026-03時点）をまとめたものです。
+本ドキュメントは、`JUMBLEQ/Appli/Core` 実装に基づくMIDI送信仕様（2026-07時点）をまとめたものです。
 
 ## 1. 基本方針
 
@@ -41,6 +41,8 @@
 | 18/19 | Ch.2 DVS（Off / On） |
 | 20/21 | Returnソース（USB[1/2] / USB[3/4]） |
 | 22/23/24/25 | HP出力ソース（XF_A / XF_B / THRU / MASTER） |
+| 26/27 | 磁気スイッチ2の補助fade-down割り当て（XFader A/B） |
+| 28/29 | 磁気スイッチ3の補助fade-down割り当て（XFader A/B） |
 | 122/123 | 磁気スイッチ送信MIDI（CC / Note） |
 
 ### 4.2 Control Change（Device -> Host, Ch.15）
