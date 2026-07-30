@@ -77,7 +77,7 @@ JUMBLEQ also provides a configurator for changing settings via MIDI: [JUMBLEQ Co
 JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). The standalone version is available for Windows and macOS, but requires Max 9 to be installed. A [Max for Live device version](./Max/JUMBLEQ_Configurator.amxd) is also included, allowing JUMBLEQ settings to be changed directly from within Ableton Live.
 
 ### Standalone version
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/3659966d-30bb-400e-b8cf-ac8b83e5ac35" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/d568f29f-4c74-4a79-a0e7-26b0f5e07027" />
 
 ### Max for Live version
 <img width="600" alt="JUMBLEQ_Configurator_m4l" src="https://github.com/user-attachments/assets/4fddf9b7-5925-4448-b21a-bae903f854b2" />
