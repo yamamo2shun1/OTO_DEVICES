@@ -13,11 +13,21 @@
 #include "semphr.h"
 #include "task.h"
 
+#include <stdbool.h>
+
 extern osMutexId_t spiMutexHandle;
 extern osSemaphoreId_t spiTxBinarySemHandle;
 extern osSemaphoreId_t spiTxRxBinarySemHandle;
 
-// 静的バッファ（IT転送中にスコープ外にならないようにするため）
+enum
+{
+    SIGMA_SPI_HEADER_SIZE          = 3U,
+    SIGMA_SPI_BLOCK_TX_BUFFER_SIZE = SIGMA_SPI_HEADER_SIZE + SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
+    SIGMA_SPI_MUTEX_TIMEOUT_MS     = 200U,
+};
+
+// 静的バッファ（転送中にスコープ外にならないようにするため）
+static uint8_t spi_block_tx_buf[SIGMA_SPI_BLOCK_TX_BUFFER_SIZE];
 static uint8_t spi_tx_buf[16];
 
 volatile uint32_t sigma_spi_it_write_calls          = 0;
@@ -52,21 +62,43 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef* hspi)
 
 void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData)
 {
-    // Use static buffer to avoid stack overflow
-    static uint8_t data[2560];
-
-    data[0] = devAddress;
-    data[1] = (uint8_t) ((address >> 8) & 0x00FF);
-    data[2] = (uint8_t) (address & 0x00FF);
-    for (int i = 0; i < length; i++)
+    if ((pData == NULL) || ((uint32_t) length > (sizeof(spi_block_tx_buf) - SIGMA_SPI_HEADER_SIZE)))
     {
-        data[i + 3] = pData[i];
+        SEGGER_RTT_printf(0, "[%X] spi write length invalid: %u\n", address, (unsigned int) length);
+        return;
     }
-    HAL_StatusTypeDef status = HAL_SPI_Transmit(&hspi5, data, 1 + 2 + length, 100);
+
+    bool mutex_acquired = false;
+    if ((osKernelGetState() == osKernelRunning) && (spiMutexHandle != NULL))
+    {
+        if (osMutexAcquire(spiMutexHandle, pdMS_TO_TICKS(SIGMA_SPI_MUTEX_TIMEOUT_MS)) != osOK)
+        {
+            SEGGER_RTT_printf(0, "[%X] spi mutex timeout\n", address);
+            sigma_spi_it_mutex_timeouts++;
+            return;
+        }
+        mutex_acquired = true;
+    }
+
+    spi_block_tx_buf[0] = devAddress;
+    spi_block_tx_buf[1] = (uint8_t) ((address >> 8) & 0x00FF);
+    spi_block_tx_buf[2] = (uint8_t) (address & 0x00FF);
+    for (uint16_t i = 0; i < length; i++)
+    {
+        spi_block_tx_buf[i + SIGMA_SPI_HEADER_SIZE] = pData[i];
+    }
+
+    HAL_StatusTypeDef status =
+        HAL_SPI_Transmit(&hspi5, spi_block_tx_buf, (uint16_t) (SIGMA_SPI_HEADER_SIZE + length), 100);
 
     if (status != HAL_OK)
     {
         SEGGER_RTT_printf(0, "[%X] spi write error\n", address);
+    }
+
+    if (mutex_acquired)
+    {
+        osMutexRelease(spiMutexHandle);
     }
 }
 
