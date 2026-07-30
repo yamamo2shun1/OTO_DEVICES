@@ -36,8 +36,7 @@ enum
     AUDIO_USB_FRAME_CHANNELS   = 4u,
     AUDIO_RING_FRAME_WORDS     = 4u,
     DBG_MIN_U16_INIT           = 0xFFFFu,
-    AUDIO_FUNC_ID_OUT          = 0u,
-    AUDIO_FUNC_ID_IN           = 1u,
+    AUDIO_FUNC_ID              = 0u,
 };
 
 extern DMA_QListTypeDef List_GPDMA1_Channel2;
@@ -147,7 +146,7 @@ bool is_sr_changed            = false;
 const uint32_t sample_rates[] = {48000, 96000};
 uint32_t current_sample_rate  = sample_rates[0];
 
-__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_2_EP_IN_SW_BUF_SZ / 4] = {0};
+__attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t sai_tx_rng_buf[SAI_RNG_BUF_SIZE] = {0};
@@ -169,7 +168,7 @@ void reset_audio_buffer(void)
 {
     ui_control_reset_state();
 
-    for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_2_EP_IN_SW_BUF_SZ / 4; i++)
+    for (uint16_t i = 0; i < CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4; i++)
     {
         usb_out_buf[i] = 0;
     }
@@ -334,7 +333,7 @@ void tud_resume_cb(void)
 // Helper for clock get requests
 static bool audio20_clock_get_request(uint8_t rhport, tusb_control_request_t const* request)
 {
-    TU_ASSERT((TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_OUT) || (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_IN));
+    TU_ASSERT(TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK);
 
     if (TU_U16_HIGH(request->wValue) == AUDIO20_CS_CTRL_SAM_FREQ)
     {
@@ -377,7 +376,7 @@ static bool audio20_clock_set_request(uint8_t rhport, tusb_control_request_t con
 {
     (void) rhport;
 
-    TU_ASSERT((TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_OUT) || (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_IN));
+    TU_ASSERT(TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK);
     TU_VERIFY(request->bRequest == AUDIO20_CS_REQ_CUR);
 
     if (TU_U16_HIGH(request->wValue) == AUDIO20_CS_CTRL_SAM_FREQ)
@@ -473,7 +472,7 @@ static bool audio20_get_req_entity(uint8_t rhport, tusb_control_request_t const*
 {
     tusb_control_request_t const* request = p_request;
 
-    if ((TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_OUT) || (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_IN))
+    if (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK)
         return audio20_clock_get_request(rhport, request);
     if (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT)
         return audio20_feature_unit_get_request(rhport, request);
@@ -490,7 +489,7 @@ static bool audio20_set_req_entity(uint8_t rhport, tusb_control_request_t const*
 
     if (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_STEREO_OUT_FEATURE_UNIT)
         return audio20_feature_unit_set_request(rhport, request, buf);
-    if ((TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_OUT) || (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK_IN))
+    if (TU_U16_HIGH(request->wIndex) == UAC2_ENTITY_CLOCK)
         return audio20_clock_set_request(rhport, request, buf);
     TU_LOG1("Set request not handled, entity = %d, selector = %d, request = %d\r\n", TU_U16_HIGH(request->wIndex), TU_U16_HIGH(request->wValue), request->bRequest);
 
@@ -594,7 +593,7 @@ bool tud_audio_set_itf_cb(uint8_t rhport, tusb_control_request_t const* p_reques
 void tud_audio_feedback_params_cb(uint8_t func_id, uint8_t alt_itf, audio_feedback_params_t* feedback_param)
 {
     (void) alt_itf;
-    if (func_id != AUDIO_FUNC_ID_OUT)
+    if (func_id != AUDIO_FUNC_ID)
     {
         return;
     }
@@ -1098,7 +1097,7 @@ static uint16_t audio_out_read_budget_bytes(void)
 
 static void copybuf_ring2usb_and_send(void)
 {
-    if (!tud_audio_n_mounted(AUDIO_FUNC_ID_IN))
+    if (!tud_audio_n_mounted(AUDIO_FUNC_ID))
     {
         return;
     }
@@ -1109,7 +1108,7 @@ static void copybuf_ring2usb_and_send(void)
         return;
     }
 
-    tu_fifo_t* ep_in_ff = tud_audio_n_get_ep_in_ff(AUDIO_FUNC_ID_IN);
+    tu_fifo_t* ep_in_ff = tud_audio_n_get_ep_in_ff(AUDIO_FUNC_ID);
     if (ep_in_ff == NULL)
     {
         return;
@@ -1168,7 +1167,7 @@ static void copybuf_ring2usb_and_send(void)
     }
 
     // ISRコンテキストから呼ばれるので通常版を使用
-    uint16_t written = tud_audio_n_write(AUDIO_FUNC_ID_IN, usb_out_buf, (uint16_t) usb_bytes);
+    uint16_t written = tud_audio_n_write(AUDIO_FUNC_ID, usb_out_buf, (uint16_t) usb_bytes);
 
 #if AUDIO_DIAG_LOG
     dbg_usb_in_write_bytes += written;
@@ -1213,7 +1212,7 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) rhport;
     (void) ep_in;
     (void) cur_alt_setting;
-    if (func_id != AUDIO_FUNC_ID_IN)
+    if (func_id != AUDIO_FUNC_ID)
     {
         return true;
     }
@@ -1249,7 +1248,7 @@ bool tud_audio_rx_done_isr(uint8_t rhport, uint16_t n_bytes_received, uint8_t fu
     (void) n_bytes_received;
     (void) ep_out;
     (void) cur_alt_setting;
-    if (func_id != AUDIO_FUNC_ID_OUT)
+    if (func_id != AUDIO_FUNC_ID)
     {
         return true;
     }
@@ -1359,10 +1358,10 @@ void audio_task(void)
         __set_PRIMASK(primask);
 
         // USB OUTは受信通知とFIFO残量に追従して即時に吸い出す。
-        if (usb_rx_event || tud_audio_n_available(AUDIO_FUNC_ID_OUT) > 0U)
+        if (usb_rx_event || tud_audio_n_available(AUDIO_FUNC_ID) > 0U)
         {
             uint16_t budget = audio_out_read_budget_bytes();
-            uint16_t avail = tud_audio_n_available(AUDIO_FUNC_ID_OUT);
+            uint16_t avail = tud_audio_n_available(AUDIO_FUNC_ID);
             uint16_t to_read = (avail < budget) ? avail : budget;
             if (to_read > sizeof(usb_in_buf))
             {
@@ -1371,7 +1370,7 @@ void audio_task(void)
 
             if (to_read > 0U)
             {
-                spk_data_size = tud_audio_n_read(AUDIO_FUNC_ID_OUT, usb_in_buf, to_read);
+                spk_data_size = tud_audio_n_read(AUDIO_FUNC_ID, usb_in_buf, to_read);
             }
             else
             {
