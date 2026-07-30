@@ -30,11 +30,13 @@ typedef struct
     uint8_t mag_output_mode_flags;
     float current_xfade_cut_margin_a;
     float current_xfade_cut_margin_b;
+    uint8_t sensor2_aux_fade_down_assign;
+    uint8_t sensor3_aux_fade_down_assign;
 } EEPROM_DeviceConfig_t;
 
 #define EEPROM_CONFIG_ADDR               (0x0000U)
 #define EEPROM_CONFIG_MAGIC              (0x51424D4AU) /* "JMBQ" */
-#define EEPROM_CONFIG_VERSION            (0x0005U)
+#define EEPROM_CONFIG_VERSION            (0x0006U)
 
 #define EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE   (0x01U)
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef *hi2c);
