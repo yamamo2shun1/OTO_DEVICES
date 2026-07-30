@@ -31,6 +31,7 @@
 #define MAG_CALIBRATION_COUNT_MAX 100
 #define MAG_XFADE_CUTOFF          16
 #define MAG_XFADE_RANGE           1400
+#define XFADE_FADE_DOWN_SOURCE_COUNT 3U
 
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
@@ -89,7 +90,7 @@ typedef struct
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
-    float fade_down_source_prev[2][2];  // Previous fade-down source values used for retrigger detection.
+    float fade_down_source_prev[2][XFADE_FADE_DOWN_SOURCE_COUNT];  // Previous fade-down source values used for retrigger detection.
     uint8_t fade_down_active_source[2];  // Last fade-down source that started a cut gesture.
     uint8_t fade_down_force_release_reads[2];  // Number of reads that should force a release before retriggering.
     uint8_t pair_gesture_parent[2];  // First-pressed side that owns the current two-finger gesture.
@@ -100,6 +101,7 @@ typedef struct
     bool pair_fade_down_bottomed[2];  // Whether each pair is currently in the fade-down bottom zone.
     bool pair_top_hold_active[2];  // Whether each pair is still forced muted at the top of a fade-up gesture.
     bool pair_fade_up_topped[2];  // Whether each pair is currently in the fade-up top zone.
+    bool pair_reverse_fade_down_takeover[2];  // Whether fade-down owns reverse momentary output while fade-up is released.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
     uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
     uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
@@ -119,6 +121,8 @@ typedef struct
     uint8_t current_hp_out_source;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
+    uint8_t sensor2_aux_fade_down_assign;
+    uint8_t sensor3_aux_fade_down_assign;
     uint8_t pot_ch;
     uint8_t pot_ch_counter;
     uint16_t pot_ma_index[POT_NUM];
@@ -157,6 +161,8 @@ static ui_control_state_t s_ui = {
     .current_hp_out_source  = CUE_SEL_MST,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
+    .sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A,
+    .sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B,
     .xfade_cut_margin_a     = UI_XFADE_CUT_MARGIN_A_DEFAULT,
     .xfade_cut_margin_b     = UI_XFADE_CUT_MARGIN_B_DEFAULT,
     .mag_out_as_note        = false,
@@ -173,7 +179,7 @@ static ui_control_state_t s_ui = {
     .xf.fade_up_prev             = {0.0f, 0.0f},
     .xf.fade_down_prev           = {1.0f, 1.0f},
     .xf.fade_down_combined_raw   = {1.0f, 1.0f},
-    .xf.fade_down_source_prev    = {{1.0f, 1.0f}, {1.0f, 1.0f}},
+    .xf.fade_down_source_prev    = {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
     .xf.fade_down_active_source  = {0xFFU, 0xFFU},
     .xf.fade_down_force_release_reads = {0U, 0U},
     .xf.pair_gesture_parent      = {XFADE_GESTURE_PARENT_NONE, XFADE_GESTURE_PARENT_NONE},
@@ -184,6 +190,7 @@ static ui_control_state_t s_ui = {
     .xf.pair_fade_down_bottomed  = {false, false},
     .xf.pair_top_hold_active     = {false, false},
     .xf.pair_fade_up_topped      = {false, false},
+    .xf.pair_reverse_fade_down_takeover = {false, false},
     .xf.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
@@ -232,6 +239,7 @@ typedef struct
     uint8_t fade_up_idx;
     uint8_t fade_down_idx;
     uint8_t aux_fade_down_idx;
+    uint8_t aux2_fade_down_idx;
     uint8_t prev_idx;
     uint8_t* current_position;
     void (*set_dc)(float xf_pos);
@@ -246,26 +254,94 @@ typedef enum
 
 // Runtime mapping for each xfade bus:
 // Change these indices to reassign the magnetic switches used by each pair.
-// fade_up_idx and fade_down_idx produce the held scalar, and aux_fade_down_idx
-// can retrigger the same fade-down gesture path.
-static const xfade_pair_runtime_t s_xfade_pairs[] = {
+// fade_up_idx and fade_down_idx produce the held scalar. Each valid auxiliary
+// fade-down index can retrigger the same fade-down gesture path.
+static xfade_pair_runtime_t s_xfade_pairs[] = {
     {
-     .fade_up_idx       = 2,
-     .fade_down_idx     = 4,
-     .aux_fade_down_idx = 5,
+     .fade_up_idx       = 0,
+     .fade_down_idx     = 1,
+     .aux_fade_down_idx = 2,
+     .aux2_fade_down_idx = MAG_SW_NUM,
      .prev_idx          = XFADE_PAIR_A,
      .current_position  = &s_ui.xf.position_a,
      .set_dc            = set_dc_inputA,
      },
     {
-     .fade_up_idx       = 3,
-     .fade_down_idx     = 1,
-     .aux_fade_down_idx = 0,
+     .fade_up_idx       = 5,
+     .fade_down_idx     = 4,
+     .aux_fade_down_idx = 3,
+     .aux2_fade_down_idx = MAG_SW_NUM,
      .prev_idx          = XFADE_PAIR_B,
      .current_position  = &s_ui.xf.position_b,
      .set_dc            = set_dc_inputB,
      },
 };
+
+static void append_xfade_aux_sensor(uint8_t pair_idx, uint8_t sensor_idx)
+{
+    xfade_pair_runtime_t* pair;
+
+    if ((pair_idx >= XFADE_PAIR_COUNT) || (sensor_idx >= MAG_SW_NUM))
+    {
+        return;
+    }
+
+    pair = &s_xfade_pairs[pair_idx];
+    if (pair->aux_fade_down_idx >= MAG_SW_NUM)
+    {
+        pair->aux_fade_down_idx = sensor_idx;
+    }
+    else
+    {
+        pair->aux2_fade_down_idx = sensor_idx;
+    }
+}
+
+static void reset_xfade_aux_assignment_runtime(void)
+{
+    for (uint8_t pair_idx = 0U; pair_idx < XFADE_PAIR_COUNT; pair_idx++)
+    {
+        s_ui.xf.fade_down_prev[pair_idx] = -1.0f;
+        s_ui.xf.fade_down_combined_raw[pair_idx] = 1.0f;
+        s_ui.xf.fade_down_active_source[pair_idx] = XFADE_FADE_DOWN_SOURCE_NONE;
+        s_ui.xf.fade_down_force_release_reads[pair_idx] = 0U;
+        s_ui.xf.pair_gesture_parent[pair_idx] = XFADE_GESTURE_PARENT_NONE;
+        s_ui.xf.pair_gesture_armed[pair_idx] = true;
+        s_ui.xf.pair_gesture_child_active[pair_idx] = false;
+        s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
+        s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
+        s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
+        s_ui.xf.pair_reverse_fade_down_takeover[pair_idx] = false;
+
+        for (uint8_t source = 0U; source < XFADE_FADE_DOWN_SOURCE_COUNT; source++)
+        {
+            s_ui.xf.fade_down_source_prev[pair_idx][source] = 1.0f;
+        }
+    }
+}
+
+static bool apply_xfade_aux_assignments(uint8_t sensor2_assign, uint8_t sensor3_assign)
+{
+    if ((sensor2_assign > UI_XFADE_AUX_ASSIGN_B) ||
+        (sensor3_assign > UI_XFADE_AUX_ASSIGN_B))
+    {
+        return false;
+    }
+
+    s_ui.sensor2_aux_fade_down_assign = sensor2_assign;
+    s_ui.sensor3_aux_fade_down_assign = sensor3_assign;
+
+    for (uint8_t pair_idx = 0U; pair_idx < XFADE_PAIR_COUNT; pair_idx++)
+    {
+        s_xfade_pairs[pair_idx].aux_fade_down_idx  = MAG_SW_NUM;
+        s_xfade_pairs[pair_idx].aux2_fade_down_idx = MAG_SW_NUM;
+    }
+
+    append_xfade_aux_sensor(sensor2_assign, 2U);
+    append_xfade_aux_sensor(sensor3_assign, 3U);
+    reset_xfade_aux_assignment_runtime();
+    return true;
+}
 
 static void send_control_change(uint8_t number, uint8_t value, uint8_t channel)
 {
@@ -1131,6 +1207,16 @@ static uint8_t midi_program_for_hp_out_source(uint8_t source)
     }
 }
 
+static uint8_t midi_program_for_xfade_aux_assignment(uint8_t sensor_idx, uint8_t assign)
+{
+    if (sensor_idx == 2U)
+    {
+        return (assign == UI_XFADE_AUX_ASSIGN_A) ? XF_AUX_SENSOR2_TO_A : XF_AUX_SENSOR2_TO_B;
+    }
+
+    return (assign == UI_XFADE_AUX_ASSIGN_A) ? XF_AUX_SENSOR3_TO_A : XF_AUX_SENSOR3_TO_B;
+}
+
 static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
 {
     if (cfg == NULL)
@@ -1147,6 +1233,8 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
     send_program_change(midi_program_for_hp_out_source(cfg->current_hp_out_source), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH1, cfg->current_ch1_dvs_enable), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
+    send_program_change(midi_program_for_xfade_aux_assignment(2U, cfg->sensor2_aux_fade_down_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_xfade_aux_assignment(3U, cfg->sensor3_aux_fade_down_assign), MIDI_CH_15);
     send_control_change(MIDI_CC_XFADE_CUT_MARGIN_A, xfade_cut_margin_to_midi_cc(cfg->current_xfade_cut_margin_a), MIDI_CH_15);
     send_control_change(MIDI_CC_XFADE_CUT_MARGIN_B, xfade_cut_margin_to_midi_cc(cfg->current_xfade_cut_margin_b), MIDI_CH_15);
     if ((cfg->mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U)
@@ -1727,6 +1815,7 @@ static void update_xfade_from_mag(void)
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
     {
         update_one_xfade_index(s_xfade_pairs[i].aux_fade_down_idx, processed);
+        update_one_xfade_index(s_xfade_pairs[i].aux2_fade_down_idx, processed);
     }
 
     for (uint8_t i = 0; i < MAG_SW_NUM; i++)
@@ -1811,21 +1900,21 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
     return raw / high_deadband;
 }
 
-// Arbitrate the two fade-down sensors assigned to one xfade pair.
+// Arbitrate the fade-down sensors assigned to one xfade pair.
 //
-// source0 is the main fade-down sensor, and source1 is the auxiliary sensor.
+// source0 is the main fade-down sensor, and later sources are auxiliary sensors.
 // The active source follows the most recently started cut gesture. When
 // control switches to the other sensor, briefly force fade-down to "released"
 // so repeated flick cuts remain audible even if the previous sensor is still
 // held near the bottom.
-static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float source1)
+static void update_multi_fade_down_source(uint8_t pair_idx,
+                                          const float source[XFADE_FADE_DOWN_SOURCE_COUNT])
 {
-    float source[2] = {source0, source1};
     uint8_t active  = s_ui.xf.fade_down_active_source[pair_idx];
     uint8_t started = XFADE_FADE_DOWN_SOURCE_NONE;
     bool force_release = false;
 
-    for (uint8_t i = 0; i < 2U; i++)
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
     {
         const float prev = s_ui.xf.fade_down_source_prev[pair_idx][i];
         // Detect a new cut either from the idle zone or from a clear deeper
@@ -1859,16 +1948,27 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
         active = started;
     }
 
-    // Once both fade-down sensors are released, the next press can claim
+    // Once all fade-down sensors are released, the next press can claim
     // ownership without being treated as a source switch.
-    if ((source[0] >= XFADE_PAIR_RESET_THRESHOLD) && (source[1] >= XFADE_PAIR_RESET_THRESHOLD))
+    bool all_released = true;
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        if (source[i] < XFADE_PAIR_RESET_THRESHOLD)
+        {
+            all_released = false;
+            break;
+        }
+    }
+    if (all_released)
     {
         active = XFADE_FADE_DOWN_SOURCE_NONE;
     }
 
     s_ui.xf.fade_down_active_source[pair_idx] = active;
-    s_ui.xf.fade_down_source_prev[pair_idx][0] = source[0];
-    s_ui.xf.fade_down_source_prev[pair_idx][1] = source[1];
+    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        s_ui.xf.fade_down_source_prev[pair_idx][i] = source[i];
+    }
 
     force_release = (s_ui.xf.fade_down_force_release_reads[pair_idx] > 0U);
     if (force_release)
@@ -1888,8 +1988,16 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
         return;
     }
 
-    // Idle/fallback behavior: behave like the old dual-input minimum.
-    s_ui.xf.fade_down_combined_raw[pair_idx] = (source[0] < source[1]) ? source[0] : source[1];
+    // Idle/fallback behavior: use the deepest pressed fade-down source.
+    float combined = source[0];
+    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    {
+        if (source[i] < combined)
+        {
+            combined = source[i];
+        }
+    }
+    s_ui.xf.fade_down_combined_raw[pair_idx] = combined;
 }
 
 // Convert each pair's physical fade-down sensor(s) into one cached value.
@@ -1897,16 +2005,23 @@ static void update_dual_fade_down_source(uint8_t pair_idx, float source0, float 
 // multiple later reads of get_xfade_pair_fade_down_raw().
 static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
 {
-    float mag_raw = apply_xfade_pair_onset_deadband(pair->fade_down_idx, s_ui.xf.raw[pair->fade_down_idx]);
+    const uint8_t source_idx[XFADE_FADE_DOWN_SOURCE_COUNT] = {
+        pair->fade_down_idx,
+        pair->aux_fade_down_idx,
+        pair->aux2_fade_down_idx,
+    };
+    float source[XFADE_FADE_DOWN_SOURCE_COUNT] = {1.0f, 1.0f, 1.0f};
 
-    if (pair->aux_fade_down_idx < MAG_SW_NUM)
+    source[0] = apply_xfade_pair_onset_deadband(source_idx[0], s_ui.xf.raw[source_idx[0]]);
+    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
     {
-        const float aux_raw = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[pair->aux_fade_down_idx]);
-        update_dual_fade_down_source(pair->prev_idx, mag_raw, aux_raw);
-        return;
+        if (source_idx[i] < MAG_SW_NUM)
+        {
+            source[i] = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[source_idx[i]]);
+        }
     }
 
-    s_ui.xf.fade_down_combined_raw[pair->prev_idx] = mag_raw;
+    update_multi_fade_down_source(pair->prev_idx, source);
 }
 
 static void update_xfade_fade_down_sources(void)
@@ -1965,6 +2080,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
     bool top_hold_active    = s_ui.xf.pair_top_hold_active[pair->prev_idx];
     bool topped             = s_ui.xf.pair_fade_up_topped[pair->prev_idx];
+    bool reverse_fade_down_takeover = s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx];
     bool bottom_entered     = false;
     bool top_entered        = false;
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
@@ -2020,6 +2136,61 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
             }
         }
     }
+
+    // With fade-up released, fade-down works as a reverse momentary control.
+    // Soft takeover keeps the fade-up hold behavior unchanged until the
+    // reversed fade-down curve reaches the current held value.
+    if (!fade_up_active)
+    {
+        const float reverse_down_gain = 1.0f - down_gain;
+
+        if (!reverse_fade_down_takeover &&
+            fade_down_pressed &&
+            ((reverse_down_gain + XFADE_SEND_THRESHOLD) >= hold_value))
+        {
+            reverse_fade_down_takeover = true;
+        }
+
+        if (reverse_fade_down_takeover)
+        {
+            if (fade_down_released)
+            {
+                hold_value = 0.0f;
+                reverse_fade_down_takeover = false;
+            }
+            else
+            {
+                hold_value = reverse_down_gain;
+            }
+        }
+
+        // The normal fade-down cut state is only used while fade-up is active.
+        cut_active          = false;
+        bottom_hold_active  = false;
+        bottomed            = false;
+        top_hold_active     = false;
+        topped              = false;
+        restore_value       = 0.0f;
+        top_restore_value   = 0.0f;
+        gesture_child_active = false;
+
+        s_ui.xf.pair_hold_value[pair->prev_idx] = hold_value;
+        s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+        s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
+        s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
+        s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
+        s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
+        s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
+        s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
+        s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+        s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+        s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
+        s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
+        return hold_value;
+    }
+
+    // Fade-up is active, so preserve the existing fade-down behavior.
+    reverse_fade_down_takeover = false;
 
     // Capture the value to restore if this fade-down gesture reaches bottom.
     if (!cut_active && (fade_down <= down_press_threshold))
@@ -2151,6 +2322,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
     s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
     s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
+    s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
     return hold_value;
 }
 
@@ -2283,6 +2455,26 @@ static void midi_program_enable_dvs(uint8_t arg)
     apply_dvs_state(input_ch, enable);
 }
 
+static void midi_program_apply_xfade_aux_assignment(uint8_t arg)
+{
+    const uint8_t sensor_idx = (arg >> 4) & 0x0FU;
+    const uint8_t assign     = arg & 0x0FU;
+
+    if (sensor_idx == 2U)
+    {
+        (void) apply_xfade_aux_assignments(assign, s_ui.sensor3_aux_fade_down_assign);
+    }
+    else if (sensor_idx == 3U)
+    {
+        (void) apply_xfade_aux_assignments(s_ui.sensor2_aux_fade_down_assign, assign);
+    }
+
+    SEGGER_RTT_printf(0,
+                      "Xfade aux assignment: sensor2=%c sensor3=%c\r\n",
+                      (s_ui.sensor2_aux_fade_down_assign == UI_XFADE_AUX_ASSIGN_A) ? 'A' : 'B',
+                      (s_ui.sensor3_aux_fade_down_assign == UI_XFADE_AUX_ASSIGN_A) ? 'A' : 'B');
+}
+
 static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 {
     if (channel != MIDI_CH_15)
@@ -2324,7 +2516,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
 
         return true;
     }
@@ -2337,7 +2529,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
         }
         else
         {
@@ -2373,6 +2565,10 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         {HP_OUT_XF_B,          midi_program_apply_hp_out,   CUE_SEL_XF_B                                   },
         {HP_OUT_THRU,          midi_program_apply_hp_out,   CUE_SEL_THRU                                   },
         {HP_OUT_MASTER,        midi_program_apply_hp_out,   CUE_SEL_MST                                    },
+        {XF_AUX_SENSOR2_TO_A,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((2U << 4) | UI_XFADE_AUX_ASSIGN_A)},
+        {XF_AUX_SENSOR2_TO_B,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((2U << 4) | UI_XFADE_AUX_ASSIGN_B)},
+        {XF_AUX_SENSOR3_TO_A,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((3U << 4) | UI_XFADE_AUX_ASSIGN_A)},
+        {XF_AUX_SENSOR3_TO_B,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((3U << 4) | UI_XFADE_AUX_ASSIGN_B)},
     };
 
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(commands); i++)
@@ -2494,6 +2690,8 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_hp_out_source  = s_ui.current_hp_out_source;
     state->current_ch1_dvs_enable    = s_ui.current_ch1_dvs_enable;
     state->current_ch2_dvs_enable    = s_ui.current_ch2_dvs_enable;
+    state->sensor2_aux_fade_down_assign = s_ui.sensor2_aux_fade_down_assign;
+    state->sensor3_aux_fade_down_assign = s_ui.sensor3_aux_fade_down_assign;
     state->current_xfade_cut_margin_a = s_ui.xfade_cut_margin_a;
     state->current_xfade_cut_margin_b = s_ui.xfade_cut_margin_b;
     state->mag_out_as_note           = s_ui.mag_out_as_note;
@@ -2515,7 +2713,9 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
         (state->current_ch2_input_type > INPUT_TYPE_PHONO) ||
         (state->current_hp_out_source > CUE_SEL_MST) ||
         (state->current_ch1_dvs_enable > 1U) ||
-        (state->current_ch2_dvs_enable > 1U))
+        (state->current_ch2_dvs_enable > 1U) ||
+        (state->sensor2_aux_fade_down_assign > UI_XFADE_AUX_ASSIGN_B) ||
+        (state->sensor3_aux_fade_down_assign > UI_XFADE_AUX_ASSIGN_B))
     {
         return false;
     }
@@ -2537,6 +2737,8 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_hp_out_source(state->current_hp_out_source);
     apply_dvs_state(INPUT_CH1, state->current_ch1_dvs_enable != 0U);
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
+    (void) apply_xfade_aux_assignments(state->sensor2_aux_fade_down_assign,
+                                       state->sensor3_aux_fade_down_assign);
     s_ui.xfade_cut_margin_a = clamp_xfade_cut_margin(state->current_xfade_cut_margin_a);
     s_ui.xfade_cut_margin_b = clamp_xfade_cut_margin(state->current_xfade_cut_margin_b);
     s_ui.mag_out_as_note    = state->mag_out_as_note;
@@ -2600,11 +2802,15 @@ void ui_control_reset_state(void)
     s_ui.current_hp_out_source  = CUE_SEL_MST;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
+    s_ui.sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
+    s_ui.sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
     s_ui.xfade_cut_margin_a     = UI_XFADE_CUT_MARGIN_A_DEFAULT;
     s_ui.xfade_cut_margin_b     = UI_XFADE_CUT_MARGIN_B_DEFAULT;
     s_ui.curve_edit_mode        = false;
     s_ui.xf.position_a          = 0;
     s_ui.xf.position_b          = 0;
+    (void) apply_xfade_aux_assignments(s_ui.sensor2_aux_fade_down_assign,
+                                       s_ui.sensor3_aux_fade_down_assign);
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
@@ -2622,8 +2828,10 @@ void ui_control_reset_state(void)
         s_ui.xf.fade_up_prev[i]           = 0.0f;
         s_ui.xf.fade_down_prev[i]         = 1.0f;
         s_ui.xf.fade_down_combined_raw[i] = 1.0f;
-        s_ui.xf.fade_down_source_prev[i][0] = 1.0f;
-        s_ui.xf.fade_down_source_prev[i][1] = 1.0f;
+        for (uint8_t source = 0; source < XFADE_FADE_DOWN_SOURCE_COUNT; source++)
+        {
+            s_ui.xf.fade_down_source_prev[i][source] = 1.0f;
+        }
         s_ui.xf.fade_down_active_source[i] = XFADE_FADE_DOWN_SOURCE_NONE;
         s_ui.xf.fade_down_force_release_reads[i] = 0U;
         s_ui.xf.pair_gesture_parent[i] = XFADE_GESTURE_PARENT_NONE;
@@ -2637,6 +2845,7 @@ void ui_control_reset_state(void)
         s_ui.xf.pair_fade_down_bottomed[i] = false;
         s_ui.xf.pair_top_hold_active[i] = false;
         s_ui.xf.pair_fade_up_topped[i] = false;
+        s_ui.xf.pair_reverse_fade_down_takeover[i] = false;
     }
     mark_xfade_cut_margin_dirty();
     s_ui.xf.fade_prev_valid = false;

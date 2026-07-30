@@ -54,6 +54,10 @@ enum
     HP_OUT_XF_B          = 23,
     HP_OUT_THRU          = 24,
     HP_OUT_MASTER        = 25,
+    XF_AUX_SENSOR2_TO_A  = 26,
+    XF_AUX_SENSOR2_TO_B  = 27,
+    XF_AUX_SENSOR3_TO_A  = 28,
+    XF_AUX_SENSOR3_TO_B  = 29,
 };
 
 enum

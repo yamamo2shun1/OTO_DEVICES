@@ -11,6 +11,8 @@
 #include <stdbool.h>
 
 #define ADC_NUM 8
+#define UI_XFADE_AUX_ASSIGN_A 0U
+#define UI_XFADE_AUX_ASSIGN_B 1U
 
 typedef struct
 {
@@ -23,6 +25,8 @@ typedef struct
     uint8_t current_hp_out_source;
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
+    uint8_t sensor2_aux_fade_down_assign;
+    uint8_t sensor3_aux_fade_down_assign;
     bool  mag_out_as_note;
     float current_xfade_cut_margin_a;
     float current_xfade_cut_margin_b;

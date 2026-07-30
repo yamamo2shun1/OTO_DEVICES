@@ -65,6 +65,8 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
     cfg->mag_output_mode_flags  = 0U;
     cfg->current_xfade_cut_margin_a = UI_XFADE_CUT_MARGIN_A_DEFAULT;
     cfg->current_xfade_cut_margin_b = UI_XFADE_CUT_MARGIN_B_DEFAULT;
+    cfg->sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
+    cfg->sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
 }
 
 void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
@@ -89,6 +91,8 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     cfg->mag_output_mode_flags  = state.mag_out_as_note ? EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE : 0U;
     cfg->current_xfade_cut_margin_a = state.current_xfade_cut_margin_a;
     cfg->current_xfade_cut_margin_b = state.current_xfade_cut_margin_b;
+    cfg->sensor2_aux_fade_down_assign = state.sensor2_aux_fade_down_assign;
+    cfg->sensor3_aux_fade_down_assign = state.sensor3_aux_fade_down_assign;
 }
 
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef* hi2c)
