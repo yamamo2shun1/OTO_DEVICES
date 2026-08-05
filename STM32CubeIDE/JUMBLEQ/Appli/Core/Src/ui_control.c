@@ -227,7 +227,7 @@ static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
 static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
 static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
 static const uint8_t XFADE_FADE_DOWN_SOURCE_NONE    = 0xFFU;
-static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP = 8U;
+static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP = 16U;
 static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY    = 16U;
 
 static uint8_t s_note_peak_vel[128];
