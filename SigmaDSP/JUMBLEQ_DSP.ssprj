@@ -244,11 +244,11 @@
               "PLL_CTRL0_regRESERVED11 Reserved": 0,
               "PLL_WATCHDOG_reg_PLL_WATCHDOG": "PLL watchdog enabled",
               "PLL_WATCHDOG_regRESERVED17 Reserved": 0,
-              "CLK_GEN1_M_reg_CLOCKGEN1_M": 6.0,
+              "CLK_GEN1_M_reg_CLOCKGEN1_M": 3.0,
               "CLK_GEN1_M_regRESERVED18 Reserved": 0,
               "CLK_GEN1_N_reg_CLOCKGEN1_N": 1,
               "CLK_GEN1_N_regRESERVED19 Reserved": 0,
-              "CLK_GEN2_M_reg_CLOCKGEN2_M": 9,
+              "CLK_GEN2_M_reg_CLOCKGEN2_M": 6.0,
               "CLK_GEN2_M_regRESERVED20 Reserved": 0,
               "CLK_GEN2_N_reg_CLOCKGEN2_N": 1,
               "CLK_GEN2_N_regRESERVED21 Reserved": 0,
@@ -1380,16 +1380,16 @@
               "CLKOUT_PIN_reg_CLKOUT_SLEW": "Fast",
               "CLKOUT_PIN_reg_CLKOUT_PULL": "Pull-down disabled",
               "CLKOUT_PIN_regRESERVED308 Reserved": 0,
-              "ASRC_INPUT0_reg_ASRC_SOURCE": "Not used",
+              "ASRC_INPUT0_reg_ASRC_SOURCE": "From serial input",
               "ASRC_INPUT0_reg_ASRC_SIN_CHANNEL": "Serial input 0/1",
               "ASRC_INPUT0_regRESERVED323 Reserved": 0,
-              "ASRC_INPUT1_reg_ASRC_SOURCE": "Not used",
-              "ASRC_INPUT1_reg_ASRC_SIN_CHANNEL": "Serial input 0/1",
+              "ASRC_INPUT1_reg_ASRC_SOURCE": "From serial input",
+              "ASRC_INPUT1_reg_ASRC_SIN_CHANNEL": "Serial input 2/3",
               "ASRC_INPUT1_regRESERVED324 Reserved": 0,
-              "ASRC_INPUT2_reg_ASRC_SOURCE": "Not used",
+              "ASRC_INPUT2_reg_ASRC_SOURCE": "From DSP channel",
               "ASRC_INPUT2_reg_ASRC_SIN_CHANNEL": "Serial input 0/1",
               "ASRC_INPUT2_regRESERVED325 Reserved": 0,
-              "ASRC_INPUT3_reg_ASRC_SOURCE": "Not used",
+              "ASRC_INPUT3_reg_ASRC_SOURCE": "From DSP channel",
               "ASRC_INPUT3_reg_ASRC_SIN_CHANNEL": "Serial input 0/1",
               "ASRC_INPUT3_regRESERVED326 Reserved": 0,
               "ASRC_INPUT4_reg_ASRC_SOURCE": "Not used",
@@ -1404,13 +1404,13 @@
               "ASRC_INPUT7_reg_ASRC_SOURCE": "Not used",
               "ASRC_INPUT7_reg_ASRC_SIN_CHANNEL": "Serial input 0/1",
               "ASRC_INPUT7_regRESERVED330 Reserved": 0,
-              "ASRC_OUT_RATE0_reg_ASRC_RATE": "Off",
+              "ASRC_OUT_RATE0_reg_ASRC_RATE": "Use DSP rate",
               "ASRC_OUT_RATE0_regRESERVED331 Reserved": 0,
-              "ASRC_OUT_RATE1_reg_ASRC_RATE": "Off",
+              "ASRC_OUT_RATE1_reg_ASRC_RATE": "Use DSP rate",
               "ASRC_OUT_RATE1_regRESERVED332 Reserved": 0,
-              "ASRC_OUT_RATE2_reg_ASRC_RATE": "Off",
+              "ASRC_OUT_RATE2_reg_ASRC_RATE": "Use rate of serial out 0",
               "ASRC_OUT_RATE2_regRESERVED333 Reserved": 0,
-              "ASRC_OUT_RATE3_reg_ASRC_RATE": "Off",
+              "ASRC_OUT_RATE3_reg_ASRC_RATE": "Use rate of serial out 0",
               "ASRC_OUT_RATE3_regRESERVED334 Reserved": 0,
               "ASRC_OUT_RATE4_reg_ASRC_RATE": "Off",
               "ASRC_OUT_RATE4_regRESERVED335 Reserved": 0,
@@ -1420,11 +1420,11 @@
               "ASRC_OUT_RATE6_regRESERVED337 Reserved": 0,
               "ASRC_OUT_RATE7_reg_ASRC_RATE": "Off",
               "ASRC_OUT_RATE7_regRESERVED338 Reserved": 0,
-              "SOUT_SOURCE0_reg_SOUT_SOURCE": "From the SOUT own DSP channel",
-              "SOUT_SOURCE0_reg_SOUT_ASRC_SELECT": "ASRC 0",
+              "SOUT_SOURCE0_reg_SOUT_SOURCE": "From ASRC (select channel with SOUT_ASRC_SELECT)",
+              "SOUT_SOURCE0_reg_SOUT_ASRC_SELECT": "ASRC 2",
               "SOUT_SOURCE0_regRESERVED339 Reserved": 0,
-              "SOUT_SOURCE1_reg_SOUT_SOURCE": "From the SOUT own DSP channel",
-              "SOUT_SOURCE1_reg_SOUT_ASRC_SELECT": "ASRC 0",
+              "SOUT_SOURCE1_reg_SOUT_SOURCE": "From ASRC (select channel with SOUT_ASRC_SELECT)",
+              "SOUT_SOURCE1_reg_SOUT_ASRC_SELECT": "ASRC 3",
               "SOUT_SOURCE1_regRESERVED340 Reserved": 0,
               "SOUT_SOURCE2_reg_SOUT_SOURCE": "From the SOUT own DSP channel",
               "SOUT_SOURCE2_reg_SOUT_ASRC_SELECT": "ASRC 0",
@@ -1503,7 +1503,7 @@
               "SERIAL_BYTE_0_0_reg_BCLK_SRC": "BCLK is master",
               "SERIAL_BYTE_0_0_reg_LRCLK_SRC": "LRCLK is master",
               "SERIAL_BYTE_0_1_reg_FS": "Fs",
-              "SERIAL_BYTE_0_1_reg_CLK_DOMAIN": "Clock generator 1 (48 kHz (FS) generator)",
+              "SERIAL_BYTE_0_1_reg_CLK_DOMAIN": "Clock generator 2 (32 kHz (2 FS / 3) generator)",
               "SERIAL_BYTE_0_1_reg_TRISTATE": "Drive every output channel",
               "SERIAL_BYTE_0_1_regRESERVED364 Reserved": 0,
               "SERIAL_BYTE_1_0_reg_TDM_MODE": "4 channels, 32 bit/channel",
@@ -1551,7 +1551,7 @@
               "SERIAL_BYTE_4_0_reg_BCLK_SRC": "BCLK is master",
               "SERIAL_BYTE_4_0_reg_LRCLK_SRC": "LRCLK is master",
               "SERIAL_BYTE_4_1_reg_FS": "Fs",
-              "SERIAL_BYTE_4_1_reg_CLK_DOMAIN": "Clock generator 1 (48 kHz (FS) generator)",
+              "SERIAL_BYTE_4_1_reg_CLK_DOMAIN": "Clock generator 2 (32 kHz (2 FS / 3) generator)",
               "SERIAL_BYTE_4_1_reg_TRISTATE": "Drive every output channel",
               "SERIAL_BYTE_4_1_regRESERVED368 Reserved": 0,
               "SERIAL_BYTE_5_0_reg_TDM_MODE": "4 channels, 32 bit/channel",
@@ -2181,7 +2181,7 @@
               "PLL_CLK_SRC_reg_CLKSRC": "PLL clock",
               "PLL_CLK_SRC_regRESERVED13 Reserved": 0,
               "MCLK_OUT_reg_CLKOUT_ENABLE": "CLKOUT enabled",
-              "MCLK_OUT_reg_CLKOUT_RATE": "Base_Fs x 256 (12.288 MHz for 48 kHz)",
+              "MCLK_OUT_reg_CLKOUT_RATE": "Base_Fs x 512 (24.576 MHz for 48 kHz)",
               "MCLK_OUT_regRESERVED16 Reserved": 0,
               "PLL_ENABLE_reg_PLL_ENABLE": "Enabled",
               "PLL_ENABLE_regRESERVED14 Reserved": 0,
@@ -2389,7 +2389,7 @@
                       "OutputCh45": false,
                       "OutputCh46": false,
                       "OutputCh47": false,
-                      "ASRCInputUsed": false,
+                      "ASRCInputUsed": true,
                       "ASRCGainInputUsed": false,
                       "MicInputUsed": false,
                       "OutputSPDIFCh0": false,
@@ -2398,10 +2398,10 @@
                       "OutputASRCCh1": false,
                       "OutputASRCCh2": false,
                       "OutputASRCCh3": false,
-                      "OutputASRCCh4": false,
-                      "OutputASRCCh5": false,
-                      "OutputASRCCh6": false,
-                      "OutputASRCCh7": false,
+                      "OutputASRCCh4": true,
+                      "OutputASRCCh5": true,
+                      "OutputASRCCh6": true,
+                      "OutputASRCCh7": true,
                       "OutputASRCCh8": false,
                       "OutputASRCCh9": false,
                       "OutputASRCCh10": false,
@@ -2563,16 +2563,12 @@
                             "Link_207",
                             "Link_214",
                             "Link_215",
-                            "Link_221",
-                            "Link_223",
                             "Link_225",
                             "Link_227",
                             "Link_229",
                             "Link_230",
                             "Link_235",
                             "Link_236",
-                            "Link_247",
-                            "Link_248",
                             "Link_249",
                             "Link_250",
                             "Link_255",
@@ -2598,14 +2594,10 @@
                             "Link_320",
                             "Link_321",
                             "Link_326",
-                            "Link_117",
-                            "Link_116",
                             "Link_333",
                             "Link_334",
                             "Link_335",
                             "Link_336",
-                            "Link_337",
-                            "Link_338",
                             "Link_339",
                             "Link_340",
                             "Link_341",
@@ -2638,7 +2630,27 @@
                             "Link_405",
                             "Link_406",
                             "Link_407",
-                            "Link_408"
+                            "Link_408",
+                            "Link_431",
+                            "Link_432",
+                            "Link_433",
+                            "Link_434",
+                            "Link_435",
+                            "Link_436",
+                            "Link_437",
+                            "Link_438",
+                            "Link_439",
+                            "Link_440",
+                            "Link_441",
+                            "Link_442",
+                            "Link_455",
+                            "Link_456",
+                            "Link_457",
+                            "Link_458",
+                            "Link_459",
+                            "Link_460",
+                            "Link_461",
+                            "Link_462"
                           ]
                         }
                       },
@@ -2741,8 +2753,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3634.0,
-                          "Y": 445.0
+                          "X": 3907.737149129418,
+                          "Y": 346.2509114779599
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2777,8 +2789,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3634.0,
-                          "Y": 529.0
+                          "X": 3907.737149129418,
+                          "Y": 430.25091147795985
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2922,8 +2934,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 173.0,
-                          "Y": -1099.0
+                          "X": -47.380192663111529,
+                          "Y": -1081.9393649027898
                         },
                         "Size": {
                           "Height": 424.0,
@@ -3027,13 +3039,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 161.0,
-                          "Y": -1163.0
+                          "X": -53.992623685045146,
+                          "Y": -1156.7145028589225
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3065,7 +3077,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3103,13 +3115,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3627.0,
-                          "Y": 375.0
+                          "X": 3901.8004824627515,
+                          "Y": 276.2509114779599
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3141,7 +3153,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3684,7 +3696,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -4465,8 +4477,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1001.0,
-                          "Y": 704.0
+                          "X": 1000.3299521796876,
+                          "Y": 703.32995217968755
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6767,8 +6779,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3627.0,
-                          "Y": 817.0
+                          "X": 3907.737149129418,
+                          "Y": 718.25091147795979
                         },
                         "Size": {
                           "Height": 64.0,
@@ -6803,8 +6815,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3627.0,
-                          "Y": 901.0
+                          "X": 3907.737149129418,
+                          "Y": 802.25091147795979
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8482,7 +8494,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT2\r\n(Ch.32-39)\r\nto TAD5142",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -9028,8 +9040,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 17.284159761717888,
-                          "Y": 289.7177796277341
+                          "X": 17.0,
+                          "Y": 290.0
                         },
                         "Size": {
                           "Height": 241.0,
@@ -9077,14 +9089,241 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 25.471612594921794,
-                          "Y": 732.60533245976558
+                          "X": 25.0,
+                          "Y": 733.0
                         },
                         "Size": {
                           "Height": 241.0,
                           "Width": 124.0
                         },
                         "Label": "NthOrderFilter_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.IO.Sigma300.Sample.ASRCInput_v1.0.0.0",
+                        "Name": "ASRC Input",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "ASRCInput_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "InUseCh0": true,
+                          "InUseCh1": true,
+                          "InUseCh2": true,
+                          "InUseCh3": true,
+                          "InUseCh4": false,
+                          "InUseCh5": false,
+                          "InUseCh6": false,
+                          "InUseCh7": false,
+                          "InUseCh8": false,
+                          "InUseCh9": false,
+                          "InUseCh10": false,
+                          "InUseCh11": false,
+                          "InUseCh12": false,
+                          "InUseCh13": false,
+                          "InUseCh14": false,
+                          "InUseCh15": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": -48.638005832891736,
+                          "Y": -603.82358733354567
+                        },
+                        "Size": {
+                          "Height": 424.0,
+                          "Width": 77.0
+                        },
+                        "Label": "ASRCInput_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.ASRCOutput_v1.0.0.0",
+                        "Name": "ASRC Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "ASRCOutput_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedASRCOPChannel": " 4"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3908.63146622169,
+                          "Y": 518.64452538116257
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "ASRCOutput_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.ASRCOutput_v1.0.0.0",
+                        "Name": "ASRC Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "ASRCOutput_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedASRCOPChannel": " 5"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3909.185421842305,
+                          "Y": 615.49933759732971
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "ASRCOutput_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.MultiChNx4NoSlew_v1.0.0.0",
+                        "Name": "Nx4 Switch (No Slew)",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "MultiChNx4NoSlew_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumSources": 2,
+                          "SelectedIndex": 1,
+                          "SetTunable": false
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 201.1931864640386,
+                          "Y": -672.2578594344443
+                        },
+                        "Size": {
+                          "Height": 99.0,
+                          "Width": 56.0
+                        },
+                        "Label": "usb_rate_select",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.ASRCOutput_v1.0.0.0",
+                        "Name": "ASRC Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "ASRCOutput_2",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedASRCOPChannel": " 6"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3907.737149129418,
+                          "Y": 898.67016034262861
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "ASRCOutput_2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.Sigma300.ASRCOutput_v1.0.0.0",
+                        "Name": "ASRC Output",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "ASRCOutput_3",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "SelectedASRCOPChannel": " 7"
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 3907.737149129418,
+                          "Y": 994.01339775735778
+                        },
+                        "Size": {
+                          "Height": 64.0,
+                          "Width": 86.0
+                        },
+                        "Label": "ASRCOutput_3",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -9120,12 +9359,36 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 570.85714285714278,
-                            "Y": 210.21866666666668
+                            "X": -51.809999999999995,
+                            "Y": 211.01866666666666
                           },
                           {
-                            "X": 570.85714285714278,
-                            "Y": 346.66666666666669
+                            "X": -46.809999999999995,
+                            "Y": 211.01866666666666
+                          },
+                          {
+                            "X": -44.0,
+                            "Y": 211.01866666666666
+                          },
+                          {
+                            "X": -44.0,
+                            "Y": 210.65753412969434
+                          },
+                          {
+                            "X": 524.89009503115835,
+                            "Y": 210.65753412969434
+                          },
+                          {
+                            "X": 524.89009503115835,
+                            "Y": 348.0
+                          },
+                          {
+                            "X": 596.0,
+                            "Y": 348.0
+                          },
+                          {
+                            "X": 601.0,
+                            "Y": 348.0
                           }
                         ]
                       },
@@ -9138,12 +9401,36 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 594.0,
-                            "Y": 191.657
+                            "X": -51.809999999999995,
+                            "Y": 194.00933333333333
                           },
                           {
-                            "X": 594.0,
-                            "Y": 262.6667
+                            "X": -46.809999999999995,
+                            "Y": 194.00933333333333
+                          },
+                          {
+                            "X": -44.0,
+                            "Y": 194.00933333333333
+                          },
+                          {
+                            "X": -44.0,
+                            "Y": 193.90633862188179
+                          },
+                          {
+                            "X": 559.06253386709591,
+                            "Y": 193.90633862188179
+                          },
+                          {
+                            "X": 559.06253386709591,
+                            "Y": 264.0
+                          },
+                          {
+                            "X": 596.0,
+                            "Y": 264.0
+                          },
+                          {
+                            "X": 601.0,
+                            "Y": 264.0
                           }
                         ]
                       },
@@ -9156,12 +9443,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 585.857142857143,
-                            "Y": 466.57142857142838
+                            "X": 518.0,
+                            "Y": 465.66666666666663
                           },
                           {
-                            "X": 585.857142857143,
-                            "Y": 366.9047619047617
+                            "X": 523.0,
+                            "Y": 465.66666666666663
+                          },
+                          {
+                            "X": 578.49392065615837,
+                            "Y": 465.66666666666663
+                          },
+                          {
+                            "X": 578.49392065615837,
+                            "Y": 366.0
+                          },
+                          {
+                            "X": 596.0,
+                            "Y": 366.0
+                          },
+                          {
+                            "X": 601.0,
+                            "Y": 366.0
                           }
                         ]
                       },
@@ -9228,12 +9531,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": -135.80952380952346,
-                            "Y": 408.93650793650795
+                            "X": -176.0,
+                            "Y": 392.13333333333333
                           },
                           {
-                            "X": -135.80952380952346,
-                            "Y": 204.06317460317462
+                            "X": -171.0,
+                            "Y": 392.13333333333333
+                          },
+                          {
+                            "X": -163.24901642977955,
+                            "Y": 392.13333333333333
+                          },
+                          {
+                            "X": -163.24901642977955,
+                            "Y": 205.34888888888889
+                          },
+                          {
+                            "X": -120.0,
+                            "Y": 205.34888888888889
+                          },
+                          {
+                            "X": -115.0,
+                            "Y": 205.34888888888889
                           }
                         ]
                       },
@@ -9282,12 +9601,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 594.0,
-                            "Y": 632.657
+                            "X": -35.809999999999995,
+                            "Y": 635.0093333333333
                           },
                           {
-                            "X": 594.0,
-                            "Y": 711.6667
+                            "X": -30.809999999999995,
+                            "Y": 635.0093333333333
+                          },
+                          {
+                            "X": 560.40262950772092,
+                            "Y": 635.0093333333333
+                          },
+                          {
+                            "X": 560.40262950772092,
+                            "Y": 713.0
+                          },
+                          {
+                            "X": 596.0,
+                            "Y": 713.0
+                          },
+                          {
+                            "X": 601.0,
+                            "Y": 713.0
                           }
                         ]
                       },
@@ -9354,12 +9689,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": -139.57875457875423,
-                            "Y": 476.2380952380953
+                            "X": -176.0,
+                            "Y": 464.27206165703274
                           },
                           {
-                            "X": -139.57875457875423,
-                            "Y": 676.0787301587302
+                            "X": -171.0,
+                            "Y": 464.27206165703274
+                          },
+                          {
+                            "X": -154.53839476571704,
+                            "Y": 464.27206165703274
+                          },
+                          {
+                            "X": -154.53839476571704,
+                            "Y": 674.69777777777779
+                          },
+                          {
+                            "X": -104.0,
+                            "Y": 674.69777777777779
+                          },
+                          {
+                            "X": -99.0,
+                            "Y": 674.69777777777779
                           }
                         ]
                       },
@@ -9918,42 +10269,6 @@
                         "Points": []
                       },
                       {
-                        "Uid": "Link_221",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch0_out",
-                        "TargetUid": "SingleVolumeControl_9",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 319.66673849026779,
-                            "Y": -1039.8784026431083
-                          },
-                          {
-                            "X": 319.66673849026779,
-                            "Y": -1039.7672915319972
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_223",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch2_out",
-                        "TargetUid": "SingleVolumeControl_11",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 297.14285714285694,
-                            "Y": -995.0107
-                          },
-                          {
-                            "X": 297.14285714285694,
-                            "Y": -468.0
-                          }
-                        ]
-                      },
-                      {
                         "Uid": "Link_225",
                         "SourceUid": "SingleVolumeControl_9",
                         "SourcePinName": "Output0",
@@ -10182,24 +10497,6 @@
                             "Y": 754.19047619047637
                           }
                         ]
-                      },
-                      {
-                        "Uid": "Link_247",
-                        "SourceUid": "SingleVolumeControl_13",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "Output_8",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_248",
-                        "SourceUid": "SingleVolumeControl_13",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "Output_9",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
                       },
                       {
                         "Uid": "Link_249",
@@ -10510,12 +10807,7 @@
                         "TargetUid": "AliasInput_4",
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 894.19,
-                            "Y": 715.8571
-                          }
-                        ]
+                        "Points": []
                       },
                       {
                         "Uid": "Link_271",
@@ -10774,24 +11066,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_117",
-                        "SourceUid": "SingleVolumeControl_7",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "Output_3",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_116",
-                        "SourceUid": "SingleVolumeControl_7",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "Output_2",
-                        "TargetPinName": "Input",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
                         "Uid": "Link_333",
                         "SourceUid": "SingleVolumeControl_14",
                         "SourcePinName": "Output0",
@@ -10844,42 +11118,6 @@
                         "TargetPinName": "Input",
                         "LinkType": "SampleAnalog",
                         "Points": []
-                      },
-                      {
-                        "Uid": "Link_337",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch3_out",
-                        "TargetUid": "SingleVolumeControl_16",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 274.95798319327713,
-                            "Y": -972.576815341521
-                          },
-                          {
-                            "X": 274.95798319327713,
-                            "Y": -178.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_338",
-                        "SourceUid": "Input0to15_0",
-                        "SourcePinName": "Ch1_out",
-                        "TargetUid": "SingleVolumeControl_15",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 321.0,
-                            "Y": -1017.4445
-                          },
-                          {
-                            "X": 321.0,
-                            "Y": -754.0
-                          }
-                        ]
                       },
                       {
                         "Uid": "Link_339",
@@ -11634,7 +11872,32 @@
                         "TargetUid": "NthOrderFilter_1",
                         "TargetPinName": "Input0",
                         "LinkType": "SampleAnalog",
-                        "Points": []
+                        "Points": [
+                          {
+                            "X": -35.809999999999995,
+                            "Y": 669.028
+                          },
+                          {
+                            "X": -30.809999999999995,
+                            "Y": 669.028
+                          },
+                          {
+                            "X": 12.97356031240804,
+                            "Y": 669.028
+                          },
+                          {
+                            "X": 12.97356031240804,
+                            "Y": 814.66666666666663
+                          },
+                          {
+                            "X": 17.0,
+                            "Y": 814.66666666666663
+                          },
+                          {
+                            "X": 22.0,
+                            "Y": 814.66666666666663
+                          }
+                        ]
                       },
                       {
                         "Uid": "Link_408",
@@ -11644,6 +11907,511 @@
                         "TargetPinName": "Input1",
                         "LinkType": "SampleAnalog",
                         "Points": []
+                      },
+                      {
+                        "Uid": "Link_431",
+                        "SourceUid": "MultiChNx4NoSlew_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleVolumeControl_9",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 260.1931864640386,
+                            "Y": -650.05785943444425
+                          },
+                          {
+                            "X": 265.1931864640386,
+                            "Y": -650.05785943444425
+                          },
+                          {
+                            "X": 280.19207456058996,
+                            "Y": -650.05785943444425
+                          },
+                          {
+                            "X": 280.19207456058996,
+                            "Y": -1040.0
+                          },
+                          {
+                            "X": 337.0,
+                            "Y": -1040.0
+                          },
+                          {
+                            "X": 342.0,
+                            "Y": -1040.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_432",
+                        "SourceUid": "MultiChNx4NoSlew_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SingleVolumeControl_15",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_433",
+                        "SourceUid": "MultiChNx4NoSlew_0",
+                        "SourcePinName": "Output2",
+                        "TargetUid": "SingleVolumeControl_11",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_434",
+                        "SourceUid": "MultiChNx4NoSlew_0",
+                        "SourcePinName": "Output3",
+                        "TargetUid": "SingleVolumeControl_16",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 260.1931864640386,
+                            "Y": -595.45785943444434
+                          },
+                          {
+                            "X": 265.1931864640386,
+                            "Y": -595.45785943444434
+                          },
+                          {
+                            "X": 278.30642541826671,
+                            "Y": -595.45785943444434
+                          },
+                          {
+                            "X": 278.30642541826671,
+                            "Y": -178.0
+                          },
+                          {
+                            "X": 337.0,
+                            "Y": -178.0
+                          },
+                          {
+                            "X": 342.0,
+                            "Y": -178.0
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_435",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch0_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 32.619807336888471,
+                            "Y": -1039.8060315694563
+                          },
+                          {
+                            "X": 37.619807336888471,
+                            "Y": -1039.8060315694563
+                          },
+                          {
+                            "X": 180.25267001745829,
+                            "Y": -1039.8060315694563
+                          },
+                          {
+                            "X": 180.25267001745829,
+                            "Y": -658.14674832333321
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -658.14674832333321
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -658.14674832333321
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_436",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch1_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 32.619807336888471,
+                            "Y": -1015.7597887948899
+                          },
+                          {
+                            "X": 37.619807336888471,
+                            "Y": -1015.7597887948899
+                          },
+                          {
+                            "X": 155.73923116725621,
+                            "Y": -1015.7597887948899
+                          },
+                          {
+                            "X": 155.73923116725621,
+                            "Y": -648.03563721222213
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -648.03563721222213
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -648.03563721222213
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_437",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch2_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input2",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 32.619807336888471,
+                            "Y": -991.71354602032352
+                          },
+                          {
+                            "X": 37.619807336888471,
+                            "Y": -991.71354602032352
+                          },
+                          {
+                            "X": 126.51166946124607,
+                            "Y": -991.71354602032352
+                          },
+                          {
+                            "X": 126.51166946124607,
+                            "Y": -637.92452610111093
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -637.92452610111093
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -637.92452610111093
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_438",
+                        "SourceUid": "Input0to15_0",
+                        "SourcePinName": "Ch3_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input3",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 32.619807336888471,
+                            "Y": -967.667303245757
+                          },
+                          {
+                            "X": 37.619807336888471,
+                            "Y": -967.667303245757
+                          },
+                          {
+                            "X": 100.11258146872075,
+                            "Y": -967.667303245757
+                          },
+                          {
+                            "X": 100.11258146872075,
+                            "Y": -627.81341498999984
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -627.81341498999984
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -627.81341498999984
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_439",
+                        "SourceUid": "ASRCInput_0",
+                        "SourcePinName": "Ch0_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input4",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 31.361994167108264,
+                            "Y": -561.69025400021235
+                          },
+                          {
+                            "X": 36.361994167108264,
+                            "Y": -561.69025400021235
+                          },
+                          {
+                            "X": 100.11258146872075,
+                            "Y": -561.69025400021235
+                          },
+                          {
+                            "X": 100.11258146872075,
+                            "Y": -617.70230387888876
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -617.70230387888876
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -617.70230387888876
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_440",
+                        "SourceUid": "ASRCInput_0",
+                        "SourcePinName": "Ch1_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input5",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_441",
+                        "SourceUid": "ASRCInput_0",
+                        "SourcePinName": "Ch2_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input6",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 31.361994167108264,
+                            "Y": -513.59776845107945
+                          },
+                          {
+                            "X": 36.361994167108264,
+                            "Y": -513.59776845107945
+                          },
+                          {
+                            "X": 132.1686168882157,
+                            "Y": -513.59776845107945
+                          },
+                          {
+                            "X": 132.1686168882157,
+                            "Y": -597.48008165666647
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -597.48008165666647
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -597.48008165666647
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_442",
+                        "SourceUid": "ASRCInput_0",
+                        "SourcePinName": "Ch3_out",
+                        "TargetUid": "MultiChNx4NoSlew_0",
+                        "TargetPinName": "Input7",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 31.361994167108264,
+                            "Y": -489.55152567651294
+                          },
+                          {
+                            "X": 36.361994167108264,
+                            "Y": -489.55152567651294
+                          },
+                          {
+                            "X": 152.9107574537714,
+                            "Y": -489.55152567651294
+                          },
+                          {
+                            "X": 152.9107574537714,
+                            "Y": -587.36897054555538
+                          },
+                          {
+                            "X": 193.1931864640386,
+                            "Y": -587.36897054555538
+                          },
+                          {
+                            "X": 198.1931864640386,
+                            "Y": -587.36897054555538
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_455",
+                        "SourceUid": "SingleVolumeControl_7",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_3",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_456",
+                        "SourceUid": "SingleVolumeControl_7",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "Output_2",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3527.0,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3532.0,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3570.3060728563623,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3570.3060728563623,
+                            "Y": 378.2509114779599
+                          },
+                          {
+                            "X": 3899.737149129418,
+                            "Y": 378.2509114779599
+                          },
+                          {
+                            "X": 3904.737149129418,
+                            "Y": 378.2509114779599
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_457",
+                        "SourceUid": "SingleVolumeControl_7",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "ASRCOutput_0",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3527.0,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3532.0,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3570.3060728563623,
+                            "Y": 478.33333333333331
+                          },
+                          {
+                            "X": 3570.3060728563623,
+                            "Y": 550.64452538116257
+                          },
+                          {
+                            "X": 3900.63146622169,
+                            "Y": 550.64452538116257
+                          },
+                          {
+                            "X": 3905.63146622169,
+                            "Y": 550.64452538116257
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_458",
+                        "SourceUid": "SingleVolumeControl_7",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "ASRCOutput_1",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_459",
+                        "SourceUid": "SingleVolumeControl_13",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "Output_8",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_460",
+                        "SourceUid": "SingleVolumeControl_13",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "ASRCOutput_2",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_461",
+                        "SourceUid": "SingleVolumeControl_13",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "Output_9",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3527.0,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3532.0,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3620.2003491622354,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3620.2003491622354,
+                            "Y": 834.25091147795979
+                          },
+                          {
+                            "X": 3899.737149129418,
+                            "Y": 834.25091147795979
+                          },
+                          {
+                            "X": 3904.737149129418,
+                            "Y": 834.25091147795979
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_462",
+                        "SourceUid": "SingleVolumeControl_13",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "ASRCOutput_3",
+                        "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 3527.0,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3532.0,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3622.2792773416468,
+                            "Y": 931.66666666666663
+                          },
+                          {
+                            "X": 3622.2792773416468,
+                            "Y": 1026.0133977573578
+                          },
+                          {
+                            "X": 3899.737149129418,
+                            "Y": 1026.0133977573578
+                          },
+                          {
+                            "X": 3904.737149129418,
+                            "Y": 1026.0133977573578
+                          }
+                        ]
                       }
                     ],
                     "AltShapes": [],

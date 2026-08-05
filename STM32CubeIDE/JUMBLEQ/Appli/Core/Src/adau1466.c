@@ -22,21 +22,28 @@ _Static_assert(DM0_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOA
 _Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
                "SigmaStudio DM1 data exceeds the SPI block transfer buffer");
 
-#define ADAU1466_REG_PLL_ENABLE 0xF003U
-#define ADAU1466_REG_PLL_LOCK   0xF004U
-#define ADAU1466_REG_MCLK_OUT   0xF005U
-#define ADAU1466_REG_CLK_GEN1_M 0xF020U
+#define ADAU1466_REG_PLL_LOCK     0xF004U
+#define ADAU1466_REG_CLK_GEN2_M   0xF022U
+#define ADAU1466_REG_SOUT_SOURCE0 0xF180U
 
-#define ADAU1466_PLL_LOCK_TIMEOUT_MS    200U
-#define ADAU1466_DEFAULT_SAMPLE_RATE_HZ 48000U
+#define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
+#define ADAU1466_CLOCK_SETTLE_MS     2U
+#define ADAU1466_CORE_SAMPLE_RATE_HZ 96000U
+
+#define ADAU1466_USB_MUX_DIRECT 0U
+#define ADAU1466_USB_MUX_ASRC   4U
+
+#define ADAU1466_SOUT_FROM_DSP   0x02U
+#define ADAU1466_SOUT0_FROM_ASRC2 0x13U
+#define ADAU1466_SOUT1_FROM_ASRC3 0x1BU
 
 typedef struct
 {
-    uint8_t clk_gen1_m;
-    uint8_t mclk_out;
+    uint8_t clk_gen2_m;
+    uint8_t sout_source0;
+    uint8_t sout_source1;
+    uint32_t usb_mux_index;
 } adau1466_sample_rate_cfg_t;
-
-static uint32_t adau1466_sample_rate_hz = ADAU1466_DEFAULT_SAMPLE_RATE_HZ;
 
 static float normalize_pot10_ratio(uint16_t adc_val)
 {
@@ -77,15 +84,19 @@ static bool adau1466_get_sample_rate_cfg(uint32_t hz, adau1466_sample_rate_cfg_t
 
     if (hz == 48000U)
     {
-        cfg->clk_gen1_m = 0x06U;
-        cfg->mclk_out   = 0x05U;
+        cfg->clk_gen2_m   = 0x06U;
+        cfg->sout_source0 = ADAU1466_SOUT0_FROM_ASRC2;
+        cfg->sout_source1 = ADAU1466_SOUT1_FROM_ASRC3;
+        cfg->usb_mux_index = ADAU1466_USB_MUX_ASRC;
         return true;
     }
 
     if (hz == 96000U)
     {
-        cfg->clk_gen1_m = 0x03U;
-        cfg->mclk_out   = 0x07U;
+        cfg->clk_gen2_m   = 0x03U;
+        cfg->sout_source0 = ADAU1466_SOUT_FROM_DSP;
+        cfg->sout_source1 = ADAU1466_SOUT_FROM_DSP;
+        cfg->usb_mux_index = ADAU1466_USB_MUX_DIRECT;
         return true;
     }
 
@@ -171,13 +182,8 @@ static void adau1466_delay_us(uint32_t delay_us)
 
 static void adau1466_wait_safeload_frame(void)
 {
-    uint32_t sample_rate_hz = adau1466_sample_rate_hz;
-    if (sample_rate_hz == 0U)
-    {
-        sample_rate_hz = ADAU1466_DEFAULT_SAMPLE_RATE_HZ;
-    }
-
-    adau1466_delay_us((1000000U + sample_rate_hz - 1U) / sample_rate_hz);
+    adau1466_delay_us((1000000U + ADAU1466_CORE_SAMPLE_RATE_HZ - 1U) /
+                      ADAU1466_CORE_SAMPLE_RATE_HZ);
 }
 
 static bool adau1466_safeload_write_words(uint16_t addr, uint8_t mem_page, const uint8_t* data, uint8_t word_count)
@@ -284,7 +290,17 @@ void AUDIO_Init_ADAU1466(uint32_t hz)
     HAL_GPIO_WritePin(DSP_RESET_GPIO_Port, DSP_RESET_Pin, 1);
     osDelay(500);
 
-    (void) AUDIO_Update_ADAU1466_SampleRate(hz);
+#if RESET_FROM_FW
+    // Program/configuration download is required only after reset. Runtime
+    // sample-rate changes keep the 96 kHz DSP program and parameters intact.
+    default_download_ADAU146XSCHEMATIC_1();
+    osDelay(5);
+#endif
+
+    if (!AUDIO_Update_ADAU1466_SampleRate(hz))
+    {
+        SEGGER_RTT_printf(0, "[ADAU1466] initialization failed for %lu Hz\n", (unsigned long) hz);
+    }
 }
 
 bool AUDIO_Update_ADAU1466_SampleRate(uint32_t hz)
@@ -297,30 +313,59 @@ bool AUDIO_Update_ADAU1466_SampleRate(uint32_t hz)
         return false;
     }
 
-    // Re-run SigmaStudio default register/program sequence without HW reset.
-    // This keeps runtime update deterministic and aligns with known-good init flow.
-#if RESET_FROM_FW
-    default_download_ADAU146XSCHEMATIC_1();
-    osDelay(5);
-#endif
+    uint8_t mux_data[4] = {0U};
+    uint8_t sout_data[4] = {0x00U, cfg.sout_source0, 0x00U, cfg.sout_source1};
+    adau1466_store_be32(cfg.usb_mux_index, mux_data);
 
-    // Update PLL-related clock generation for selected sample rate.
-    adau1466_write_reg_u16(ADAU1466_REG_CLK_GEN1_M, cfg.clk_gen1_m);
-    adau1466_write_reg_u16(ADAU1466_REG_MCLK_OUT, cfg.mclk_out);
-
-    // Re-enable PLL and wait for lock.
-    adau1466_write_reg_u16(ADAU1466_REG_PLL_ENABLE, 0x00U);
-    __DSB();
-    osDelay(1);
-    adau1466_write_reg_u16(ADAU1466_REG_PLL_ENABLE, 0x01U);
-
-    bool pll_locked = adau1466_wait_pll_lock(ADAU1466_PLL_LOCK_TIMEOUT_MS);
-    if (pll_locked)
+    if (hz == 48000U)
     {
-        adau1466_sample_rate_hz = hz;
+        // Move both DSP paths to the ASRCs while the serial port still runs at
+        // 96 kHz, then lower only the USB-side clock generator to 48 kHz.
+        if (!adau1466_safeload_write_words(MOD_USB_RATE_SELECT_INDEX4_ADDR,
+                                           MOD_USB_RATE_SELECT_INDEX4_MEM_PAGE,
+                                           mux_data,
+                                           1U))
+        {
+            return false;
+        }
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1,
+                                   ADAU1466_REG_SOUT_SOURCE0,
+                                   sizeof(sout_data),
+                                   sout_data);
+        adau1466_write_reg_u16(ADAU1466_REG_CLK_GEN2_M, cfg.clk_gen2_m);
+    }
+    else
+    {
+        // Bring the USB-side serial port to 96 kHz before selecting the direct
+        // paths. The DSP core and AK4619 clocks remain at 96 kHz throughout.
+        adau1466_write_reg_u16(ADAU1466_REG_CLK_GEN2_M, cfg.clk_gen2_m);
+        osDelay(ADAU1466_CLOCK_SETTLE_MS);
+        if (!adau1466_safeload_write_words(MOD_USB_RATE_SELECT_INDEX4_ADDR,
+                                           MOD_USB_RATE_SELECT_INDEX4_MEM_PAGE,
+                                           mux_data,
+                                           1U))
+        {
+            return false;
+        }
+        SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1,
+                                   ADAU1466_REG_SOUT_SOURCE0,
+                                   sizeof(sout_data),
+                                   sout_data);
     }
 
-    return pll_locked;
+    osDelay(ADAU1466_CLOCK_SETTLE_MS);
+
+    if (!adau1466_wait_pll_lock(ADAU1466_PLL_LOCK_TIMEOUT_MS))
+    {
+        return false;
+    }
+
+    SEGGER_RTT_printf(0,
+                      "[ADAU1466] USB path: %lu Hz, CLK_GEN2 M=%u, %s\n",
+                      (unsigned long) hz,
+                      cfg.clk_gen2_m,
+                      (cfg.usb_mux_index == ADAU1466_USB_MUX_ASRC) ? "ASRC" : "direct");
+    return true;
 }
 
 void set_dc_inputA(float xf_pos)

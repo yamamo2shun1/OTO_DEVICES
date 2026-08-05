@@ -169,10 +169,10 @@ static uint32_t audio_diag_cycles_to_us(uint32_t cycles)
 bool s_streaming_out = false;
 bool s_streaming_in  = false;
 
-bool is_sr_changed            = false;
+static volatile bool is_sr_changed = false;
 
 const uint32_t sample_rates[] = {48000, 96000};
-uint32_t current_sample_rate  = sample_rates[0];
+static volatile uint32_t current_sample_rate = 48000U;
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_out_buf[CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ / 4] = {0};
 __attribute__((section("noncacheable_buffer"), aligned(32))) int32_t usb_in_buf[CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ / 4] = {0};
@@ -411,10 +411,35 @@ static bool audio20_clock_set_request(uint8_t rhport, tusb_control_request_t con
     {
         TU_VERIFY(request->wLength == sizeof(audio20_control_cur_4_t));
 
-        current_sample_rate = (uint32_t) ((audio20_control_cur_4_t const*) buf)->bCur;
-        is_sr_changed       = true;
+        uint32_t requested_sample_rate =
+            tu_le32toh((uint32_t) ((audio20_control_cur_4_t const*) buf)->bCur);
+        bool supported = false;
+        for (uint8_t i = 0U; i < N_SAMPLE_RATES; i++)
+        {
+            if (requested_sample_rate == sample_rates[i])
+            {
+                supported = true;
+                break;
+            }
+        }
 
-        TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", current_sample_rate);
+        if (!supported)
+        {
+            SEGGER_RTT_printf(0,
+                              "[USB] unsupported sample-rate request: %lu Hz\n",
+                              (unsigned long) requested_sample_rate);
+            return false;
+        }
+
+        current_sample_rate = requested_sample_rate;
+        __DMB();
+        is_sr_changed = true;
+        audio_task_notify();
+
+        SEGGER_RTT_printf(0,
+                          "[USB] sample-rate request: %lu Hz\n",
+                          (unsigned long) requested_sample_rate);
+        TU_LOG1("Clock set current freq: %" PRIu32 "\r\n", requested_sample_rate);
 
         return true;
     }
@@ -1488,10 +1513,13 @@ void audio_task(void)
 
     if (is_sr_changed)
     {
+        // Consume the current request before doing the blocking reconfiguration.
+        // A new SET_CUR received during the switch will set the flag again.
+        is_sr_changed = false;
+        __DMB();
 #if RESET_FROM_FW
         AUDIO_SAI_Reset_ForNewRate();
 #endif
-        is_sr_changed = false;
     }
     else
     {
@@ -1603,7 +1631,7 @@ void AUDIO_SAI_Reset_ForNewRate(void)
         return;
     }
 
-    /* Stop ADC DMA to prevent parameter changes during ADAU1466 initialization */
+    /* Stop ADC DMA to prevent concurrent DSP parameter writes during the path switch. */
     (void) HAL_ADC_Stop(&hadc1);
     (void) HAL_DMA_Abort(&handle_HPDMA1_Channel0);
     ui_control_set_adc_complete(false);
@@ -1699,19 +1727,14 @@ void AUDIO_SAI_Reset_ForNewRate(void)
     memset(usb_out_buf, 0, sizeof(usb_out_buf));
     __DSB();
 
-    // AK4619 <-> ADAU1466 link is fixed at 96 kHz in this design.
-    // Host sample-rate changes only affect the USB/STM32 <-> ADAU1466 side,
-    // so the codec must continue to be initialized for 96 kHz here.
-    AUDIO_Init_AK4619(96000);
 #if RESET_FROM_FW
-    // ADAU1466 is the SAI master. Runtime sample-rate update alone has proven
-    // insufficient after host rate changes, causing the SAI clocks to stop and
-    // audio to go silent. Re-run the full ADAU1466 init and then restore the
-    // EEPROM-backed routing state every time the host sample rate changes.
-    AUDIO_Init_ADAU1466(new_hz);
-    AUDIO_LoadAndApplyRoutingFromEEPROM();
-    ui_control_reapply_xfade_outputs();
-    ui_control_reapply_pot_outputs();
+    // The DSP core and AK4619 link stay at 96 kHz. Only the USB-side clock and
+    // ADAU1466 ASRC/direct routing change, so program and parameter RAM remain
+    // intact and no routing/UI state restoration is required.
+    if (!AUDIO_Update_ADAU1466_SampleRate(new_hz))
+    {
+        SEGGER_RTT_printf(0, "[AUD] ADAU1466 rate switch failed: %lu Hz\n", (unsigned long) new_hz);
+    }
 #endif
 
     /* Re-init DMA channels (linked-list mode) */
