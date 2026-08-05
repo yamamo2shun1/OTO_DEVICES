@@ -2535,23 +2535,11 @@
                           "$type": "System.Collections.ObjectModel.Collection`1[[System.String, mscorlib]], mscorlib",
                           "$values": [
                             "Link_46",
-                            "Link_52",
-                            "Link_60",
-                            "Link_54",
-                            "Link_53",
                             "Link_38",
                             "Link_65",
                             "Link_74",
-                            "Link_75",
-                            "Link_76",
-                            "Link_87",
-                            "Link_88",
-                            "Link_93",
-                            "Link_94",
                             "Link_97",
                             "Link_98",
-                            "Link_99",
-                            "Link_100",
                             "Link_150",
                             "Link_151",
                             "Link_175",
@@ -2648,7 +2636,19 @@
                             "Link_465",
                             "Link_466",
                             "Link_467",
-                            "Link_468"
+                            "Link_468",
+                            "Link_469",
+                            "Link_470",
+                            "Link_471",
+                            "Link_472",
+                            "Link_473",
+                            "Link_474",
+                            "Link_475",
+                            "Link_476",
+                            "Link_477",
+                            "Link_478",
+                            "Link_479",
+                            "Link_480"
                           ]
                         }
                       },
@@ -3322,78 +3322,6 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
-                        "Name": "Signal Merger",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "SignalMerger_0",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 2,
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 604.0,
-                          "Y": 242.0
-                        },
-                        "Size": {
-                          "Height": 62.0,
-                          "Width": 58.42
-                        },
-                        "Label": "SignalMerger_1L",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
-                        "Name": "Signal Merger",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "SignalMerger_1",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 2,
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 604.0,
-                          "Y": 326.0
-                        },
-                        "Size": {
-                          "Height": 62.0,
-                          "Width": 58.42
-                        },
-                        "Label": "SignalMerger_1R",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
                         "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
                         "Name": "Single Volume Control",
                         "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
@@ -3411,7 +3339,7 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumChannels": 2,
-                          "Gain": 9.0,
+                          "Gain": 3.0,
                           "GainMax": 60.0,
                           "GainMin": 0.0,
                           "GainResolution": 1,
@@ -3796,78 +3724,6 @@
                         "PropertyPresets": {}
                       },
                       {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
-                        "Name": "Signal Merger",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "SignalMerger_4",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 2,
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 604.0,
-                          "Y": 691.0
-                        },
-                        "Size": {
-                          "Height": 62.0,
-                          "Width": 58.42
-                        },
-                        "Label": "SignalMerger_2L",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.MixersAndSplitters.Sigma300.Sample.SignalMerger_v1.0.0.0",
-                        "Name": "Signal Merger",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "SignalMerger_5",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 2,
-                          "SetTunable": false
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 604.0,
-                          "Y": 775.0
-                        },
-                        "Size": {
-                          "Height": 62.0,
-                          "Width": 58.42
-                        },
-                        "Label": "SignalMerger_2R",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
                         "PluginName": "AnalogDevices.Plugins.Algorithms.Gain.Sigma300.Sample.SingleVolumeControl_v1.0.0.0",
                         "Name": "Single Volume Control",
                         "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
@@ -3885,7 +3741,7 @@
                           "BlockSizeOut": 64,
                           "ExcludeExport": false,
                           "NumChannels": 2,
-                          "Gain": 9.0,
+                          "Gain": 3.0,
                           "GainMax": 60.0,
                           "GainMin": 0.0,
                           "GainResolution": 1,
@@ -9243,6 +9099,146 @@
                         "WriteableLinks": [],
                         "AltShapes": [],
                         "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.ArithmeticAndLogic.Sigma300.Sample.SignalAdd_v1.0.0.0",
+                        "Name": "Signal Add",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SignalAdd_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 609.5311930568439,
+                          "Y": 231.25840765769056
+                        },
+                        "Size": {
+                          "Height": 62.0,
+                          "Width": 48.0
+                        },
+                        "Label": "SignalAdd_0",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.ArithmeticAndLogic.Sigma300.Sample.SignalAdd_v1.0.0.0",
+                        "Name": "Signal Add",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SignalAdd_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 610.439755762653,
+                          "Y": 333.93027716679205
+                        },
+                        "Size": {
+                          "Height": 62.0,
+                          "Width": 48.0
+                        },
+                        "Label": "SignalAdd_1",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.ArithmeticAndLogic.Sigma300.Sample.SignalAdd_v1.0.0.0",
+                        "Name": "Signal Add",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SignalAdd_2",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 609.0724801024694,
+                          "Y": 673.50947859586086
+                        },
+                        "Size": {
+                          "Height": 62.0,
+                          "Width": 48.0
+                        },
+                        "Label": "SignalAdd_2",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.ArithmeticAndLogic.Sigma300.Sample.SignalAdd_v1.0.0.0",
+                        "Name": "Signal Add",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "SignalAdd_3",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 2
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 606.95351811119463,
+                          "Y": 811.27278539915324
+                        },
+                        "Size": {
+                          "Height": 62.0,
+                          "Width": 48.0
+                        },
+                        "Label": "SignalAdd_3",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
                       }
                     ],
                     "WriteableLinks": [
@@ -9261,142 +9257,6 @@
                           {
                             "X": -121.80952380952346,
                             "Y": 235.07873015873014
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_52",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SignalMerger_1",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": -51.809999999999995,
-                            "Y": 211.01866666666666
-                          },
-                          {
-                            "X": -46.809999999999995,
-                            "Y": 211.01866666666666
-                          },
-                          {
-                            "X": -44.0,
-                            "Y": 211.01866666666666
-                          },
-                          {
-                            "X": -44.0,
-                            "Y": 210.65753412969434
-                          },
-                          {
-                            "X": 524.89009503115835,
-                            "Y": 210.65753412969434
-                          },
-                          {
-                            "X": 524.89009503115835,
-                            "Y": 348.0
-                          },
-                          {
-                            "X": 596.0,
-                            "Y": 348.0
-                          },
-                          {
-                            "X": 601.0,
-                            "Y": 348.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_60",
-                        "SourceUid": "Switch2xN_0",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SignalMerger_0",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": -51.809999999999995,
-                            "Y": 194.00933333333333
-                          },
-                          {
-                            "X": -46.809999999999995,
-                            "Y": 194.00933333333333
-                          },
-                          {
-                            "X": -44.0,
-                            "Y": 194.00933333333333
-                          },
-                          {
-                            "X": -44.0,
-                            "Y": 193.90633862188179
-                          },
-                          {
-                            "X": 559.06253386709591,
-                            "Y": 193.90633862188179
-                          },
-                          {
-                            "X": 559.06253386709591,
-                            "Y": 264.0
-                          },
-                          {
-                            "X": 596.0,
-                            "Y": 264.0
-                          },
-                          {
-                            "X": 601.0,
-                            "Y": 264.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_54",
-                        "SourceUid": "SingleVolumeControl_3",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SignalMerger_1",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 518.0,
-                            "Y": 465.66666666666663
-                          },
-                          {
-                            "X": 523.0,
-                            "Y": 465.66666666666663
-                          },
-                          {
-                            "X": 578.49392065615837,
-                            "Y": 465.66666666666663
-                          },
-                          {
-                            "X": 578.49392065615837,
-                            "Y": 366.0
-                          },
-                          {
-                            "X": 596.0,
-                            "Y": 366.0
-                          },
-                          {
-                            "X": 601.0,
-                            "Y": 366.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_53",
-                        "SourceUid": "SingleVolumeControl_3",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SignalMerger_0",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 547.99999999999989,
-                            "Y": 383.0
-                          },
-                          {
-                            "X": 547.99999999999989,
-                            "Y": 283.33333333333331
                           }
                         ]
                       },
@@ -9471,112 +9331,6 @@
                         ]
                       },
                       {
-                        "Uid": "Link_75",
-                        "SourceUid": "SignalMerger_0",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleVolumeControl_4",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_76",
-                        "SourceUid": "SignalMerger_1",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleVolumeControl_4",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_87",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SignalMerger_5",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 579.99999999999989,
-                            "Y": 651.21866666666665
-                          },
-                          {
-                            "X": 579.99999999999989,
-                            "Y": 795.66666666666663
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_88",
-                        "SourceUid": "Switch2xN_1",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SignalMerger_4",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": -35.809999999999995,
-                            "Y": 635.0093333333333
-                          },
-                          {
-                            "X": -30.809999999999995,
-                            "Y": 635.0093333333333
-                          },
-                          {
-                            "X": 560.40262950772092,
-                            "Y": 635.0093333333333
-                          },
-                          {
-                            "X": 560.40262950772092,
-                            "Y": 713.0
-                          },
-                          {
-                            "X": 596.0,
-                            "Y": 713.0
-                          },
-                          {
-                            "X": 601.0,
-                            "Y": 713.0
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_93",
-                        "SourceUid": "SingleVolumeControl_6",
-                        "SourcePinName": "Output1",
-                        "TargetUid": "SignalMerger_5",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 571.357142857143,
-                            "Y": 906.57142857142856
-                          },
-                          {
-                            "X": 571.357142857143,
-                            "Y": 815.90476190476193
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_94",
-                        "SourceUid": "SingleVolumeControl_6",
-                        "SourcePinName": "Output0",
-                        "TargetUid": "SignalMerger_4",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 559.357142857143,
-                            "Y": 822.57142857142856
-                          },
-                          {
-                            "X": 559.357142857143,
-                            "Y": 731.90476190476193
-                          }
-                        ]
-                      },
-                      {
                         "Uid": "Link_97",
                         "SourceUid": "Input16to31_1",
                         "SourcePinName": "Ch18_out",
@@ -9625,42 +9379,6 @@
                           {
                             "X": -99.0,
                             "Y": 674.69777777777779
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_99",
-                        "SourceUid": "SignalMerger_4",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleVolumeControl_1",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 694.85714285714312,
-                            "Y": 721.57142857142844
-                          },
-                          {
-                            "X": 694.85714285714312,
-                            "Y": 724.57142857142844
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_100",
-                        "SourceUid": "SignalMerger_5",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleVolumeControl_1",
-                        "TargetPinName": "Input1",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 694.85714285714312,
-                            "Y": 805.57142857142844
-                          },
-                          {
-                            "X": 694.85714285714312,
-                            "Y": 808.57142857142844
                           }
                         ]
                       },
@@ -10750,12 +10468,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 977.0,
-                            "Y": 749.8124
+                            "X": 897.19,
+                            "Y": 749.028
                           },
                           {
-                            "X": 977.0,
-                            "Y": 819.8571
+                            "X": 902.19,
+                            "Y": 749.028
+                          },
+                          {
+                            "X": 932.28395180672408,
+                            "Y": 749.028
+                          },
+                          {
+                            "X": 932.28395180672408,
+                            "Y": 820.0
+                          },
+                          {
+                            "X": 993.0,
+                            "Y": 820.0
+                          },
+                          {
+                            "X": 998.0,
+                            "Y": 820.0
                           }
                         ]
                       },
@@ -10768,15 +10502,27 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 894.19,
-                            "Y": 771.0
+                            "X": 897.19,
+                            "Y": 766.03733333333332
                           },
                           {
-                            "X": 964.93506493506493,
-                            "Y": 771.0
+                            "X": 902.19,
+                            "Y": 766.03733333333332
                           },
                           {
-                            "X": 964.93506493506493,
+                            "X": 915.91239239385948,
+                            "Y": 766.03733333333332
+                          },
+                          {
+                            "X": 915.91239239385948,
+                            "Y": 865.0
+                          },
+                          {
+                            "X": 993.0,
+                            "Y": 865.0
+                          },
+                          {
+                            "X": 998.0,
                             "Y": 865.0
                           }
                         ]
@@ -10790,11 +10536,27 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 977.0,
-                            "Y": 297.8124
+                            "X": 897.19,
+                            "Y": 297.028
                           },
                           {
-                            "X": 977.0,
+                            "X": 902.19,
+                            "Y": 297.028
+                          },
+                          {
+                            "X": 932.28395180672408,
+                            "Y": 297.028
+                          },
+                          {
+                            "X": 932.28395180672408,
+                            "Y": 363.0
+                          },
+                          {
+                            "X": 993.0,
+                            "Y": 363.0
+                          },
+                          {
+                            "X": 998.0,
                             "Y": 363.0
                           }
                         ]
@@ -10808,12 +10570,28 @@
                         "LinkType": "SampleAnalog",
                         "Points": [
                           {
-                            "X": 962.85714285714278,
-                            "Y": 316.4218
+                            "X": 897.19,
+                            "Y": 314.03733333333332
                           },
                           {
-                            "X": 962.85714285714278,
-                            "Y": 405.8571
+                            "X": 902.19,
+                            "Y": 314.03733333333332
+                          },
+                          {
+                            "X": 912.6380805112866,
+                            "Y": 314.03733333333332
+                          },
+                          {
+                            "X": 912.6380805112866,
+                            "Y": 406.0
+                          },
+                          {
+                            "X": 992.0,
+                            "Y": 406.0
+                          },
+                          {
+                            "X": 997.0,
+                            "Y": 406.0
                           }
                         ]
                       },
@@ -12372,6 +12150,222 @@
                         "SourcePinName": "Output",
                         "TargetUid": "AliasInput_23",
                         "TargetPinName": "Input",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_469",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalAdd_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": -51.809999999999995,
+                            "Y": 194.00933333333333
+                          },
+                          {
+                            "X": -46.809999999999995,
+                            "Y": 194.00933333333333
+                          },
+                          {
+                            "X": 585.20689225399576,
+                            "Y": 194.00933333333333
+                          },
+                          {
+                            "X": 585.20689225399576,
+                            "Y": 253.25840765769056
+                          },
+                          {
+                            "X": 601.5311930568439,
+                            "Y": 253.25840765769056
+                          },
+                          {
+                            "X": 606.5311930568439,
+                            "Y": 253.25840765769056
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_470",
+                        "SourceUid": "SingleVolumeControl_3",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalAdd_0",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_471",
+                        "SourceUid": "SignalAdd_0",
+                        "SourcePinName": "Output",
+                        "TargetUid": "SingleVolumeControl_4",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_472",
+                        "SourceUid": "Switch2xN_0",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SignalAdd_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_473",
+                        "SourceUid": "SingleVolumeControl_3",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SignalAdd_1",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 518.0,
+                            "Y": 465.66666666666663
+                          },
+                          {
+                            "X": 523.0,
+                            "Y": 465.66666666666663
+                          },
+                          {
+                            "X": 584.11545495980488,
+                            "Y": 465.66666666666663
+                          },
+                          {
+                            "X": 584.11545495980488,
+                            "Y": 373.93027716679205
+                          },
+                          {
+                            "X": 602.439755762653,
+                            "Y": 373.93027716679205
+                          },
+                          {
+                            "X": 607.439755762653,
+                            "Y": 373.93027716679205
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_474",
+                        "SourceUid": "SignalAdd_1",
+                        "SourcePinName": "Output",
+                        "TargetUid": "SingleVolumeControl_4",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_475",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalAdd_2",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": -35.809999999999995,
+                            "Y": 635.0093333333333
+                          },
+                          {
+                            "X": -30.809999999999995,
+                            "Y": 635.0093333333333
+                          },
+                          {
+                            "X": 574.292519312086,
+                            "Y": 635.0093333333333
+                          },
+                          {
+                            "X": 574.292519312086,
+                            "Y": 695.50947859586086
+                          },
+                          {
+                            "X": 601.0724801024694,
+                            "Y": 695.50947859586086
+                          },
+                          {
+                            "X": 606.0724801024694,
+                            "Y": 695.50947859586086
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_476",
+                        "SourceUid": "SingleVolumeControl_6",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SignalAdd_2",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_477",
+                        "SourceUid": "SignalAdd_2",
+                        "SourcePinName": "Output",
+                        "TargetUid": "SingleVolumeControl_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_478",
+                        "SourceUid": "Switch2xN_1",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SignalAdd_3",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": -35.809999999999995,
+                            "Y": 652.01866666666672
+                          },
+                          {
+                            "X": -30.809999999999995,
+                            "Y": 652.01866666666672
+                          },
+                          {
+                            "X": -28.0,
+                            "Y": 652.01866666666672
+                          },
+                          {
+                            "X": -28.0,
+                            "Y": 652.86907384341578
+                          },
+                          {
+                            "X": 544.82371236892993,
+                            "Y": 652.86907384341578
+                          },
+                          {
+                            "X": 544.82371236892993,
+                            "Y": 833.27278539915324
+                          },
+                          {
+                            "X": 598.95351811119463,
+                            "Y": 833.27278539915324
+                          },
+                          {
+                            "X": 603.95351811119463,
+                            "Y": 833.27278539915324
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_479",
+                        "SourceUid": "SingleVolumeControl_6",
+                        "SourcePinName": "Output1",
+                        "TargetUid": "SignalAdd_3",
+                        "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_480",
+                        "SourceUid": "SignalAdd_3",
+                        "SourcePinName": "Output",
+                        "TargetUid": "SingleVolumeControl_1",
+                        "TargetPinName": "Input1",
                         "LinkType": "SampleAnalog",
                         "Points": []
                       }
