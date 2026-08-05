@@ -227,7 +227,8 @@ static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
 static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
 static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
 static const uint8_t XFADE_FADE_DOWN_SOURCE_NONE    = 0xFFU;
-static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS = 8U;
+static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP = 8U;
+static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY    = 16U;
 
 static uint8_t s_note_peak_vel[128];
 static uint32_t s_note_scan_start_ms[128];
@@ -1908,7 +1909,8 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
 // so repeated flick cuts remain audible even if the previous sensor is still
 // held near the bottom.
 static void update_multi_fade_down_source(uint8_t pair_idx,
-                                          const float source[XFADE_FADE_DOWN_SOURCE_COUNT])
+                                          const float source[XFADE_FADE_DOWN_SOURCE_COUNT],
+                                          bool fade_up_active)
 {
     uint8_t active  = s_ui.xf.fade_down_active_source[pair_idx];
     uint8_t started = XFADE_FADE_DOWN_SOURCE_NONE;
@@ -1943,7 +1945,9 @@ static void update_multi_fade_down_source(uint8_t pair_idx,
             s_ui.xf.pair_top_restore_value[pair_idx] = 0.0f;
             s_ui.xf.pair_top_hold_active[pair_idx] = false;
             s_ui.xf.pair_fade_up_topped[pair_idx] = false;
-            s_ui.xf.fade_down_force_release_reads[pair_idx] = XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS;
+            s_ui.xf.fade_down_force_release_reads[pair_idx] =
+                fade_up_active ? XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP
+                               : XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY;
         }
         active = started;
     }
@@ -2021,7 +2025,9 @@ static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
         }
     }
 
-    update_multi_fade_down_source(pair->prev_idx, source);
+    const bool fade_up_active =
+        apply_xfade_pair_onset_deadband(pair->fade_up_idx, s_ui.xf.raw[pair->fade_up_idx]) > 0.0f;
+    update_multi_fade_down_source(pair->prev_idx, source, fade_up_active);
 }
 
 static void update_xfade_fade_down_sources(void)
