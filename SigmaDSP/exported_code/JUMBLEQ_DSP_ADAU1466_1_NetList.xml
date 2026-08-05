@@ -14,10 +14,10 @@
     <Schematic name="ADAU146xSchematic_1">
       <Algorithm name="Safeload" friendlyname="Schematic Params" />
       <Algorithm name="Output_2" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_116" id="Link_116" />
+        <Link pin="Input" dir="in" link="Link_456" id="Link_456" />
       </Algorithm>
       <Algorithm name="Output_3" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_117" id="Link_117" />
+        <Link pin="Input" dir="in" link="Link_455" id="Link_455" />
       </Algorithm>
       <Algorithm name="Input16to31_1" friendlyname="Input SDATA0">
         <Link pin="Ch17_out" dir="out" link="Link_46" id="Link_46" />
@@ -27,10 +27,10 @@
       </Algorithm>
       <Algorithm name="input_from_ch2" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="Input0to15_0" friendlyname="Input SDATA0">
-        <Link pin="Ch0_out" dir="out" link="Link_221" id="Link_221" />
-        <Link pin="Ch2_out" dir="out" link="Link_223" id="Link_223" />
-        <Link pin="Ch3_out" dir="out" link="Link_337" id="Link_337" />
-        <Link pin="Ch1_out" dir="out" link="Link_338" id="Link_338" />
+        <Link pin="Ch0_out" dir="out" link="Link_435" id="Link_435" />
+        <Link pin="Ch1_out" dir="out" link="Link_436" id="Link_436" />
+        <Link pin="Ch2_out" dir="out" link="Link_437" id="Link_437" />
+        <Link pin="Ch3_out" dir="out" link="Link_438" id="Link_438" />
       </Algorithm>
       <Algorithm name="Output_4" friendlyname="Output">
         <Link pin="Input" dir="in" link="Link_343" id="Link_343" />
@@ -96,10 +96,10 @@
       <Algorithm name="input_from_usb1" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="input_from_usb3" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="Output_8" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_247" id="Link_247" />
+        <Link pin="Input" dir="in" link="Link_459" id="Link_459" />
       </Algorithm>
       <Algorithm name="Output_9" friendlyname="Output">
-        <Link pin="Input" dir="in" link="Link_248" id="Link_248" />
+        <Link pin="Input" dir="in" link="Link_461" id="Link_461" />
       </Algorithm>
       <Algorithm name="send2_output" friendlyname="All inputs volumes are governed by one single volume slider. &#xA;Optimum for simultaneous control of various channels within a single DSP" />
       <Algorithm name="DCInput_dryB" friendlyname="Use this control to test a DC voltage input" />
@@ -155,6 +155,25 @@
         <Link pin="Output1" dir="out" link="Link_402" id="Link_402" />
         <Link pin="Input0" dir="in" link="Link_407" id="Link_407" />
         <Link pin="Input1" dir="in" link="Link_408" id="Link_408" />
+      </Algorithm>
+      <Algorithm name="ASRCInput_0" friendlyname="Input SDATA0">
+        <Link pin="Ch0_out" dir="out" link="Link_439" id="Link_439" />
+        <Link pin="Ch1_out" dir="out" link="Link_440" id="Link_440" />
+        <Link pin="Ch2_out" dir="out" link="Link_441" id="Link_441" />
+        <Link pin="Ch3_out" dir="out" link="Link_442" id="Link_442" />
+      </Algorithm>
+      <Algorithm name="ASRCOutput_0" friendlyname="Asynchronous Sample rate converter output">
+        <Link pin="Input" dir="in" link="Link_456" id="Link_457" />
+      </Algorithm>
+      <Algorithm name="ASRCOutput_1" friendlyname="Asynchronous Sample rate converter output">
+        <Link pin="Input" dir="in" link="Link_455" id="Link_458" />
+      </Algorithm>
+      <Algorithm name="usb_rate_select" friendlyname="Allows selecting between a variable number of signal paths and route them into output channels" />
+      <Algorithm name="ASRCOutput_2" friendlyname="Asynchronous Sample rate converter output">
+        <Link pin="Input" dir="in" link="Link_459" id="Link_460" />
+      </Algorithm>
+      <Algorithm name="ASRCOutput_3" friendlyname="Asynchronous Sample rate converter output">
+        <Link pin="Input" dir="in" link="Link_461" id="Link_462" />
       </Algorithm>
     </Schematic>
   </Core>
