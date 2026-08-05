@@ -1,6 +1,6 @@
 /* 
  * File:	C:\Users\shun\JUMBLEQ\SigmaDSP\exported_code\JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h
- * Created:	Wednesday, 05 August 2026 14:22 PM
+ * Created:	Wednesday, 05 August 2026 15:13 PM
  * Description:	ADAU146xSchematic_1 parameter RAM definitions.
  * 
  * This software is distributed in the hope that it will be useful, 
@@ -165,7 +165,7 @@
 /* Module SignalMerger_2 - Signal Merger */
 #define MOD_SIGNALMERGER_2_COUNT               1
 #define MOD_SIGNALMERGER_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SIGNALMERGER_2_GAIN_ADDR           166
+#define MOD_SIGNALMERGER_2_GAIN_ADDR           165
 #define MOD_SIGNALMERGER_2_GAIN_FIXPT          0x00400000004000000040000000400000
 #define MOD_SIGNALMERGER_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(0)
 #define MOD_SIGNALMERGER_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -201,7 +201,7 @@
 /* Module ch1_output - Single Volume Control */
 #define MOD_CH1_OUTPUT_COUNT               1
 #define MOD_CH1_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH1_OUTPUT_GAIN_ADDR           175
+#define MOD_CH1_OUTPUT_GAIN_ADDR           173
 #define MOD_CH1_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH1_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH1_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -265,30 +265,6 @@
 #define MOD_PH_EQ_GAIN_2_GAIN_MEM_PAGE       0
 #define MOD_PH_EQ_GAIN_2_GAIN_DATA_MEMORY    "DM0"
 #define MOD_PH_EQ_GAIN_2_GAIN_MEM_PAGE       0
-
-/* Module SingleControlSplitter_2 - Single Control Splitter */
-#define MOD_SINGLECONTROLSPLITTER_2_COUNT               1
-#define MOD_SINGLECONTROLSPLITTER_2_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_ADDR           170
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_FIXPT          0x01000000
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_DATA_MEMORY    "DM0"
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_MEM_PAGE       0
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_DATA_MEMORY    "DM0"
-#define MOD_SINGLECONTROLSPLITTER_2_GAIN_MEM_PAGE       0
-
-/* Module SingleControlSplitter_3 - Single Control Splitter */
-#define MOD_SINGLECONTROLSPLITTER_3_COUNT               1
-#define MOD_SINGLECONTROLSPLITTER_3_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_ADDR           165
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_FIXPT          0x01000000
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_DATA_MEMORY    "DM0"
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_MEM_PAGE       0
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_DATA_MEMORY    "DM0"
-#define MOD_SINGLECONTROLSPLITTER_3_GAIN_MEM_PAGE       0
 
 /* Module SignalMerger_B - Signal Merger */
 #define MOD_SIGNALMERGER_B_COUNT               1
@@ -719,7 +695,7 @@
 /* Module ch2_output - Single Volume Control */
 #define MOD_CH2_OUTPUT_COUNT               1
 #define MOD_CH2_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_CH2_OUTPUT_GAIN_ADDR           174
+#define MOD_CH2_OUTPUT_GAIN_ADDR           172
 #define MOD_CH2_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_CH2_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_CH2_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -769,7 +745,7 @@
 /* Module hp_output - Single Volume Control */
 #define MOD_HP_OUTPUT_COUNT               1
 #define MOD_HP_OUTPUT_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_HP_OUTPUT_GAIN_ADDR           172
+#define MOD_HP_OUTPUT_GAIN_ADDR           170
 #define MOD_HP_OUTPUT_GAIN_FIXPT          0x01000000
 #define MOD_HP_OUTPUT_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1)
 #define MOD_HP_OUTPUT_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
@@ -781,7 +757,7 @@
 /* Module hp_out_sw - Nx2 Switch */
 #define MOD_HP_OUT_SW_COUNT                1
 #define MOD_HP_OUT_SW_SCHEMATIC            "ADAU146xSchematic_1"
-#define MOD_HP_OUT_SW_INDEX_ADDR           171
+#define MOD_HP_OUT_SW_INDEX_ADDR           169
 #define MOD_HP_OUT_SW_INDEX_FIXPT          0x00000003
 #define MOD_HP_OUT_SW_INDEX_VALUE          SIGMASTUDIOTYPE_INTEGER_CONVERT(3)
 #define MOD_HP_OUT_SW_INDEX_TYPE           SIGMASTUDIOTYPE_INTEGER
@@ -793,7 +769,7 @@
 /* Module SingleVolumeControl_19 - Single Volume Control */
 #define MOD_SINGLEVOLUMECONTROL_19_COUNT               1
 #define MOD_SINGLEVOLUMECONTROL_19_SCHEMATIC           "ADAU146xSchematic_1"
-#define MOD_SINGLEVOLUMECONTROL_19_GAIN_ADDR           173
+#define MOD_SINGLEVOLUMECONTROL_19_GAIN_ADDR           171
 #define MOD_SINGLEVOLUMECONTROL_19_GAIN_FIXPT          0x014248F0
 #define MOD_SINGLEVOLUMECONTROL_19_GAIN_VALUE          SIGMASTUDIOTYPE_8_24_CONVERT(1.25892541179417)
 #define MOD_SINGLEVOLUMECONTROL_19_GAIN_TYPE           SIGMASTUDIOTYPE_8_24
