@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define APP_VERSION_MAJOR 0
-#define APP_VERSION_MINOR 9
-#define APP_VERSION_PATCH 13
+#define APP_VERSION_MINOR 10
+#define APP_VERSION_PATCH 0
 
 #define APP_VERSION_STR_HELPER(x) #x
 #define APP_VERSION_STR_VALUE(x)  APP_VERSION_STR_HELPER(x)
@@ -13,14 +13,15 @@
 #define APP_VERSION_STR      APP_VERSION_STR_VALUE(APP_VERSION_MAJOR) "." APP_VERSION_STR_VALUE(APP_VERSION_MINOR) "." APP_VERSION_STR_VALUE(APP_VERSION_PATCH)
 #define APP_VERSION_OLED_STR "ver" APP_VERSION_STR
 
-/* USB bcdDevice layout: major.minor.patch = M.m.pp (one BCD digit, one BCD digit, two BCD digits). */
-#if (APP_VERSION_MAJOR > 9) || (APP_VERSION_MINOR > 9) || (APP_VERSION_PATCH > 99)
-#error "APP_VERSION cannot be represented by APP_VERSION_USB_BCD"
+/* USB bcdDevice layout: major.minor = MM.mm (two BCD digits each). */
+#if (APP_VERSION_MAJOR < 0) || (APP_VERSION_MAJOR > 99) || \
+    (APP_VERSION_MINOR < 0) || (APP_VERSION_MINOR > 99)
+#error "APP_VERSION_USB_BCD supports major and minor values from 0 through 99"
 #endif
 
-#define APP_VERSION_USB_BCD ((uint16_t) (((APP_VERSION_MAJOR) << 12) | \
-                                         ((APP_VERSION_MINOR) << 8) | \
-                                         (((APP_VERSION_PATCH) / 10) << 4) | \
-                                         ((APP_VERSION_PATCH) % 10)))
+#define APP_VERSION_USB_BCD ((uint16_t) ((((APP_VERSION_MAJOR) / 10) << 12) | \
+                                         (((APP_VERSION_MAJOR) % 10) << 8) | \
+                                         (((APP_VERSION_MINOR) / 10) << 4) | \
+                                         ((APP_VERSION_MINOR) % 10)))
 
 #endif /* INC_APP_VERSION_H_ */
