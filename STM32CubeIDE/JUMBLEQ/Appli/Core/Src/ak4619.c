@@ -14,8 +14,10 @@ extern osMutexId_t i2cMutexHandle;
 
 #define AK4619_REG_MIC_AMP_GAIN_ADC1 0x04U
 #define AK4619_REG_MIC_AMP_GAIN_ADC2 0x05U
+#define AK4619_REG_ADC_DIGITAL_FILTER 0x0AU
 #define AK4619_MIC_GAIN_BITS_0DB     0x02U
 #define AK4619_MIC_GAIN_BITS_27DB    0x0BU
+#define AK4619_ADC_FILTER_SHORT_DELAY_SHARP 0x22U
 
 static HAL_StatusTypeDef ak4619_write_reg(uint8_t reg, uint8_t value)
 {
@@ -111,6 +113,12 @@ void AUDIO_Init_AK4619(uint32_t hz)
         return;
     }
     if (ak4619_write_reg(0x09, 0x30) != HAL_OK)  // ADC2 Rch 0x00(24dB) -> 0x18(12dB) -> 0x30(0dB)
+    {
+        return;
+    }
+
+    // ADC1/2: Short Delay Sharp Roll-Off Filter (22/fs -> 8/fs group delay)
+    if (ak4619_write_reg(AK4619_REG_ADC_DIGITAL_FILTER, AK4619_ADC_FILTER_SHORT_DELAY_SHARP) != HAL_OK)
     {
         return;
     }
