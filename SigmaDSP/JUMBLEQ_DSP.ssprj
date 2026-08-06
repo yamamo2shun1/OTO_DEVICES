@@ -2535,8 +2535,6 @@
                           "$type": "System.Collections.ObjectModel.Collection`1[[System.String, mscorlib]], mscorlib",
                           "$values": [
                             "Link_46",
-                            "Link_38",
-                            "Link_65",
                             "Link_74",
                             "Link_97",
                             "Link_98",
@@ -2648,7 +2646,11 @@
                             "Link_477",
                             "Link_478",
                             "Link_479",
-                            "Link_480"
+                            "Link_480",
+                            "Link_481",
+                            "Link_482",
+                            "Link_483",
+                            "Link_484"
                           ]
                         }
                       },
@@ -2751,8 +2753,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 660.92794436103577
+                          "X": 3863.0,
+                          "Y": 661.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2787,8 +2789,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 744.92794436103577
+                          "X": 3863.0,
+                          "Y": 745.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -2932,8 +2934,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": -47.380192663111529,
-                          "Y": -1081.9393649027898
+                          "X": -47.0,
+                          "Y": -1082.0
                         },
                         "Size": {
                           "Height": 424.0,
@@ -3037,13 +3039,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": -53.992623685045146,
-                          "Y": -1156.7145028589225
+                          "X": -54.0,
+                          "Y": -1157.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3075,7 +3077,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3113,13 +3115,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3857.3545738634471,
-                          "Y": 590.92794436103577
+                          "X": 3857.0,
+                          "Y": 591.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -3151,7 +3153,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3268,8 +3270,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1994.0,
-                          "Y": -122.0
+                          "X": 1839.6428425101376,
+                          "Y": -208.12167946005366
                         },
                         "Size": {
                           "Height": 143.0,
@@ -3432,8 +3434,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1989.0,
-                          "Y": -608.0
+                          "X": 1689.9854624999998,
+                          "Y": -675.4666418439723
                         },
                         "Size": {
                           "Height": 143.0,
@@ -3622,7 +3624,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -4247,8 +4249,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1000.3299521796876,
-                          "Y": 703.32995217968755
+                          "X": 1000.0,
+                          "Y": 703.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5524,8 +5526,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3102.5540914006956,
-                          "Y": 769.68636621640917
+                          "X": 3103.0,
+                          "Y": 770.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5565,8 +5567,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3101.5540914006956,
-                          "Y": 815.67703288307587
+                          "X": 3102.0,
+                          "Y": 816.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5606,8 +5608,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3100.5540914006956,
-                          "Y": 1141.6863662164092
+                          "X": 3101.0,
+                          "Y": 1142.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5647,8 +5649,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3101.5540914006956,
-                          "Y": 1193.6770328830758
+                          "X": 3102.0,
+                          "Y": 1194.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6549,8 +6551,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 1032.9279443610358
+                          "X": 3863.0,
+                          "Y": 1033.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -6585,8 +6587,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 1116.9279443610358
+                          "X": 3863.0,
+                          "Y": 1117.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -6628,8 +6630,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3387.5540914006956,
-                          "Y": 1079.6770328830758
+                          "X": 3388.0,
+                          "Y": 1080.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -7034,8 +7036,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3077.5540914006956,
-                          "Y": 860.67703288307587
+                          "X": 3078.0,
+                          "Y": 861.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -7116,8 +7118,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3076.5540914006956,
-                          "Y": 908.67703288307587
+                          "X": 3077.0,
+                          "Y": 909.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -7198,8 +7200,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3076.5540914006956,
-                          "Y": 1240.6770328830758
+                          "X": 3077.0,
+                          "Y": 1241.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -7280,8 +7282,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3074.5540914006956,
-                          "Y": 1292.6770328830758
+                          "X": 3075.0,
+                          "Y": 1293.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -7745,8 +7747,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3387.5540914006956,
-                          "Y": 707.67703288307587
+                          "X": 3388.0,
+                          "Y": 708.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8077,8 +8079,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3274.5540914006956,
-                          "Y": 760.67703288307587
+                          "X": 3275.0,
+                          "Y": 761.0
                         },
                         "Size": {
                           "Height": 93.046666666666667,
@@ -8116,8 +8118,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3274.5540914006956,
-                          "Y": 1132.6770328830758
+                          "X": 3275.0,
+                          "Y": 1133.0
                         },
                         "Size": {
                           "Height": 93.046666666666667,
@@ -8152,8 +8154,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4438.5540914006961,
-                          "Y": 100.67703288307587
+                          "X": 4439.0,
+                          "Y": 101.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8188,8 +8190,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4438.5540914006961,
-                          "Y": 192.67703288307587
+                          "X": 4439.0,
+                          "Y": 193.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8231,8 +8233,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4020.5540914006956,
-                          "Y": 48.677032883075867
+                          "X": 4021.0,
+                          "Y": 49.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8264,13 +8266,13 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT2\r\n(Ch.32-39)\r\nto TAD5142",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4424.5540914006961,
-                          "Y": 27.677032883075867
+                          "X": 4425.0,
+                          "Y": 28.0
                         },
                         "Size": {
                           "Height": 55.569999999999993,
@@ -8308,8 +8310,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3897.5540914006956,
-                          "Y": 88.677032883075867
+                          "X": 3898.0,
+                          "Y": 89.0
                         },
                         "Size": {
                           "Height": 133.04666666666668,
@@ -8349,7 +8351,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3566.365106255078,
+                          "X": 3566.0,
                           "Y": -895.0
                         },
                         "Size": {
@@ -8390,8 +8392,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3625.5540914006956,
-                          "Y": 371.67703288307587
+                          "X": 3626.0,
+                          "Y": 372.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8431,8 +8433,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3568.1793071003913,
-                          "Y": -666.88106077773455
+                          "X": 3568.0,
+                          "Y": -667.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8472,8 +8474,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3624.5540914006956,
-                          "Y": 415.67703288307587
+                          "X": 3625.0,
+                          "Y": 416.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8513,8 +8515,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3585.5540914006956,
-                          "Y": 91.677032883075867
+                          "X": 3586.0,
+                          "Y": 92.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8554,8 +8556,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3585.5540914006956,
-                          "Y": 131.67703288307587
+                          "X": 3586.0,
+                          "Y": 132.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8595,8 +8597,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3587.5540914006956,
-                          "Y": 181.67703288307587
+                          "X": 3588.0,
+                          "Y": 182.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8636,8 +8638,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3586.5540914006956,
-                          "Y": 233.67703288307587
+                          "X": 3587.0,
+                          "Y": 234.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8677,8 +8679,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3641.5540914006956,
-                          "Y": 284.67703288307587
+                          "X": 3642.0,
+                          "Y": 285.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8718,8 +8720,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3640.5540914006956,
-                          "Y": 324.67703288307587
+                          "X": 3641.0,
+                          "Y": 325.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -8761,8 +8763,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 4197.5540914006961,
-                          "Y": 48.677032883075867
+                          "X": 4198.0,
+                          "Y": 49.0
                         },
                         "Size": {
                           "Height": 252.0,
@@ -8909,8 +8911,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": -48.638005832891736,
-                          "Y": -603.82358733354567
+                          "X": -49.0,
+                          "Y": -604.0
                         },
                         "Size": {
                           "Height": 424.0,
@@ -8944,8 +8946,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3864.1855576223857,
-                          "Y": 833.32155826423843
+                          "X": 3864.0,
+                          "Y": 833.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -8979,8 +8981,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3864.7395132430006,
-                          "Y": 930.17637048040558
+                          "X": 3865.0,
+                          "Y": 930.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -9016,8 +9018,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 201.1931864640386,
-                          "Y": -672.2578594344443
+                          "X": 201.0,
+                          "Y": -672.0
                         },
                         "Size": {
                           "Height": 99.0,
@@ -9051,8 +9053,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 1213.3471932257044
+                          "X": 3863.0,
+                          "Y": 1213.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -9086,8 +9088,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3863.2912405301136,
-                          "Y": 1308.6904306404335
+                          "X": 3863.0,
+                          "Y": 1309.0
                         },
                         "Size": {
                           "Height": 64.0,
@@ -9121,8 +9123,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 609.5311930568439,
-                          "Y": 231.25840765769056
+                          "X": 610.0,
+                          "Y": 231.0
                         },
                         "Size": {
                           "Height": 62.0,
@@ -9156,8 +9158,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 610.439755762653,
-                          "Y": 333.93027716679205
+                          "X": 610.0,
+                          "Y": 334.0
                         },
                         "Size": {
                           "Height": 62.0,
@@ -9191,8 +9193,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 609.0724801024694,
-                          "Y": 673.50947859586086
+                          "X": 609.0,
+                          "Y": 674.0
                         },
                         "Size": {
                           "Height": 62.0,
@@ -9226,14 +9228,96 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 606.95351811119463,
-                          "Y": 811.27278539915324
+                          "X": 607.0,
+                          "Y": 811.0
                         },
                         "Size": {
                           "Height": 62.0,
                           "Width": 48.0
                         },
                         "Label": "SignalAdd_3",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.BasicAlgorithms.Sigma300.Sample.Delay_v1.0.0.0",
+                        "Name": "Delay",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "Delay_0",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 1,
+                          "SelectedMemory": "DM1",
+                          "MaxDelay": 20.0,
+                          "IsSample": false,
+                          "Delay": 0.0,
+                          "Set_Resolution": 1,
+                          "MaxDelayMaximumValue": 416.66666666666669
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 1815.0915046379512,
+                          "Y": -706.4666418439723
+                        },
+                        "Size": {
+                          "Height": 205.0,
+                          "Width": 106.0
+                        },
+                        "Label": "Delay_A",
+                        "WritableChannels": [],
+                        "WritableShapes": [],
+                        "WriteableLinks": [],
+                        "AltShapes": [],
+                        "PropertyPresets": {}
+                      },
+                      {
+                        "PluginName": "AnalogDevices.Plugins.Algorithms.BasicAlgorithms.Sigma300.Sample.Delay_v1.0.0.0",
+                        "Name": "Delay",
+                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
+                        "Uid": "Delay_1",
+                        "WritableProperties": {
+                          "IsRemovable": true,
+                          "RestrictShape": false,
+                          "BoardKey": "",
+                          "IsLocked": false,
+                          "EncryptedString": "",
+                          "RepCount": 1,
+                          "FS": 96000,
+                          "FSOut": 96000,
+                          "BlockSize": 64,
+                          "BlockSizeOut": 64,
+                          "ExcludeExport": false,
+                          "NumChannels": 1,
+                          "SelectedMemory": "DM1",
+                          "MaxDelay": 20.0,
+                          "IsSample": false,
+                          "Delay": 0.0,
+                          "Set_Resolution": 1,
+                          "MaxDelayMaximumValue": 416.66666666666669
+                        },
+                        "Angle": 0.0,
+                        "Position": {
+                          "X": 1967.7874854434374,
+                          "Y": -239.12167946005366
+                        },
+                        "Size": {
+                          "Height": 205.0,
+                          "Width": 106.0
+                        },
+                        "Label": "Delay_B",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -9257,42 +9341,6 @@
                           {
                             "X": -121.80952380952346,
                             "Y": 235.07873015873014
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_38",
-                        "SourceUid": "DCInput_0",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleSlewExtVol_0",
-                        "TargetPinName": "ControlInput",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 2113.688492063492,
-                            "Y": -50.64285714285711
-                          },
-                          {
-                            "X": 2113.688492063492,
-                            "Y": 27.60714285714289
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_65",
-                        "SourceUid": "DCInput_1",
-                        "SourcePinName": "Output",
-                        "TargetUid": "SingleSlewExtVol_1",
-                        "TargetPinName": "ControlInput",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 2111.8412698412703,
-                            "Y": -536.64285714285711
-                          },
-                          {
-                            "X": 2111.8412698412703,
-                            "Y": -455.39285714285711
                           }
                         ]
                       },
@@ -12366,6 +12414,92 @@
                         "SourcePinName": "Output",
                         "TargetUid": "SingleVolumeControl_1",
                         "TargetPinName": "Input1",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_481",
+                        "SourceUid": "DCInput_1",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Delay_0",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 1788.9854624999998,
+                            "Y": -603.9666418439723
+                          },
+                          {
+                            "X": 1793.9854624999998,
+                            "Y": -603.9666418439723
+                          },
+                          {
+                            "X": 1800.5384835689756,
+                            "Y": -603.9666418439723
+                          },
+                          {
+                            "X": 1800.5384835689756,
+                            "Y": -603.9666418439723
+                          },
+                          {
+                            "X": 1807.0915046379512,
+                            "Y": -603.9666418439723
+                          },
+                          {
+                            "X": 1812.0915046379512,
+                            "Y": -603.9666418439723
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_482",
+                        "SourceUid": "Delay_0",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleSlewExtVol_1",
+                        "TargetPinName": "ControlInput",
+                        "LinkType": "SampleAnalog",
+                        "Points": []
+                      },
+                      {
+                        "Uid": "Link_483",
+                        "SourceUid": "DCInput_0",
+                        "SourcePinName": "Output",
+                        "TargetUid": "Delay_1",
+                        "TargetPinName": "Input0",
+                        "LinkType": "SampleAnalog",
+                        "Points": [
+                          {
+                            "X": 1938.6428425101376,
+                            "Y": -136.62167946005366
+                          },
+                          {
+                            "X": 1943.6428425101376,
+                            "Y": -136.62167946005366
+                          },
+                          {
+                            "X": 1951.7151639767876,
+                            "Y": -136.62167946005366
+                          },
+                          {
+                            "X": 1951.7151639767876,
+                            "Y": -136.62167946005366
+                          },
+                          {
+                            "X": 1959.7874854434374,
+                            "Y": -136.62167946005366
+                          },
+                          {
+                            "X": 1964.7874854434374,
+                            "Y": -136.62167946005366
+                          }
+                        ]
+                      },
+                      {
+                        "Uid": "Link_484",
+                        "SourceUid": "Delay_1",
+                        "SourcePinName": "Output0",
+                        "TargetUid": "SingleSlewExtVol_0",
+                        "TargetPinName": "ControlInput",
                         "LinkType": "SampleAnalog",
                         "Points": []
                       }
