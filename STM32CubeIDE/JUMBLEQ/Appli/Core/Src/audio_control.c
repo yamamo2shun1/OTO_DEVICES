@@ -1443,21 +1443,88 @@ void audio_task(void)
             uint32_t sigma_err   = sigma_spi_it_write_errors;
             uint32_t sigma_to    = sigma_spi_it_write_timeouts;
             uint32_t sigma_mto   = sigma_spi_it_mutex_timeouts;
-            SEGGER_RTT_printf(0, "[AUD][TX] sr=%lu used_now=%ld used_min=%lu used_max=%lu und=%lu part=%lu drift+%lu drift-%lu usb0=%lu usbB=%lu usbMin=%u usbMax=%u inPkt=%lu inPkt0=%lu inPktB=%lu inPktMin=%u inPktMax=%u inNtf=%lu inWait=%lu inWr0=%lu inWrPart=%lu inWrB=%lu inFifo=%u/%u txRw=(%lu,%lu) rxRw=(%lu,%lu) dmae=%lu txe=%lu rxe=%lu txer=0x%08lX rxer=0x%08lX txsr=0x%08lX rxsr=0x%08lX spiC=%lu spiE=%lu spiT=%lu spiM=%lu task_hz=%lu\r\n", (unsigned long) current_sample_rate, (long) tx_used_now, (unsigned long) ((dbg_tx_used_min == 0xFFFFFFFFu) ? 0u : dbg_tx_used_min), (unsigned long) dbg_tx_used_max, (unsigned long) dbg_tx_underrun_events, (unsigned long) dbg_tx_partial_fill_events, (unsigned long) dbg_tx_drift_up_events, (unsigned long) dbg_tx_drift_dn_events, (unsigned long) dbg_usb_read_zero_events, (unsigned long) dbg_usb_read_bytes, (unsigned int) ((dbg_usb_read_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_read_size_min), (unsigned int) dbg_usb_read_size_max, (unsigned long) dbg_usb_in_packet_events, (unsigned long) dbg_usb_in_packet_zero_events, (unsigned long) dbg_usb_in_packet_bytes, (unsigned int) ((dbg_usb_in_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_packet_size_min), (unsigned int) dbg_usb_in_packet_size_max, (unsigned long) dbg_usb_in_notify_events, (unsigned long) dbg_usb_in_source_wait_events, (unsigned long) dbg_usb_in_write_zero_events, (unsigned long) dbg_usb_in_write_partial_events, (unsigned long) dbg_usb_in_write_bytes, (unsigned int) ((dbg_usb_in_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_fifo_min), (unsigned int) dbg_usb_in_fifo_max, (unsigned long) dbg_tx_half_rewrite_events, (unsigned long) dbg_tx_cplt_rewrite_events, (unsigned long) dbg_rx_half_rewrite_events, (unsigned long) dbg_rx_cplt_rewrite_events, (unsigned long) dbg_dma_err_events, (unsigned long) dbg_sai_tx_err_events, (unsigned long) dbg_sai_rx_err_events, (unsigned long) dbg_sai_tx_last_err, (unsigned long) dbg_sai_rx_last_err, (unsigned long) dbg_sai_tx_sr_flags, (unsigned long) dbg_sai_rx_sr_flags, (unsigned long) (sigma_calls - dbg_sigma_calls_prev), (unsigned long) (sigma_err - dbg_sigma_err_prev), (unsigned long) (sigma_to - dbg_sigma_to_prev), (unsigned long) (sigma_mto - dbg_sigma_mto_prev), (unsigned long) audio_task_frequency);
             SEGGER_RTT_printf(0,
-                              "[AUD][USB-OUT] pkt=%lu bytes=%lu size=%u/%u gap_us=%lu/%lu late=%lu coal=%lu svc_us=%lu/%lu fifo=%u/%u\r\n",
-                              (unsigned long) dbg_usb_out_packet_events,
-                              (unsigned long) dbg_usb_out_packet_bytes,
-                              (unsigned int) ((dbg_usb_out_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_packet_size_min),
-                              (unsigned int) dbg_usb_out_packet_size_max,
-                              (unsigned long) ((dbg_usb_out_gap_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_min)),
-                              (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_max),
-                              (unsigned long) dbg_usb_out_gap_late_events,
-                              (unsigned long) dbg_usb_out_coalesced_events,
-                              (unsigned long) ((dbg_usb_out_service_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_service_cycles_min)),
-                              (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_service_cycles_max),
-                              (unsigned int) ((dbg_usb_out_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_fifo_min),
-                              (unsigned int) dbg_usb_out_fifo_max);
+                               "[AUD][SUMMARY] sample_rate=%lu task_hz=%lu\r\n",
+                               (unsigned long) current_sample_rate,
+                               (unsigned long) audio_task_frequency);
+            SEGGER_RTT_printf(0,
+                               "[AUD][TX-BUF] used=%ld min/max=%lu/%lu\r\n",
+                               (long) tx_used_now,
+                               (unsigned long) ((dbg_tx_used_min == 0xFFFFFFFFu) ? 0u : dbg_tx_used_min),
+                               (unsigned long) dbg_tx_used_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][TX-EVENT] underrun=%lu partial=%lu drift_up/down=%lu/%lu\r\n",
+                               (unsigned long) dbg_tx_underrun_events,
+                               (unsigned long) dbg_tx_partial_fill_events,
+                               (unsigned long) dbg_tx_drift_up_events,
+                               (unsigned long) dbg_tx_drift_dn_events);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-READ] zero=%lu bytes=%lu size_min/max=%u/%u\r\n",
+                               (unsigned long) dbg_usb_read_zero_events,
+                               (unsigned long) dbg_usb_read_bytes,
+                               (unsigned int) ((dbg_usb_read_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_read_size_min),
+                               (unsigned int) dbg_usb_read_size_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-IN-PKT] count=%lu zero=%lu bytes=%lu size_min/max=%u/%u\r\n",
+                               (unsigned long) dbg_usb_in_packet_events,
+                               (unsigned long) dbg_usb_in_packet_zero_events,
+                               (unsigned long) dbg_usb_in_packet_bytes,
+                               (unsigned int) ((dbg_usb_in_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_packet_size_min),
+                               (unsigned int) dbg_usb_in_packet_size_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-IN-WR] notify=%lu wait=%lu zero=%lu partial=%lu\r\n",
+                               (unsigned long) dbg_usb_in_notify_events,
+                               (unsigned long) dbg_usb_in_source_wait_events,
+                               (unsigned long) dbg_usb_in_write_zero_events,
+                               (unsigned long) dbg_usb_in_write_partial_events);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-IN-FIFO] bytes=%lu min/max=%u/%u\r\n",
+                               (unsigned long) dbg_usb_in_write_bytes,
+                               (unsigned int) ((dbg_usb_in_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_in_fifo_min),
+                               (unsigned int) dbg_usb_in_fifo_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][REWRITE] tx_half/cplt=%lu/%lu rx_half/cplt=%lu/%lu\r\n",
+                               (unsigned long) dbg_tx_half_rewrite_events,
+                               (unsigned long) dbg_tx_cplt_rewrite_events,
+                               (unsigned long) dbg_rx_half_rewrite_events,
+                               (unsigned long) dbg_rx_cplt_rewrite_events);
+            SEGGER_RTT_printf(0,
+                               "[AUD][SAI] dma_err=%lu tx_err=%lu rx_err=%lu\r\n",
+                               (unsigned long) dbg_dma_err_events,
+                               (unsigned long) dbg_sai_tx_err_events,
+                               (unsigned long) dbg_sai_rx_err_events);
+            SEGGER_RTT_printf(0,
+                               "[AUD][SAI-REG] tx_err=0x%08lX rx_err=0x%08lX tx_sr=0x%08lX rx_sr=0x%08lX\r\n",
+                               (unsigned long) dbg_sai_tx_last_err,
+                               (unsigned long) dbg_sai_rx_last_err,
+                               (unsigned long) dbg_sai_tx_sr_flags,
+                               (unsigned long) dbg_sai_rx_sr_flags);
+            SEGGER_RTT_printf(0,
+                               "[AUD][SPI] calls=%lu errors=%lu timeouts=%lu mutex_timeouts=%lu\r\n",
+                               (unsigned long) (sigma_calls - dbg_sigma_calls_prev),
+                               (unsigned long) (sigma_err - dbg_sigma_err_prev),
+                               (unsigned long) (sigma_to - dbg_sigma_to_prev),
+                               (unsigned long) (sigma_mto - dbg_sigma_mto_prev));
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-OUT-PKT] packets=%lu bytes=%lu size_min/max=%u/%u\r\n",
+                               (unsigned long) dbg_usb_out_packet_events,
+                               (unsigned long) dbg_usb_out_packet_bytes,
+                               (unsigned int) ((dbg_usb_out_packet_size_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_packet_size_min),
+                               (unsigned int) dbg_usb_out_packet_size_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-OUT-FIFO] min/max=%u/%u\r\n",
+                               (unsigned int) ((dbg_usb_out_fifo_min == DBG_MIN_U16_INIT) ? 0u : dbg_usb_out_fifo_min),
+                               (unsigned int) dbg_usb_out_fifo_max);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-OUT-GAP] us_min/max=%lu/%lu late=%lu coalesced=%lu\r\n",
+                               (unsigned long) ((dbg_usb_out_gap_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_min)),
+                               (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_gap_cycles_max),
+                               (unsigned long) dbg_usb_out_gap_late_events,
+                               (unsigned long) dbg_usb_out_coalesced_events);
+            SEGGER_RTT_printf(0,
+                               "[AUD][USB-OUT-SERVICE] us_min/max=%lu/%lu\r\n",
+                               (unsigned long) ((dbg_usb_out_service_cycles_min == DBG_MIN_U32_INIT) ? 0u : audio_diag_cycles_to_us(dbg_usb_out_service_cycles_min)),
+                               (unsigned long) audio_diag_cycles_to_us(dbg_usb_out_service_cycles_max));
             dbg_sigma_calls_prev = sigma_calls;
             dbg_sigma_err_prev   = sigma_err;
             dbg_sigma_to_prev    = sigma_to;
