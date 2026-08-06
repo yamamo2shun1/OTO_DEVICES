@@ -995,16 +995,37 @@ static void apply_input_type_change(uint8_t input_ch, uint8_t input_type)
     replace_assign_for_input_channel(&s_ui.current_xfpost_assign, input_ch, new_src);
 }
 
+static bool is_usb_assign(uint8_t assign)
+{
+    return (assign == INPUT_SRC_USB12) || (assign == INPUT_SRC_USB34);
+}
+
+static void apply_send_source_selection(uint8_t input_ch)
+{
+    if (input_ch == INPUT_CH1)
+    {
+        const bool select_dvs = (s_ui.current_ch1_dvs_enable != 0U) || is_usb_assign(s_ui.current_xfA_assign);
+        select_send_source(INPUT_CH1, select_dvs);
+    }
+    else if (input_ch == INPUT_CH2)
+    {
+        const bool select_dvs = (s_ui.current_ch2_dvs_enable != 0U) || is_usb_assign(s_ui.current_xfB_assign);
+        select_send_source(INPUT_CH2, select_dvs);
+    }
+}
+
 static void apply_xf_assign_a(uint8_t input_ch)
 {
     select_xf_assignA_source(input_ch);
     s_ui.current_xfA_assign = current_input_src_from_channel(input_ch);
+    apply_send_source_selection(INPUT_CH1);
 }
 
 static void apply_xf_assign_b(uint8_t input_ch)
 {
     select_xf_assignB_source(input_ch);
     s_ui.current_xfB_assign = current_input_src_from_channel(input_ch);
+    apply_send_source_selection(INPUT_CH2);
 }
 
 static void apply_xf_assign_post(uint8_t input_ch)
@@ -1041,6 +1062,7 @@ static void apply_dvs_state(uint8_t input_ch, bool enable)
     {
         s_ui.current_ch2_dvs_enable = enable ? 1U : 0U;
     }
+    apply_send_source_selection(input_ch);
 }
 
 static bool assign_to_input_ch(uint8_t assign, uint8_t* input_ch)

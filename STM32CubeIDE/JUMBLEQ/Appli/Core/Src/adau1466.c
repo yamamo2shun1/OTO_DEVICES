@@ -579,9 +579,9 @@ void enable_ch1_dvs()
     (void) adau1466_safeload_write_words(MOD_DVS_SW_1_INDEX_CHANNEL0_ADDR, MOD_DVS_SW_1_INDEX_CHANNEL0_MEM_PAGE, safeload_data, 2U);
 }
 
-void select_send_ch1_src(bool enable)
+static void select_send_ch1_src(bool select_dvs)
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, enable ? 0x01 : 0x00};
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, select_dvs ? 0x01 : 0x00};
 
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND_SW_1_INDEX_ADDR, 4, Mode0_0);
 }
@@ -608,11 +608,23 @@ void enable_ch2_dvs()
     (void) adau1466_safeload_write_words(MOD_DVS_SW_2_INDEX_CHANNEL0_ADDR, MOD_DVS_SW_2_INDEX_CHANNEL0_MEM_PAGE, safeload_data, 2U);
 }
 
-void select_send_ch2_src(bool enable)
+static void select_send_ch2_src(bool select_dvs)
 {
-    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, enable ? 0x01 : 0x00};
+    ADI_REG_TYPE Mode0_0[4] = {0x00, 0x00, 0x00, select_dvs ? 0x01 : 0x00};
 
     SIGMA_WRITE_REGISTER_BLOCK_IT(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_SEND_SW_2_INDEX_ADDR, 4, Mode0_0);
+}
+
+void select_send_source(uint8_t ch, bool select_dvs)
+{
+    if (ch == INPUT_CH1)
+    {
+        select_send_ch1_src(select_dvs);
+    }
+    else if (ch == INPUT_CH2)
+    {
+        select_send_ch2_src(select_dvs);
+    }
 }
 
 void enable_dvs(uint8_t ch, bool enable)
@@ -627,7 +639,6 @@ void enable_dvs(uint8_t ch, bool enable)
         {
             disable_ch1_dvs();
         }
-        select_send_ch1_src(enable);
     }
     else if (ch == INPUT_CH2)
     {
@@ -639,7 +650,6 @@ void enable_dvs(uint8_t ch, bool enable)
         {
             disable_ch2_dvs();
         }
-        select_send_ch2_src(enable);
     }
 }
 
