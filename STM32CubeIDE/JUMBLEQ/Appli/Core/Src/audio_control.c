@@ -31,7 +31,6 @@
 
 enum
 {
-    AUDIO_MS_PER_SECOND        = 1000u,
     AUDIO_TASK_STATS_PERIOD_MS = 1000u,
     AUDIO_BYTES_PER_SAMPLE_32  = 4u,
     AUDIO_USB_FRAME_CHANNELS   = 4u,
@@ -1137,16 +1136,17 @@ static void copybuf_sai2ring(void)
         fill_rx_half(SAI_RX_BUF_SIZE / 2);
 }
 
-// 1msあたりのフレーム数
-static uint32_t audio_frames_per_ms(void)
+// USB INエンドポイントの1転送間隔あたりのフレーム数
+static uint32_t audio_frames_per_usb_in_interval(void)
 {
-    // 例: 48kHz -> 48 frames/ms
-    return current_sample_rate / AUDIO_MS_PER_SECOND;
+    // 現在対応している48/96kHzはいずれも整数フレームになる。
+    return (current_sample_rate * CFG_TUD_AUDIO_FUNC_1_EP_IN_INTERVAL_UFRAMES) /
+           AUDIO_USB_HS_MICROFRAMES_PER_SECOND;
 }
 
 static bool audio_usb_in_source_ready(void)
 {
-    const uint32_t required_words = audio_frames_per_ms() * AUDIO_RING_FRAME_WORDS;
+    const uint32_t required_words = audio_frames_per_usb_in_interval() * AUDIO_RING_FRAME_WORDS;
     const int32_t available_words = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
 
     return available_words >= (int32_t) required_words;
@@ -1212,7 +1212,7 @@ static void copybuf_ring2usb_and_send(void)
     }
 #endif
 
-    const uint32_t frames    = audio_frames_per_ms();     // 48 or 96 frames/ms
+    const uint32_t frames    = audio_frames_per_usb_in_interval();  // 24 or 48 frames/0.5ms
     const uint32_t sai_words = frames * AUDIO_RING_FRAME_WORDS;  // 4ch(4word/frame)
 
     int32_t used = (int32_t) (sai_rx_rng_buf_index - sai_receive_index);
@@ -1322,7 +1322,7 @@ bool tud_audio_tx_done_isr(uint8_t rhport, uint16_t n_bytes_sent, uint8_t func_i
     (void) n_bytes_sent;
 #endif
 
-    // HSでは125usごとに呼ばれるため、1ms分の送信元データがある時だけTaskを起こす。
+    // USB INの転送完了後、次の0.5ms分が揃っている時だけTaskを起こす。
     if (s_streaming_in && !usb_tx_pending && audio_usb_in_source_ready())
     {
         usb_tx_pending = true;
@@ -1611,7 +1611,7 @@ void audio_task(void)
         // SAI -> USB
         copybuf_sai2ring();
 
-        // USB INは1ms分の送信元データが揃った時だけ次の塊を積む。
+        // USB INはエンドポイントの1転送間隔分（現在0.5ms）が揃ったら次の塊を積む。
         // SAI RX DMA通知でも補充することで、IN FIFOが空になった場合の停止を防ぐ。
         if (s_streaming_in && (usb_tx_event || audio_usb_in_source_ready()))
         {
