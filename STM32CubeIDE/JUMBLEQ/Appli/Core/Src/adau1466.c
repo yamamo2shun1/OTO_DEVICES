@@ -29,6 +29,9 @@ _Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOA
 #define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
 #define ADAU1466_CLOCK_SETTLE_MS     2U
 #define ADAU1466_CORE_SAMPLE_RATE_HZ 96000U
+#define ADAU1466_DVS_XF_DELAY_MS     16U
+#define ADAU1466_DVS_XF_DELAY_SAMPLES \
+    ((ADAU1466_CORE_SAMPLE_RATE_HZ * ADAU1466_DVS_XF_DELAY_MS) / 1000U)
 
 #define ADAU1466_USB_MUX_DIRECT 0U
 #define ADAU1466_USB_MUX_ASRC   4U
@@ -36,6 +39,13 @@ _Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOA
 #define ADAU1466_SOUT_FROM_DSP   0x02U
 #define ADAU1466_SOUT0_FROM_ASRC2 0x13U
 #define ADAU1466_SOUT1_FROM_ASRC3 0x1BU
+
+_Static_assert((ADAU1466_CORE_SAMPLE_RATE_HZ % 1000U) == 0U,
+               "DVS crossfader delay must convert exactly from milliseconds to samples");
+_Static_assert(MOD_DELAY_B_DELAY_ADDR == (MOD_DELAY_A_DELAY_ADDR + 1U),
+               "Delay A/B parameters must be consecutive for one safeload write");
+_Static_assert(MOD_DELAY_A_DELAY_MEM_PAGE == MOD_DELAY_B_DELAY_MEM_PAGE,
+               "Delay A/B parameters must use the same data memory page");
 
 typedef struct
 {
@@ -651,6 +661,16 @@ void enable_dvs(uint8_t ch, bool enable)
             disable_ch2_dvs();
         }
     }
+}
+
+void set_dvs_crossfader_delay(bool enable_a, bool enable_b)
+{
+    uint8_t safeload_data[8] = {0x00};
+
+    adau1466_store_be32(enable_a ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U, &safeload_data[0]);
+    adau1466_store_be32(enable_b ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U, &safeload_data[4]);
+    (void) adau1466_safeload_write_words(
+        MOD_DELAY_A_DELAY_ADDR, MOD_DELAY_A_DELAY_MEM_PAGE, safeload_data, 2U);
 }
 
 void select_xf_assignA_source(uint8_t ch)

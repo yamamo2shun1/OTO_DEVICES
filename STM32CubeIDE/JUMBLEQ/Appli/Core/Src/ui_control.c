@@ -1000,6 +1000,27 @@ static bool is_usb_assign(uint8_t assign)
     return (assign == INPUT_SRC_USB12) || (assign == INPUT_SRC_USB34);
 }
 
+static bool is_dvs_enabled_for_assign(uint8_t assign)
+{
+    switch (assign)
+    {
+    case INPUT_SRC_CH1_LN:
+    case INPUT_SRC_CH1_PN:
+        return (s_ui.current_ch1_dvs_enable != 0U);
+    case INPUT_SRC_CH2_LN:
+    case INPUT_SRC_CH2_PN:
+        return (s_ui.current_ch2_dvs_enable != 0U);
+    default:
+        return false;
+    }
+}
+
+static void apply_crossfader_dvs_delay(void)
+{
+    set_dvs_crossfader_delay(is_dvs_enabled_for_assign(s_ui.current_xfA_assign),
+                              is_dvs_enabled_for_assign(s_ui.current_xfB_assign));
+}
+
 static void apply_send_source_selection(uint8_t input_ch)
 {
     if (input_ch == INPUT_CH1)
@@ -1018,6 +1039,7 @@ static void apply_xf_assign_a(uint8_t input_ch)
 {
     select_xf_assignA_source(input_ch);
     s_ui.current_xfA_assign = current_input_src_from_channel(input_ch);
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(INPUT_CH1);
 }
 
@@ -1025,6 +1047,7 @@ static void apply_xf_assign_b(uint8_t input_ch)
 {
     select_xf_assignB_source(input_ch);
     s_ui.current_xfB_assign = current_input_src_from_channel(input_ch);
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(INPUT_CH2);
 }
 
@@ -1062,6 +1085,7 @@ static void apply_dvs_state(uint8_t input_ch, bool enable)
     {
         s_ui.current_ch2_dvs_enable = enable ? 1U : 0U;
     }
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(input_ch);
 }
 
