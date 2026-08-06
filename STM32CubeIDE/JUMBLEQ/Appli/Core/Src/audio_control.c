@@ -26,7 +26,7 @@
 #include "SigmaStudioFW.h"
 
 #define N_SAMPLE_RATES TU_ARRAY_SIZE(sample_rates)
-#define AUDIO_DIAG_LOG 1
+#define AUDIO_DIAG_LOG 0
 #define DBG_MIN_U32_INIT UINT32_MAX
 
 enum
