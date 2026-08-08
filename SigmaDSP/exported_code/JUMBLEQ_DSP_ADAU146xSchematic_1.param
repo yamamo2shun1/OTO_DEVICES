@@ -144,11 +144,11 @@ Parameter Data :
 Module Name			= SingleSlewExtVol_B
 Parameter Name		= slew_mode
 Parameter Address	= 24591
-Parameter Value		= 8330
+Parameter Value		= 1040
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x8A, 
+0x00, 0x00, 0x04, 0x10, 
 
 
 
@@ -166,11 +166,11 @@ Parameter Data :
 Module Name			= SingleSlewExtVol_A
 Parameter Name		= slew_mode
 Parameter Address	= 24587
-Parameter Value		= 8330
+Parameter Value		= 1040
 Data Memory			= DM1
 Mem Page			= 0
 Parameter Data :
-0x00, 0x00, 0x20, 0x8A, 
+0x00, 0x00, 0x04, 0x10, 
 
 
 
