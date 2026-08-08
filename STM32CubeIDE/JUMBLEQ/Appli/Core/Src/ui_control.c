@@ -1006,9 +1006,11 @@ static bool is_dvs_enabled_for_assign(uint8_t assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
+    case INPUT_SRC_USB12:
         return (s_ui.current_ch1_dvs_enable != 0U);
     case INPUT_SRC_CH2_LN:
     case INPUT_SRC_CH2_PN:
+    case INPUT_SRC_USB34:
         return (s_ui.current_ch2_dvs_enable != 0U);
     default:
         return false;

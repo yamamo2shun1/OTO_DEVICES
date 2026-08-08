@@ -35,8 +35,8 @@ typedef unsigned char ADI_REG_TYPE;
 #define SIGMASTUDIOTYPE_INTEGER  1
 
 #define DEVICE_ADDR_ADAU146XSCHEMATIC_1 0x00
-// Keep the 3-byte SPI header plus payload within one 16 KiB static buffer.
-#define SIGMA_WRITE_BLOCK_MAX_PAYLOAD    16381U
+// Larger DSP memory downloads are split into word-aligned blocks internally.
+#define SIGMA_WRITE_BLOCK_MAX_PAYLOAD    4093U
 
 /*
  * Write to a single Device register
@@ -50,7 +50,7 @@ typedef unsigned char ADI_REG_TYPE;
  * Write to multiple Device registers
  */
 // #define SIGMA_WRITE_REGISTER_BLOCK( devAddress, address, length, pData ) {/*TODO: implement macro or define as function*/}
-void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData);
+void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint32_t length, uint8_t* pData);
 void SIGMA_WRITE_REGISTER_BLOCK_IT(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData);
 
 // Diagnostics for runtime DSP parameter write path (IT mode)

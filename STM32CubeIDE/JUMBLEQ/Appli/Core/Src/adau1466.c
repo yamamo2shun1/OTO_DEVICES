@@ -15,12 +15,12 @@
 #include "cmsis_os2.h"
 #include <string.h>
 
-_Static_assert(PROGRAM_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
-               "SigmaStudio program data exceeds the SPI block transfer buffer");
-_Static_assert(DM0_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
-               "SigmaStudio DM0 data exceeds the SPI block transfer buffer");
-_Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
-               "SigmaStudio DM1 data exceeds the SPI block transfer buffer");
+_Static_assert((PROGRAM_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
+               "SigmaStudio program data must contain complete 32-bit words");
+_Static_assert((DM0_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
+               "SigmaStudio DM0 data must contain complete 32-bit words");
+_Static_assert((DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
+               "SigmaStudio DM1 data must contain complete 32-bit words");
 
 #define ADAU1466_REG_PLL_LOCK     0xF004U
 #define ADAU1466_REG_CLK_GEN2_M   0xF022U
@@ -29,7 +29,7 @@ _Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOA
 #define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
 #define ADAU1466_CLOCK_SETTLE_MS     2U
 #define ADAU1466_CORE_SAMPLE_RATE_HZ 96000U
-#define ADAU1466_DVS_XF_DELAY_MS     16U
+#define ADAU1466_DVS_XF_DELAY_MS     50U
 #define ADAU1466_DVS_XF_DELAY_SAMPLES \
     ((ADAU1466_CORE_SAMPLE_RATE_HZ * ADAU1466_DVS_XF_DELAY_MS) / 1000U)
 
@@ -42,11 +42,6 @@ _Static_assert(DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 <= SIGMA_WRITE_BLOCK_MAX_PAYLOA
 
 _Static_assert((ADAU1466_CORE_SAMPLE_RATE_HZ % 1000U) == 0U,
                "DVS crossfader delay must convert exactly from milliseconds to samples");
-_Static_assert(MOD_DELAY_B_DELAY_ADDR == (MOD_DELAY_A_DELAY_ADDR + 1U),
-               "Delay A/B parameters must be consecutive for one safeload write");
-_Static_assert(MOD_DELAY_A_DELAY_MEM_PAGE == MOD_DELAY_B_DELAY_MEM_PAGE,
-               "Delay A/B parameters must use the same data memory page");
-
 typedef struct
 {
     uint8_t clk_gen2_m;
@@ -665,12 +660,17 @@ void enable_dvs(uint8_t ch, bool enable)
 
 void set_dvs_crossfader_delay(bool enable_a, bool enable_b)
 {
-    uint8_t safeload_data[8] = {0x00};
+    uint8_t safeload_data[4] = {0x00};
+    const uint32_t requested_a = enable_a ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U;
+    const uint32_t requested_b = enable_b ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U;
 
-    adau1466_store_be32(enable_a ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U, &safeload_data[0]);
-    adau1466_store_be32(enable_b ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U, &safeload_data[4]);
+    adau1466_store_be32(requested_a, &safeload_data[0]);
     (void) adau1466_safeload_write_words(
-        MOD_DELAY_A_DELAY_ADDR, MOD_DELAY_A_DELAY_MEM_PAGE, safeload_data, 2U);
+        MOD_DELAY_A_DELAY_ADDR, MOD_DELAY_A_DELAY_MEM_PAGE, safeload_data, 1U);
+
+    adau1466_store_be32(requested_b, &safeload_data[0]);
+    (void) adau1466_safeload_write_words(
+        MOD_DELAY_B_DELAY_ADDR, MOD_DELAY_B_DELAY_MEM_PAGE, safeload_data, 1U);
 }
 
 void select_xf_assignA_source(uint8_t ch)
