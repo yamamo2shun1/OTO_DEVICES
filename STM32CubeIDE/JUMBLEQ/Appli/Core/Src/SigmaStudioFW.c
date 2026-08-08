@@ -23,8 +23,12 @@ enum
 {
     SIGMA_SPI_HEADER_SIZE          = 3U,
     SIGMA_SPI_BLOCK_TX_BUFFER_SIZE = SIGMA_SPI_HEADER_SIZE + SIGMA_WRITE_BLOCK_MAX_PAYLOAD,
+    SIGMA_SPI_MEMORY_WORD_SIZE     = 4U,
+    SIGMA_SPI_BLOCK_CHUNK_SIZE     = SIGMA_WRITE_BLOCK_MAX_PAYLOAD & ~(SIGMA_SPI_MEMORY_WORD_SIZE - 1U),
     SIGMA_SPI_MUTEX_TIMEOUT_MS     = 200U,
 };
+
+_Static_assert(SIGMA_SPI_BLOCK_CHUNK_SIZE > 0U, "SigmaDSP SPI block chunk must contain at least one word");
 
 // 静的バッファ（転送中にスコープ外にならないようにするため）
 static uint8_t spi_block_tx_buf[SIGMA_SPI_BLOCK_TX_BUFFER_SIZE];
@@ -60,11 +64,12 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef* hspi)
     }
 }
 
-void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t length, uint8_t* pData)
+void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint32_t length, uint8_t* pData)
 {
-    if ((pData == NULL) || ((uint32_t) length > (sizeof(spi_block_tx_buf) - SIGMA_SPI_HEADER_SIZE)))
+    if ((pData == NULL) || (length == 0U) ||
+        ((length > SIGMA_WRITE_BLOCK_MAX_PAYLOAD) && ((length % SIGMA_SPI_MEMORY_WORD_SIZE) != 0U)))
     {
-        SEGGER_RTT_printf(0, "[%X] spi write length invalid: %u\n", address, (unsigned int) length);
+        SEGGER_RTT_printf(0, "[%X] spi write length invalid: %lu\n", address, (unsigned long) length);
         return;
     }
 
@@ -80,20 +85,46 @@ void SIGMA_WRITE_REGISTER_BLOCK(uint8_t devAddress, uint16_t address, uint16_t l
         mutex_acquired = true;
     }
 
-    spi_block_tx_buf[0] = devAddress;
-    spi_block_tx_buf[1] = (uint8_t) ((address >> 8) & 0x00FF);
-    spi_block_tx_buf[2] = (uint8_t) (address & 0x00FF);
-    for (uint16_t i = 0; i < length; i++)
-    {
-        spi_block_tx_buf[i + SIGMA_SPI_HEADER_SIZE] = pData[i];
-    }
+    uint32_t data_offset     = 0U;
+    uint32_t remaining       = length;
+    uint16_t current_address = address;
 
-    HAL_StatusTypeDef status =
-        HAL_SPI_Transmit(&hspi5, spi_block_tx_buf, (uint16_t) (SIGMA_SPI_HEADER_SIZE + length), 100);
-
-    if (status != HAL_OK)
+    while (remaining > 0U)
     {
-        SEGGER_RTT_printf(0, "[%X] spi write error\n", address);
+        uint16_t chunk_length = (uint16_t) ((remaining > SIGMA_SPI_BLOCK_CHUNK_SIZE)
+                                                ? SIGMA_SPI_BLOCK_CHUNK_SIZE
+                                                : remaining);
+
+        spi_block_tx_buf[0] = devAddress;
+        spi_block_tx_buf[1] = (uint8_t) ((current_address >> 8) & 0x00FF);
+        spi_block_tx_buf[2] = (uint8_t) (current_address & 0x00FF);
+        for (uint16_t i = 0; i < chunk_length; i++)
+        {
+            spi_block_tx_buf[i + SIGMA_SPI_HEADER_SIZE] = pData[data_offset + i];
+        }
+
+        HAL_StatusTypeDef status = HAL_SPI_Transmit(
+            &hspi5, spi_block_tx_buf, (uint16_t) (SIGMA_SPI_HEADER_SIZE + chunk_length), 100);
+
+        if (status != HAL_OK)
+        {
+            SEGGER_RTT_printf(0, "[%X] spi write error\n", current_address);
+            break;
+        }
+
+        remaining -= chunk_length;
+        data_offset += chunk_length;
+        if (remaining > 0U)
+        {
+            const uint32_t next_address =
+                (uint32_t) current_address + ((uint32_t) chunk_length / SIGMA_SPI_MEMORY_WORD_SIZE);
+            if (next_address > 0xFFFFU)
+            {
+                SEGGER_RTT_printf(0, "[%X] spi write address overflow\n", current_address);
+                break;
+            }
+            current_address = (uint16_t) next_address;
+        }
     }
 
     if (mutex_acquired)

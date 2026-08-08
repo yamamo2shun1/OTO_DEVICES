@@ -1000,6 +1000,29 @@ static bool is_usb_assign(uint8_t assign)
     return (assign == INPUT_SRC_USB12) || (assign == INPUT_SRC_USB34);
 }
 
+static bool is_dvs_enabled_for_assign(uint8_t assign)
+{
+    switch (assign)
+    {
+    case INPUT_SRC_CH1_LN:
+    case INPUT_SRC_CH1_PN:
+    case INPUT_SRC_USB12:
+        return (s_ui.current_ch1_dvs_enable != 0U);
+    case INPUT_SRC_CH2_LN:
+    case INPUT_SRC_CH2_PN:
+    case INPUT_SRC_USB34:
+        return (s_ui.current_ch2_dvs_enable != 0U);
+    default:
+        return false;
+    }
+}
+
+static void apply_crossfader_dvs_delay(void)
+{
+    set_dvs_crossfader_delay(is_dvs_enabled_for_assign(s_ui.current_xfA_assign),
+                              is_dvs_enabled_for_assign(s_ui.current_xfB_assign));
+}
+
 static void apply_send_source_selection(uint8_t input_ch)
 {
     if (input_ch == INPUT_CH1)
@@ -1018,6 +1041,7 @@ static void apply_xf_assign_a(uint8_t input_ch)
 {
     select_xf_assignA_source(input_ch);
     s_ui.current_xfA_assign = current_input_src_from_channel(input_ch);
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(INPUT_CH1);
 }
 
@@ -1025,6 +1049,7 @@ static void apply_xf_assign_b(uint8_t input_ch)
 {
     select_xf_assignB_source(input_ch);
     s_ui.current_xfB_assign = current_input_src_from_channel(input_ch);
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(INPUT_CH2);
 }
 
@@ -1062,6 +1087,7 @@ static void apply_dvs_state(uint8_t input_ch, bool enable)
     {
         s_ui.current_ch2_dvs_enable = enable ? 1U : 0U;
     }
+    apply_crossfader_dvs_delay();
     apply_send_source_selection(input_ch);
 }
 
@@ -2279,8 +2305,12 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         {
             hold_value = up_gain;
         }
-        // Fade-down can only reduce the held value during a non-bottomed cut.
-        if (!bottomed && (down_gain < hold_value))
+        // When fade-up started the gesture, ignore fade-down travel from the
+        // released side. Only entering/leaving the bottom zone changes output.
+        // Other gesture directions keep the existing continuous fade-down cut.
+        if ((gesture_parent != XFADE_GESTURE_PARENT_FADE_UP) &&
+            !bottomed &&
+            (down_gain < hold_value))
         {
             hold_value = down_gain;
         }

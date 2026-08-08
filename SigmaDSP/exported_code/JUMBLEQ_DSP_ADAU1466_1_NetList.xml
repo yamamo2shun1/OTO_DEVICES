@@ -183,6 +183,8 @@
         <Link pin="Input1" dir="in" link="Link_479" id="Link_479" />
         <Link pin="Output" dir="out" link="Link_480" id="Link_480" />
       </Algorithm>
+      <Algorithm name="Delay_A" friendlyname="Delays the Input Signal by the Maximum number of Samples Selected on the Spin TextBox" />
+      <Algorithm name="Delay_B" friendlyname="Delays the Input Signal by the Maximum number of Samples Selected on the Spin TextBox" />
     </Schematic>
   </Core>
 </IC>
