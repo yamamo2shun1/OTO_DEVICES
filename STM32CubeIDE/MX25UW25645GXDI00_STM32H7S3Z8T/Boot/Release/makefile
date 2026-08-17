@@ -23,6 +23,7 @@ RM := rm -rf
 -include tinyusb/src/portable/raspberrypi/rp2040/subdir.mk
 -include tinyusb/src/portable/raspberrypi/pio_usb/subdir.mk
 -include tinyusb/src/portable/ohci/subdir.mk
+-include tinyusb/src/portable/nxp/lpc_ip3516/subdir.mk
 -include tinyusb/src/portable/nxp/lpc_ip3511/subdir.mk
 -include tinyusb/src/portable/nxp/lpc17_40/subdir.mk
 -include tinyusb/src/portable/nxp/khci/subdir.mk
@@ -49,6 +50,7 @@ RM := rm -rf
 -include tinyusb/src/class/video/subdir.mk
 -include tinyusb/src/class/vendor/subdir.mk
 -include tinyusb/src/class/usbtmc/subdir.mk
+-include tinyusb/src/class/printer/subdir.mk
 -include tinyusb/src/class/net/subdir.mk
 -include tinyusb/src/class/mtp/subdir.mk
 -include tinyusb/src/class/msc/subdir.mk
