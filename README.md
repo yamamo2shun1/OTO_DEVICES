@@ -63,6 +63,14 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x10 and 10 k POT x12
 
+## Development Environment
+- IDE: STM32CubeIDE 2.2.0
+- Code generation and configuration: STM32CubeMX 6.18.1
+- Toolchain: GNU Tools for STM32 14.3.rel1.20251027-0700 (GCC 14.3.1)
+- MCU firmware package: STM32CubeH7RS v1.3.0
+- DSP development: SigmaStudio+ 3.4.0
+- Configurator development: Max 9.1.5
+
 ## Knob Assign
 <img width="640" alt="image" src="https://github.com/user-attachments/assets/23123ed1-6aa1-4a9c-919b-3d1c9a353c36" />
 
