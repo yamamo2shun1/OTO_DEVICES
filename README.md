@@ -107,6 +107,8 @@ arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtif
 
 This relative path assumes the new project is located at the same directory depth as the existing application projects. Adjust the path to `uf2conv.py` if the project is placed elsewhere. The generated `.uf2` file is written to the active build directory.
 
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/52bb0bfe-e50b-4182-b115-3d1fe1585bd2" />
+
 ## Mitigation for Errata 2.2.15
 For the STM32H7S3xx erratum:
 
