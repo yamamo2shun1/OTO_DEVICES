@@ -376,12 +376,23 @@ static bool audio20_clock_get_request(uint8_t rhport, tusb_control_request_t con
             audio20_control_range_4_n_t(N_SAMPLE_RATES) rangef =
                 {
                     .wNumSubRanges = tu_htole16(N_SAMPLE_RATES)};
+            SEGGER_RTT_printf(0,
+                              "[USB] GET_RANGE sample-rate: count=%u request_len=%u response_len=%u\n",
+                              (unsigned) N_SAMPLE_RATES,
+                              (unsigned) tu_le16toh(request->wLength),
+                              (unsigned) sizeof(rangef));
             TU_LOG1("Clock get %d freq ranges\r\n", N_SAMPLE_RATES);
             for (uint8_t i = 0; i < N_SAMPLE_RATES; i++)
             {
                 rangef.subrange[i].bMin = (int32_t) sample_rates[i];
                 rangef.subrange[i].bMax = (int32_t) sample_rates[i];
                 rangef.subrange[i].bRes = 0;
+                SEGGER_RTT_printf(0,
+                                  "[USB] RANGE[%u]: min=%lu max=%lu res=%lu\n",
+                                  (unsigned) i,
+                                  (unsigned long) rangef.subrange[i].bMin,
+                                  (unsigned long) rangef.subrange[i].bMax,
+                                  (unsigned long) rangef.subrange[i].bRes);
                 TU_LOG1("Range %d (%d, %d, %d)\r\n", i, (int) rangef.subrange[i].bMin, (int) rangef.subrange[i].bMax, (int) rangef.subrange[i].bRes);
             }
 
