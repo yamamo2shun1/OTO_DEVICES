@@ -95,12 +95,17 @@ JUMBLEQ Configurator is built with [Max 9](https://cycling74.com/products/max). 
 I’m developing JUMBLEQ as a solo project. I can’t realistically develop both an ASIO driver and the necessary firmware support on my own. If you’re using this device on Windows, please use [VB-Audio Matrix](https://vb-audio.com/Matrix/) or [ASIO4ALL](https://asio4all.org/)—even if you’d prefer a dedicated ASIO driver.
 
 ## Firmware Update
-JUMBLEQ uses a UF2 bootloader.
-When you connect the USB cable while holding down SW3, it is recognized as a USB flash drive, so you can update the firmware simply by copying app.uf2—created using the procedure below—to the drive.
+JUMBLEQ includes a built-in UF2 bootloader.
+
+To enter UF2 bootloader mode, hold down SW3 and either press the reset button or reconnect the USB cable. JUMBLEQ is then recognized as a USB flash drive, and the firmware can be updated simply by dragging and dropping a `.uf2` file onto the drive.
+
+The application projects automatically convert the ELF output to BIN and UF2 files as a post-build step. When creating a new STM32CubeIDE project, open `Project > Properties > C/C++ Build > Settings > Build Steps` and enter the following command in `Post-build steps > Command`:
+
+```sh
+arm-none-eabi-objcopy -O binary "${BuildArtifactFileBaseName}.elf" "${BuildArtifactFileBaseName}.bin" && python "../../../MX25UW25645GXDI00_STM32H7S3Z8T/uf2conv.py" -c -b 0x90010000 -f STM32H7RS -o "${BuildArtifactFileBaseName}.uf2" "${BuildArtifactFileBaseName}.bin"
 ```
-> arm-none-eabi-objcopy -O binary JUMBLEQ_Appli.elf app.bin
-> python uf2conv.py -c -b 0x90010000 -f STM32H7RS -o app.uf2 app.bin
-```
+
+This relative path assumes the new project is located at the same directory depth as the existing application projects. Adjust the path to `uf2conv.py` if the project is placed elsewhere. The generated `.uf2` file is written to the active build directory.
 
 ## Mitigation for Errata 2.2.15
 For the STM32H7S3xx erratum:
