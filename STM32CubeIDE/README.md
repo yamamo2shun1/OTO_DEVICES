@@ -1,44 +1,52 @@
-# STM32CubeIDE projects
+# STM32CubeIDE Projects
 
-JUMBLEQハードウェア向けのファームウェアを管理するSTM32CubeIDEワークスペースです。
-いずれもカスタム基板上の **STM32H7S3Z8T6** を対象としています。
+This STM32CubeIDE workspace contains the firmware projects for the JUMBLEQ hardware.
+All projects target the **STM32H7S3Z8T6** on the [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board).
 
-## プロジェクト一覧
+For the ST-LINK settings used to debug these projects, see [Debug Configuration for ST-LINK](docs/Debug_Configuration-STLINK.md).
+
+## Projects
 
 ### `JUMBLEQ`
 
-JUMBLEQ本体のメインファームウェアです。
+The main firmware for JUMBLEQ.
 
-- FreeRTOS上でUSB、オーディオ、LED、ADC、OLEDの処理を実行
-- TinyUSBを使用したUSB Audio Class 2.0およびUSB MIDI
-- AK4619オーディオコーデックとADAU1466 DSPの制御
-- OLED、LED、各種入力によるユーザーインターフェース
-- EEPROMへの設定保存と復元
+- Runs USB, audio, LED, ADC, and OLED processing on FreeRTOS
+- Provides USB Audio Class 2.0 and USB MIDI using TinyUSB
+- Controls the AK4619 audio codec and ADAU1466 DSP
+- Provides the user interface through the OLED, LEDs, and hardware controls
+- Saves settings to EEPROM and restores them at startup
 
-ビルド対象のSTM32CubeIDEプロジェクトは `JUMBLEQ/Appli` にあります。
-アプリケーションは外部フラッシュの `0x90010000` から実行する構成で、ビルド後にBINファイルとUF2ファイルを生成します。
+The buildable STM32CubeIDE project is located in `JUMBLEQ/Appli`.
+The application is configured to run from external flash at `0x90010000`. The post-build step generates BIN and UF2 files.
 
 ### `LED_BLINK_APP`
 
-基板の基本動作と外部フラッシュからのアプリ起動を確認するための最小テストアプリです。
-LED1とLED2を500 ms間隔で順番に点灯・消灯します。
+A minimal test application for verifying basic board operation and application startup from external flash.
+It turns LED1 and LED2 on and off in sequence at 500 ms intervals.
 
-ビルド対象のSTM32CubeIDEプロジェクトは `LED_BLINK_APP/Appli` にあります。
-`JUMBLEQ` と同じく外部フラッシュの `0x90010000` から実行する構成で、ビルド後にUF2ファイルを生成します。
+The buildable STM32CubeIDE project is located in `LED_BLINK_APP/Appli`.
+Like `JUMBLEQ`, the application is configured to run from external flash at `0x90010000`. The post-build step generates a UF2 file.
 
 ### `MX25UW25645GXDI00_STM32H7S3Z8T`
 
-外部フラッシュ **MX25UW25645GXDI00** を扱うためのブートローダおよび外部メモリローダです。
+The bootloader and external memory loader for the **MX25UW25645GXDI00** external flash device.
 
-- `Boot`: USB MSC経由でUF2ファイルを書き込むブートローダ
-  - SW3を押しながら起動するとUF2書き込みモードに入る
-  - 通常起動時は外部フラッシュ上のアプリケーションへジャンプする
-- `ExtMemLoader`: STM32CubeProgrammerやSTM32CubeIDEから外部フラッシュへアクセスするためのローダ
-- `uf2conv.py`: BINファイルをUF2形式へ変換するツール
+- `Boot`: Bootloader that writes UF2 files over USB Mass Storage Class
+  - Enters UF2 update mode when started while SW3 is held down
+  - Jumps to the application in external flash during a normal startup
+- `ExtMemLoader`: Loader that allows STM32CubeProgrammer and STM32CubeIDE to access the external flash
+- `uf2conv.py`: Tool that converts BIN files to UF2 format
 
-ブートローダの詳細は [`docs/UF2_BOOTLOADER_SPEC.md`](MX25UW25645GXDI00_STM32H7S3Z8T/docs/UF2_BOOTLOADER_SPEC.md) を参照してください。
+#### Boot Build Configuration
 
-## プロジェクト間の関係
+The `Boot` project must be built with compiler optimization enabled to fit in the internal flash of the STM32H7S3Z8T6. The `Debug` configuration uses `-O0`, which produces an image that is too large and causes the build to fail. Use the `Release` configuration, which uses `-Os` to optimize the image for size.
 
-`MX25UW25645GXDI00_STM32H7S3Z8T/Boot` が起動およびファームウェア更新を担当し、外部フラッシュに書き込まれた `JUMBLEQ/Appli` または `LED_BLINK_APP/Appli` を実行します。
+In STM32CubeIDE, select `Project > Build Configurations > Set Active > Release` before building the `Boot` project.
+
+For bootloader details, see [`docs/UF2_BOOTLOADER_SPEC.md`](MX25UW25645GXDI00_STM32H7S3Z8T/docs/UF2_BOOTLOADER_SPEC.md).
+
+## Project Relationships
+
+`MX25UW25645GXDI00_STM32H7S3Z8T/Boot` handles startup and firmware updates, then runs either `JUMBLEQ/Appli` or `LED_BLINK_APP/Appli` from external flash.
 
