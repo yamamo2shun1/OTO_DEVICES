@@ -61,6 +61,7 @@ As a USB audio interface, JUMBLEQ supports UAC2 and provides 4-in/4-out audio I/
 - MCU: [STM32H7S3Z8](https://www.st.com/en/microcontrollers-microprocessors/stm32h7s3z8.html)
 - DSP: [ADAU1466](https://www.analog.com/jp/products/adau1466.html)
 - CODEC: [AK4619](https://www.akm.com/jp/ja/products/audio/audio-codec/ak4619vn/)
+- DAC: [TAD5142](https://www.ti.com/product/TAD5142)
 - IO: [Gateron Low Profile Magnet Jade Pro](https://www.gateron.com/products/gateron-full-pom-low-profile-magnetic-jade-pro-switch-set?srsltid=AfmBOopFkdCLZGMJNqQ-K2jzlEZM16yoIFbTWwkXe4nwWVk6TughK0Un&VariantsId=10870) x10 and 10 k POT x12
 
 ## Development Environment
