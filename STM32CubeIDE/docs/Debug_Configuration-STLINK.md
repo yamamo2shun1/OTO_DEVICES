@@ -1,4 +1,6 @@
-## Debug Configuration for ST-LINK
+# Debug Configuration for ST-LINK
+
+The following screenshots show the STM32CubeIDE ST-LINK debug settings used by the firmware projects in this workspace.
 
 ### Main
 <img height="480" alt="debug_config_main" src="https://github.com/user-attachments/assets/6b860428-72e7-4de8-8a5b-43a66f00b9bb" />
