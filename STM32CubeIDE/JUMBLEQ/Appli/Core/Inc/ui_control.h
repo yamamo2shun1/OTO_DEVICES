@@ -32,7 +32,7 @@ typedef struct
     float current_xfade_cut_margin_b;
 } UI_ControlPersistState_t;
 
-#define UI_XFADE_CUT_MARGIN_A_DEFAULT (0.45f)
+#define UI_XFADE_CUT_MARGIN_A_DEFAULT (0.60f)
 #define UI_XFADE_CUT_MARGIN_B_DEFAULT (0.16f)
 
 uint8_t get_current_xfA_position(void);
