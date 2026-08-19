@@ -2,9 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  CURVE_EDIT_OFF,
+  CURVE_EDIT_ON,
   decodeConfigMessage,
+  encodeCurveSetting,
+  encodeProgramSetting,
   JumbleqConfig,
+  ProgramSettingField,
   REQUEST_CURRENT_CONFIG,
+  SAVE_CURRENT_CONFIG,
   SYNC_FIELD_COUNT,
 } from "./jumbleq-midi";
 
@@ -83,6 +89,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const [accessGranted, setAccessGranted] = useState(false);
   const [connectedInputName, setConnectedInputName] = useState("JUMBLEQ MIDI");
   const [hasOpenPorts, setHasOpenPorts] = useState(false);
+  const [curveEditActive, setCurveEditActive] = useState(false);
 
   const accessRef = useRef<WebMidiAccess | null>(null);
   const inputRef = useRef<WebMidiInput | null>(null);
@@ -90,6 +97,8 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const syncValuesRef = useRef<Partial<JumbleqConfig>>({});
   const syncFieldsRef = useRef(new Set<keyof JumbleqConfig>());
   const syncTimerRef = useRef<number | null>(null);
+  const curveEditTimerRef = useRef<number | null>(null);
+  const curveEditActiveRef = useRef(false);
   const stateChangeHandlerRef = useRef<(() => void) | null>(null);
   const onConfigRef = useRef(onConfig);
 
@@ -100,6 +109,28 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const clearSyncTimer = useCallback(() => {
     if (syncTimerRef.current) window.clearTimeout(syncTimerRef.current);
     syncTimerRef.current = null;
+  }, []);
+
+  const clearCurveEditTimer = useCallback(() => {
+    if (curveEditTimerRef.current) window.clearTimeout(curveEditTimerRef.current);
+    curveEditTimerRef.current = null;
+  }, []);
+
+  const sendRaw = useCallback((data: Uint8Array, description: string) => {
+    const output = outputRef.current;
+    if (!output || output.state === "disconnected") {
+      setError(`Cannot send ${description}: MIDI output is not connected.`);
+      return false;
+    }
+
+    try {
+      output.send(data);
+      return true;
+    } catch (caught) {
+      const detail = caught instanceof Error ? ` ${caught.message}` : "";
+      setError(`Could not send ${description}.${detail}`);
+      return false;
+    }
   }, []);
 
   const handleMidiMessage = useCallback((event: { data: Uint8Array }) => {
@@ -127,19 +158,28 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     }
 
     clearSyncTimer();
+    clearCurveEditTimer();
+    if (curveEditActiveRef.current) {
+      sendRaw(CURVE_EDIT_OFF, "curve edit off");
+      curveEditActiveRef.current = false;
+      setCurveEditActive(false);
+    }
     syncValuesRef.current = {};
     syncFieldsRef.current = new Set();
     setSyncReceived(0);
     setError(null);
     setStatus("syncing");
-    outputRef.current.send(REQUEST_CURRENT_CONFIG);
+    if (!sendRaw(REQUEST_CURRENT_CONFIG, "current settings request")) {
+      setStatus("error");
+      return;
+    }
 
     syncTimerRef.current = window.setTimeout(() => {
       const received = syncFieldsRef.current.size;
       setError(`Initial sync timed out (${received}/${SYNC_FIELD_COUNT} settings received).`);
       setStatus("error");
     }, SYNC_TIMEOUT_MS);
-  }, [clearSyncTimer]);
+  }, [clearCurveEditTimer, clearSyncTimer, sendRaw]);
 
   const refreshPorts = useCallback((access: WebMidiAccess) => {
     const nextInputs = availablePorts(access.inputs);
@@ -210,6 +250,9 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
           if (activeInput) activeInput.onmidimessage = null;
           inputRef.current = null;
           outputRef.current = null;
+          clearCurveEditTimer();
+          curveEditActiveRef.current = false;
+          setCurveEditActive(false);
           setHasOpenPorts(false);
           setError("JUMBLEQ was disconnected.");
           setStatus("error");
@@ -232,7 +275,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
       setError(message);
       setStatus("error");
     }
-  }, [clearSyncTimer, openPorts, refreshPorts]);
+  }, [clearCurveEditTimer, clearSyncTimer, openPorts, refreshPorts]);
 
   const connectSelected = useCallback(async () => {
     try {
@@ -244,7 +287,51 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     }
   }, [openPorts, selectedInputId, selectedOutputId]);
 
+  const sendProgramSetting = useCallback((
+    field: ProgramSettingField,
+    value: JumbleqConfig[ProgramSettingField],
+  ) => {
+    try {
+      return sendRaw(encodeProgramSetting(field, value), field);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : `Invalid value for ${field}.`;
+      setError(message);
+      return false;
+    }
+  }, [sendRaw]);
+
+  const beginCurveEdit = useCallback(() => {
+    clearCurveEditTimer();
+    if (curveEditActiveRef.current) return true;
+    if (!sendRaw(CURVE_EDIT_ON, "curve edit on")) return false;
+    curveEditActiveRef.current = true;
+    setCurveEditActive(true);
+    return true;
+  }, [clearCurveEditTimer, sendRaw]);
+
+  const endCurveEdit = useCallback(() => {
+    clearCurveEditTimer();
+    if (!curveEditActiveRef.current) return true;
+    const sent = sendRaw(CURVE_EDIT_OFF, "curve edit off");
+    curveEditActiveRef.current = false;
+    setCurveEditActive(false);
+    return sent;
+  }, [clearCurveEditTimer, sendRaw]);
+
+  const sendCurveSetting = useCallback((field: "curveA" | "curveB", percent: number) => {
+    if (!beginCurveEdit()) return false;
+    const sent = sendRaw(encodeCurveSetting(field, percent), field);
+    clearCurveEditTimer();
+    curveEditTimerRef.current = window.setTimeout(() => endCurveEdit(), 800);
+    return sent;
+  }, [beginCurveEdit, clearCurveEditTimer, endCurveEdit, sendRaw]);
+
+  const saveCurrentConfig = useCallback(() => {
+    return sendRaw(SAVE_CURRENT_CONFIG, "save to EEPROM");
+  }, [sendRaw]);
+
   const disconnect = useCallback(async () => {
+    endCurveEdit();
     clearSyncTimer();
     const input = inputRef.current;
     const output = outputRef.current;
@@ -256,17 +343,21 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     setSyncReceived(0);
     setError(null);
     setStatus("idle");
-  }, [clearSyncTimer]);
+  }, [clearSyncTimer, endCurveEdit]);
 
   useEffect(() => {
     return () => {
       clearSyncTimer();
+      clearCurveEditTimer();
+      if (curveEditActiveRef.current && outputRef.current?.state !== "disconnected") {
+        try { outputRef.current?.send(CURVE_EDIT_OFF); } catch { /* Best-effort cleanup. */ }
+      }
       if (inputRef.current) inputRef.current.onmidimessage = null;
       if (accessRef.current && stateChangeHandlerRef.current) {
         accessRef.current.removeEventListener("statechange", stateChangeHandlerRef.current);
       }
     };
-  }, [clearSyncTimer]);
+  }, [clearCurveEditTimer, clearSyncTimer]);
 
   return {
     status,
@@ -281,9 +372,15 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     accessGranted,
     connectedInputName,
     hasOpenPorts,
+    curveEditActive,
     connect,
     connectSelected,
     disconnect,
     requestSync: beginSync,
+    sendProgramSetting,
+    beginCurveEdit,
+    endCurveEdit,
+    sendCurveSetting,
+    saveCurrentConfig,
   };
 }

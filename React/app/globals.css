@@ -94,6 +94,10 @@ button { color: inherit; }
 .curve-copy > p:not(.card-label) { color: var(--muted); font-size: 12px; line-height: 1.6; }
 .legend { margin-top: 18px; display: flex; gap: 16px; color: #92958b; font: 600 10px/1 var(--font-geist-mono); }
 .legend span { display: flex; align-items: center; gap: 6px; }.legend i { width: 14px; height: 2px; border-radius: 4px; }.legend-a { background: var(--jumble); }.legend-b { background: var(--cyan); }
+.curve-edit-status { width: max-content; margin-top: 13px; padding: 6px 8px; display: flex; align-items: center; gap: 6px; border: 1px solid #3a3c36; border-radius: 999px; color: #85887e; background: #171815; font: 600 8px/1 var(--font-geist-mono); }
+.curve-edit-status span { width: 5px; height: 5px; border-radius: 50%; background: #6c6f66; }
+.curve-edit-status.active { color: var(--jumble); border-color: rgba(255,237,0,.35); }
+.curve-edit-status.active span { background: var(--jumble); box-shadow: 0 0 7px rgba(255,237,0,.65); }
 .curve-graph { width: 100%; max-height: 190px; overflow: visible; }
 .curve-line { fill: none; stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 5px rgba(255,255,255,.08)); transition: d .16s ease; }
 .curve-a { stroke: var(--jumble); }.curve-b { stroke: var(--cyan); }.dot-a { fill: var(--jumble); }.dot-b { fill: var(--cyan); }

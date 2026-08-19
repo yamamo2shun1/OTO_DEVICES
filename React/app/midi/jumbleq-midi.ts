@@ -22,6 +22,7 @@ export type JumbleqConfig = {
 };
 
 export type SyncField = keyof JumbleqConfig;
+export type ProgramSettingField = Exclude<SyncField, "curveA" | "curveB">;
 
 export const SYNC_FIELDS: readonly SyncField[] = [
   "ch1Type",
@@ -53,12 +54,57 @@ export const REQUEST_CURRENT_CONFIG = new Uint8Array([
   126,
 ]);
 
+function programChange(program: number) {
+  return new Uint8Array([PROGRAM_CHANGE | MIDI_CHANNEL_15, program]);
+}
+
+export const CURVE_EDIT_OFF = programChange(120);
+export const CURVE_EDIT_ON = programChange(121);
+export const SAVE_CURRENT_CONFIG = programChange(127);
+
 export type DecodedConfigValue = {
   [Key in SyncField]: { field: Key; value: JumbleqConfig[Key] };
 }[SyncField];
 
 function curveMidiCCToPercent(value: number) {
   return Math.round((value * 100) / 127);
+}
+
+export function curvePercentToMidiCC(percent: number) {
+  return Math.round(Math.min(100, Math.max(0, percent)) * 127 / 100);
+}
+
+export function encodeProgramSetting(
+  field: ProgramSettingField,
+  value: JumbleqConfig[ProgramSettingField],
+) {
+  let program: number;
+
+  switch (field) {
+    case "ch1Type": program = value === "LINE" ? 0 : 1; break;
+    case "ch2Type": program = value === "LINE" ? 2 : 3; break;
+    case "assignA": program = 4 + sources.indexOf(value as Source); break;
+    case "assignB": program = 8 + sources.indexOf(value as Source); break;
+    case "assignPost": program = 12 + sources.indexOf(value as Source); break;
+    case "dvs1": program = value ? 17 : 16; break;
+    case "dvs2": program = value ? 19 : 18; break;
+    case "returnSource": program = value === "USB 1/2" ? 20 : 21; break;
+    case "headphoneSource": program = 22 + headphoneSources.indexOf(value as HeadphoneSource); break;
+    case "sensor2": program = value === "A" ? 26 : 27; break;
+    case "sensor3": program = value === "A" ? 28 : 29; break;
+    case "magMode": program = value === "CC" ? 122 : 123; break;
+  }
+
+  if (program < 0 || program > 127) throw new Error(`Invalid value for ${field}.`);
+  return programChange(program);
+}
+
+export function encodeCurveSetting(field: "curveA" | "curveB", percent: number) {
+  return new Uint8Array([
+    CONTROL_CHANGE | MIDI_CHANNEL_15,
+    field === "curveA" ? 20 : 21,
+    curvePercentToMidiCC(percent),
+  ]);
 }
 
 function decodeProgramChange(program: number): DecodedConfigValue | null {
