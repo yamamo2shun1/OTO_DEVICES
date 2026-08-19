@@ -21,6 +21,23 @@ export type JumbleqConfig = {
   curveB: number;
 };
 
+export const RESTORE_DEFAULT_CONFIG: JumbleqConfig = {
+  ch1Type: "LINE",
+  ch2Type: "LINE",
+  assignA: "CH 1",
+  assignB: "CH 2",
+  assignPost: "USB 1/2",
+  dvs1: false,
+  dvs2: false,
+  returnSource: "USB 3/4",
+  headphoneSource: "Master",
+  sensor2: "A",
+  sensor3: "B",
+  magMode: "CC",
+  curveA: 50,
+  curveB: 50,
+};
+
 export type SyncField = keyof JumbleqConfig;
 export type ProgramSettingField = Exclude<SyncField, "curveA" | "curveB">;
 

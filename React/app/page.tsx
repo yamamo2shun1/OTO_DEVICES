@@ -21,7 +21,7 @@ import {
   Usb,
   X,
 } from "lucide-react";
-import { curvePercentToMidiCC, JumbleqConfig, ProgramSettingField, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
+import { curvePercentToMidiCC, JumbleqConfig, ProgramSettingField, RESTORE_DEFAULT_CONFIG, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
 import { useJumbleqMidi } from "./midi/use-jumbleq-midi";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
@@ -116,20 +116,20 @@ function CurveGraph({ curveA, curveB }: { curveA: number; curveB: number }) {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [ch1Type, setCh1Type] = useState<"LINE" | "PHONO">("LINE");
-  const [ch2Type, setCh2Type] = useState<"LINE" | "PHONO">("PHONO");
-  const [assignA, setAssignA] = useState<Source>("CH 1");
-  const [assignB, setAssignB] = useState<Source>("CH 2");
-  const [assignPost, setAssignPost] = useState<Source>("USB 3/4");
-  const [curveA, setCurveA] = useState(0);
-  const [curveB, setCurveB] = useState(76);
-  const [dvs1, setDvs1] = useState(true);
-  const [dvs2, setDvs2] = useState(false);
-  const [returnSource, setReturnSource] = useState<"USB 1/2" | "USB 3/4">("USB 3/4");
-  const [headphoneSource, setHeadphoneSource] = useState<"Fader A" | "Fader B" | "Thru" | "Master">("Master");
-  const [magMode, setMagMode] = useState<"CC" | "NOTE">("CC");
-  const [sensor2, setSensor2] = useState<"A" | "B">("A");
-  const [sensor3, setSensor3] = useState<"A" | "B">("B");
+  const [ch1Type, setCh1Type] = useState<"LINE" | "PHONO">(RESTORE_DEFAULT_CONFIG.ch1Type);
+  const [ch2Type, setCh2Type] = useState<"LINE" | "PHONO">(RESTORE_DEFAULT_CONFIG.ch2Type);
+  const [assignA, setAssignA] = useState<Source>(RESTORE_DEFAULT_CONFIG.assignA);
+  const [assignB, setAssignB] = useState<Source>(RESTORE_DEFAULT_CONFIG.assignB);
+  const [assignPost, setAssignPost] = useState<Source>(RESTORE_DEFAULT_CONFIG.assignPost);
+  const [curveA, setCurveA] = useState(RESTORE_DEFAULT_CONFIG.curveA);
+  const [curveB, setCurveB] = useState(RESTORE_DEFAULT_CONFIG.curveB);
+  const [dvs1, setDvs1] = useState(RESTORE_DEFAULT_CONFIG.dvs1);
+  const [dvs2, setDvs2] = useState(RESTORE_DEFAULT_CONFIG.dvs2);
+  const [returnSource, setReturnSource] = useState<"USB 1/2" | "USB 3/4">(RESTORE_DEFAULT_CONFIG.returnSource);
+  const [headphoneSource, setHeadphoneSource] = useState<"Fader A" | "Fader B" | "Thru" | "Master">(RESTORE_DEFAULT_CONFIG.headphoneSource);
+  const [magMode, setMagMode] = useState<"CC" | "NOTE">(RESTORE_DEFAULT_CONFIG.magMode);
+  const [sensor2, setSensor2] = useState<"A" | "B">(RESTORE_DEFAULT_CONFIG.sensor2);
+  const [sensor3, setSensor3] = useState<"A" | "B">(RESTORE_DEFAULT_CONFIG.sensor3);
   const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -223,11 +223,7 @@ export default function Home() {
   };
 
   const reset = () => {
-    const defaults: JumbleqConfig = {
-      ch1Type: "LINE", ch2Type: "PHONO", assignA: "CH 1", assignB: "CH 2", assignPost: "USB 3/4",
-      curveA: 0, curveB: 76, dvs1: true, dvs2: false, returnSource: "USB 3/4",
-      headphoneSource: "Master", magMode: "CC", sensor2: "A", sensor3: "B",
-    };
+    const defaults = RESTORE_DEFAULT_CONFIG;
     applySyncedConfig(defaults);
     if (hasOpenPorts) {
       sendProgramSetting("ch1Type", defaults.ch1Type);
