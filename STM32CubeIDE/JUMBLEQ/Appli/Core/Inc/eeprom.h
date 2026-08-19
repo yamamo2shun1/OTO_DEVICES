@@ -28,8 +28,8 @@ typedef struct
     uint8_t current_ch1_dvs_enable;
     uint8_t current_ch2_dvs_enable;
     uint8_t mag_output_mode_flags;
-    float current_xfade_cut_margin_a;
-    float current_xfade_cut_margin_b;
+    float current_xfade_curve_width_a;
+    float current_xfade_curve_width_b;
     uint8_t sensor2_aux_fade_down_assign;
     uint8_t sensor3_aux_fade_down_assign;
 } EEPROM_DeviceConfig_t;

@@ -22,7 +22,7 @@ In CC mode, magnetic XFADER updates are sent only when the normalized raw value 
 
 In Note mode, magnetic controls and XFADER sensors send Note On/Off messages. The peak sensor value measured during the initial 12 ms window is converted to Note On velocity.
 
-CC20 and CC21 have different roles depending on the MIDI channel: on Ch. 1 they carry live values from magnetic XFADER sensors 0 and 1, while on Ch. 15 they carry XFader cut-margin values in a configuration dump.
+CC20 and CC21 have different roles depending on the MIDI channel: on Ch. 1 they carry live values from magnetic XFADER sensors 0 and 1, while on Ch. 15 they carry XFader curve settings in a configuration dump.
 
 ## 3. Implementation Notes
 
@@ -58,7 +58,7 @@ When the device receives `PC126` on Ch. 15 from the host, it sends the current v
 
 | CC Number | Meaning |
 |---:|---|
-| 20 | `XFADE_CUT_MARGIN_A` (inverted linear conversion from `0.02..0.60` to `127..0`) |
-| 21 | `XFADE_CUT_MARGIN_B` (inverted linear conversion from `0.02..0.60` to `127..0`) |
+| 20 | `XFADE_CURVE_A` (`0` = most gradual, `127` = sharpest) |
+| 21 | `XFADE_CURVE_B` (`0` = most gradual, `127` = sharpest) |
 
-The conversion is `CC = round(((0.60 - margin) / (0.60 - 0.02)) * 127)` after clamping the margin to `0.02..0.60`.
+These values use the same scale as incoming curve-edit Control Change messages, allowing the host to restore the current settings directly.

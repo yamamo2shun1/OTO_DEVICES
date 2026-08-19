@@ -19,6 +19,34 @@
 
 static void draw_sub_headphones_icon(uint8_t x, uint8_t y);
 static void draw_main_headphones_icon(uint8_t x, uint8_t y);
+static void draw_main_xfade_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value);
+
+static void draw_main_xfade_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value)
+{
+    if ((width < 2U) || (height < 2U))
+    {
+        return;
+    }
+
+    uint8_t prev_x = x;
+    uint8_t prev_y = (uint8_t) (y + height - 1U);
+
+    for (uint8_t i = 0U; i < width; i++)
+    {
+        const float position = (float) i / (float) (width - 1U);
+        const float gain     = ui_control_evaluate_xfade_curve_preview(cc_value, position);
+        const uint8_t current_x = (uint8_t) (x + i);
+        const uint8_t current_y = (uint8_t) (y + height - 1U - (uint8_t) (gain * (float) (height - 1U)));
+
+        if (i > 0U)
+        {
+            main_oled_Line(prev_x, prev_y, current_x, current_y, White);
+        }
+
+        prev_x = current_x;
+        prev_y = current_y;
+    }
+}
 
 static void merge_dirty_pages(bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page, uint8_t page_start, uint8_t page_end)
 {
@@ -314,9 +342,11 @@ void OLED_UpdateTask(void)
     else
     {
         bool main_redraw = dirty;
+        const uint8_t curve_a_cc = ui_control_get_xfade_curve_a_cc();
+        const uint8_t curve_b_cc = ui_control_get_xfade_curve_b_cc();
         snprintf(line_edit_mode, sizeof(line_edit_mode), "CURVE EDIT [ON]");
-        snprintf(line_edit_a, sizeof(line_edit_a), "A:%5.2f CC%3u", (double) ui_control_get_xfade_cut_margin_a(), (unsigned) ui_control_get_xfade_cut_margin_a_cc());
-        snprintf(line_edit_b, sizeof(line_edit_b), "B:%5.2f CC%3u", (double) ui_control_get_xfade_cut_margin_b(), (unsigned) ui_control_get_xfade_cut_margin_b_cc());
+        snprintf(line_edit_a, sizeof(line_edit_a), "A:%3u", (unsigned) curve_a_cc);
+        snprintf(line_edit_b, sizeof(line_edit_b), "B:%3u", (unsigned) curve_b_cc);
 
         if ((strcmp(prev_line_edit_mode, line_edit_mode) != 0) ||
             (strcmp(prev_line_edit_a, line_edit_a) != 0) ||
@@ -330,10 +360,12 @@ void OLED_UpdateTask(void)
             main_oled_Fill(Black);
             main_oled_SetCursor(0, 0);
             main_oled_WriteString(line_edit_mode, Font_7x10, White);
-            main_oled_SetCursor(0, 10);
+            main_oled_SetCursor(18, 11);
             main_oled_WriteString(line_edit_a, Font_7x10, White);
-            main_oled_SetCursor(0, 22);
+            main_oled_SetCursor(18, 22);
             main_oled_WriteString(line_edit_b, Font_7x10, White);
+            draw_main_xfade_curve_preview(60U, 11U, 51U, 10U, curve_a_cc);
+            draw_main_xfade_curve_preview(60U, 22U, 51U, 10U, curve_b_cc);
 
             snprintf(prev_line_edit_mode, sizeof(prev_line_edit_mode), "%s", line_edit_mode);
             snprintf(prev_line_edit_a, sizeof(prev_line_edit_a), "%s", line_edit_a);

@@ -243,13 +243,13 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xfade_cut_margin_a = cfg.current_xfade_cut_margin_a;
-        ui_state.current_xfade_cut_margin_b = cfg.current_xfade_cut_margin_b;
+        ui_state.current_xfade_curve_width_a = cfg.current_xfade_curve_width_a;
+        ui_state.current_xfade_curve_width_b = cfg.current_xfade_curve_width_b;
 
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
                               (unsigned)cfg.current_xfA_assign,
@@ -261,8 +261,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
                               (unsigned)cfg.current_ch2_dvs_enable,
                               (unsigned)cfg.sensor2_aux_fade_down_assign,
                               (unsigned)cfg.sensor3_aux_fade_down_assign,
-                              (double)cfg.current_xfade_cut_margin_a,
-                              (double)cfg.current_xfade_cut_margin_b);
+                              (double)cfg.current_xfade_curve_width_a,
+                              (double)cfg.current_xfade_curve_width_b);
         }
         else
         {
@@ -284,8 +284,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xfade_cut_margin_a = cfg.current_xfade_cut_margin_a;
-        ui_state.current_xfade_cut_margin_b = cfg.current_xfade_cut_margin_b;
+        ui_state.current_xfade_curve_width_a = cfg.current_xfade_curve_width_a;
+        ui_state.current_xfade_curve_width_b = cfg.current_xfade_curve_width_b;
         (void)ui_control_apply_persist_state(&ui_state);
 
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
