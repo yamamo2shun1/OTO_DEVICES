@@ -63,8 +63,8 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch1_dvs_enable = 0U; /* disabled */
     cfg->current_ch2_dvs_enable = 0U; /* disabled */
     cfg->mag_output_mode_flags  = 0U;
-    cfg->current_xfade_cut_margin_a = UI_XFADE_CUT_MARGIN_A_DEFAULT;
-    cfg->current_xfade_cut_margin_b = UI_XFADE_CUT_MARGIN_B_DEFAULT;
+    cfg->current_xfade_curve_width_a = UI_XFADE_CURVE_WIDTH_A_DEFAULT;
+    cfg->current_xfade_curve_width_b = UI_XFADE_CURVE_WIDTH_B_DEFAULT;
     cfg->sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
     cfg->sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
 }
@@ -89,8 +89,8 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch1_dvs_enable = state.current_ch1_dvs_enable;
     cfg->current_ch2_dvs_enable = state.current_ch2_dvs_enable;
     cfg->mag_output_mode_flags  = state.mag_out_as_note ? EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE : 0U;
-    cfg->current_xfade_cut_margin_a = state.current_xfade_cut_margin_a;
-    cfg->current_xfade_cut_margin_b = state.current_xfade_cut_margin_b;
+    cfg->current_xfade_curve_width_a = state.current_xfade_curve_width_a;
+    cfg->current_xfade_curve_width_b = state.current_xfade_curve_width_b;
     cfg->sensor2_aux_fade_down_assign = state.sensor2_aux_fade_down_assign;
     cfg->sensor3_aux_fade_down_assign = state.sensor3_aux_fade_down_assign;
 }

@@ -144,8 +144,8 @@ typedef struct
     uint32_t mag_offset_sum[MAG_SW_NUM];
     uint16_t mag_offset[MAG_SW_NUM];
     xfade_state_t xf;
-    float xfade_cut_margin_a;
-    float xfade_cut_margin_b;
+    float xfade_curve_width_a;
+    float xfade_curve_width_b;
     bool mag_out_as_note;
     bool curve_edit_mode;
     bool is_start_audio_control;
@@ -163,8 +163,8 @@ static ui_control_state_t s_ui = {
     .current_ch2_dvs_enable = 0U,
     .sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A,
     .sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B,
-    .xfade_cut_margin_a     = UI_XFADE_CUT_MARGIN_A_DEFAULT,
-    .xfade_cut_margin_b     = UI_XFADE_CUT_MARGIN_B_DEFAULT,
+    .xfade_curve_width_a    = UI_XFADE_CURVE_WIDTH_A_DEFAULT,
+    .xfade_curve_width_b    = UI_XFADE_CURVE_WIDTH_B_DEFAULT,
     .mag_out_as_note        = false,
     .curve_edit_mode        = false,
     .xf.position_a          = 0,
@@ -207,15 +207,15 @@ static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
 static const float XFADE_PAIR_ONSET_DEADBAND    = 0.10f;
 static const float XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD     = 0.95f;
 static const float XFADE_PAIR_FADE_DOWN_DEEPER_DELTA        = 0.03f;
-static const float XFADE_PAIR_CUT_MARGIN_MIN    = 0.02f;
-static const float XFADE_PAIR_CUT_MARGIN_MAX    = 0.60f;
+static const float XFADE_PAIR_CURVE_WIDTH_MIN   = 0.02f;
+static const float XFADE_PAIR_CURVE_WIDTH_MAX   = 0.60f;
 static const float XFADE_PAIR_RAMP_LINEAR_BLEND = 0.60f;
 static const float XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO = 0.125f;
 static const float XFADE_PAIR_BOTTOM_REHOLD_RATIO       = 0.04f;
 
 static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
-static const uint8_t MIDI_CC_XFADE_CUT_MARGIN_A  = 20U;
-static const uint8_t MIDI_CC_XFADE_CUT_MARGIN_B  = 21U;
+static const uint8_t MIDI_CC_XFADE_CURVE_A        = 20U;
+static const uint8_t MIDI_CC_XFADE_CURVE_B        = 21U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_OFF = 120U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_ON  = 121U;
 static const uint8_t MIDI_PC_MUX_OUTPUT_CC       = 122U;
@@ -524,7 +524,7 @@ static uint8_t xfade_to_cc(float xfade)
     return (uint8_t) (127.0f - xfade * 127.0f);
 }
 
-static void mark_xfade_cut_margin_dirty(void)
+static void mark_xfade_curve_dirty(void)
 {
     for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
     {
@@ -533,27 +533,27 @@ static void mark_xfade_cut_margin_dirty(void)
     }
 }
 
-static float midi_cc_to_xfade_cut_margin(uint8_t value)
+static float midi_cc_to_xfade_curve_width(uint8_t value)
 {
     const float t = (float) value / 127.0f;
 
-    return XFADE_PAIR_CUT_MARGIN_MAX + ((XFADE_PAIR_CUT_MARGIN_MIN - XFADE_PAIR_CUT_MARGIN_MAX) * t);
+    return XFADE_PAIR_CURVE_WIDTH_MAX + ((XFADE_PAIR_CURVE_WIDTH_MIN - XFADE_PAIR_CURVE_WIDTH_MAX) * t);
 }
 
-static uint8_t xfade_cut_margin_to_midi_cc(float margin)
+static uint8_t xfade_curve_width_to_midi_cc(float width)
 {
     float t;
 
-    if (margin < XFADE_PAIR_CUT_MARGIN_MIN)
+    if (width < XFADE_PAIR_CURVE_WIDTH_MIN)
     {
-        margin = XFADE_PAIR_CUT_MARGIN_MIN;
+        width = XFADE_PAIR_CURVE_WIDTH_MIN;
     }
-    else if (margin > XFADE_PAIR_CUT_MARGIN_MAX)
+    else if (width > XFADE_PAIR_CURVE_WIDTH_MAX)
     {
-        margin = XFADE_PAIR_CUT_MARGIN_MAX;
+        width = XFADE_PAIR_CURVE_WIDTH_MAX;
     }
 
-    t = (XFADE_PAIR_CUT_MARGIN_MAX - margin) / (XFADE_PAIR_CUT_MARGIN_MAX - XFADE_PAIR_CUT_MARGIN_MIN);
+    t = (XFADE_PAIR_CURVE_WIDTH_MAX - width) / (XFADE_PAIR_CURVE_WIDTH_MAX - XFADE_PAIR_CURVE_WIDTH_MIN);
     if (t < 0.0f)
     {
         t = 0.0f;
@@ -566,15 +566,15 @@ static uint8_t xfade_cut_margin_to_midi_cc(float margin)
     return (uint8_t) ((t * 127.0f) + 0.5f);
 }
 
-static float clamp_xfade_cut_margin(float value)
+static float clamp_xfade_curve_width(float value)
 {
-    if (value < XFADE_PAIR_CUT_MARGIN_MIN)
+    if (value < XFADE_PAIR_CURVE_WIDTH_MIN)
     {
-        return XFADE_PAIR_CUT_MARGIN_MIN;
+        return XFADE_PAIR_CURVE_WIDTH_MIN;
     }
-    if (value > XFADE_PAIR_CUT_MARGIN_MAX)
+    if (value > XFADE_PAIR_CURVE_WIDTH_MAX)
     {
-        return XFADE_PAIR_CUT_MARGIN_MAX;
+        return XFADE_PAIR_CURVE_WIDTH_MAX;
     }
     return value;
 }
@@ -828,24 +828,14 @@ bool ui_control_is_curve_edit_mode_enabled(void)
     return s_ui.curve_edit_mode;
 }
 
-float ui_control_get_xfade_cut_margin_a(void)
+uint8_t ui_control_get_xfade_curve_a_cc(void)
 {
-    return s_ui.xfade_cut_margin_a;
+    return xfade_curve_width_to_midi_cc(s_ui.xfade_curve_width_a);
 }
 
-float ui_control_get_xfade_cut_margin_b(void)
+uint8_t ui_control_get_xfade_curve_b_cc(void)
 {
-    return s_ui.xfade_cut_margin_b;
-}
-
-uint8_t ui_control_get_xfade_cut_margin_a_cc(void)
-{
-    return xfade_cut_margin_to_midi_cc(s_ui.xfade_cut_margin_a);
-}
-
-uint8_t ui_control_get_xfade_cut_margin_b_cc(void)
-{
-    return xfade_cut_margin_to_midi_cc(s_ui.xfade_cut_margin_b);
+    return xfade_curve_width_to_midi_cc(s_ui.xfade_curve_width_b);
 }
 
 void ui_control_dma_adc_cplt(DMA_HandleTypeDef* hdma)
@@ -1284,8 +1274,8 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
     send_program_change(midi_program_for_xfade_aux_assignment(2U, cfg->sensor2_aux_fade_down_assign), MIDI_CH_15);
     send_program_change(midi_program_for_xfade_aux_assignment(3U, cfg->sensor3_aux_fade_down_assign), MIDI_CH_15);
-    send_control_change(MIDI_CC_XFADE_CUT_MARGIN_A, xfade_cut_margin_to_midi_cc(cfg->current_xfade_cut_margin_a), MIDI_CH_15);
-    send_control_change(MIDI_CC_XFADE_CUT_MARGIN_B, xfade_cut_margin_to_midi_cc(cfg->current_xfade_cut_margin_b), MIDI_CH_15);
+    send_control_change(MIDI_CC_XFADE_CURVE_A, xfade_curve_width_to_midi_cc(cfg->current_xfade_curve_width_a), MIDI_CH_15);
+    send_control_change(MIDI_CC_XFADE_CURVE_B, xfade_curve_width_to_midi_cc(cfg->current_xfade_curve_width_b), MIDI_CH_15);
     if ((cfg->mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U)
     {
         send_program_change(MIDI_PC_MUX_OUTPUT_NOTE, MIDI_CH_15);
@@ -1708,7 +1698,7 @@ static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
 }
 
 // Add a small touch-onset deadband for pair tracking so untouched sensors do not
-// perturb the held crossfader state when the cut margin is narrow.
+// perturb the held crossfader state when the curve width is narrow.
 static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
 {
     if (raw < 0.0f)
@@ -1934,6 +1924,14 @@ static float compute_xfade_pair_threshold_ramp(float value, float threshold, flo
     return (XFADE_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - XFADE_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
 }
 
+float ui_control_evaluate_xfade_curve_preview(uint8_t cc_value, float normalized_preview_position)
+{
+    const float width = midi_cc_to_xfade_curve_width(cc_value);
+    const float position = clamp01(normalized_preview_position) * XFADE_PAIR_CURVE_WIDTH_MAX;
+
+    return compute_xfade_pair_threshold_ramp(position, 0.0f, width);
+}
+
 // Fade-down sensors idle near 1.0 and move toward 0.0 when pressed.
 // Keep a small high-end deadband so light touch/noise does not start a cut.
 static float apply_xfade_fade_down_onset_deadband(float raw)
@@ -2112,21 +2110,21 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     // - pushing fade-down into the bottom zone forces the held output to 0
     // - when fade-down owns a two-finger gesture, fade-up stays open at the
     //   top and cuts when it backs away from the top
-    const float xfade_cut_margin = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_cut_margin_a : s_ui.xfade_cut_margin_b;
-    const float margin           = clamp_xfade_cut_margin(xfade_cut_margin);
+    const float curve_width = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_curve_width_a : s_ui.xfade_curve_width_b;
+    const float width       = clamp_xfade_curve_width(curve_width);
     const float fade_up          = get_xfade_pair_fade_up_raw(pair);
     const float fade_down        = get_xfade_pair_fade_down_raw(pair);
-    // fade-up opens across the first margin-wide slice of travel after onset deadband.
+    // fade-up opens across the first curve-width slice of travel after onset deadband.
     const float up_open_threshold             = 0.0f;
     // fade-down starts cutting once the sensor moves this far from its unpressed (1.0) position.
-    const float down_press_threshold           = 1.0f - margin;
+    const float down_press_threshold           = 1.0f - width;
     // "Bottomed" means the fade-down side reached near-bottom during the current gesture.
-    const float down_bottom_threshold       = margin * 0.5f;
-    const float down_bottom_hold_release_threshold = margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
-    const float down_bottom_rehold_threshold       = margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
-    const float up_top_threshold            = 1.0f - (margin * 0.5f);
-    const float up_top_hold_release_threshold = 1.0f - (margin * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
-    const float up_top_rehold_threshold       = 1.0f - (margin * XFADE_PAIR_BOTTOM_REHOLD_RATIO);
+    const float down_bottom_threshold       = width * 0.5f;
+    const float down_bottom_hold_release_threshold = width * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
+    const float down_bottom_rehold_threshold       = width * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
+    const float up_top_threshold            = 1.0f - (width * 0.5f);
+    const float up_top_hold_release_threshold = 1.0f - (width * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
+    const float up_top_rehold_threshold       = 1.0f - (width * XFADE_PAIR_BOTTOM_REHOLD_RATIO);
     // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
     const float down_bottom_release_threshold = 1.0f;
     bool cut_active         = s_ui.xf.pair_fade_down_cut_active[pair->prev_idx];
@@ -2140,8 +2138,8 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
     float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
     float top_restore_value = s_ui.xf.pair_top_restore_value[pair->prev_idx];
-    const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, margin);
-    const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, margin);
+    const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, width);
+    const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, width);
     const bool fade_up_active = (up_gain > 0.0f);
     const bool fade_down_released = (fade_down >= XFADE_PAIR_RESET_THRESHOLD);
     const bool fade_down_pressed = !fade_down_released;
@@ -2572,7 +2570,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_curve_width_a, (double) cfg.current_xfade_curve_width_b);
 
         return true;
     }
@@ -2585,7 +2583,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CUT_MARGIN_A=%.4f CUT_MARGIN_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_cut_margin_a, (double) cfg.current_xfade_cut_margin_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_curve_width_a, (double) cfg.current_xfade_curve_width_b);
         }
         else
         {
@@ -2640,7 +2638,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
 static bool dispatch_midi_control_change(uint8_t channel, uint8_t number, uint8_t value)
 {
-    float new_xfade_cut_margin;
+    float new_xfade_curve_width;
 
     if (!s_ui.curve_edit_mode)
     {
@@ -2652,26 +2650,26 @@ static bool dispatch_midi_control_change(uint8_t channel, uint8_t number, uint8_
         return false;
     }
 
-    if (number == MIDI_CC_XFADE_CUT_MARGIN_A)
+    if (number == MIDI_CC_XFADE_CURVE_A)
     {
-        new_xfade_cut_margin = clamp_xfade_cut_margin(midi_cc_to_xfade_cut_margin(value));
-        if (fabsf(new_xfade_cut_margin - s_ui.xfade_cut_margin_a) > 0.0001f)
+        new_xfade_curve_width = clamp_xfade_curve_width(midi_cc_to_xfade_curve_width(value));
+        if (fabsf(new_xfade_curve_width - s_ui.xfade_curve_width_a) > 0.0001f)
         {
-            s_ui.xfade_cut_margin_a = new_xfade_cut_margin;
-            mark_xfade_cut_margin_dirty();
-            SEGGER_RTT_printf(0, "Cut margin A updated by CC%u Ch15 -> %.4f\r\n", (unsigned) number, (double) s_ui.xfade_cut_margin_a);
+            s_ui.xfade_curve_width_a = new_xfade_curve_width;
+            mark_xfade_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve A updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.xfade_curve_width_a);
         }
         return true;
     }
 
-    if (number == MIDI_CC_XFADE_CUT_MARGIN_B)
+    if (number == MIDI_CC_XFADE_CURVE_B)
     {
-        new_xfade_cut_margin = clamp_xfade_cut_margin(midi_cc_to_xfade_cut_margin(value));
-        if (fabsf(new_xfade_cut_margin - s_ui.xfade_cut_margin_b) > 0.0001f)
+        new_xfade_curve_width = clamp_xfade_curve_width(midi_cc_to_xfade_curve_width(value));
+        if (fabsf(new_xfade_curve_width - s_ui.xfade_curve_width_b) > 0.0001f)
         {
-            s_ui.xfade_cut_margin_b = new_xfade_cut_margin;
-            mark_xfade_cut_margin_dirty();
-            SEGGER_RTT_printf(0, "Cut margin B updated by CC%u Ch15 -> %.4f\r\n", (unsigned) number, (double) s_ui.xfade_cut_margin_b);
+            s_ui.xfade_curve_width_b = new_xfade_curve_width;
+            mark_xfade_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve B updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.xfade_curve_width_b);
         }
         return true;
     }
@@ -2748,8 +2746,8 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->current_ch2_dvs_enable    = s_ui.current_ch2_dvs_enable;
     state->sensor2_aux_fade_down_assign = s_ui.sensor2_aux_fade_down_assign;
     state->sensor3_aux_fade_down_assign = s_ui.sensor3_aux_fade_down_assign;
-    state->current_xfade_cut_margin_a = s_ui.xfade_cut_margin_a;
-    state->current_xfade_cut_margin_b = s_ui.xfade_cut_margin_b;
+    state->current_xfade_curve_width_a = s_ui.xfade_curve_width_a;
+    state->current_xfade_curve_width_b = s_ui.xfade_curve_width_b;
     state->mag_out_as_note           = s_ui.mag_out_as_note;
 }
 
@@ -2795,10 +2793,10 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
     (void) apply_xfade_aux_assignments(state->sensor2_aux_fade_down_assign,
                                        state->sensor3_aux_fade_down_assign);
-    s_ui.xfade_cut_margin_a = clamp_xfade_cut_margin(state->current_xfade_cut_margin_a);
-    s_ui.xfade_cut_margin_b = clamp_xfade_cut_margin(state->current_xfade_cut_margin_b);
+    s_ui.xfade_curve_width_a = clamp_xfade_curve_width(state->current_xfade_curve_width_a);
+    s_ui.xfade_curve_width_b = clamp_xfade_curve_width(state->current_xfade_curve_width_b);
     s_ui.mag_out_as_note    = state->mag_out_as_note;
-    mark_xfade_cut_margin_dirty();
+    mark_xfade_curve_dirty();
 
     return true;
 }
@@ -2860,8 +2858,8 @@ void ui_control_reset_state(void)
     s_ui.current_ch2_dvs_enable = 0U;
     s_ui.sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
     s_ui.sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
-    s_ui.xfade_cut_margin_a     = UI_XFADE_CUT_MARGIN_A_DEFAULT;
-    s_ui.xfade_cut_margin_b     = UI_XFADE_CUT_MARGIN_B_DEFAULT;
+    s_ui.xfade_curve_width_a    = UI_XFADE_CURVE_WIDTH_A_DEFAULT;
+    s_ui.xfade_curve_width_b    = UI_XFADE_CURVE_WIDTH_B_DEFAULT;
     s_ui.curve_edit_mode        = false;
     s_ui.xf.position_a          = 0;
     s_ui.xf.position_b          = 0;
@@ -2903,7 +2901,7 @@ void ui_control_reset_state(void)
         s_ui.xf.pair_fade_up_topped[i] = false;
         s_ui.xf.pair_reverse_fade_down_takeover[i] = false;
     }
-    mark_xfade_cut_margin_dirty();
+    mark_xfade_curve_dirty();
     s_ui.xf.fade_prev_valid = false;
 
     for (uint16_t i = 0; i < 128U; i++)
