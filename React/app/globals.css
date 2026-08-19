@@ -30,6 +30,7 @@ button { color: inherit; }
 .help-button:hover { color: var(--cream); }
 .connect-button { min-height: 40px; padding: 0 16px; border: 1px solid #40413c; border-radius: 10px; background: #23241f; font-size: 13px; font-weight: 650; cursor: pointer; display: flex; align-items: center; gap: 9px; transition: .2s ease; }
 .connect-button:hover { border-color: #60625a; transform: translateY(-1px); }
+.connect-button:disabled { cursor: not-allowed; opacity: .62; transform: none; }
 .connect-button.is-connected { background: rgba(255,237,0,.09); border-color: rgba(255,237,0,.42); color: var(--jumble); }
 .connection-dot { width: 7px; height: 7px; border-radius: 50%; background: #6e7168; box-shadow: 0 0 0 4px rgba(110,113,104,.1); }
 .is-connected .connection-dot { background: var(--jumble); box-shadow: 0 0 0 4px rgba(255,237,0,.12), 0 0 12px rgba(255,237,0,.65); }
@@ -143,15 +144,23 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .key-top-a { grid-column: 2; grid-row: 1; }.key-top-midi-a { grid-column: 3; grid-row: 1; }.key-top-midi-b { grid-column: 4; grid-row: 1; }.key-top-b { grid-column: 5; grid-row: 1; }
 .key-bottom-a { grid-column: 1; grid-row: 2; }.key-bottom-midi-a { grid-column: 2; grid-row: 2; }.key-bottom-aux-a { grid-column: 3; grid-row: 2; }.key-bottom-aux-b { grid-column: 4; grid-row: 2; }.key-bottom-midi-b { grid-column: 5; grid-row: 2; }.key-bottom-b { grid-column: 6; grid-row: 2; }
 .device-section { margin-top: 56px; }
-.device-card { padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.device-card { padding: 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.device-summary { min-width: 0; flex: 1 1 520px; display: grid; gap: 14px; }
 .device-identity { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .device-art { flex: 0 0 auto; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; color: #777a71; background: #141512; border: 1px solid #373833; }
 .device-art.online { color: var(--jumble); border-color: rgba(255,237,0,.35); background: rgba(255,237,0,.08); }
 .device-identity h3 { margin: 0 0 5px; font-size: 14px; }.device-identity p { margin: 0; color: #7f8278; font-size: 10px; }
 .firmware-chip { margin-left: 8px; padding: 6px 8px; border: 1px solid #3c3e38; border-radius: 7px; color: #85887e; white-space: nowrap; font: 600 9px/1 var(--font-geist-mono); }
-.device-actions { display: flex; gap: 7px; }
+.midi-error { margin: 0; padding: 10px 12px; border: 1px solid rgba(255,112,112,.3); border-radius: 9px; color: #ffaaaa; background: rgba(255,84,84,.07); font-size: 10px; line-height: 1.45; }
+.midi-port-panel { padding: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 1px solid #353731; border-radius: 11px; background: #151613; }
+.midi-port-panel label { min-width: 0; display: grid; gap: 7px; }
+.midi-port-panel label > span { color: #85887e; font-size: 9px; }
+.midi-port-connect { grid-column: 1 / -1; min-height: 36px; border: 1px solid rgba(255,237,0,.38); border-radius: 9px; color: var(--jumble); background: rgba(255,237,0,.08); cursor: pointer; font-size: 10px; font-weight: 650; }
+.midi-port-connect:disabled { cursor: not-allowed; opacity: .45; }
+.device-actions { display: flex; flex: 0 1 390px; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .device-actions button { min-height: 36px; padding: 0 11px; display: flex; align-items: center; gap: 7px; border: 1px solid #3a3c36; border-radius: 9px; color: #b5b7ae; background: #171815; cursor: pointer; font-size: 10px; }
 .device-actions button:hover { color: var(--cream); border-color: #5b5d55; background: #20211e; }
+.device-actions button:disabled { cursor: not-allowed; opacity: .45; }
 
 .save-bar { position: fixed; z-index: 40; left: calc(224px + (100% - 224px) / 2); bottom: 20px; width: min(660px, calc(100vw - 272px)); transform: translate(-50%, calc(100% + 50px)); padding: 12px 12px 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 18px; border: 1px solid #484a43; border-radius: 14px; background: rgba(35,36,31,.96); box-shadow: 0 16px 50px rgba(0,0,0,.5); backdrop-filter: blur(16px); opacity: 0; transition: .28s ease; }
 .save-bar.is-visible { transform: translate(-50%, 0); opacity: 1; }
@@ -159,6 +168,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .save-bar strong { font-size: 12px; }.save-bar small { grid-column: 2; margin-top: 2px; color: #85887e; font-size: 10px; }
 .unsaved-dot { grid-row: 1 / 3; width: 7px; height: 7px; border-radius: 50%; background: var(--jumble); box-shadow: 0 0 10px rgba(255,237,0,.5); }
 .save-bar button { min-height: 40px; padding: 0 16px; display: flex; align-items: center; gap: 8px; border: 0; border-radius: 9px; background: var(--jumble); color: #11120f; font-size: 12px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.save-bar button:disabled { cursor: not-allowed; filter: saturate(.15); opacity: .58; }
 .toast { position: fixed; z-index: 60; right: 24px; bottom: 24px; padding: 12px 15px; display: flex; align-items: center; gap: 9px; border: 1px solid rgba(255,237,0,.35); border-radius: 11px; background: #23241f; box-shadow: 0 15px 40px rgba(0,0,0,.4); font-size: 12px; animation: toast-in .25s ease both; }
 .toast span { color: var(--jumble); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
@@ -178,7 +188,9 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
   .curve-card { grid-template-columns: 1fr 1.5fr; }
   .curve-controls { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
   .mag-card { grid-template-columns: 1fr; }
-  .device-card { align-items: flex-start; flex-direction: column; }
+  .device-card { align-items: stretch; flex-direction: column; }
+  .device-summary, .device-actions { flex-basis: auto; }
+  .device-actions { justify-content: flex-start; }
   .save-bar { left: 50%; width: min(660px, calc(100vw - 32px)); }
 }
 
@@ -205,6 +217,8 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
   .hardware-key span { font-size: clamp(10px, 2.8vw, 14px); }
   .hardware-key small { font-size: clamp(6px, 1.8vw, 9px); letter-spacing: 0; }
   .device-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .midi-port-panel { grid-template-columns: 1fr; }
+  .midi-port-connect { grid-column: auto; }
   .device-actions button { justify-content: center; }
   .device-actions button:first-child { grid-column: 1 / -1; }
   .save-bar { bottom: 12px; }

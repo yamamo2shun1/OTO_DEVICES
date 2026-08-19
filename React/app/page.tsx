@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   Cable,
@@ -12,6 +12,7 @@ import {
   Headphones,
   Menu,
   Radio,
+  RefreshCw,
   RotateCcw,
   Save,
   Settings2,
@@ -20,8 +21,8 @@ import {
   Usb,
   X,
 } from "lucide-react";
-
-type Source = "CH 1" | "CH 2" | "USB 1/2" | "USB 3/4";
+import { JumbleqConfig, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
+import { useJumbleqMidi } from "./midi/use-jumbleq-midi";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
 
@@ -118,7 +119,6 @@ function CurveGraph({ curveA, curveB }: { curveA: number; curveB: number }) {
 }
 
 export default function Home() {
-  const [connected, setConnected] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [ch1Type, setCh1Type] = useState<"LINE" | "PHONO">("LINE");
   const [ch2Type, setCh2Type] = useState<"LINE" | "PHONO">("PHONO");
@@ -136,6 +136,60 @@ export default function Home() {
   const [sensor3, setSensor3] = useState<"A" | "B">("B");
   const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const applySyncedConfig = useCallback((config: JumbleqConfig) => {
+    setCh1Type(config.ch1Type);
+    setCh2Type(config.ch2Type);
+    setAssignA(config.assignA);
+    setAssignB(config.assignB);
+    setAssignPost(config.assignPost);
+    setCurveA(config.curveA);
+    setCurveB(config.curveB);
+    setDvs1(config.dvs1);
+    setDvs2(config.dvs2);
+    setReturnSource(config.returnSource);
+    setHeadphoneSource(config.headphoneSource);
+    setMagMode(config.magMode);
+    setSensor2(config.sensor2);
+    setSensor3(config.sensor3);
+    setDirty(false);
+    setSaved(false);
+  }, []);
+
+  const {
+    status: midiStatus,
+    error: midiError,
+    inputs: midiInputs,
+    outputs: midiOutputs,
+    selectedInputId,
+    selectedOutputId,
+    setSelectedInputId,
+    setSelectedOutputId,
+    syncReceived,
+    accessGranted,
+    connectedInputName,
+    hasOpenPorts,
+    connect,
+    connectSelected,
+    disconnect,
+    requestSync,
+  } = useJumbleqMidi(applySyncedConfig);
+
+  const connected = midiStatus === "ready";
+  const connectionBusy = midiStatus === "requesting" || midiStatus === "connecting";
+  const connectButtonLabel = midiStatus === "unsupported"
+    ? "MIDI unsupported"
+    : midiStatus === "requesting"
+      ? "Requesting access…"
+      : midiStatus === "connecting"
+        ? "Opening MIDI…"
+        : midiStatus === "syncing"
+          ? `Syncing ${syncReceived}/${SYNC_FIELD_COUNT}`
+          : connected
+            ? "JUMBLEQ connected"
+            : hasOpenPorts
+              ? "Disconnect device"
+              : "Connect device";
 
   const update = <T,>(setter: (value: T) => void, value: T) => {
     setter(value);
@@ -183,9 +237,13 @@ export default function Home() {
         </a>
         <div className="topbar-actions">
           <button className="help-button" aria-label="Open help"><CircleHelp size={18} /><span>Help</span></button>
-          <button className={`connect-button ${connected ? "is-connected" : ""}`} onClick={() => setConnected(!connected)}>
+          <button
+            className={`connect-button ${connected ? "is-connected" : ""}`}
+            onClick={() => hasOpenPorts ? void disconnect() : void connect()}
+            disabled={connectionBusy || midiStatus === "unsupported"}
+          >
             <span className="connection-dot" />
-            {connected ? "JUMBLEQ connected" : "Connect device"}
+            {connectButtonLabel}
           </button>
         </div>
       </header>
@@ -204,7 +262,10 @@ export default function Home() {
           </nav>
           <div className="sidebar-device">
             <Cable size={18} />
-            <div><strong>{connected ? "JUMBLEQ MIDI" : "No device"}</strong><span>{connected ? "USB MIDI · Ready" : "Connect via USB"}</span></div>
+            <div>
+              <strong>{hasOpenPorts ? connectedInputName : "No device"}</strong>
+              <span>{connected ? "USB MIDI · Synced" : midiStatus === "syncing" ? `Reading ${syncReceived}/${SYNC_FIELD_COUNT}` : "Connect via USB"}</span>
+            </div>
           </div>
           <span className="version">Configurator preview · v0.1</span>
         </aside>
@@ -214,7 +275,7 @@ export default function Home() {
         <section className="workspace">
           <div className="page-heading">
             <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Choose the sources that feed each side of the crossfader.</p></div>
-            <div className={`device-pill ${connected ? "online" : ""}`}><span />{connected ? "Online" : "Demo mode"}</div>
+            <div className={`device-pill ${connected ? "online" : ""}`}><span />{connected ? "Online" : midiStatus === "syncing" ? "Syncing…" : "Demo mode"}</div>
           </div>
 
           <section className="routing-grid" id="routing">
@@ -301,16 +362,68 @@ export default function Home() {
           <section className="section-block device-section" id="device">
             <div className="section-heading"><div><p className="card-label">SYSTEM</p><h2>Device</h2></div><p>Connection details and preset management.</p></div>
             <article className="device-card">
-              <div className="device-identity"><span className={`device-art ${connected ? "online" : ""}`}><Usb size={25} /></span><div><h3>{connected ? "JUMBLEQ MIDI" : "JUMBLEQ Configurator demo"}</h3><p>{connected ? "USB MIDI connection is ready" : "Connect a unit to read hardware information"}</p></div><span className="firmware-chip">FW 0.6</span></div>
-              <div className="device-actions"><button onClick={reset}><RotateCcw size={16} />Restore defaults</button><button onClick={exportPreset}><Download size={16} />Export preset</button><button onClick={() => document.getElementById("preset-file")?.click()}><Upload size={16} />Import preset</button><input id="preset-file" type="file" accept="application/json" hidden /></div>
+              <div className="device-summary">
+                <div className="device-identity">
+                  <span className={`device-art ${connected ? "online" : ""}`}><Usb size={25} /></span>
+                  <div>
+                    <h3>{hasOpenPorts ? connectedInputName : "JUMBLEQ Configurator demo"}</h3>
+                    <p>
+                      {connected
+                        ? "Current settings loaded from JUMBLEQ"
+                        : midiStatus === "syncing"
+                          ? `Reading device settings (${syncReceived}/${SYNC_FIELD_COUNT})`
+                          : midiStatus === "unsupported"
+                            ? "Web MIDI is not available in this browser"
+                            : "Connect a unit to read its current settings"}
+                    </p>
+                  </div>
+                  <span className="firmware-chip">{connected ? `${SYNC_FIELD_COUNT}/${SYNC_FIELD_COUNT} synced` : "MIDI Ch.15"}</span>
+                </div>
+
+                {midiError && <p className="midi-error" role="alert">{midiError}</p>}
+
+                {accessGranted && (
+                  <div className="midi-port-panel">
+                    <label>
+                      <span>MIDI input</span>
+                      <div className="select-shell">
+                        <select value={selectedInputId} onChange={(event) => setSelectedInputId(event.target.value)}>
+                          <option value="">Select input</option>
+                          {midiInputs.map((port) => <option key={port.id} value={port.id}>{port.name}</option>)}
+                        </select>
+                        <ChevronDown size={16} />
+                      </div>
+                    </label>
+                    <label>
+                      <span>MIDI output</span>
+                      <div className="select-shell">
+                        <select value={selectedOutputId} onChange={(event) => setSelectedOutputId(event.target.value)}>
+                          <option value="">Select output</option>
+                          {midiOutputs.map((port) => <option key={port.id} value={port.id}>{port.name}</option>)}
+                        </select>
+                        <ChevronDown size={16} />
+                      </div>
+                    </label>
+                    {!hasOpenPorts && <button className="midi-port-connect" onClick={() => void connectSelected()} disabled={!selectedInputId || !selectedOutputId}>Connect selected ports</button>}
+                  </div>
+                )}
+              </div>
+
+              <div className="device-actions">
+                {hasOpenPorts && <button onClick={requestSync} disabled={midiStatus === "syncing"}><RefreshCw size={16} />Read from device</button>}
+                <button onClick={reset}><RotateCcw size={16} />Restore defaults</button>
+                <button onClick={exportPreset}><Download size={16} />Export preset</button>
+                <button onClick={() => document.getElementById("preset-file")?.click()}><Upload size={16} />Import preset</button>
+                <input id="preset-file" type="file" accept="application/json" hidden />
+              </div>
             </article>
           </section>
         </section>
       </div>
 
       <div className={`save-bar ${dirty ? "is-visible" : ""}`}>
-        <div><span className="unsaved-dot" /><strong>Unsaved changes</strong><small>Changes are active on the device but not stored.</small></div>
-        <button onClick={save}><Save size={17} />Save to device</button>
+        <div><span className="unsaved-dot" /><strong>Unsaved changes</strong><small>{hasOpenPorts ? "Changes are local only; device writing will be added next." : "Changes are active in this preview only."}</small></div>
+        <button onClick={save} disabled={hasOpenPorts} title={hasOpenPorts ? "Device writing will be added in the next implementation stage." : undefined}><Save size={17} />Save to device</button>
       </div>
       {saved && <div className="toast"><span>✓</span> Settings saved to JUMBLEQ</div>}
     </main>
