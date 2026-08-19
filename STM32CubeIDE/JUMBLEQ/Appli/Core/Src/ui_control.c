@@ -2305,12 +2305,10 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         {
             hold_value = up_gain;
         }
-        // When fade-up started the gesture, ignore fade-down travel from the
-        // released side. Only entering/leaving the bottom zone changes output.
-        // Other gesture directions keep the existing continuous fade-down cut.
-        if ((gesture_parent != XFADE_GESTURE_PARENT_FADE_UP) &&
-            !bottomed &&
-            (down_gain < hold_value))
+        // Fade-down follows the configured ramp in both directions regardless
+        // of which side started the gesture. Only an active bottom-hold forces
+        // the output to remain at zero.
+        if (down_gain < hold_value)
         {
             hold_value = down_gain;
         }
