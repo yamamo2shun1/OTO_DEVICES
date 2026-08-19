@@ -65,8 +65,9 @@ button { color: inherit; }
 .channel-a { --channel-color: var(--jumble); }
 .channel-b { --channel-color: var(--cyan); }
 .card-kicker { color: #85887e; font: 650 9px/1 var(--font-geist-mono); letter-spacing: .12em; display: flex; align-items: center; gap: 8px; }
-.card-kicker span { width: 24px; height: 24px; display: grid; place-items: center; color: var(--ink); background: var(--channel-color); border-radius: 7px; font-size: 12px; font-weight: 800; }
+.card-kicker span { width: 24px; height: 24px; flex: 0 0 auto; display: grid; place-items: center; color: var(--ink); background: var(--channel-color); border-radius: 7px; font-size: 12px; font-weight: 800; }
 .channel-card h2, .signal-card h2, .curve-card h2 { margin: 20px 0 16px; font-size: 21px; letter-spacing: -.035em; }
+.channel-card > .segmented { margin-top: 24px; }
 .segmented { padding: 3px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; border: 1px solid #363732; border-radius: 10px; background: #141512; }
 .segmented button { height: 34px; border: 0; border-radius: 7px; background: none; color: #777a71; cursor: pointer; font: 650 9px/1 var(--font-geist-mono); letter-spacing: .08em; }
 .segmented button.active { color: var(--ink); background: var(--channel-color); box-shadow: 0 3px 12px color-mix(in srgb, var(--channel-color) 18%, transparent); }

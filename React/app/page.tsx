@@ -315,8 +315,7 @@ export default function Home() {
 
           <section className="routing-grid" id="routing">
             <article className="channel-card channel-a">
-              <div className="card-kicker"><span>A</span>INPUT CHANNEL 1</div>
-              <h2>Channel 1</h2>
+              <div className="card-kicker"><span>1</span>INPUT SELECT SWITCH</div>
               <div className="segmented" role="group" aria-label="Channel 1 input type">
                 {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch1Type === item ? "active" : ""} onClick={() => updateProgram(setCh1Type, "ch1Type", item)}>{item}</button>)}
               </div>
@@ -334,8 +333,7 @@ export default function Home() {
             </article>
 
             <article className="channel-card channel-b">
-              <div className="card-kicker"><span>B</span>INPUT CHANNEL 2</div>
-              <h2>Channel 2</h2>
+              <div className="card-kicker"><span>2</span>INPUT SELECT SWITCH</div>
               <div className="segmented" role="group" aria-label="Channel 2 input type">
                 {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch2Type === item ? "active" : ""} onClick={() => updateProgram(setCh2Type, "ch2Type", item)}>{item}</button>)}
               </div>
