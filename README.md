@@ -18,7 +18,7 @@ As a USB Audio Class 2.0 interface, JUMBLEQ provides 4-in/4-out audio at 24-bit,
 - Flexible stereo input routing: assign each of the two analog and two USB inputs to crossfader A, crossfader B, or THRU
 - 4-in/4-out USB Audio Class 2.0 at 24-bit, 48 kHz or 96 kHz
 - USB audio send/return routing for external effects processing
-- USB MIDI control and the JUMBLEQ Configurator for Max and Max for Live
+- USB MIDI control and the browser-based JUMBLEQ Configurator
 - Built-in UF2 bootloader for drag-and-drop firmware updates
 
 ## Documentation
@@ -52,7 +52,8 @@ See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation
 - [`Docs`](./Docs/) — user guides, technical reference, and development notes
 - [`STM32CubeIDE`](./STM32CubeIDE/) — MCU application, bootloader, and external memory loader projects
 - [`SigmaDSP`](./SigmaDSP/) — ADAU1466 DSP project and exported code
-- [`Max`](./Max/) — JUMBLEQ Configurator and Max for Live device
+- [`WebConfigurator`](./WebConfigurator/) — primary browser-based JUMBLEQ Configurator
+- [`Max`](./Max/) — alternative Max Standalone and Max for Live versions of JUMBLEQ Configurator
 - [`Plasticity`](./Plasticity/) — enclosure CAD data and printable parts
 - [`UI_Design`](./UI_Design/) — panel and control-layout artwork
 
