@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import Image from "next/image";
 import {
+  BookOpen,
   Cable,
   ChevronDown,
   CircleHelp,
   Download,
+  ExternalLink,
   Gauge,
   GitBranch,
   Headphones,
@@ -18,12 +20,13 @@ import {
   Save,
   Settings2,
   SlidersHorizontal,
+  TriangleAlert,
   Upload,
   Usb,
   X,
 } from "lucide-react";
 import { curvePercentToMidiCC, JumbleqConfig, ProgramSettingField, RESTORE_DEFAULT_CONFIG, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
-import { useJumbleqMidi } from "./midi/use-jumbleq-midi";
+import { useJumbleqMidi, type MidiStatus } from "./midi/use-jumbleq-midi";
 import { parseJumbleqPreset, serializeJumbleqPreset } from "./presets/jumbleq-preset";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
@@ -117,8 +120,162 @@ function CurveGraph({ curveA, curveB }: { curveA: number; curveB: number }) {
   );
 }
 
+function HelpDialog({
+  open,
+  onClose,
+  browserSupport,
+  midiStatus,
+  connected,
+  hasOpenPorts,
+  syncReceived,
+}: {
+  open: boolean;
+  onClose: () => void;
+  browserSupport: { midi: boolean; secure: boolean } | null;
+  midiStatus: MidiStatus;
+  connected: boolean;
+  hasOpenPorts: boolean;
+  syncReceived: number;
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 0);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? []);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  const browserLabel = browserSupport === null
+    ? "Checking browser…"
+    : !browserSupport.secure
+      ? "HTTPS required"
+      : browserSupport.midi
+        ? "Web MIDI available"
+        : "Web MIDI unavailable";
+  const browserReady = browserSupport?.midi === true && browserSupport.secure;
+  const deviceLabel = connected
+    ? `${SYNC_FIELD_COUNT}/${SYNC_FIELD_COUNT} settings synced`
+    : midiStatus === "reconnecting"
+      ? "Waiting for USB reconnection"
+      : midiStatus === "syncing"
+        ? `Reading settings ${syncReceived}/${SYNC_FIELD_COUNT}`
+        : hasOpenPorts
+          ? "MIDI ports open"
+          : "Not connected";
+
+  return (
+    <div className="help-layer">
+      <button className="help-scrim" aria-label="Close help" onClick={onClose} />
+      <div ref={dialogRef} className="help-dialog" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <header className="help-dialog-header">
+          <div><span className="help-heading-icon"><CircleHelp size={20} /></span><div><p>JUMBLEQ CONFIGURATOR</p><h2 id="help-title">Help &amp; connection guide</h2></div></div>
+          <button ref={closeButtonRef} className="help-close" aria-label="Close help" onClick={onClose}><X size={20} /></button>
+        </header>
+
+        <div className="help-dialog-body">
+          <div className="help-status-grid" aria-label="Current connection status">
+            <div className={`help-status-card ${browserReady ? "ready" : "warning"}`}><span>Browser</span><strong>{browserLabel}</strong></div>
+            <div className={`help-status-card ${connected ? "ready" : ""}`}><span>JUMBLEQ</span><strong>{deviceLabel}</strong></div>
+          </div>
+
+          <section className="help-section">
+            <div className="help-section-heading"><span><Usb size={18} /></span><div><h3>Connect JUMBLEQ</h3><p>Read the current hardware settings before editing.</p></div></div>
+            <ol className="help-steps">
+              <li><span>1</span><div><strong>Connect USB</strong><p>Power JUMBLEQ and connect it with a USB data cable.</p></div></li>
+              <li><span>2</span><div><strong>Allow MIDI access</strong><p>Select Connect device and approve the browser permission prompt.</p></div></li>
+              <li><span>3</span><div><strong>Wait for synchronization</strong><p>Editing is ready when the status reaches {SYNC_FIELD_COUNT}/{SYNC_FIELD_COUNT} synced.</p></div></li>
+            </ol>
+          </section>
+
+          <div className="help-guide-grid">
+            <section className="help-section compact">
+              <div className="help-section-heading"><span><Save size={18} /></span><div><h3>Edit &amp; save</h3><p>Changes are sent immediately while connected.</p></div></div>
+              <ul>
+                <li>The yellow Unsaved changes bar means the device is updated but EEPROM is not.</li>
+                <li>Save to device stores the current configuration in EEPROM.</li>
+                <li>Restore defaults also remains unsaved until Save to device is selected.</li>
+              </ul>
+            </section>
+
+            <section className="help-section compact">
+              <div className="help-section-heading"><span><BookOpen size={18} /></span><div><h3>Preset files</h3><p>Move settings between browsers and devices.</p></div></div>
+              <ul>
+                <li>Export preset downloads the settings currently shown on screen.</li>
+                <li>Import preset validates all settings before applying them.</li>
+                <li>An imported preset is not stored in EEPROM until Save to device is selected.</li>
+              </ul>
+            </section>
+          </div>
+
+          <section className="help-section">
+            <div className="help-section-heading"><span><TriangleAlert size={18} /></span><div><h3>Troubleshooting</h3><p>Try the action that matches the displayed status.</p></div></div>
+            <div className="troubleshooting-list">
+              <div><strong>MIDI unsupported</strong><p>Use an HTTPS page in a browser that supports Web MIDI. Safari and browsers on iPhone or iPad cannot communicate with JUMBLEQ through Web MIDI.</p></div>
+              <div><strong>Permission denied</strong><p>Allow MIDI access in the browser site settings, reload the page, then select Connect device again.</p></div>
+              <div><strong>No MIDI ports</strong><p>Confirm that the cable supports data, reconnect USB, then select JUMBLEQ MIDI for both input and output.</p></div>
+              <div><strong>Synchronization timed out</strong><p>Select Read from device. If it fails again, reconnect the USB cable and wait for automatic synchronization.</p></div>
+              <div><strong>Automatic reconnect failed</strong><p>Select JUMBLEQ MIDI input and output in the Device section, then use Connect selected ports.</p></div>
+            </div>
+          </section>
+
+          <aside className="help-compatibility">
+            <TriangleAlert size={17} />
+            <div><strong>Web MIDI has limited browser availability</strong><p>The configurator UI can still be viewed without MIDI support, but direct USB configuration is unavailable.</p></div>
+            <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_MIDI_API" target="_blank" rel="noreferrer">Web MIDI requirements <ExternalLink size={14} /></a>
+          </aside>
+        </div>
+
+        <footer className="help-dialog-footer"><button onClick={onClose}>Close help</button></footer>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const browserSupport = helpOpen && typeof window !== "undefined"
+    ? {
+        midi: typeof (navigator as Navigator & { requestMIDIAccess?: unknown }).requestMIDIAccess === "function",
+        secure: window.isSecureContext,
+      }
+    : null;
   const [ch1Type, setCh1Type] = useState<"LINE" | "PHONO">(RESTORE_DEFAULT_CONFIG.ch1Type);
   const [ch2Type, setCh2Type] = useState<"LINE" | "PHONO">(RESTORE_DEFAULT_CONFIG.ch2Type);
   const [assignA, setAssignA] = useState<Source>(RESTORE_DEFAULT_CONFIG.assignA);
@@ -138,6 +295,7 @@ export default function Home() {
   const [presetNotice, setPresetNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const presetFileInputRef = useRef<HTMLInputElement>(null);
   const presetNoticeTimerRef = useRef<number | null>(null);
+  const closeHelp = useCallback(() => setHelpOpen(false), []);
 
   const showPresetNotice = useCallback((type: "success" | "error", message: string) => {
     if (presetNoticeTimerRef.current) window.clearTimeout(presetNoticeTimerRef.current);
@@ -323,7 +481,7 @@ export default function Home() {
           <span className="brand-product">CONFIGURATOR</span>
         </a>
         <div className="topbar-actions">
-          <button className="help-button" aria-label="Open help"><CircleHelp size={18} /><span>Help</span></button>
+          <button className="help-button" aria-label="Open help" aria-haspopup="dialog" aria-expanded={helpOpen} onClick={() => setHelpOpen(true)}><CircleHelp size={18} /><span>Help</span></button>
           <button
             className={`connect-button ${connected ? "is-connected" : ""}`}
             onClick={() => hasOpenPorts ? void disconnect() : void connect()}
@@ -516,6 +674,7 @@ export default function Home() {
       </div>
       {saved && <div className="toast"><span>✓</span> Save command sent to JUMBLEQ</div>}
       {presetNotice && <div className={`toast preset-toast ${presetNotice.type === "error" ? "is-error" : ""}`} role={presetNotice.type === "error" ? "alert" : "status"}><span>{presetNotice.type === "error" ? "!" : "✓"}</span>{presetNotice.message}</div>}
+      <HelpDialog open={helpOpen} onClose={closeHelp} browserSupport={browserSupport} midiStatus={midiStatus} connected={connected} hasOpenPorts={hasOpenPorts} syncReceived={syncReceived} />
     </main>
   );
 }
