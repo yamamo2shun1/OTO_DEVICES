@@ -63,8 +63,11 @@ export const SYNC_FIELD_COUNT = SYNC_FIELDS.length;
 const MIDI_CHANNEL_15 = 14;
 const PROGRAM_CHANGE = 0xc0;
 const CONTROL_CHANGE = 0xb0;
+const inputTypes: readonly InputType[] = ["LINE", "PHONO"];
 const sources: readonly Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
 const headphoneSources: readonly HeadphoneSource[] = ["Fader A", "Fader B", "Thru", "Master"];
+const auxiliarySides: readonly AuxiliarySide[] = ["A", "B"];
+const magneticModes: readonly MagneticMode[] = ["CC", "NOTE"];
 
 export const REQUEST_CURRENT_CONFIG = new Uint8Array([
   PROGRAM_CHANGE | MIDI_CHANNEL_15,
@@ -73,6 +76,21 @@ export const REQUEST_CURRENT_CONFIG = new Uint8Array([
 
 function programChange(program: number) {
   return new Uint8Array([PROGRAM_CHANGE | MIDI_CHANNEL_15, program]);
+}
+
+function settingIndex<Value extends string>(
+  field: ProgramSettingField,
+  value: unknown,
+  allowedValues: readonly Value[],
+) {
+  const index = allowedValues.indexOf(value as Value);
+  if (index < 0) throw new Error(`Invalid value for ${field}.`);
+  return index;
+}
+
+function booleanIndex(field: ProgramSettingField, value: unknown) {
+  if (typeof value !== "boolean") throw new Error(`Invalid value for ${field}.`);
+  return value ? 1 : 0;
 }
 
 export const CURVE_EDIT_OFF = programChange(120);
@@ -88,6 +106,7 @@ function curveMidiCCToPercent(value: number) {
 }
 
 export function curvePercentToMidiCC(percent: number) {
+  if (!Number.isFinite(percent)) throw new Error("Curve percentage must be a finite number.");
   return Math.round(Math.min(100, Math.max(0, percent)) * 127 / 100);
 }
 
@@ -98,25 +117,26 @@ export function encodeProgramSetting(
   let program: number;
 
   switch (field) {
-    case "ch1Type": program = value === "LINE" ? 0 : 1; break;
-    case "ch2Type": program = value === "LINE" ? 2 : 3; break;
-    case "assignA": program = 4 + sources.indexOf(value as Source); break;
-    case "assignB": program = 8 + sources.indexOf(value as Source); break;
-    case "assignPost": program = 12 + sources.indexOf(value as Source); break;
-    case "dvs1": program = value ? 17 : 16; break;
-    case "dvs2": program = value ? 19 : 18; break;
-    case "returnSource": program = value === "USB 1/2" ? 20 : 21; break;
-    case "headphoneSource": program = 22 + headphoneSources.indexOf(value as HeadphoneSource); break;
-    case "sensor2": program = value === "A" ? 26 : 27; break;
-    case "sensor3": program = value === "A" ? 28 : 29; break;
-    case "magMode": program = value === "CC" ? 122 : 123; break;
+    case "ch1Type": program = settingIndex(field, value, inputTypes); break;
+    case "ch2Type": program = 2 + settingIndex(field, value, inputTypes); break;
+    case "assignA": program = 4 + settingIndex(field, value, sources); break;
+    case "assignB": program = 8 + settingIndex(field, value, sources); break;
+    case "assignPost": program = 12 + settingIndex(field, value, sources); break;
+    case "dvs1": program = 16 + booleanIndex(field, value); break;
+    case "dvs2": program = 18 + booleanIndex(field, value); break;
+    case "returnSource": program = 20 + settingIndex(field, value, ["USB 1/2", "USB 3/4"] as const); break;
+    case "headphoneSource": program = 22 + settingIndex(field, value, headphoneSources); break;
+    case "sensor2": program = 26 + settingIndex(field, value, auxiliarySides); break;
+    case "sensor3": program = 28 + settingIndex(field, value, auxiliarySides); break;
+    case "magMode": program = 122 + settingIndex(field, value, magneticModes); break;
+    default: throw new Error(`Unknown setting field: ${String(field)}.`);
   }
 
-  if (program < 0 || program > 127) throw new Error(`Invalid value for ${field}.`);
   return programChange(program);
 }
 
 export function encodeCurveSetting(field: "curveA" | "curveB", percent: number) {
+  if (field !== "curveA" && field !== "curveB") throw new Error(`Unknown curve field: ${String(field)}.`);
   return new Uint8Array([
     CONTROL_CHANGE | MIDI_CHANNEL_15,
     field === "curveA" ? 20 : 21,
