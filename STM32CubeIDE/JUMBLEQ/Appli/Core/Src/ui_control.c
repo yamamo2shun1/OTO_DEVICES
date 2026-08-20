@@ -154,8 +154,8 @@ typedef struct
 static ui_control_state_t s_ui = {
     .current_ch1_input_type = INPUT_TYPE_LINE,
     .current_ch2_input_type = INPUT_TYPE_LINE,
-    .current_xfA_assign     = INPUT_SRC_CH2_LN,
-    .current_xfB_assign     = INPUT_SRC_CH1_LN,
+    .current_xfA_assign     = INPUT_SRC_CH1_LN,
+    .current_xfB_assign     = INPUT_SRC_CH2_LN,
     .current_xfpost_assign  = INPUT_SRC_USB12,
     .current_return_assign  = INPUT_SRC_USB34,
     .current_hp_out_source  = CUE_SEL_MST,
@@ -2849,8 +2849,8 @@ void ui_control_reset_state(void)
 
     s_ui.current_ch1_input_type = INPUT_TYPE_LINE;
     s_ui.current_ch2_input_type = INPUT_TYPE_LINE;
-    s_ui.current_xfA_assign     = INPUT_SRC_CH2_LN;
-    s_ui.current_xfB_assign     = INPUT_SRC_CH1_LN;
+    s_ui.current_xfA_assign     = INPUT_SRC_CH1_LN;
+    s_ui.current_xfB_assign     = INPUT_SRC_CH2_LN;
     s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
     s_ui.current_return_assign  = INPUT_SRC_USB34;
     s_ui.current_hp_out_source  = CUE_SEL_MST;

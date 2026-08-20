@@ -55,8 +55,8 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
 
     cfg->current_ch1_input_type = 0U; /* INPUT_TYPE_LINE */
     cfg->current_ch2_input_type = 0U; /* INPUT_TYPE_LINE */
-    cfg->current_xfA_assign     = 2U; /* INPUT_SRC_CH2_LN */
-    cfg->current_xfB_assign     = 0U; /* INPUT_SRC_CH1_LN */
+    cfg->current_xfA_assign     = 0U; /* INPUT_SRC_CH1_LN */
+    cfg->current_xfB_assign     = 2U; /* INPUT_SRC_CH2_LN */
     cfg->current_xfpost_assign  = 4U; /* INPUT_SRC_USB12 */
     cfg->current_return_assign  = 5U; /* INPUT_SRC_USB34 */
     cfg->current_hp_out_source  = CUE_SEL_MST;

@@ -32,8 +32,9 @@ typedef struct
     float current_xfade_curve_width_b;
 } UI_ControlPersistState_t;
 
-#define UI_XFADE_CURVE_WIDTH_A_DEFAULT (0.60f)
-#define UI_XFADE_CURVE_WIDTH_B_DEFAULT (0.16f)
+/* Configurator 50% -> MIDI CC64 -> internal curve width 0.30771654. */
+#define UI_XFADE_CURVE_WIDTH_A_DEFAULT (0.30771654f)
+#define UI_XFADE_CURVE_WIDTH_B_DEFAULT (0.30771654f)
 
 uint8_t get_current_xfA_position(void);
 uint8_t get_current_xfB_position(void);
