@@ -31,6 +31,17 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/", { waitUntil: "networkidle" });
 });
 
+test("shows the verified iPad MIDIWeb Browser guidance", async ({ page }) => {
+  await page.getByRole("button", { name: "Open help" }).click();
+
+  const midiWebBrowserLink = page.getByRole("link", { name: /MIDIWeb Browser/ });
+  await expect(midiWebBrowserLink).toHaveAttribute(
+    "href",
+    "https://apps.apple.com/jp/app/midiweb-browser/id6757226617?l=en-US",
+  );
+  await expect(page.getByText("Connection and MIDI communication are verified on iPadOS 26.5.")).toBeVisible();
+});
+
 test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page }) => {
   await page.getByRole("button", { name: "Connect device" }).click();
 
