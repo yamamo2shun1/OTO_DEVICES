@@ -22,9 +22,25 @@ npm start
 
 ```bash
 npm test
+npm run test:e2e
 ```
 
-lintとデプロイ用の本番ビルドをまとめて確認します。
+`npm test`はMIDIプロトコルとPreset処理の単体テスト、lint、デプロイ用の本番ビルドをまとめて確認します。
+
+`npm run test:e2e`はPlaywright上のChromiumを使用し、Web MIDIデバイスを模擬して次の操作を確認します。
+
+- JUMBLEQへの接続と初期同期
+- 設定変更、カーブ編集、EEPROM保存コマンド
+- USB切断後の自動再接続
+- PresetのImport/Export
+
+初回のみ、E2Eテスト用ブラウザをインストールしてください。
+
+```bash
+npx playwright install chromium
+```
+
+すべてを続けて確認する場合は`npm run test:all`を使用します。
 
 ## Deploy Now
 

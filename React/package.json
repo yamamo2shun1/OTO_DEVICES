@@ -11,6 +11,8 @@
     "postbuild": "node scripts/prepare-standalone.mjs",
     "start": "next start",
     "test": "npm run test:unit && npm run lint && npm run build",
+    "test:all": "npm test && npm run test:e2e",
+    "test:e2e": "playwright test",
     "test:unit": "node --experimental-strip-types --test tests/jumbleq-midi.test.mjs tests/jumbleq-preset.test.mjs tests/midi-port-selection.test.mjs",
     "lint": "eslint . --ignore-pattern .next"
   },
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.3.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
