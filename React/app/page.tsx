@@ -561,7 +561,7 @@ export default function Home() {
         <section className="workspace">
           <div className="page-heading">
             <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Choose the sources that feed each side of the crossfader.</p></div>
-            <div className={`device-pill ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><span />{connected ? "Online" : reconnecting ? "Reconnecting…" : midiStatus === "syncing" ? "Syncing…" : "Demo mode"}</div>
+            <div className={`device-pill ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><span />{connected ? "Online" : reconnecting ? "Reconnecting…" : midiStatus === "syncing" ? "Syncing…" : "Offline"}</div>
           </div>
 
           <fieldset className="settings-fieldset" disabled={settingsLocked} aria-busy={settingsLocked}>
@@ -603,7 +603,7 @@ export default function Home() {
           </section>
 
           <section className="section-block" id="controls">
-            <div className="section-heading"><div><p className="card-label">PERFORMANCE</p><h2>Controls</h2></div><p>Fine-tune the behavior of the hardware controls.</p></div>
+            <div className="section-heading"><div><p className="card-label">PERFORMANCE</p><h2>Controls</h2></div><p>Configure DVS, monitor and return routing, and magnetic switches.</p></div>
             <div className="control-grid">
               <article className="control-card control-card-wide">
                 <div className="control-card-title"><span className="control-icon"><SlidersHorizontal size={18} /></span><div><h3>Digital Vinyl System</h3><p>Enable or disable DVS operation for each input channel.</p></div></div>
@@ -652,7 +652,7 @@ export default function Home() {
                 <div className="device-identity">
                   <span className={`device-art ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><Usb size={25} /></span>
                   <div>
-                    <h3>{hasOpenPorts || reconnecting ? connectedInputName : "JUMBLEQ Configurator demo"}</h3>
+                    <h3>{hasOpenPorts || reconnecting ? connectedInputName : "JUMBLEQ Configurator"}</h3>
                     <p>
                       {connected
                         ? "Current settings loaded from JUMBLEQ"
