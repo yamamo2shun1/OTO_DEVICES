@@ -9,16 +9,8 @@ JUMBLEQ provides USB MIDI input and output for remote control, configuration, an
 
 ## JUMBLEQ Configurator
 
-The [JUMBLEQ Configurator](../../user-guide/configurator.md) uses these messages to read and change device settings. It is developed with [Max 9](https://cycling74.com/products/max-9). Project files and packaged versions are available in the [`Max` directory](../../../Max/).
+The browser-based [JUMBLEQ Configurator](https://configurator.jumbleq.io/) uses these messages to read and change device settings. It is the primary version and receives maintenance priority.
 
-### Max Version
+See the [Configurator user guide](../../user-guide/configurator.md) for connection instructions, screenshots, and an overview of the available settings.
 
-The Max version is available for Windows and macOS. Max 9 is required to open the source patch.
-
-<img width="400" alt="JUMBLEQ Configurator for Max" src="https://github.com/user-attachments/assets/d568f29f-4c74-4a79-a0e7-26b0f5e07027" />
-
-### Max for Live Version
-
-The [Max for Live device](../../../Max/JUMBLEQ_Configurator.amxd) allows JUMBLEQ settings to be changed directly from Ableton Live.
-
-<img width="600" alt="JUMBLEQ Configurator for Max for Live" src="https://github.com/user-attachments/assets/4fddf9b7-5925-4448-b21a-bae903f854b2" />
+The previous Max Standalone and [Max for Live](../../../Max/JUMBLEQ_Configurator.amxd) versions remain available in the [`Max` directory](../../../Max/) for existing workflows.

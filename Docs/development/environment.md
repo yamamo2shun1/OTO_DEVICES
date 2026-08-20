@@ -8,6 +8,6 @@ The project currently uses the following development tools and packages:
 - UF2 conversion: [Python](https://www.python.org/) 3.13.14
 - MCU firmware package: STM32CubeH7RS v1.3.0
 - DSP development: [SigmaStudio+](https://www.analog.com/en/resources/evaluation-hardware-and-software/embedded-development-software/sigmastudio-plus.html) 3.4.0
-- Configurator development: [Max](https://cycling74.com/products/max-9) 9.1.5
+- Legacy Configurator development: [Max](https://cycling74.com/products/max-9) 9.1.5
 
 See the [STM32CubeIDE project overview](../../STM32CubeIDE/README.md) for the projects included in this repository.
