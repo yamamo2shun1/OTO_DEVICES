@@ -13,6 +13,12 @@ import {
   SAVE_CURRENT_CONFIG,
   SYNC_FIELD_COUNT,
 } from "./jumbleq-midi";
+import {
+  midiPortIdentity,
+  selectInitialMidiPort,
+  selectReconnectMidiPort,
+  type MidiPortIdentity,
+} from "./midi-port-selection";
 
 type MidiPortState = "connected" | "disconnected";
 
@@ -50,6 +56,7 @@ export type MidiStatus =
   | "requesting"
   | "selecting"
   | "connecting"
+  | "reconnecting"
   | "syncing"
   | "ready"
   | "error";
@@ -68,10 +75,6 @@ function portOption(port: WebMidiPort): MidiPortOption {
     name: port.name?.trim() || "Unnamed MIDI port",
     manufacturer: port.manufacturer?.trim() || "",
   };
-}
-
-function isJumbleqPort(port: WebMidiPort) {
-  return `${port.manufacturer ?? ""} ${port.name ?? ""}`.toLowerCase().includes("jumbleq");
 }
 
 function availablePorts<T extends WebMidiPort>(ports: Map<string, T>) {
@@ -100,6 +103,10 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const curveEditTimerRef = useRef<number | null>(null);
   const curveEditActiveRef = useRef(false);
   const stateChangeHandlerRef = useRef<(() => void) | null>(null);
+  const reconnectTargetRef = useRef<{ input: MidiPortIdentity; output: MidiPortIdentity } | null>(null);
+  const reconnectPendingRef = useRef(false);
+  const openingPortsRef = useRef(false);
+  const shouldReconnectRef = useRef(false);
   const onConfigRef = useRef(onConfig);
 
   useEffect(() => {
@@ -187,44 +194,93 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     setInputs(nextInputs.map(portOption));
     setOutputs(nextOutputs.map(portOption));
 
-    const preferredInput = nextInputs.find(isJumbleqPort) ?? (nextInputs.length === 1 ? nextInputs[0] : null);
-    const preferredOutput = nextOutputs.find(isJumbleqPort) ?? (nextOutputs.length === 1 ? nextOutputs[0] : null);
+    const preferredInput = selectInitialMidiPort(nextInputs);
+    const preferredOutput = selectInitialMidiPort(nextOutputs);
     setSelectedInputId((current) => nextInputs.some((port) => port.id === current) ? current : preferredInput?.id ?? "");
     setSelectedOutputId((current) => nextOutputs.some((port) => port.id === current) ? current : preferredOutput?.id ?? "");
 
-    return { preferredInput, preferredOutput };
+    return { nextInputs, nextOutputs, preferredInput, preferredOutput };
   }, []);
 
-  const openPorts = useCallback(async (inputId: string, outputId: string) => {
+  const openPorts = useCallback(async (inputId: string, outputId: string, mode: "connect" | "reconnect" = "connect") => {
+    if (openingPortsRef.current) return false;
     const access = accessRef.current;
     const input = access?.inputs.get(inputId);
     const output = access?.outputs.get(outputId);
     if (!input || !output || input.state === "disconnected" || output.state === "disconnected") {
       setError("Select an available MIDI input and output.");
       setStatus("selecting");
-      return;
+      return false;
     }
 
-    setStatus("connecting");
+    openingPortsRef.current = true;
+    setStatus(mode === "reconnect" ? "reconnecting" : "connecting");
     setError(null);
     clearSyncTimer();
 
-    if (inputRef.current && inputRef.current !== input) {
-      inputRef.current.onmidimessage = null;
-      await inputRef.current.close();
-    }
-    if (outputRef.current && outputRef.current !== output) await outputRef.current.close();
+    try {
+      if (inputRef.current && inputRef.current !== input) {
+        inputRef.current.onmidimessage = null;
+        await inputRef.current.close();
+      }
+      if (outputRef.current && outputRef.current !== output) await outputRef.current.close();
 
-    await Promise.all([input.open(), output.open()]);
-    input.onmidimessage = handleMidiMessage;
-    inputRef.current = input;
-    outputRef.current = output;
-    setConnectedInputName(input.name?.trim() || "JUMBLEQ MIDI");
-    setHasOpenPorts(true);
-    setSelectedInputId(input.id);
-    setSelectedOutputId(output.id);
-    beginSync();
+      await Promise.all([input.open(), output.open()]);
+      input.onmidimessage = handleMidiMessage;
+      inputRef.current = input;
+      outputRef.current = output;
+      reconnectTargetRef.current = {
+        input: midiPortIdentity(input),
+        output: midiPortIdentity(output),
+      };
+      reconnectPendingRef.current = false;
+      setConnectedInputName(input.name?.trim() || "JUMBLEQ MIDI");
+      setHasOpenPorts(true);
+      setSelectedInputId(input.id);
+      setSelectedOutputId(output.id);
+      beginSync();
+      return true;
+    } catch (caught) {
+      input.onmidimessage = null;
+      inputRef.current = null;
+      outputRef.current = null;
+      setHasOpenPorts(false);
+      await Promise.allSettled([input.close(), output.close()]);
+      throw caught;
+    } finally {
+      openingPortsRef.current = false;
+    }
   }, [beginSync, clearSyncTimer, handleMidiMessage]);
+
+  const tryAutoReconnect = useCallback(async (
+    nextInputs: WebMidiInput[],
+    nextOutputs: WebMidiOutput[],
+  ) => {
+    if (!shouldReconnectRef.current || !reconnectPendingRef.current || openingPortsRef.current) return;
+    const target = reconnectTargetRef.current;
+    if (!target) {
+      reconnectPendingRef.current = false;
+      setError("Select the JUMBLEQ MIDI input and output below.");
+      setStatus("selecting");
+      return;
+    }
+
+    const input = selectReconnectMidiPort(nextInputs, target.input);
+    const output = selectReconnectMidiPort(nextOutputs, target.output);
+    if (!input || !output) {
+      setStatus("reconnecting");
+      return;
+    }
+
+    try {
+      await openPorts(input.id, output.id, "reconnect");
+    } catch (caught) {
+      reconnectPendingRef.current = false;
+      const detail = caught instanceof Error ? ` ${caught.message}` : "";
+      setError(`Automatic reconnect failed.${detail} Select the MIDI ports below to reconnect manually.`);
+      setStatus("selecting");
+    }
+  }, [openPorts]);
 
   const connect = useCallback(async () => {
     const midiNavigator = navigator as MidiNavigator;
@@ -235,6 +291,8 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     }
 
     try {
+      shouldReconnectRef.current = true;
+      reconnectPendingRef.current = false;
       setStatus("requesting");
       setError(null);
       const access = accessRef.current ?? await midiNavigator.requestMIDIAccess.call(navigator);
@@ -243,6 +301,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
       if (stateChangeHandlerRef.current) access.removeEventListener("statechange", stateChangeHandlerRef.current);
       const stateChangeHandler = () => {
         const refreshed = refreshPorts(access);
+        if (openingPortsRef.current) return;
         const activeInput = inputRef.current;
         const activeOutput = outputRef.current;
         if ((activeInput && activeInput.state === "disconnected") || (activeOutput && activeOutput.state === "disconnected")) {
@@ -254,8 +313,15 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
           curveEditActiveRef.current = false;
           setCurveEditActive(false);
           setHasOpenPorts(false);
-          setError("JUMBLEQ was disconnected.");
-          setStatus("error");
+          reconnectPendingRef.current = shouldReconnectRef.current;
+          if (shouldReconnectRef.current) {
+            setError(null);
+            setStatus("reconnecting");
+          }
+        }
+
+        if (shouldReconnectRef.current && reconnectPendingRef.current) {
+          void tryAutoReconnect(refreshed.nextInputs, refreshed.nextOutputs);
         } else if (!activeInput && (!refreshed.preferredInput || !refreshed.preferredOutput)) {
           setStatus("selecting");
         }
@@ -271,14 +337,18 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
         setStatus("selecting");
       }
     } catch (caught) {
+      shouldReconnectRef.current = false;
+      reconnectPendingRef.current = false;
       const message = caught instanceof Error ? caught.message : "MIDI access was not granted.";
       setError(message);
       setStatus("error");
     }
-  }, [clearCurveEditTimer, clearSyncTimer, openPorts, refreshPorts]);
+  }, [clearCurveEditTimer, clearSyncTimer, openPorts, refreshPorts, tryAutoReconnect]);
 
   const connectSelected = useCallback(async () => {
     try {
+      shouldReconnectRef.current = true;
+      reconnectPendingRef.current = false;
       await openPorts(selectedInputId, selectedOutputId);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "Could not open the selected MIDI ports.";
@@ -331,6 +401,9 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   }, [sendRaw]);
 
   const disconnect = useCallback(async () => {
+    shouldReconnectRef.current = false;
+    reconnectPendingRef.current = false;
+    reconnectTargetRef.current = null;
     endCurveEdit();
     clearSyncTimer();
     const input = inputRef.current;
@@ -347,6 +420,8 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
 
   useEffect(() => {
     return () => {
+      shouldReconnectRef.current = false;
+      reconnectPendingRef.current = false;
       clearSyncTimer();
       clearCurveEditTimer();
       if (curveEditActiveRef.current && outputRef.current?.state !== "disconnected") {

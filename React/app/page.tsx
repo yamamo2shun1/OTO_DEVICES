@@ -194,20 +194,24 @@ export default function Home() {
   } = useJumbleqMidi(applySyncedConfig);
 
   const connected = midiStatus === "ready";
-  const connectionBusy = midiStatus === "requesting" || midiStatus === "connecting";
+  const reconnecting = midiStatus === "reconnecting";
+  const connectionBusy = midiStatus === "requesting" || midiStatus === "connecting" || reconnecting;
+  const settingsLocked = connectionBusy || midiStatus === "syncing";
   const connectButtonLabel = midiStatus === "unsupported"
     ? "MIDI unsupported"
     : midiStatus === "requesting"
       ? "Requesting access…"
       : midiStatus === "connecting"
         ? "Opening MIDI…"
-        : midiStatus === "syncing"
-          ? `Syncing ${syncReceived}/${SYNC_FIELD_COUNT}`
-          : connected
-            ? "JUMBLEQ connected"
-            : hasOpenPorts
-              ? "Disconnect device"
-              : "Connect device";
+        : reconnecting
+          ? "Reconnecting…"
+          : midiStatus === "syncing"
+            ? `Syncing ${syncReceived}/${SYNC_FIELD_COUNT}`
+            : connected
+              ? "JUMBLEQ connected"
+              : hasOpenPorts
+                ? "Disconnect device"
+                : "Connect device";
 
   const updateProgram = <Key extends ProgramSettingField>(
     setter: (value: JumbleqConfig[Key]) => void,
@@ -346,8 +350,8 @@ export default function Home() {
           <div className="sidebar-device">
             <Cable size={18} />
             <div>
-              <strong>{hasOpenPorts ? connectedInputName : "No device"}</strong>
-              <span>{connected ? "USB MIDI · Synced" : midiStatus === "syncing" ? `Reading ${syncReceived}/${SYNC_FIELD_COUNT}` : "Connect via USB"}</span>
+              <strong>{hasOpenPorts || reconnecting ? connectedInputName : "No device"}</strong>
+              <span>{connected ? "USB MIDI · Synced" : reconnecting ? "Waiting for USB" : midiStatus === "syncing" ? `Reading ${syncReceived}/${SYNC_FIELD_COUNT}` : "Connect via USB"}</span>
             </div>
           </div>
           <span className="version">Configurator preview · v0.1</span>
@@ -358,9 +362,10 @@ export default function Home() {
         <section className="workspace">
           <div className="page-heading">
             <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Choose the sources that feed each side of the crossfader.</p></div>
-            <div className={`device-pill ${connected ? "online" : ""}`}><span />{connected ? "Online" : midiStatus === "syncing" ? "Syncing…" : "Demo mode"}</div>
+            <div className={`device-pill ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><span />{connected ? "Online" : reconnecting ? "Reconnecting…" : midiStatus === "syncing" ? "Syncing…" : "Demo mode"}</div>
           </div>
 
+          <fieldset className="settings-fieldset" disabled={settingsLocked} aria-busy={settingsLocked}>
           <section className="routing-grid" id="routing">
             <article className="channel-card channel-a">
               <div className="card-kicker"><span>1</span>INPUT SELECT SWITCH</div>
@@ -439,26 +444,29 @@ export default function Home() {
               </div>
             </article>
           </section>
+          </fieldset>
 
           <section className="section-block device-section" id="device">
             <div className="section-heading"><div><p className="card-label">SYSTEM</p><h2>Device</h2></div><p>Connection details and preset management.</p></div>
             <article className="device-card">
               <div className="device-summary">
                 <div className="device-identity">
-                  <span className={`device-art ${connected ? "online" : ""}`}><Usb size={25} /></span>
+                  <span className={`device-art ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><Usb size={25} /></span>
                   <div>
-                    <h3>{hasOpenPorts ? connectedInputName : "JUMBLEQ Configurator demo"}</h3>
+                    <h3>{hasOpenPorts || reconnecting ? connectedInputName : "JUMBLEQ Configurator demo"}</h3>
                     <p>
                       {connected
                         ? "Current settings loaded from JUMBLEQ"
-                        : midiStatus === "syncing"
-                          ? `Reading device settings (${syncReceived}/${SYNC_FIELD_COUNT})`
-                          : midiStatus === "unsupported"
-                            ? "Web MIDI is not available in this browser"
-                            : "Connect a unit to read its current settings"}
+                        : reconnecting
+                          ? "Waiting for JUMBLEQ to reconnect via USB"
+                          : midiStatus === "syncing"
+                            ? `Reading device settings (${syncReceived}/${SYNC_FIELD_COUNT})`
+                            : midiStatus === "unsupported"
+                              ? "Web MIDI is not available in this browser"
+                              : "Connect a unit to read its current settings"}
                     </p>
                   </div>
-                  <span className="firmware-chip">{connected ? `${SYNC_FIELD_COUNT}/${SYNC_FIELD_COUNT} synced` : "MIDI Ch.15"}</span>
+                  <span className="firmware-chip">{connected ? `${SYNC_FIELD_COUNT}/${SYNC_FIELD_COUNT} synced` : reconnecting ? "RECONNECTING" : "MIDI Ch.15"}</span>
                 </div>
 
                 {midiError && <p className="midi-error" role="alert">{midiError}</p>}
@@ -492,9 +500,9 @@ export default function Home() {
 
               <div className="device-actions">
                 {hasOpenPorts && <button onClick={requestSync} disabled={midiStatus === "syncing"}><RefreshCw size={16} />Read from device</button>}
-                <button onClick={reset}><RotateCcw size={16} />Restore defaults</button>
+                <button onClick={reset} disabled={settingsLocked}><RotateCcw size={16} />Restore defaults</button>
                 <button onClick={exportPreset}><Download size={16} />Export preset</button>
-                <button onClick={() => presetFileInputRef.current?.click()} disabled={connectionBusy || midiStatus === "syncing"}><Upload size={16} />Import preset</button>
+                <button onClick={() => presetFileInputRef.current?.click()} disabled={settingsLocked}><Upload size={16} />Import preset</button>
                 <input ref={presetFileInputRef} id="preset-file" type="file" accept=".json,application/json" aria-label="Import preset file" onChange={(event) => void importPreset(event)} hidden />
               </div>
             </article>
