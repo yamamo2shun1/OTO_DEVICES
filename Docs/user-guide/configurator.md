@@ -16,9 +16,8 @@ The browser-based [JUMBLEQ Configurator](https://configurator.jumbleq.io/) is th
 
 The Web app provides controls for input and crossfader routing, XFader response curves, DVS, monitor and Return routing, magnetic-switch behavior, and device settings. It also supports reading the current settings from JUMBLEQ and importing or exporting presets.
 
-<img width="1000" alt="JUMBLEQ Configurator Web app showing routing and crossfader settings" src="../assets/configurator/web-routing-and-crossfader.png" />
-
-<img width="1000" alt="JUMBLEQ Configurator Web app showing controls and device settings" src="../assets/configurator/web-controls-and-device.png" />
+<img width="480" alt="JUMBLEQ Configurator Web app showing routing and crossfader settings" src="https://github.com/user-attachments/assets/77791d7c-2981-479a-be9e-e17c0968e9c8" />
+<img width="480"" alt="UMBLEQ Configurator Web app showing controls and device settings" src="https://github.com/user-attachments/assets/36ef499a-27e5-489c-96c2-58ebba73b6ec" />
 
 ## Alternative Max Versions
 
@@ -34,6 +33,6 @@ The Max source patch can be opened with [Max 9](https://cycling74.com/products/m
 
 The [Max for Live device](../../Max/JUMBLEQ_Configurator.amxd) allows JUMBLEQ settings to be changed directly from Ableton Live.
 
-<img width="600" alt="JUMBLEQ Configurator for Max for Live" src="https://github.com/user-attachments/assets/4fddf9b7-5925-4448-b21a-bae903f854b2" />
+<img width="480" alt="JUMBLEQ Configurator for Max for Live" src="https://github.com/user-attachments/assets/4fddf9b7-5925-4448-b21a-bae903f854b2" />
 
 For the MIDI messages used by the configurator, see the [MIDI reference](../reference/midi/README.md).
