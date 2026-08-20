@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import {
   clearMidiMessages,
   disconnectMockDevice,
+  emitMockMidiMessage,
   installWebMidiMock,
   midiMessages,
   reconnectMockDevice,
@@ -70,6 +71,57 @@ test("sends setting, curve edit, and EEPROM save messages", async ({ page }) => 
     [0xce, 120],
     [0xce, 127],
   ]));
+});
+
+test("visualizes magnetic CC values and Note velocities on their hardware keys", async ({ page }) => {
+  await page.getByRole("button", { name: "Connect device" }).click();
+  await expect(page.getByRole("button", { name: "JUMBLEQ connected" })).toBeVisible();
+
+  const topLeftMidi = page.getByTestId("magnetic-midi-0");
+  await emitMockMidiMessage(page, [0x90, 68, 104]);
+  await expect(topLeftMidi).toHaveClass(/is-live/);
+  await expect(topLeftMidi.locator("small")).toHaveText("VEL 104");
+  expect(await topLeftMidi.evaluate((element) => (
+    Number.parseFloat((element as HTMLElement).style.getPropertyValue("--midi-level"))
+  ))).toBeGreaterThan(80);
+
+  await emitMockMidiMessage(page, [0x80, 68, 0]);
+  await expect(topLeftMidi).not.toHaveClass(/is-live/);
+  await expect(topLeftMidi.locator("small")).toHaveText("VEL 104");
+  await expect(topLeftMidi.locator("small")).toHaveText("NOTE", { timeout: 2_000 });
+
+  const bottomLeftMidi = page.locator(".key-bottom-midi-a");
+  await emitMockMidiMessage(page, [0x90, 69, 80]);
+  await expect(bottomLeftMidi).toHaveClass(/is-live/);
+  await expect(bottomLeftMidi.locator("small")).toHaveText("VEL 080");
+  await emitMockMidiMessage(page, [0x80, 69, 0]);
+
+  const topRightMidi = page.locator(".key-top-midi-b");
+  await emitMockMidiMessage(page, [0x90, 70, 72]);
+  await expect(topRightMidi).toHaveClass(/is-live/);
+  await expect(topRightMidi.locator("small")).toHaveText("VEL 072");
+  await emitMockMidiMessage(page, [0x80, 70, 0]);
+
+  await page.getByRole("button", { name: "Control change" }).click();
+  await emitMockMidiMessage(page, [0xb0, 13, 80]);
+  await expect(bottomLeftMidi).toHaveClass(/is-live/);
+  await expect(bottomLeftMidi.locator("small")).toHaveText("CC 080");
+  await emitMockMidiMessage(page, [0xb0, 13, 0]);
+
+  await emitMockMidiMessage(page, [0xb0, 14, 72]);
+  await expect(topRightMidi).toHaveClass(/is-live/);
+  await expect(topRightMidi.locator("small")).toHaveText("CC 072");
+  await emitMockMidiMessage(page, [0xb0, 14, 0]);
+
+  const bottomRightMidi = page.getByTestId("magnetic-midi-3");
+  await emitMockMidiMessage(page, [0xb0, 15, 96]);
+  await expect(bottomRightMidi).toHaveClass(/is-live/);
+  await expect(bottomRightMidi.locator("small")).toHaveText("CC 096");
+
+  await emitMockMidiMessage(page, [0xb0, 15, 0]);
+  await expect(bottomRightMidi).not.toHaveClass(/is-live/);
+  await expect(bottomRightMidi.locator("small")).toHaveText("CC 000");
+  await expect(bottomRightMidi.locator("small")).toHaveText("CC", { timeout: 2_000 });
 });
 
 test("automatically reconnects and synchronizes after a USB interruption", async ({ page }) => {

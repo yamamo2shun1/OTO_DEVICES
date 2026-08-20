@@ -145,6 +145,11 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .switch-preview { min-width: 350px; padding: 17px; display: grid; grid-template-columns: repeat(6, minmax(46px, 1fr)); grid-template-rows: repeat(2, auto); gap: 10px 8px; border: 1px solid #30312c; border-radius: 14px; background: #141512; overflow-x: auto; }
 .hardware-key { aspect-ratio: 1; min-width: 0; padding: 6px 4px; display: grid; place-content: center; gap: 4px; border: 1px solid #444640; border-radius: 11px 11px 13px 13px; background: linear-gradient(#343530, #292a26); box-shadow: inset 0 0 0 3px #20211e, 0 4px 0 #11120f; color: #d4d5ce; cursor: default; text-align: center; }
 .hardware-key.midi-key { color: #11120f; border-color: #d0c400; background: linear-gradient(#fff325, #eadb00); box-shadow: inset 0 0 0 3px rgba(255,255,255,.16), 0 4px 0 #766e00; }
+.midi-live-key { position: relative; isolation: isolate; overflow: hidden; }
+.midi-live-key .midi-level-fill { position: absolute; z-index: 0; inset: auto 4px 4px; height: var(--midi-level); max-height: calc(100% - 8px); border-radius: 5px 5px 8px 8px; background: linear-gradient(to top, rgba(255,255,255,.78), rgba(255,255,255,.26)); opacity: .82; pointer-events: none; transition: height 70ms linear; }
+.midi-live-key .midi-level-fill::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: rgba(255,255,255,.9); }
+.midi-live-key > span, .midi-live-key > small { position: relative; z-index: 1; }
+.midi-live-key.has-live-value > small { font-size: clamp(9px, .68vw, 12px); letter-spacing: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .hardware-key.aux-key { cursor: pointer; }
 .hardware-key.aux-key:hover { border-color: rgba(255,237,0,.7); color: var(--jumble); }
 .hardware-key.aux-key:focus-visible { outline: 2px solid var(--jumble); outline-offset: 3px; }
@@ -223,8 +228,13 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .help-dialog-footer button { min-height: 36px; padding: 0 16px; border: 0; border-radius: 9px; color: #11120f; background: var(--jumble); cursor: pointer; font-size: 10px; font-weight: 750; }
 @keyframes help-dialog-in { from { opacity: 0; transform: translateY(8px) scale(.99); } }
 
+@media (prefers-reduced-motion: reduce) {
+  .midi-live-key .midi-level-fill { transition: none; }
+}
+
 @media (max-width: 900px) {
   .hardware-key small { font-size: clamp(14px, 1.8vw, 16px); }
+  .midi-live-key.has-live-value > small { font-size: clamp(10px, 1.35vw, 12px); }
   .app-body { grid-template-columns: 1fr; }
   .mobile-only, .mobile-nav-header { display: flex; }
   .sidebar { position: fixed; z-index: 55; inset: 0 auto 0 0; top: 0; width: min(310px, 84vw); height: 100dvh; transform: translateX(-105%); transition: transform .25s ease; box-shadow: 20px 0 60px rgba(0,0,0,.45); }
@@ -267,6 +277,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
   .hardware-key { border-radius: 9px; padding: 4px 2px; }
   .hardware-key span { font-size: clamp(10px, 2.8vw, 14px); }
   .hardware-key small { font-size: clamp(6px, 1.8vw, 9px); letter-spacing: 0; }
+  .midi-live-key.has-live-value > small { font-size: clamp(6px, 1.55vw, 8px); }
   .device-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
   .midi-port-panel { grid-template-columns: 1fr; }
   .midi-port-connect { grid-column: auto; }

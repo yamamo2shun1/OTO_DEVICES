@@ -5,6 +5,7 @@ import {
   CURVE_EDIT_OFF,
   CURVE_EDIT_ON,
   decodeConfigMessage,
+  decodeMagneticLiveMessage,
   encodeCurveSetting,
   encodeProgramSetting,
   REQUEST_CURRENT_CONFIG,
@@ -17,6 +18,9 @@ import {
 
 const PROGRAM_CHANGE_CH_15 = 0xce;
 const CONTROL_CHANGE_CH_15 = 0xbe;
+const CONTROL_CHANGE_CH_1 = 0xb0;
+const NOTE_ON_CH_1 = 0x90;
+const NOTE_OFF_CH_1 = 0x80;
 
 function bytes(message) {
   return Array.from(message);
@@ -168,5 +172,54 @@ test("decoder ignores incomplete, unrelated, and wrong-channel MIDI messages", (
 
   for (const message of ignoredMessages) {
     assert.equal(decodeConfigMessage(new Uint8Array(message)), null, bytes(new Uint8Array(message)).join(","));
+  }
+});
+
+test("live magnetic CC messages map CC12-15 to controls 0-3", () => {
+  for (let index = 0; index < 4; index += 1) {
+    assert.deepEqual(
+      decodeMagneticLiveMessage(new Uint8Array([CONTROL_CHANGE_CH_1, 12 + index, 96])),
+      { index, mode: "CC", value: 96, active: true },
+    );
+    assert.deepEqual(
+      decodeMagneticLiveMessage(new Uint8Array([CONTROL_CHANGE_CH_1, 12 + index, 0])),
+      { index, mode: "CC", value: 0, active: false },
+    );
+  }
+});
+
+test("live magnetic Note messages map notes 68-71 and recognize releases", () => {
+  for (let index = 0; index < 4; index += 1) {
+    assert.deepEqual(
+      decodeMagneticLiveMessage(new Uint8Array([NOTE_ON_CH_1, 68 + index, 112])),
+      { index, mode: "NOTE", value: 112, active: true },
+    );
+    assert.deepEqual(
+      decodeMagneticLiveMessage(new Uint8Array([NOTE_OFF_CH_1, 68 + index, 0])),
+      { index, mode: "NOTE", value: 0, active: false },
+    );
+    assert.deepEqual(
+      decodeMagneticLiveMessage(new Uint8Array([NOTE_ON_CH_1, 68 + index, 0])),
+      { index, mode: "NOTE", value: 0, active: false },
+    );
+  }
+});
+
+test("live magnetic decoder ignores other messages and channels", () => {
+  const ignoredMessages = [
+    [],
+    [CONTROL_CHANGE_CH_1, 12],
+    [CONTROL_CHANGE_CH_1, 11, 64],
+    [CONTROL_CHANGE_CH_1, 16, 64],
+    [0xb1, 12, 64],
+    [NOTE_ON_CH_1, 67, 100],
+    [NOTE_ON_CH_1, 72, 100],
+    [0x91, 68, 100],
+    [PROGRAM_CHANGE_CH_15, 126],
+    [CONTROL_CHANGE_CH_15, 20, 64],
+  ];
+
+  for (const message of ignoredMessages) {
+    assert.equal(decodeMagneticLiveMessage(new Uint8Array(message)), null, bytes(new Uint8Array(message)).join(","));
   }
 });

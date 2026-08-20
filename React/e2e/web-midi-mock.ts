@@ -4,6 +4,7 @@ type JumbleqMidiMock = {
   messages: number[][];
   clearMessages: () => void;
   disconnect: () => void;
+  emit: (data: number[]) => void;
   reconnect: () => void;
 };
 
@@ -97,6 +98,9 @@ export async function installWebMidiMock(page: Page) {
         output.state = "disconnected";
         notifyStateChange();
       },
+      emit(data) {
+        input.onmidimessage?.({ data: new Uint8Array(data) });
+      },
       reconnect() {
         input.state = "connected";
         output.state = "connected";
@@ -120,4 +124,8 @@ export async function disconnectMockDevice(page: Page) {
 
 export async function reconnectMockDevice(page: Page) {
   await page.evaluate(() => window.__jumbleqMidiMock.reconnect());
+}
+
+export async function emitMockMidiMessage(page: Page, data: number[]) {
+  await page.evaluate((message) => window.__jumbleqMidiMock.emit(message), data);
 }

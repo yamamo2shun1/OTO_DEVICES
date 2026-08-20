@@ -4,6 +4,13 @@ export type HeadphoneSource = "Fader A" | "Fader B" | "Thru" | "Master";
 export type MagneticMode = "CC" | "NOTE";
 export type AuxiliarySide = "A" | "B";
 
+export type MagneticLiveMessage = {
+  index: 0 | 1 | 2 | 3;
+  mode: MagneticMode;
+  value: number;
+  active: boolean;
+};
+
 export type JumbleqConfig = {
   ch1Type: InputType;
   ch2Type: InputType;
@@ -175,6 +182,42 @@ export function decodeConfigMessage(data: Uint8Array): DecodedConfigValue | null
     const value = curveMidiCCToPercent(data[2]);
     if (controller === 20) return { field: "curveA", value };
     if (controller === 21) return { field: "curveB", value };
+  }
+
+  return null;
+}
+
+export function decodeMagneticLiveMessage(data: Uint8Array): MagneticLiveMessage | null {
+  if (data.length < 3) return null;
+
+  const status = data[0];
+  const messageType = status & 0xf0;
+  const channel = status & 0x0f;
+  if (channel !== 0) return null;
+
+  if (messageType === CONTROL_CHANGE) {
+    const ccNumber = data[1];
+    if (ccNumber < 12 || ccNumber > 15) return null;
+    const value = data[2];
+    return {
+      index: (ccNumber - 12) as MagneticLiveMessage["index"],
+      mode: "CC",
+      value,
+      active: value > 0,
+    };
+  }
+
+  if (messageType === 0x90 || messageType === 0x80) {
+    const noteNumber = data[1];
+    if (noteNumber < 68 || noteNumber > 71) return null;
+    const velocity = data[2];
+    const active = messageType === 0x90 && velocity > 0;
+    return {
+      index: (noteNumber - 68) as MagneticLiveMessage["index"],
+      mode: "NOTE",
+      value: active ? velocity : 0,
+      active,
+    };
   }
 
   return null;

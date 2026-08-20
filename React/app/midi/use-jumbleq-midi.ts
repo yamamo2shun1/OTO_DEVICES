@@ -5,9 +5,11 @@ import {
   CURVE_EDIT_OFF,
   CURVE_EDIT_ON,
   decodeConfigMessage,
+  decodeMagneticLiveMessage,
   encodeCurveSetting,
   encodeProgramSetting,
   JumbleqConfig,
+  MagneticMode,
   ProgramSettingField,
   REQUEST_CURRENT_CONFIG,
   SAVE_CURRENT_CONFIG,
@@ -68,6 +70,22 @@ export type MidiPortOption = {
 };
 
 const SYNC_TIMEOUT_MS = 2500;
+const MAGNETIC_ACTIVITY_HOLD_MS = 900;
+const MAGNETIC_CONTROL_COUNT = 4;
+
+export type MagneticActivity = {
+  mode: MagneticMode | null;
+  value: number | null;
+  active: boolean;
+};
+
+function emptyMagneticActivity(): MagneticActivity[] {
+  return Array.from({ length: MAGNETIC_CONTROL_COUNT }, () => ({
+    mode: null,
+    value: null,
+    active: false,
+  }));
+}
 
 function portOption(port: WebMidiPort): MidiPortOption {
   return {
@@ -93,6 +111,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const [connectedInputName, setConnectedInputName] = useState("JUMBLEQ MIDI");
   const [hasOpenPorts, setHasOpenPorts] = useState(false);
   const [curveEditActive, setCurveEditActive] = useState(false);
+  const [magneticActivity, setMagneticActivity] = useState<MagneticActivity[]>(emptyMagneticActivity);
 
   const accessRef = useRef<WebMidiAccess | null>(null);
   const inputRef = useRef<WebMidiInput | null>(null);
@@ -108,6 +127,9 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   const openingPortsRef = useRef(false);
   const shouldReconnectRef = useRef(false);
   const onConfigRef = useRef(onConfig);
+  const magneticActivityRef = useRef<MagneticActivity[]>(emptyMagneticActivity());
+  const magneticFrameRef = useRef<number | null>(null);
+  const magneticHoldTimersRef = useRef<Array<number | null>>(Array(MAGNETIC_CONTROL_COUNT).fill(null));
 
   useEffect(() => {
     onConfigRef.current = onConfig;
@@ -122,6 +144,66 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     if (curveEditTimerRef.current) window.clearTimeout(curveEditTimerRef.current);
     curveEditTimerRef.current = null;
   }, []);
+
+  const publishMagneticActivity = useCallback(() => {
+    if (magneticFrameRef.current !== null) return;
+    magneticFrameRef.current = window.requestAnimationFrame(() => {
+      magneticFrameRef.current = null;
+      setMagneticActivity(magneticActivityRef.current.map((activity) => ({ ...activity })));
+    });
+  }, []);
+
+  const clearMagneticHoldTimer = useCallback((index: number) => {
+    const timer = magneticHoldTimersRef.current[index];
+    if (timer !== null) window.clearTimeout(timer);
+    magneticHoldTimersRef.current[index] = null;
+  }, []);
+
+  const resetMagneticActivity = useCallback(() => {
+    for (let index = 0; index < MAGNETIC_CONTROL_COUNT; index += 1) {
+      clearMagneticHoldTimer(index);
+    }
+    if (magneticFrameRef.current !== null) window.cancelAnimationFrame(magneticFrameRef.current);
+    magneticFrameRef.current = null;
+    magneticActivityRef.current = emptyMagneticActivity();
+    setMagneticActivity(emptyMagneticActivity());
+  }, [clearMagneticHoldTimer]);
+
+  const handleMagneticLiveMessage = useCallback((event: { data: Uint8Array }) => {
+    const decoded = decodeMagneticLiveMessage(event.data);
+    if (!decoded) return false;
+
+    const previous = magneticActivityRef.current[decoded.index];
+    const nextActivity: MagneticActivity = decoded.mode === "NOTE" && !decoded.active
+      ? {
+          mode: "NOTE",
+          value: previous.mode === "NOTE" ? previous.value : null,
+          active: false,
+        }
+      : {
+          mode: decoded.mode,
+          value: decoded.value,
+          active: decoded.active,
+        };
+
+    magneticActivityRef.current = magneticActivityRef.current.map((activity, index) => (
+      index === decoded.index ? nextActivity : activity
+    ));
+    clearMagneticHoldTimer(decoded.index);
+
+    if (!decoded.active) {
+      magneticHoldTimersRef.current[decoded.index] = window.setTimeout(() => {
+        magneticActivityRef.current = magneticActivityRef.current.map((activity, index) => (
+          index === decoded.index ? { mode: null, value: null, active: false } : activity
+        ));
+        magneticHoldTimersRef.current[decoded.index] = null;
+        publishMagneticActivity();
+      }, MAGNETIC_ACTIVITY_HOLD_MS);
+    }
+
+    publishMagneticActivity();
+    return true;
+  }, [clearMagneticHoldTimer, publishMagneticActivity]);
 
   const sendRaw = useCallback((data: Uint8Array, description: string) => {
     const output = outputRef.current;
@@ -141,6 +223,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
   }, []);
 
   const handleMidiMessage = useCallback((event: { data: Uint8Array }) => {
+    if (handleMagneticLiveMessage(event)) return;
     const decoded = decodeConfigMessage(event.data);
     if (!decoded) return;
 
@@ -155,7 +238,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
       setError(null);
       setStatus("ready");
     }
-  }, [clearSyncTimer]);
+  }, [clearSyncTimer, handleMagneticLiveMessage]);
 
   const beginSync = useCallback(() => {
     if (!outputRef.current) {
@@ -313,6 +396,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
           curveEditActiveRef.current = false;
           setCurveEditActive(false);
           setHasOpenPorts(false);
+          resetMagneticActivity();
           reconnectPendingRef.current = shouldReconnectRef.current;
           if (shouldReconnectRef.current) {
             setError(null);
@@ -343,7 +427,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
       setError(message);
       setStatus("error");
     }
-  }, [clearCurveEditTimer, clearSyncTimer, openPorts, refreshPorts, tryAutoReconnect]);
+  }, [clearCurveEditTimer, clearSyncTimer, openPorts, refreshPorts, resetMagneticActivity, tryAutoReconnect]);
 
   const connectSelected = useCallback(async () => {
     try {
@@ -411,19 +495,25 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     inputRef.current = null;
     outputRef.current = null;
     setHasOpenPorts(false);
+    resetMagneticActivity();
     if (input) input.onmidimessage = null;
     await Promise.allSettled([input?.close(), output?.close()].filter(Boolean) as Promise<WebMidiPort>[]);
     setSyncReceived(0);
     setError(null);
     setStatus("idle");
-  }, [clearSyncTimer, endCurveEdit]);
+  }, [clearSyncTimer, endCurveEdit, resetMagneticActivity]);
 
   useEffect(() => {
+    const magneticHoldTimers = magneticHoldTimersRef.current;
     return () => {
       shouldReconnectRef.current = false;
       reconnectPendingRef.current = false;
       clearSyncTimer();
       clearCurveEditTimer();
+      for (const timer of magneticHoldTimers) {
+        if (timer !== null) window.clearTimeout(timer);
+      }
+      if (magneticFrameRef.current !== null) window.cancelAnimationFrame(magneticFrameRef.current);
       if (curveEditActiveRef.current && outputRef.current?.state !== "disconnected") {
         try { outputRef.current?.send(CURVE_EDIT_OFF); } catch { /* Best-effort cleanup. */ }
       }
@@ -448,6 +538,7 @@ export function useJumbleqMidi(onConfig: (config: JumbleqConfig) => void) {
     connectedInputName,
     hasOpenPorts,
     curveEditActive,
+    magneticActivity,
     connect,
     connectSelected,
     disconnect,

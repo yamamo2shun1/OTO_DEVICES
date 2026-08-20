@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, CSSProperties } from "react";
 import Image from "next/image";
 import {
   BookOpen,
@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { curvePercentToMidiCC, JumbleqConfig, ProgramSettingField, RESTORE_DEFAULT_CONFIG, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
-import { useJumbleqMidi, type MidiStatus } from "./midi/use-jumbleq-midi";
+import { useJumbleqMidi, type MagneticActivity, type MidiStatus } from "./midi/use-jumbleq-midi";
 import { parseJumbleqPreset, serializeJumbleqPreset } from "./presets/jumbleq-preset";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
@@ -89,6 +89,46 @@ function SourceSelect({
         <ChevronDown aria-hidden="true" size={16} />
       </div>
     </label>
+  );
+}
+
+type MidiKeyStyle = CSSProperties & {
+  "--midi-level": string;
+};
+
+function MidiHardwareKey({
+  className,
+  index,
+  mode,
+  activity,
+}: {
+  className: string;
+  index: number;
+  mode: "CC" | "NOTE";
+  activity: MagneticActivity;
+}) {
+  const displayedMode = activity.mode ?? mode;
+  const hasValue = activity.value !== null;
+  const value = activity.value ?? 0;
+  const level = activity.active ? value / 127 : 0;
+  const valueLabel = hasValue
+    ? `${displayedMode === "CC" ? "CC" : "VEL"} ${String(value).padStart(3, "0")}`
+    : mode;
+  const style: MidiKeyStyle = {
+    "--midi-level": `${level * 100}%`,
+  };
+
+  return (
+    <div
+      className={`hardware-key midi-key midi-live-key ${className} ${hasValue ? "has-live-value" : ""} ${activity.active ? "is-live" : ""}`}
+      data-testid={`magnetic-midi-${index}`}
+      aria-label={`Magnetic MIDI ${index}, ${hasValue ? `${displayedMode === "CC" ? "CC value" : "Note velocity"} ${value}` : mode}`}
+      style={style}
+    >
+      <i className="midi-level-fill" aria-hidden="true" />
+      <span>MIDI</span>
+      <small>{valueLabel}</small>
+    </div>
   );
 }
 
@@ -340,6 +380,7 @@ export default function Home() {
     connectedInputName,
     hasOpenPorts,
     curveEditActive,
+    magneticActivity,
     connect,
     connectSelected,
     disconnect,
@@ -589,15 +630,15 @@ export default function Home() {
               </div>
               <div className="switch-preview" aria-label="Magnetic switch assignment preview">
                 <div className="hardware-key key-top-a"><span>A</span><small>FADE DOWN</small></div>
-                <div className="hardware-key midi-key key-top-midi-a"><span>MIDI</span><small>{magMode}</small></div>
-                <div className="hardware-key midi-key key-top-midi-b"><span>MIDI</span><small>{magMode}</small></div>
+                <MidiHardwareKey className="key-top-midi-a" index={0} mode={magMode} activity={magneticActivity[0]} />
+                <MidiHardwareKey className="key-top-midi-b" index={2} mode={magMode} activity={magneticActivity[2]} />
                 <div className="hardware-key key-top-b"><span>B</span><small>FADE DOWN</small></div>
 
                 <div className="hardware-key key-bottom-a"><span>A</span><small>FADE UP</small></div>
-                <div className="hardware-key midi-key key-bottom-midi-a"><span>MIDI</span><small>{magMode}</small></div>
+                <MidiHardwareKey className="key-bottom-midi-a" index={1} mode={magMode} activity={magneticActivity[1]} />
                 <button className="hardware-key aux-key key-bottom-aux-a" aria-label={`Change auxiliary fade-down assignment from ${sensor2}`} onClick={() => updateProgram(setSensor2, "sensor2", sensor2 === "A" ? "B" : "A")}><span>aux. {sensor2}</span><small>FADE DOWN</small></button>
                 <button className="hardware-key aux-key key-bottom-aux-b" aria-label={`Change auxiliary fade-down assignment from ${sensor3}`} onClick={() => updateProgram(setSensor3, "sensor3", sensor3 === "A" ? "B" : "A")}><span>aux. {sensor3}</span><small>FADE DOWN</small></button>
-                <div className="hardware-key midi-key key-bottom-midi-b"><span>MIDI</span><small>{magMode}</small></div>
+                <MidiHardwareKey className="key-bottom-midi-b" index={3} mode={magMode} activity={magneticActivity[3]} />
                 <div className="hardware-key key-bottom-b"><span>B</span><small>FADE UP</small></div>
               </div>
             </article>
