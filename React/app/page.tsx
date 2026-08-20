@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import Image from "next/image";
 import {
   Cable,
@@ -23,8 +24,10 @@ import {
 } from "lucide-react";
 import { curvePercentToMidiCC, JumbleqConfig, ProgramSettingField, RESTORE_DEFAULT_CONFIG, Source, SYNC_FIELD_COUNT } from "./midi/jumbleq-midi";
 import { useJumbleqMidi } from "./midi/use-jumbleq-midi";
+import { parseJumbleqPreset, serializeJumbleqPreset } from "./presets/jumbleq-preset";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
+const MAX_PRESET_FILE_BYTES = 64 * 1024;
 
 const CURVE_WIDTH_MIN = 0.02;
 const CURVE_WIDTH_MAX = 0.60;
@@ -132,6 +135,19 @@ export default function Home() {
   const [sensor3, setSensor3] = useState<"A" | "B">(RESTORE_DEFAULT_CONFIG.sensor3);
   const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [presetNotice, setPresetNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const presetFileInputRef = useRef<HTMLInputElement>(null);
+  const presetNoticeTimerRef = useRef<number | null>(null);
+
+  const showPresetNotice = useCallback((type: "success" | "error", message: string) => {
+    if (presetNoticeTimerRef.current) window.clearTimeout(presetNoticeTimerRef.current);
+    setPresetNotice({ type, message });
+    presetNoticeTimerRef.current = window.setTimeout(() => setPresetNotice(null), 4200);
+  }, []);
+
+  useEffect(() => () => {
+    if (presetNoticeTimerRef.current) window.clearTimeout(presetNoticeTimerRef.current);
+  }, []);
 
   const applySyncedConfig = useCallback((config: JumbleqConfig) => {
     setCh1Type(config.ch1Type);
@@ -222,33 +238,65 @@ export default function Home() {
     window.setTimeout(() => setSaved(false), 2200);
   };
 
+  const sendConfigToDevice = (config: JumbleqConfig) => {
+    if (!hasOpenPorts) return true;
+    const results = [
+      sendProgramSetting("ch1Type", config.ch1Type),
+      sendProgramSetting("ch2Type", config.ch2Type),
+      sendProgramSetting("assignA", config.assignA),
+      sendProgramSetting("assignB", config.assignB),
+      sendProgramSetting("assignPost", config.assignPost),
+      sendProgramSetting("dvs1", config.dvs1),
+      sendProgramSetting("dvs2", config.dvs2),
+      sendProgramSetting("returnSource", config.returnSource),
+      sendProgramSetting("headphoneSource", config.headphoneSource),
+      sendProgramSetting("sensor2", config.sensor2),
+      sendProgramSetting("sensor3", config.sensor3),
+      sendProgramSetting("magMode", config.magMode),
+      sendCurveSetting("curveA", config.curveA),
+      sendCurveSetting("curveB", config.curveB),
+      endCurveEdit(),
+    ];
+    return results.every(Boolean);
+  };
+
   const reset = () => {
     const defaults = RESTORE_DEFAULT_CONFIG;
     applySyncedConfig(defaults);
-    if (hasOpenPorts) {
-      sendProgramSetting("ch1Type", defaults.ch1Type);
-      sendProgramSetting("ch2Type", defaults.ch2Type);
-      sendProgramSetting("assignA", defaults.assignA);
-      sendProgramSetting("assignB", defaults.assignB);
-      sendProgramSetting("assignPost", defaults.assignPost);
-      sendProgramSetting("dvs1", defaults.dvs1);
-      sendProgramSetting("dvs2", defaults.dvs2);
-      sendProgramSetting("returnSource", defaults.returnSource);
-      sendProgramSetting("headphoneSource", defaults.headphoneSource);
-      sendProgramSetting("sensor2", defaults.sensor2);
-      sendProgramSetting("sensor3", defaults.sensor3);
-      sendProgramSetting("magMode", defaults.magMode);
-      sendCurveSetting("curveA", defaults.curveA);
-      sendCurveSetting("curveB", defaults.curveB);
-      endCurveEdit();
-    }
+    sendConfigToDevice(defaults);
     setDirty(true); setSaved(false);
   };
 
   const exportPreset = () => {
     const preset = { ch1Type, ch2Type, assignA, assignB, assignPost, curveA, curveB, dvs1, dvs2, returnSource, headphoneSource, magMode, sensor2, sensor3 };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(preset, null, 2)], { type: "application/json" }));
+    const url = URL.createObjectURL(new Blob([serializeJumbleqPreset(preset)], { type: "application/json" }));
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "jumbleq-preset.json"; anchor.click(); URL.revokeObjectURL(url);
+  };
+
+  const importPreset = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      if (file.size > MAX_PRESET_FILE_BYTES) throw new Error("Preset file is too large.");
+      const preset = parseJumbleqPreset(await file.text());
+      applySyncedConfig(preset);
+      const sent = sendConfigToDevice(preset);
+      setDirty(true);
+      setSaved(false);
+
+      if (hasOpenPorts && !sent) {
+        showPresetNotice("error", "Preset loaded, but some settings could not be sent to JUMBLEQ.");
+      } else {
+        showPresetNotice("success", hasOpenPorts ? "Preset imported and sent to JUMBLEQ." : "Preset imported into the preview.");
+      }
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not import the preset file.";
+      showPresetNotice("error", message);
+    } finally {
+      input.value = "";
+    }
   };
 
   return (
@@ -446,8 +494,8 @@ export default function Home() {
                 {hasOpenPorts && <button onClick={requestSync} disabled={midiStatus === "syncing"}><RefreshCw size={16} />Read from device</button>}
                 <button onClick={reset}><RotateCcw size={16} />Restore defaults</button>
                 <button onClick={exportPreset}><Download size={16} />Export preset</button>
-                <button onClick={() => document.getElementById("preset-file")?.click()}><Upload size={16} />Import preset</button>
-                <input id="preset-file" type="file" accept="application/json" hidden />
+                <button onClick={() => presetFileInputRef.current?.click()} disabled={connectionBusy || midiStatus === "syncing"}><Upload size={16} />Import preset</button>
+                <input ref={presetFileInputRef} id="preset-file" type="file" accept=".json,application/json" aria-label="Import preset file" onChange={(event) => void importPreset(event)} hidden />
               </div>
             </article>
           </section>
@@ -459,6 +507,7 @@ export default function Home() {
         <button onClick={save} disabled={!hasOpenPorts} title={!hasOpenPorts ? "Connect JUMBLEQ to save settings." : undefined}><Save size={17} />Save to device</button>
       </div>
       {saved && <div className="toast"><span>✓</span> Save command sent to JUMBLEQ</div>}
+      {presetNotice && <div className={`toast preset-toast ${presetNotice.type === "error" ? "is-error" : ""}`} role={presetNotice.type === "error" ? "alert" : "status"}><span>{presetNotice.type === "error" ? "!" : "✓"}</span>{presetNotice.message}</div>}
     </main>
   );
 }

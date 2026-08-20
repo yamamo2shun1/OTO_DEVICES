@@ -176,6 +176,9 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .save-bar button:disabled { cursor: not-allowed; filter: saturate(.15); opacity: .58; }
 .toast { position: fixed; z-index: 60; right: 24px; bottom: 24px; padding: 12px 15px; display: flex; align-items: center; gap: 9px; border: 1px solid rgba(255,237,0,.35); border-radius: 11px; background: #23241f; box-shadow: 0 15px 40px rgba(0,0,0,.4); font-size: 12px; animation: toast-in .25s ease both; }
 .toast span { color: var(--jumble); }
+.toast.preset-toast { bottom: 96px; }
+.toast.is-error { border-color: rgba(255,112,112,.4); }
+.toast.is-error span { color: #ff8f8f; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
 
 @media (max-width: 900px) {
