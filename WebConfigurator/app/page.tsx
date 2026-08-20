@@ -286,7 +286,8 @@ function HelpDialog({
           <section className="help-section">
             <div className="help-section-heading"><span><TriangleAlert size={18} /></span><div><h3>Troubleshooting</h3><p>Try the action that matches the displayed status.</p></div></div>
             <div className="troubleshooting-list">
-              <div><strong>MIDI unsupported</strong><p>Use an HTTPS page in a browser that supports Web MIDI. Safari and browsers on iPhone or iPad cannot communicate with JUMBLEQ through Web MIDI.</p></div>
+              <div><strong>MIDI unsupported</strong><p>Use an HTTPS page in a browser that supports Web MIDI. Safari does not provide Web MIDI; on iPad, follow the MIDIWeb Browser guidance below.</p></div>
+              <div><strong>Using iPad</strong><p>Install <a href="https://apps.apple.com/jp/app/midiweb-browser/id6757226617?l=en-US" target="_blank" rel="noreferrer">MIDIWeb Browser <ExternalLink size={11} /></a>, open configurator.jumbleq.io in the app, connect JUMBLEQ over USB, then select Connect device. Connection and MIDI communication are verified on iPadOS 26.5.</p></div>
               <div><strong>Permission denied</strong><p>Allow MIDI access in the browser site settings, reload the page, then select Connect device again.</p></div>
               <div><strong>No MIDI ports</strong><p>Confirm that the cable supports data, reconnect USB, then select JUMBLEQ MIDI for both input and output.</p></div>
               <div><strong>Synchronization timed out</strong><p>Select Read from device. If it fails again, reconnect the USB cable and wait for automatic synchronization.</p></div>

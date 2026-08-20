@@ -221,6 +221,7 @@ input[type="range"]::-webkit-slider-thumb { appearance: none; width: 17px; heigh
 .troubleshooting-list { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .troubleshooting-list > div { padding: 11px; border: 1px solid #343630; border-radius: 9px; background: #161714; }
 .troubleshooting-list strong { display: block; margin-bottom: 5px; color: #c7c9c0; font-size: 10px; }.troubleshooting-list p { margin: 0; color: #7c7f75; font-size: 9px; line-height: 1.5; }
+.troubleshooting-list a { display: inline-flex; align-items: center; gap: 3px; color: var(--jumble); text-decoration: none; }.troubleshooting-list a:hover { text-decoration: underline; }
 .help-compatibility { padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; border: 1px solid rgba(255,170,85,.25); border-radius: 11px; color: #d7ad69; background: rgba(255,170,85,.045); }
 .help-compatibility strong { display: block; margin-bottom: 4px; font-size: 10px; }.help-compatibility p { margin: 0; color: #8e877a; font-size: 9px; line-height: 1.45; }
 .help-compatibility a { display: inline-flex; align-items: center; gap: 6px; color: #d7ad69; font-size: 9px; white-space: nowrap; text-decoration: none; }.help-compatibility a:hover { text-decoration: underline; }
