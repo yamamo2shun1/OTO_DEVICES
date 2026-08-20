@@ -52,6 +52,7 @@ See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation
 - [`Docs`](./Docs/) — user guides, technical reference, and development notes
 - [`STM32CubeIDE`](./STM32CubeIDE/) — MCU application, bootloader, and external memory loader projects
 - [`SigmaDSP`](./SigmaDSP/) — ADAU1466 DSP project and exported code
+- [`WebConfigurator`](./WebConfigurator/) — primary browser-based JUMBLEQ Configurator
 - [`Max`](./Max/) — alternative Max Standalone and Max for Live versions of JUMBLEQ Configurator
 - [`Plasticity`](./Plasticity/) — enclosure CAD data and printable parts
 - [`UI_Design`](./UI_Design/) — panel and control-layout artwork
