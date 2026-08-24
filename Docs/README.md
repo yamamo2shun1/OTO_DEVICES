@@ -20,6 +20,7 @@ This directory contains user guides, technical reference material, and developme
 
 - [Development environment](./development/environment.md)
 - [ST-LINK debug configuration](../STM32CubeIDE/docs/Debug_Configuration-STLINK.md)
+- [J-Link debug configuration](../STM32CubeIDE/docs/Debug_Configuration-JLINK.md)
 - [Build and UF2 generation](./development/build-and-uf2.md)
 - [STM32H7S3 errata](./development/errata.md)
 - [STM32CubeIDE project overview](../STM32CubeIDE/README.md)

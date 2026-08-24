@@ -45,6 +45,7 @@ See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation
 - [STM32CubeIDE projects](./STM32CubeIDE/README.md)
 - [Build and UF2 generation](./Docs/development/build-and-uf2.md)
 - [ST-LINK debug configuration](./STM32CubeIDE/docs/Debug_Configuration-STLINK.md)
+- [J-Link debug configuration](./STM32CubeIDE/docs/Debug_Configuration-JLINK.md)
 - [STM32H7S3 errata](./Docs/development/errata.md)
 
 ## Repository Contents
