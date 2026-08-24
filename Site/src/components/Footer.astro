@@ -1,0 +1,20 @@
+---
+interface Props {
+  base: string;
+}
+
+const { base } = Astro.props;
+---
+
+<footer>
+  <div class="footer-brand">
+    <img src={`${base}assets/jumbleq-icon.png`} alt="" width="64" height="64" />
+    <p>JUMBLEQ</p>
+    <span>JUMBLED EQUIPMENT</span>
+  </div>
+  <p class="footer-status"><i></i> OPEN-SOURCE PROJECT / IN DEVELOPMENT</p>
+  <div class="footer-bottom">
+    <span>© 2026 JUMBLEQ</span>
+    <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/LICENSE.md">MIT LICENSE ↗</a>
+  </div>
+</footer>

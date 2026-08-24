@@ -1,0 +1,117 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
+
+const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const title = "JUMBLEQ — Faderless 2CH Digital Mixer";
+const description = "磁気スイッチで音を操る、フェーダーレス2チャンネル・デジタルミキサー JUMBLEQ。";
+const heroImage = `${base}assets/jumbleq-beta.jpg`;
+---
+
+<BaseLayout {title} {description}>
+  <Header {base} />
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-photo" style={`--section-image: url(${heroImage})`} role="img" aria-label="ターンテーブルやヘッドホンと接続されたJUMBLEQ"></div>
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow">FADERLESS 2CH DIGITAL MIXER</p>
+        <h1 id="hero-title">触れるたび、<br /><em>音が跳ねる。</em></h1>
+        <p class="hero-copy">磁気スイッチでフェーダー操作を再構築。<br />コンパクトな一台から、直感的で予想外のミックスを。</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#concept">JUMBLEQを知る <span>↓</span></a>
+          <a class="button button-ghost" href="https://github.com/yamamo2shun1/JUMBLEQ">GitHubで見る ↗</a>
+        </div>
+      </div>
+      <div class="hero-rail" aria-hidden="true"><span>24-BIT</span><span>96 kHz</span><span>USB AUDIO</span></div>
+    </section>
+
+    <section class="manifesto" id="concept">
+      <p class="section-label">01 / CONCEPT</p>
+      <h2>フェーダーをなくしたら、<br />ミックスはもっと自由になった。</h2>
+      <div class="concept-grid">
+        <p>JUMBLEQは、DJミキサーの入力フェーダーとクロスフェーダーを10個の磁気スイッチに置き換えた、ステレオ・デジタルミキサーです。スイッチを押す強さや組み合わせで、音量とミックスをすばやく、リズミカルに操れます。</p>
+        <MagneticSwitchDemo />
+      </div>
+    </section>
+
+    <section class="feature-section" id="features" aria-labelledby="features-title">
+      <div class="section-head">
+        <p class="section-label">02 / FEATURES</p>
+        <h2 id="features-title">小さなボディに、<br />大胆なルーティング。</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card feature-card-lead">
+          <p class="feature-number">01</p>
+          <div class="feature-icon fader-icon" aria-hidden="true"><i></i><i></i><i></i></div>
+          <h3>磁気スイッチ・ミキシング</h3>
+          <p>10個の磁気スイッチと12個のノブで、フェーダーレスならではの素早いカットと滑らかな音量変化を両立します。</p>
+        </article>
+        <article class="feature-card">
+          <p class="feature-number">02</p>
+          <div class="route-map" aria-hidden="true"><span>IN 1</span><b>A</b><b>B</b><b>THRU</b><span>OUT</span></div>
+          <h3>4系統を自由にアサイン</h3>
+          <p>2つのアナログ入力と2つのUSBステレオ入力を、A・B・THRUへ柔軟にルーティングできます。</p>
+        </article>
+        <article class="feature-card">
+          <p class="feature-number">03</p>
+          <div class="bit-display" aria-hidden="true"><strong>24</strong><span>BIT</span><strong>96</strong><span>kHz</span></div>
+          <h3>4-in / 4-out USB Audio</h3>
+          <p>USB Audio Class 2.0に対応。24-bit、48 kHzまたは96 kHzで録音・再生できます。</p>
+        </article>
+        <article class="feature-card">
+          <p class="feature-number">04</p>
+          <div class="device-list" aria-hidden="true"><span>WIN</span><span>MAC</span><span>iOS</span><span>ANDROID</span></div>
+          <h3>クラスコンプライアント</h3>
+          <p>専用ドライバーなしで、Windows、macOS、iPhone、iPad、Androidデバイスと接続できます。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="photo-break" aria-label="JUMBLEQベータプロトタイプ">
+      <div class="photo-break-image" style={`--section-image: url(${heroImage})`}></div>
+      <div class="photo-break-copy"><p>FROM TURNTABLES<br />TO THE DIGITAL WORLD.</p><span>ANALOG × USB × MIDI</span></div>
+    </section>
+
+    <section class="configurator-section" id="configurator" aria-labelledby="configurator-title">
+      <div class="configurator-copy">
+        <p class="section-label">03 / CONFIGURATOR</p>
+        <h2 id="configurator-title">音の流れも、<br />指先の感触も。</h2>
+        <p>ブラウザベースのJUMBLEQ Configuratorから、入力ルーティング、クロスフェーダーカーブ、DVS、モニター、磁気スイッチの動作を設定。プリセットの保存・読み込みにも対応します。</p>
+        <a class="text-link" href="https://configurator.jumbleq.io/">Configuratorを開く <span>↗</span></a>
+        <small>Chrome / EdgeなどWeb MIDI対応ブラウザを推奨</small>
+      </div>
+      <a class="configurator-visual" href="https://configurator.jumbleq.io/" aria-label="JUMBLEQ Configuratorを開く">
+        <img src={`${base}assets/configurator.png`} alt="JUMBLEQ Configuratorのインターフェース" loading="lazy" />
+        <span>OPEN WEB APP ↗</span>
+      </a>
+    </section>
+
+    <section class="spec-section" id="specs" aria-labelledby="specs-title">
+      <div class="section-head spec-head"><p class="section-label">04 / SPECIFICATIONS</p><h2 id="specs-title">必要な接続を、<br />一台に。</h2></div>
+      <dl class="spec-list">
+        <div><dt>ANALOG I/O</dt><dd><strong>4 IN / 4 OUT</strong><span>ステレオ2系統・ライン出力2系統</span></dd></div>
+        <div><dt>HEADPHONE</dt><dd><strong>2 OUT</strong><span>独立ヘッドホン出力</span></dd></div>
+        <div><dt>USB AUDIO</dt><dd><strong>4 IN / 4 OUT</strong><span>USB Audio Class 2.0</span></dd></div>
+        <div><dt>AUDIO FORMAT</dt><dd><strong>24-BIT / 48・96 kHz</strong><span>高解像度デジタルオーディオ</span></dd></div>
+        <div><dt>CONTROL</dt><dd><strong>USB MIDI I/O</strong><span>Configurator・外部MIDI連携</span></dd></div>
+        <div><dt>UPDATE</dt><dd><strong>UF2 BOOTLOADER</strong><span>ドラッグ＆ドロップで更新</span></dd></div>
+      </dl>
+      <p class="spec-note">仕様は開発中のベータプロトタイプに基づき、予告なく変更される場合があります。</p>
+    </section>
+
+    <section class="start-section" aria-labelledby="start-title">
+      <div><p class="section-label">05 / GET STARTED</p><h2 id="start-title">JUMBLEQを、<br />もっと深く。</h2></div>
+      <div class="start-links">
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/controls.md"><span>01</span><strong>操作方法を見る</strong><small>CONTROLS</small><b>↗</b></a>
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md"><span>02</span><strong>ファームウェアを更新</strong><small>FIRMWARE</small><b>↗</b></a>
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ"><span>03</span><strong>プロジェクトに参加</strong><small>OPEN SOURCE</small><b>↗</b></a>
+      </div>
+    </section>
+  </main>
+
+  <Footer {base} />
+</BaseLayout>

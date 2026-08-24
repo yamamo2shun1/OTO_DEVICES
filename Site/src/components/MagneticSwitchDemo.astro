@@ -1,0 +1,33 @@
+<div class="switch-demo" aria-label="磁気スイッチの操作イメージ">
+  <div class="switch-row switch-row-top">
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>A</span><small>DOWN</small></button>
+    <button class="mag-key yellow" type="button" aria-pressed="false"><span>MIDI</span><small>01</small></button>
+    <button class="mag-key yellow" type="button" aria-pressed="false"><span>MIDI</span><small>02</small></button>
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>B</span><small>DOWN</small></button>
+  </div>
+  <div class="switch-row switch-row-bottom">
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>A</span><small>UP</small></button>
+    <button class="mag-key yellow" type="button" aria-pressed="false"><span>MIDI</span><small>03</small></button>
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>AUX</span><small>01</small></button>
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>AUX</span><small>02</small></button>
+    <button class="mag-key yellow" type="button" aria-pressed="false"><span>MIDI</span><small>04</small></button>
+    <button class="mag-key dark" type="button" aria-pressed="false"><span>B</span><small>UP</small></button>
+  </div>
+  <p class="demo-hint"><span></span> スイッチを押してみてください</p>
+</div>
+
+<script>
+  const keys = document.querySelectorAll<HTMLButtonElement>(".mag-key");
+
+  keys.forEach((key) => {
+    const release = () => key.setAttribute("aria-pressed", "false");
+    key.addEventListener("pointerdown", () => key.setAttribute("aria-pressed", "true"));
+    key.addEventListener("pointerup", release);
+    key.addEventListener("pointercancel", release);
+    key.addEventListener("pointerleave", release);
+    key.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") key.setAttribute("aria-pressed", "true");
+    });
+    key.addEventListener("keyup", release);
+  });
+</script>
