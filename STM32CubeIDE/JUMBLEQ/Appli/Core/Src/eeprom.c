@@ -55,18 +55,18 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
 
     cfg->current_ch1_input_type = 0U; /* INPUT_TYPE_LINE */
     cfg->current_ch2_input_type = 0U; /* INPUT_TYPE_LINE */
-    cfg->current_xfA_assign     = 0U; /* INPUT_SRC_CH1_LN */
-    cfg->current_xfB_assign     = 2U; /* INPUT_SRC_CH2_LN */
-    cfg->current_xfpost_assign  = 4U; /* INPUT_SRC_USB12 */
+    cfg->current_ch_fader_a_assign     = 0U; /* INPUT_SRC_CH1_LN */
+    cfg->current_ch_fader_b_assign     = 2U; /* INPUT_SRC_CH2_LN */
+    cfg->current_ch_fader_post_assign  = 4U; /* INPUT_SRC_USB12 */
     cfg->current_return_assign  = 5U; /* INPUT_SRC_USB34 */
     cfg->current_hp_out_source  = CUE_SEL_MST;
     cfg->current_ch1_dvs_enable = 0U; /* disabled */
     cfg->current_ch2_dvs_enable = 0U; /* disabled */
     cfg->mag_output_mode_flags  = 0U;
-    cfg->current_xfade_curve_width_a = UI_XFADE_CURVE_WIDTH_A_DEFAULT;
-    cfg->current_xfade_curve_width_b = UI_XFADE_CURVE_WIDTH_B_DEFAULT;
-    cfg->sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
-    cfg->sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
+    cfg->current_ch_fader_curve_width_a = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT;
+    cfg->current_ch_fader_curve_width_b = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT;
+    cfg->sensor2_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_A;
+    cfg->sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B;
 }
 
 void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
@@ -81,16 +81,16 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     ui_control_get_persist_state(&state);
     cfg->current_ch1_input_type = state.current_ch1_input_type;
     cfg->current_ch2_input_type = state.current_ch2_input_type;
-    cfg->current_xfA_assign     = state.current_xfA_assign;
-    cfg->current_xfB_assign     = state.current_xfB_assign;
-    cfg->current_xfpost_assign  = state.current_xfpost_assign;
+    cfg->current_ch_fader_a_assign     = state.current_ch_fader_a_assign;
+    cfg->current_ch_fader_b_assign     = state.current_ch_fader_b_assign;
+    cfg->current_ch_fader_post_assign  = state.current_ch_fader_post_assign;
     cfg->current_return_assign  = state.current_return_assign;
     cfg->current_hp_out_source  = state.current_hp_out_source;
     cfg->current_ch1_dvs_enable = state.current_ch1_dvs_enable;
     cfg->current_ch2_dvs_enable = state.current_ch2_dvs_enable;
     cfg->mag_output_mode_flags  = state.mag_out_as_note ? EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE : 0U;
-    cfg->current_xfade_curve_width_a = state.current_xfade_curve_width_a;
-    cfg->current_xfade_curve_width_b = state.current_xfade_curve_width_b;
+    cfg->current_ch_fader_curve_width_a = state.current_ch_fader_curve_width_a;
+    cfg->current_ch_fader_curve_width_b = state.current_ch_fader_curve_width_b;
     cfg->sensor2_aux_fade_down_assign = state.sensor2_aux_fade_down_assign;
     cfg->sensor3_aux_fade_down_assign = state.sensor3_aux_fade_down_assign;
 }
