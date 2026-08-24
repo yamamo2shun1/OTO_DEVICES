@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "SEGGER_RTT.h"
 
 /* USER CODE END Includes */
 
@@ -42,12 +43,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+extern uint8_t __NONCACHEABLEBUFFER_BEGIN[];
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
+static void MPU_Config(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -63,6 +66,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  MPU_Config();
   /* USER CODE END 1 */
 
   /* Enable the CPU Cache */
@@ -92,6 +96,8 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+  SEGGER_RTT_Init();
+  SEGGER_RTT_WriteString(0, "LED blink started\r\n");
 
   /* USER CODE END 2 */
 
@@ -103,12 +109,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
         HAL_GPIO_WritePin(LED0_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+        SEGGER_RTT_printf(0, "[%u ms] LED1 ON\r\n", (unsigned)HAL_GetTick());
         HAL_Delay(200);
         HAL_GPIO_WritePin(LED0_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+        SEGGER_RTT_printf(0, "[%u ms] LED2 ON\r\n", (unsigned)HAL_GetTick());
         HAL_Delay(200);
         HAL_GPIO_WritePin(LED0_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
+        SEGGER_RTT_printf(0, "[%u ms] LED1 OFF\r\n", (unsigned)HAL_GetTick());
         HAL_Delay(200);
         HAL_GPIO_WritePin(LED0_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+        SEGGER_RTT_printf(0, "[%u ms] LED2 OFF\r\n", (unsigned)HAL_GetTick());
         HAL_Delay(200);
     }
   /* USER CODE END 3 */
@@ -146,6 +156,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+  * @brief Configure the linker-reserved RTT area as non-cacheable.
+  */
+static void MPU_Config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+
+  HAL_MPU_Disable();
+
+  MPU_InitStruct.Enable           = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number           = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress      = (uint32_t)(uintptr_t)__NONCACHEABLEBUFFER_BEGIN;
+  MPU_InitStruct.Size             = MPU_REGION_SIZE_1KB;
+  MPU_InitStruct.SubRegionDisable = 0x00;
+  MPU_InitStruct.TypeExtField     = MPU_TEX_LEVEL1;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.DisableExec      = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable      = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable      = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsBufferable     = MPU_ACCESS_NOT_BUFFERABLE;
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+}
 /* USER CODE END 4 */
 
 /**
