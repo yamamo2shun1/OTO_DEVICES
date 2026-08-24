@@ -12,11 +12,7 @@ This guide describes the J-Link RTT Viewer settings used to monitor debug messag
 
 Open J-Link RTT Viewer and use the following configuration.
 
-<!--
-Insert the JUMBLEQ RTT Viewer configuration screenshot here.
-Suggested format:
-<img width="360" alt="J-Link RTT Viewer configuration for JUMBLEQ" src="GITHUB_ATTACHMENT_URL" />
--->
+<img width="360" alt="J-Link RTT Viewer configuration for JUMBLEQ" src="https://github.com/user-attachments/assets/a6d018f1-82e3-4e46-82cc-02af67bd21b2" />
 
 | Setting | Value |
 | --- | --- |
