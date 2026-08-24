@@ -10,3 +10,7 @@ The following screenshots show the STM32CubeIDE J-Link debug settings used by th
 
 ### Startup
 <img width="640" alt="jlink-3" src="https://github.com/user-attachments/assets/b97cac54-6fa0-4ea9-b214-7265fee542c5" />
+
+## RTT Viewer
+
+For the RTT Viewer settings used by `LED_BLINK_APP_JLINK`, see [J-Link RTT Viewer Setup for LED_BLINK_APP_JLINK](RTT_Viewer-LED_BLINK_APP_JLINK.md).
