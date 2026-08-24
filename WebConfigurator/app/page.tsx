@@ -77,11 +77,13 @@ function SourceSelect({
   value,
   onChange,
   accent,
+  disabledSources = [],
 }: {
   label: string;
   value: Source;
   onChange: (value: Source) => void;
   accent: "a" | "b" | "neutral";
+  disabledSources?: readonly Source[];
 }) {
   return (
     <label className="source-field">
@@ -89,7 +91,7 @@ function SourceSelect({
       <div className={`select-shell select-${accent}`}>
         <select value={value} onChange={(event) => onChange(event.target.value as Source)}>
           {sources.map((source) => (
-            <option key={source} value={source}>{sourceLabels[source]}</option>
+            <option key={source} value={source} disabled={disabledSources.includes(source)}>{sourceLabels[source]}</option>
           ))}
         </select>
         <ChevronDown aria-hidden="true" size={16} />
@@ -403,6 +405,9 @@ export default function Home() {
   const reconnecting = midiStatus === "reconnecting";
   const connectionBusy = midiStatus === "requesting" || midiStatus === "connecting" || reconnecting;
   const settingsLocked = connectionBusy || midiStatus === "syncing";
+  const disabledFaderSources = sources.filter((source) => (
+    (source === "CH 1" && dvs1) || (source === "CH 2" && dvs2)
+  ));
   const connectButtonLabel = midiStatus === "unsupported"
     ? "MIDI unsupported"
     : midiStatus === "requesting"
@@ -428,6 +433,19 @@ export default function Home() {
     if (hasOpenPorts) sendProgramSetting(field, value);
     setDirty(true);
     setSaved(false);
+  };
+
+  const updateDvs = (channel: 1 | 2, enabled: boolean) => {
+    if (enabled) {
+      const analogSource: Source = channel === 1 ? "CH 1" : "CH 2";
+      const usbFallback: Source = channel === 1 ? "USB 1/2" : "USB 3/4";
+      if (assignA === analogSource) updateProgram(setAssignA, "assignA", usbFallback);
+      if (assignB === analogSource) updateProgram(setAssignB, "assignB", usbFallback);
+      if (assignPost === analogSource) updateProgram(setAssignPost, "assignPost", usbFallback);
+    }
+
+    if (channel === 1) updateProgram(setDvs1, "dvs1", enabled);
+    else updateProgram(setDvs2, "dvs2", enabled);
   };
 
   const updateCurve = (
@@ -583,16 +601,16 @@ export default function Home() {
               </div>
               <div className="channel-dvs-setting">
                 <span><b>DIGITAL VINYL SYSTEM</b><small>{dvs1 ? "DVS enabled" : "DVS disabled"}</small></span>
-                <button className={`switch ${dvs1 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 1 DVS" aria-checked={dvs1} onClick={() => updateProgram(setDvs1, "dvs1", !dvs1)}><i /></button>
+                <button className={`switch ${dvs1 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 1 DVS" aria-checked={dvs1} onClick={() => updateDvs(1, !dvs1)}><i /></button>
               </div>
             </article>
 
             <article className="signal-card">
               <div className="signal-card-header"><div><p className="card-label">CROSSFADER ROUTING</p><h2>Assign sources</h2></div><Settings2 size={20} /></div>
               <div className="source-list">
-                <SourceSelect label="Fader A" value={assignA} onChange={(value) => updateProgram(setAssignA, "assignA", value)} accent="a" />
-                <SourceSelect label="Fader B" value={assignB} onChange={(value) => updateProgram(setAssignB, "assignB", value)} accent="b" />
-                <SourceSelect label="Post fader" value={assignPost} onChange={(value) => updateProgram(setAssignPost, "assignPost", value)} accent="neutral" />
+                <SourceSelect label="Fader A" value={assignA} onChange={(value) => updateProgram(setAssignA, "assignA", value)} accent="a" disabledSources={disabledFaderSources} />
+                <SourceSelect label="Fader B" value={assignB} onChange={(value) => updateProgram(setAssignB, "assignB", value)} accent="b" disabledSources={disabledFaderSources} />
+                <SourceSelect label="Post fader" value={assignPost} onChange={(value) => updateProgram(setAssignPost, "assignPost", value)} accent="neutral" disabledSources={disabledFaderSources} />
               </div>
               <div className="route-line" aria-hidden="true"><span className="route-a" /><i /><span className="route-b" /></div>
             </article>
@@ -607,7 +625,7 @@ export default function Home() {
               </div>
               <div className="channel-dvs-setting">
                 <span><b>DIGITAL VINYL SYSTEM</b><small>{dvs2 ? "DVS enabled" : "DVS disabled"}</small></span>
-                <button className={`switch ${dvs2 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 2 DVS" aria-checked={dvs2} onClick={() => updateProgram(setDvs2, "dvs2", !dvs2)}><i /></button>
+                <button className={`switch ${dvs2 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 2 DVS" aria-checked={dvs2} onClick={() => updateDvs(2, !dvs2)}><i /></button>
               </div>
             </article>
           </section>

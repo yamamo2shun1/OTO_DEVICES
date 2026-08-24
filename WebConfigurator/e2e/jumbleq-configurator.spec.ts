@@ -51,6 +51,58 @@ test("labels physical routing sources as analog inputs", async ({ page }) => {
   await expect(faderA.locator("option:checked")).toHaveText("ANALOG 2");
 });
 
+test("reroutes and disables analog sources when enabling DVS", async ({ page }) => {
+  await page.getByRole("button", { name: "Connect device" }).click();
+  await expect(page.getByRole("button", { name: "JUMBLEQ connected" })).toBeVisible();
+
+  const dvs1Switch = page.getByRole("switch", { name: "Channel 1 DVS" });
+  const faderA = page.getByRole("combobox", { name: "Fader A", exact: true });
+  const faderB = page.getByRole("combobox", { name: "Fader B", exact: true });
+  const postFader = page.getByRole("combobox", { name: "Post fader", exact: true });
+
+  await dvs1Switch.click();
+  await faderA.selectOption("CH 1");
+  await faderB.selectOption("CH 1");
+  await postFader.selectOption("CH 1");
+  await clearMidiMessages(page);
+
+  await dvs1Switch.click();
+
+  await expect(faderA).toHaveValue("USB 1/2");
+  await expect(faderB).toHaveValue("USB 1/2");
+  await expect(postFader).toHaveValue("USB 1/2");
+  await expect(faderA.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  await expect(faderB.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  await expect(postFader.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  expect(await midiMessages(page)).toEqual([
+    [0xce, 6],
+    [0xce, 10],
+    [0xce, 14],
+    [0xce, 17],
+  ]);
+
+  const dvs2Switch = page.getByRole("switch", { name: "Channel 2 DVS" });
+  await faderA.selectOption("CH 2");
+  await faderB.selectOption("CH 2");
+  await postFader.selectOption("CH 2");
+  await clearMidiMessages(page);
+
+  await dvs2Switch.click();
+
+  await expect(faderA).toHaveValue("USB 3/4");
+  await expect(faderB).toHaveValue("USB 3/4");
+  await expect(postFader).toHaveValue("USB 3/4");
+  await expect(faderA.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  await expect(faderB.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  await expect(postFader.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  expect(await midiMessages(page)).toEqual([
+    [0xce, 7],
+    [0xce, 11],
+    [0xce, 15],
+    [0xce, 19],
+  ]);
+});
+
 test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page }) => {
   await page.getByRole("button", { name: "Connect device" }).click();
 
