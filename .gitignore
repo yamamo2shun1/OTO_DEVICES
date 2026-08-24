@@ -21,7 +21,11 @@ Debug
 *.elf
 *.swp
 *.launch
-!STM32CubeIDE/JUMBLEQ/Appli/LED_BLINK_APP_JLINK_Appli Debug.launch
+!STM32CubeIDE/LED_BLINK_APP/Appli/LED_BLINK_APP_Appli Debug.launch
+!STM32CubeIDE/LED_BLINK_APP_JLINK/Appli/LED_BLINK_APP_JLINK_Appli Debug.launch
+!STM32CubeIDE/JUMBLEQ/Appli/JUMBLEQ_Appli Debug (STLINK).launch
+!STM32CubeIDE/JUMBLEQ/Appli/JUMBLEQ_Appli Debug (JLINK).launch
+!STM32CubeIDE/MX25UW25645GXDI00_STM32H7S3Z8T/Boot/MX25UW25645GXDI00_STM32H7S3Z8T_Boot Release.launch
 *.o
 *.su
 *.d
