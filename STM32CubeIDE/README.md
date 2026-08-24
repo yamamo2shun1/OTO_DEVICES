@@ -3,7 +3,7 @@
 This STM32CubeIDE workspace contains the firmware projects for the JUMBLEQ hardware.
 All projects target the **STM32H7S3Z8T6** on the [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board).
 
-For the debug probe settings used with these projects, see [Debug Configuration for ST-LINK](docs/Debug_Configuration-STLINK.md) and [Debug Configuration for J-Link](docs/Debug_Configuration-JLINK.md). For RTT output from `LED_BLINK_APP_JLINK`, see [J-Link RTT Viewer Setup](docs/RTT_Viewer-LED_BLINK_APP_JLINK.md).
+For the debug probe settings used with these projects, see [Debug Configuration for ST-LINK](docs/Debug_Configuration-STLINK.md) and [Debug Configuration for J-Link](docs/Debug_Configuration-JLINK.md). For RTT output, see the J-Link RTT Viewer setup guides for [`JUMBLEQ`](docs/RTT_Viewer-JUMBLEQ.md) and [`LED_BLINK_APP_JLINK`](docs/RTT_Viewer-LED_BLINK_APP_JLINK.md).
 
 ## Projects
 
@@ -18,7 +18,7 @@ The main firmware for JUMBLEQ.
 - Saves settings to EEPROM and restores them at startup
 
 The buildable STM32CubeIDE project is located in `JUMBLEQ/Appli`.
-The application is configured to run from external flash at `0x90010000`. The post-build step generates BIN and UF2 files.
+The application is configured to run from external flash at `0x90010000`. The post-build step generates BIN and UF2 files. See [J-Link RTT Viewer Setup for JUMBLEQ](docs/RTT_Viewer-JUMBLEQ.md) for its RTT debug output configuration.
 
 ### `LED_BLINK_APP`
 

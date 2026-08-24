@@ -13,4 +13,5 @@ The following screenshots show the STM32CubeIDE J-Link debug settings used by th
 
 ## RTT Viewer
 
-For the RTT Viewer settings used by `LED_BLINK_APP_JLINK`, see [J-Link RTT Viewer Setup for LED_BLINK_APP_JLINK](RTT_Viewer-LED_BLINK_APP_JLINK.md).
+- For `JUMBLEQ_Appli`, see [J-Link RTT Viewer Setup for JUMBLEQ](RTT_Viewer-JUMBLEQ.md).
+- For `LED_BLINK_APP_JLINK_Appli`, see [J-Link RTT Viewer Setup for LED_BLINK_APP_JLINK](RTT_Viewer-LED_BLINK_APP_JLINK.md).
