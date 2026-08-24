@@ -42,6 +42,88 @@ test("shows the verified iPad MIDIWeb Browser guidance", async ({ page }) => {
   await expect(page.getByText("Connection and MIDI communication are verified on iPadOS 26.5.")).toBeVisible();
 });
 
+test("groups audio routing and MIDI controls by function", async ({ page }) => {
+  const navigation = page.getByRole("navigation", { name: "Configurator sections" });
+  await expect(navigation.getByRole("link")).toHaveText(["Audio", "MIDI", "Device"]);
+  await expect(page.getByText("Configurator preview · v0.9.0")).toBeVisible();
+
+  const audioSettings = page.locator("#audio");
+  await expect(page.getByRole("heading", { name: "Audio settings" })).toBeVisible();
+  await expect(page.locator(".page-heading > .page-heading-description")).toHaveText("Configure analog inputs, signal routing, monitoring, and channel-fader response.");
+  await expect(audioSettings.getByRole("heading", { name: "Monitor routing" })).toBeVisible();
+  await expect(audioSettings.getByRole("heading", { name: "Return routing" })).toBeVisible();
+  await expect(audioSettings.getByRole("heading", { name: "Response curves" })).toBeVisible();
+  await expect(audioSettings.getByText("CHANNEL FADER ROUTING")).toBeVisible();
+  await expect(audioSettings.getByText("CHANNEL FADERS", { exact: true })).toBeVisible();
+  await expect(audioSettings.locator(".curve-card + .routing-settings-grid")).toHaveCount(1);
+
+  const midiSettings = page.locator("#midi");
+  await expect(midiSettings.getByRole("heading", { name: "MIDI settings" })).toBeVisible();
+  await expect(midiSettings.getByRole("heading", { name: "Magnetic switches" })).toBeVisible();
+  await expect(midiSettings.getByRole("heading", { name: "Monitor routing" })).toHaveCount(0);
+});
+
+test("labels physical routing sources as analog inputs", async ({ page }) => {
+  const faderA = page.getByRole("combobox", { name: "Fader A", exact: true });
+
+  await expect(faderA.locator("option")).toHaveText(["ANALOG 1", "ANALOG 2", "USB 1/2", "USB 3/4"]);
+  await faderA.selectOption("CH 2");
+  await expect(faderA).toHaveValue("CH 2");
+  await expect(faderA.locator("option:checked")).toHaveText("ANALOG 2");
+});
+
+test("reroutes and disables analog sources when enabling DVS", async ({ page }) => {
+  await page.getByRole("button", { name: "Connect device" }).click();
+  await expect(page.getByRole("button", { name: "JUMBLEQ connected" })).toBeVisible();
+
+  const dvs1Switch = page.getByRole("switch", { name: "Channel 1 DVS" });
+  const faderA = page.getByRole("combobox", { name: "Fader A", exact: true });
+  const faderB = page.getByRole("combobox", { name: "Fader B", exact: true });
+  const postFader = page.getByRole("combobox", { name: "Post fader", exact: true });
+
+  await dvs1Switch.click();
+  await faderA.selectOption("CH 1");
+  await faderB.selectOption("CH 1");
+  await postFader.selectOption("CH 1");
+  await clearMidiMessages(page);
+
+  await dvs1Switch.click();
+
+  await expect(faderA).toHaveValue("USB 1/2");
+  await expect(faderB).toHaveValue("USB 1/2");
+  await expect(postFader).toHaveValue("USB 1/2");
+  await expect(faderA.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  await expect(faderB.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  await expect(postFader.locator('option[value="CH 1"]')).toHaveAttribute("disabled", "");
+  expect(await midiMessages(page)).toEqual([
+    [0xce, 6],
+    [0xce, 10],
+    [0xce, 14],
+    [0xce, 17],
+  ]);
+
+  const dvs2Switch = page.getByRole("switch", { name: "Channel 2 DVS" });
+  await faderA.selectOption("CH 2");
+  await faderB.selectOption("CH 2");
+  await postFader.selectOption("CH 2");
+  await clearMidiMessages(page);
+
+  await dvs2Switch.click();
+
+  await expect(faderA).toHaveValue("USB 3/4");
+  await expect(faderB).toHaveValue("USB 3/4");
+  await expect(postFader).toHaveValue("USB 3/4");
+  await expect(faderA.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  await expect(faderB.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  await expect(postFader.locator('option[value="CH 2"]')).toHaveAttribute("disabled", "");
+  expect(await midiMessages(page)).toEqual([
+    [0xce, 7],
+    [0xce, 11],
+    [0xce, 15],
+    [0xce, 19],
+  ]);
+});
+
 test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page }) => {
   await page.getByRole("button", { name: "Connect device" }).click();
 
@@ -49,10 +131,10 @@ test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page
   await expect(page.getByText("Current settings loaded from JUMBLEQ")).toBeVisible();
   await expect(page.getByText("14/14 synced")).toBeVisible();
   await expect(page.getByRole("group", { name: "Channel 2 input type" }).getByRole("button", { name: "PHONO" })).toHaveClass(/active/);
+  await expect(page.getByRole("article", { name: "Channel 1 input" }).getByRole("switch", { name: "Channel 1 DVS" })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("combobox", { name: "Fader A", exact: true })).toHaveValue("USB 3/4");
   await expect(page.getByLabel("Headphone monitor source")).toHaveValue("Fader B");
   await expect(page.getByLabel("USB return input")).toHaveValue("USB 1/2");
-  await expect(page.getByRole("switch").first()).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("button", { name: "MIDI note" })).toHaveClass(/active/);
   await expect(page.getByLabel("Fader A curve sharpness")).toHaveValue("25");
   await expect(page.getByLabel("Fader B curve sharpness")).toHaveValue("75");
@@ -66,7 +148,7 @@ test("sends setting, curve edit, and EEPROM save messages", async ({ page }) => 
 
   await page.getByRole("group", { name: "Channel 1 input type" }).getByRole("button", { name: "PHONO" }).click();
   await page.getByRole("combobox", { name: "Fader A", exact: true }).selectOption("USB 3/4");
-  await page.getByRole("switch").first().click();
+  await page.getByRole("switch", { name: "Channel 1 DVS" }).click();
   const curveA = page.getByLabel("Fader A curve sharpness");
   await curveA.fill("80");
   await curveA.blur();

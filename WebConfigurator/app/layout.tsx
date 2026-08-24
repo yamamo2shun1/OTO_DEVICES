@@ -8,17 +8,17 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
   title: "JUMBLEQ Configurator",
-  description: "Configure routing, controls, and crossfader response for JUMBLEQ.",
+  description: "Configure routing, controls, and channel-fader response for JUMBLEQ.",
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
   openGraph: {
     title: "JUMBLEQ Configurator",
-    description: "Shape routing, controls, and crossfader response from any supported device.",
+    description: "Shape routing, controls, and channel-fader response from any supported device.",
     images: [{ url: "/og.png", width: 1732, height: 909, alt: "JUMBLEQ Configurator" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "JUMBLEQ Configurator",
-    description: "Shape routing, controls, and crossfader response from any supported device.",
+    description: "Shape routing, controls, and channel-fader response from any supported device.",
     images: ["/og.png"],
   },
 };
