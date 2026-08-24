@@ -3,7 +3,7 @@
 This STM32CubeIDE workspace contains the firmware projects for the JUMBLEQ hardware.
 All projects target the **STM32H7S3Z8T6** on the [STM32H7S3 Development Board](https://github.com/YamamotoWorksDev/STM32H7S3_Dev_Board).
 
-For the ST-LINK settings used to debug these projects, see [Debug Configuration for ST-LINK](docs/Debug_Configuration-STLINK.md).
+For the debug probe settings used with these projects, see [Debug Configuration for ST-LINK](docs/Debug_Configuration-STLINK.md) and [Debug Configuration for J-Link](docs/Debug_Configuration-JLINK.md).
 
 ## Projects
 
