@@ -30,6 +30,12 @@ import { useJumbleqMidi, type MagneticActivity, type MidiStatus } from "./midi/u
 import { parseJumbleqPreset, serializeJumbleqPreset } from "./presets/jumbleq-preset";
 
 const sources: Source[] = ["CH 1", "CH 2", "USB 1/2", "USB 3/4"];
+const sourceLabels: Record<Source, string> = {
+  "CH 1": "ANALOG 1",
+  "CH 2": "ANALOG 2",
+  "USB 1/2": "USB 1/2",
+  "USB 3/4": "USB 3/4",
+};
 const MAX_PRESET_FILE_BYTES = 64 * 1024;
 
 const CURVE_WIDTH_MIN = 0.02;
@@ -83,7 +89,7 @@ function SourceSelect({
       <div className={`select-shell select-${accent}`}>
         <select value={value} onChange={(event) => onChange(event.target.value as Source)}>
           {sources.map((source) => (
-            <option key={source}>{source}</option>
+            <option key={source} value={source}>{sourceLabels[source]}</option>
           ))}
         </select>
         <ChevronDown aria-hidden="true" size={16} />
@@ -568,7 +574,7 @@ export default function Home() {
           <fieldset className="settings-fieldset" disabled={settingsLocked} aria-busy={settingsLocked}>
           <section className="routing-grid" id="routing">
             <article className="channel-card channel-a" aria-label="Channel 1 input">
-              <div className="card-kicker"><span>1</span>CHANNEL INPUT</div>
+              <div className="card-kicker"><span>1</span>ANALOG INPUT</div>
               <div className="channel-input-setting">
                 <p>INPUT SELECT SWITCH</p>
                 <div className="segmented" role="group" aria-label="Channel 1 input type">
@@ -592,7 +598,7 @@ export default function Home() {
             </article>
 
             <article className="channel-card channel-b" aria-label="Channel 2 input">
-              <div className="card-kicker"><span>2</span>CHANNEL INPUT</div>
+              <div className="card-kicker"><span>2</span>ANALOG INPUT</div>
               <div className="channel-input-setting">
                 <p>INPUT SELECT SWITCH</p>
                 <div className="segmented" role="group" aria-label="Channel 2 input type">

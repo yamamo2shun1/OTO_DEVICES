@@ -42,6 +42,15 @@ test("shows the verified iPad MIDIWeb Browser guidance", async ({ page }) => {
   await expect(page.getByText("Connection and MIDI communication are verified on iPadOS 26.5.")).toBeVisible();
 });
 
+test("labels physical routing sources as analog inputs", async ({ page }) => {
+  const faderA = page.getByRole("combobox", { name: "Fader A", exact: true });
+
+  await expect(faderA.locator("option")).toHaveText(["ANALOG 1", "ANALOG 2", "USB 1/2", "USB 3/4"]);
+  await faderA.selectOption("CH 2");
+  await expect(faderA).toHaveValue("CH 2");
+  await expect(faderA.locator("option:checked")).toHaveText("ANALOG 2");
+});
+
 test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page }) => {
   await page.getByRole("button", { name: "Connect device" }).click();
 
