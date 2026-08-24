@@ -29,9 +29,9 @@
 #define POT_CC_MIN_DEADZONE_VALUE 2U
 #define MAG_SW_NUM                6
 #define MAG_CALIBRATION_COUNT_MAX 100
-#define MAG_XFADE_CUTOFF          16
-#define MAG_XFADE_RANGE           1400
-#define XFADE_FADE_DOWN_SOURCE_COUNT 3U
+#define MAG_CH_FADER_CUTOFF          16
+#define MAG_CH_FADER_RANGE           1400
+#define CH_FADER_FADE_DOWN_SOURCE_COUNT 3U
 
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
@@ -68,29 +68,29 @@ enum
 
 typedef enum
 {
-    XFADE_GESTURE_PARENT_NONE = 0,
-    XFADE_GESTURE_PARENT_FADE_UP,
-    XFADE_GESTURE_PARENT_FADE_DOWN,
-} xfade_gesture_parent_t;
+    CH_FADER_GESTURE_PARENT_NONE = 0,
+    CH_FADER_GESTURE_PARENT_FADE_UP,
+    CH_FADER_GESTURE_PARENT_FADE_DOWN,
+} ch_fader_gesture_parent_t;
 
 __attribute__((section("noncacheable_buffer"), aligned(32))) uint32_t adc_val[ADC_NUM] = {0};
 
-// State used by magnetic-switch crossfader processing.
+// State used by magnetic-switch channel fader processing.
 typedef struct
 {
-    uint8_t position_a;  // Last quantized output value sent to xfade pair A.
-    uint8_t position_b;  // Last quantized output value sent to xfade pair B.
+    uint8_t position_a;  // Last quantized output value sent to ch_fader pair A.
+    uint8_t position_b;  // Last quantized output value sent to ch_fader pair B.
     float raw[MAG_SW_NUM];  // Per-sensor normalized raw value after magnetic conversion.
     float prev[MAG_SW_NUM];  // Previous raw value used for outgoing MIDI CC change detection.
     float down_floor[MAG_SW_NUM];  // Per-sensor held minimum used by paired fade-down tracking.
     float up_peak[MAG_SW_NUM];  // Per-sensor held maximum used by paired fade-up tracking.
-    float pair_hold_value[2];  // Current held output value for each xfade pair.
+    float pair_hold_value[2];  // Current held output value for each ch_fader pair.
     float pair_bottom_restore_value[2];  // Held output value to restore after leaving the fade-down bottom.
     float pair_top_restore_value[2];  // Held output value to restore after leaving the fade-up top.
     float fade_up_prev[2];  // Previous fade-up value used to detect when pair output needs recomputing.
     float fade_down_prev[2];  // Previous fade-down value used to detect when pair output needs recomputing.
     float fade_down_combined_raw[2];  // Per-pair fade-down value after dual-source arbitration.
-    float fade_down_source_prev[2][XFADE_FADE_DOWN_SOURCE_COUNT];  // Previous fade-down source values used for retrigger detection.
+    float fade_down_source_prev[2][CH_FADER_FADE_DOWN_SOURCE_COUNT];  // Previous fade-down source values used for retrigger detection.
     uint8_t fade_down_active_source[2];  // Last fade-down source that started a cut gesture.
     uint8_t fade_down_force_release_reads[2];  // Number of reads that should force a release before retriggering.
     uint8_t pair_gesture_parent[2];  // First-pressed side that owns the current two-finger gesture.
@@ -103,20 +103,20 @@ typedef struct
     bool pair_fade_up_topped[2];  // Whether each pair is currently in the fade-up top zone.
     bool pair_reverse_fade_down_takeover[2];  // Whether fade-down owns reverse momentary output while fade-up is released.
     bool fade_prev_valid;  // Whether the previous pair fade values have been initialized.
-    uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one xfade sensor note-on edge.
-    uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one xfade sensor note velocity scan window.
-    bool note_is_on[MAG_SW_NUM];  // Whether each xfade sensor note output is currently on.
-    bool note_scan_active[MAG_SW_NUM];  // Whether each xfade sensor is accumulating note-on velocity.
-} xfade_state_t;
+    uint8_t note_peak_vel[MAG_SW_NUM];  // Peak velocity captured while scanning one ch_fader sensor note-on edge.
+    uint32_t note_scan_start_ms[MAG_SW_NUM];  // Start tick for one ch_fader sensor note velocity scan window.
+    bool note_is_on[MAG_SW_NUM];  // Whether each ch_fader sensor note output is currently on.
+    bool note_scan_active[MAG_SW_NUM];  // Whether each ch_fader sensor is accumulating note-on velocity.
+} ch_fader_state_t;
 
 // Aggregated UI runtime state (ADC-derived controls + persisted selections).
 typedef struct
 {
     uint8_t current_ch1_input_type;
     uint8_t current_ch2_input_type;
-    uint8_t current_xfA_assign;
-    uint8_t current_xfB_assign;
-    uint8_t current_xfpost_assign;
+    uint8_t current_ch_fader_a_assign;
+    uint8_t current_ch_fader_b_assign;
+    uint8_t current_ch_fader_post_assign;
     uint8_t current_return_assign;
     uint8_t current_hp_out_source;
     uint8_t current_ch1_dvs_enable;
@@ -143,9 +143,9 @@ typedef struct
     uint16_t mag_val[MAG_SW_NUM];
     uint32_t mag_offset_sum[MAG_SW_NUM];
     uint16_t mag_offset[MAG_SW_NUM];
-    xfade_state_t xf;
-    float xfade_curve_width_a;
-    float xfade_curve_width_b;
+    ch_fader_state_t ch_fader;
+    float ch_fader_curve_width_a;
+    float ch_fader_curve_width_b;
     bool mag_out_as_note;
     bool curve_edit_mode;
     bool is_start_audio_control;
@@ -154,44 +154,44 @@ typedef struct
 static ui_control_state_t s_ui = {
     .current_ch1_input_type = INPUT_TYPE_LINE,
     .current_ch2_input_type = INPUT_TYPE_LINE,
-    .current_xfA_assign     = INPUT_SRC_CH1_LN,
-    .current_xfB_assign     = INPUT_SRC_CH2_LN,
-    .current_xfpost_assign  = INPUT_SRC_USB12,
+    .current_ch_fader_a_assign     = INPUT_SRC_CH1_LN,
+    .current_ch_fader_b_assign     = INPUT_SRC_CH2_LN,
+    .current_ch_fader_post_assign  = INPUT_SRC_USB12,
     .current_return_assign  = INPUT_SRC_USB34,
     .current_hp_out_source  = CUE_SEL_MST,
     .current_ch1_dvs_enable = 0U,
     .current_ch2_dvs_enable = 0U,
-    .sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A,
-    .sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B,
-    .xfade_curve_width_a    = UI_XFADE_CURVE_WIDTH_A_DEFAULT,
-    .xfade_curve_width_b    = UI_XFADE_CURVE_WIDTH_B_DEFAULT,
+    .sensor2_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_A,
+    .sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B,
+    .ch_fader_curve_width_a    = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT,
+    .ch_fader_curve_width_b    = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT,
     .mag_out_as_note        = false,
     .curve_edit_mode        = false,
-    .xf.position_a          = 0,
-    .xf.position_b          = 0,
-    .xf.raw                 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xf.prev                = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xf.down_floor          = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
-    .xf.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
-    .xf.pair_hold_value          = {0.0f, 0.0f},
-    .xf.pair_bottom_restore_value = {0.0f, 0.0f},
-    .xf.pair_top_restore_value    = {0.0f, 0.0f},
-    .xf.fade_up_prev             = {0.0f, 0.0f},
-    .xf.fade_down_prev           = {1.0f, 1.0f},
-    .xf.fade_down_combined_raw   = {1.0f, 1.0f},
-    .xf.fade_down_source_prev    = {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
-    .xf.fade_down_active_source  = {0xFFU, 0xFFU},
-    .xf.fade_down_force_release_reads = {0U, 0U},
-    .xf.pair_gesture_parent      = {XFADE_GESTURE_PARENT_NONE, XFADE_GESTURE_PARENT_NONE},
-    .xf.pair_gesture_armed       = {true, true},
-    .xf.pair_gesture_child_active = {false, false},
-    .xf.pair_fade_down_cut_active = {false, false},
-    .xf.pair_bottom_hold_active  = {false, false},
-    .xf.pair_fade_down_bottomed  = {false, false},
-    .xf.pair_top_hold_active     = {false, false},
-    .xf.pair_fade_up_topped      = {false, false},
-    .xf.pair_reverse_fade_down_takeover = {false, false},
-    .xf.fade_prev_valid          = false,
+    .ch_fader.position_a          = 0,
+    .ch_fader.position_b          = 0,
+    .ch_fader.raw                 = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .ch_fader.prev                = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .ch_fader.down_floor          = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+    .ch_fader.up_peak             = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    .ch_fader.pair_hold_value          = {0.0f, 0.0f},
+    .ch_fader.pair_bottom_restore_value = {0.0f, 0.0f},
+    .ch_fader.pair_top_restore_value    = {0.0f, 0.0f},
+    .ch_fader.fade_up_prev             = {0.0f, 0.0f},
+    .ch_fader.fade_down_prev           = {1.0f, 1.0f},
+    .ch_fader.fade_down_combined_raw   = {1.0f, 1.0f},
+    .ch_fader.fade_down_source_prev    = {{1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}},
+    .ch_fader.fade_down_active_source  = {0xFFU, 0xFFU},
+    .ch_fader.fade_down_force_release_reads = {0U, 0U},
+    .ch_fader.pair_gesture_parent      = {CH_FADER_GESTURE_PARENT_NONE, CH_FADER_GESTURE_PARENT_NONE},
+    .ch_fader.pair_gesture_armed       = {true, true},
+    .ch_fader.pair_gesture_child_active = {false, false},
+    .ch_fader.pair_fade_down_cut_active = {false, false},
+    .ch_fader.pair_bottom_hold_active  = {false, false},
+    .ch_fader.pair_fade_down_bottomed  = {false, false},
+    .ch_fader.pair_top_hold_active     = {false, false},
+    .ch_fader.pair_fade_up_topped      = {false, false},
+    .ch_fader.pair_reverse_fade_down_takeover = {false, false},
+    .ch_fader.fade_prev_valid          = false,
     .is_start_audio_control = false,
 };
 
@@ -199,23 +199,23 @@ static volatile bool is_adc_complete  = false;
 static const uint8_t POT_MAG_CH_FIRST = POT_CH_MAG0;
 static const uint8_t POT_MAG_CH_LAST  = POT_CH_MAG3;
 
-static const float XFADE_CC_UPDATE_THRESHOLD    = 0.01f;
-static const float XFADE_EXTREMA_HYSTERESIS     = 0.002f;
-static const float XFADE_SEND_THRESHOLD         = 0.002f;
-static const float XFADE_PAIR_RESET_THRESHOLD   = 0.98f;
-static const float XFADE_MIN_RESET_CUTOFF       = 0.05f;
-static const float XFADE_PAIR_ONSET_DEADBAND    = 0.10f;
-static const float XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD     = 0.95f;
-static const float XFADE_PAIR_FADE_DOWN_DEEPER_DELTA        = 0.03f;
-static const float XFADE_PAIR_CURVE_WIDTH_MIN   = 0.02f;
-static const float XFADE_PAIR_CURVE_WIDTH_MAX   = 0.60f;
-static const float XFADE_PAIR_RAMP_LINEAR_BLEND = 0.60f;
-static const float XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO = 0.125f;
-static const float XFADE_PAIR_BOTTOM_REHOLD_RATIO       = 0.04f;
+static const float CH_FADER_CC_UPDATE_THRESHOLD    = 0.01f;
+static const float CH_FADER_EXTREMA_HYSTERESIS     = 0.002f;
+static const float CH_FADER_SEND_THRESHOLD         = 0.002f;
+static const float CH_FADER_PAIR_RESET_THRESHOLD   = 0.98f;
+static const float CH_FADER_MIN_RESET_CUTOFF       = 0.05f;
+static const float CH_FADER_PAIR_ONSET_DEADBAND    = 0.10f;
+static const float CH_FADER_PAIR_FADE_DOWN_PRESS_THRESHOLD     = 0.95f;
+static const float CH_FADER_PAIR_FADE_DOWN_DEEPER_DELTA        = 0.03f;
+static const float CH_FADER_PAIR_CURVE_WIDTH_MIN   = 0.02f;
+static const float CH_FADER_PAIR_CURVE_WIDTH_MAX   = 0.60f;
+static const float CH_FADER_PAIR_RAMP_LINEAR_BLEND = 0.60f;
+static const float CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO = 0.125f;
+static const float CH_FADER_PAIR_BOTTOM_REHOLD_RATIO       = 0.04f;
 
 static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
-static const uint8_t MIDI_CC_XFADE_CURVE_A        = 20U;
-static const uint8_t MIDI_CC_XFADE_CURVE_B        = 21U;
+static const uint8_t MIDI_CC_CH_FADER_CURVE_A        = 20U;
+static const uint8_t MIDI_CC_CH_FADER_CURVE_B        = 21U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_OFF = 120U;
 static const uint8_t MIDI_PC_CURVE_EDIT_MODE_ON  = 121U;
 static const uint8_t MIDI_PC_MUX_OUTPUT_CC       = 122U;
@@ -226,9 +226,9 @@ static const uint8_t MIDI_NOTE_ON_THRESHOLD      = 4U;
 static const uint8_t MIDI_NOTE_OFF_THRESHOLD     = 2U;
 static const uint32_t MIDI_NOTE_VEL_WINDOW_MS    = 12U;
 static const float MIDI_NOTE_VEL_GAMMA           = 0.65f;
-static const uint8_t XFADE_FADE_DOWN_SOURCE_NONE    = 0xFFU;
-static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP = 16U;
-static const uint8_t XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY    = 16U;
+static const uint8_t CH_FADER_FADE_DOWN_SOURCE_NONE    = 0xFFU;
+static const uint8_t CH_FADER_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP = 16U;
+static const uint8_t CH_FADER_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY    = 16U;
 
 static uint8_t s_note_peak_vel[128];
 static uint32_t s_note_scan_start_ms[128];
@@ -243,28 +243,28 @@ typedef struct
     uint8_t aux2_fade_down_idx;
     uint8_t prev_idx;
     uint8_t* current_position;
-    void (*set_dc)(float xf_pos);
-} xfade_pair_runtime_t;
+    void (*set_dc)(float ch_fader_position);
+} ch_fader_pair_runtime_t;
 
 typedef enum
 {
-    XFADE_PAIR_A = 0,
-    XFADE_PAIR_B = 1,
-    XFADE_PAIR_COUNT
-} xfade_pair_index_t;
+    CH_FADER_PAIR_A = 0,
+    CH_FADER_PAIR_B = 1,
+    CH_FADER_PAIR_COUNT
+} ch_fader_pair_index_t;
 
-// Runtime mapping for each xfade bus:
+// Runtime mapping for each ch_fader bus:
 // Change these indices to reassign the magnetic switches used by each pair.
 // fade_up_idx and fade_down_idx produce the held scalar. Each valid auxiliary
 // fade-down index can retrigger the same fade-down gesture path.
-static xfade_pair_runtime_t s_xfade_pairs[] = {
+static ch_fader_pair_runtime_t s_ch_fader_pairs[] = {
     {
      .fade_up_idx       = 0,
      .fade_down_idx     = 1,
      .aux_fade_down_idx = 2,
      .aux2_fade_down_idx = MAG_SW_NUM,
-     .prev_idx          = XFADE_PAIR_A,
-     .current_position  = &s_ui.xf.position_a,
+     .prev_idx          = CH_FADER_PAIR_A,
+     .current_position  = &s_ui.ch_fader.position_a,
      .set_dc            = set_dc_inputA,
      },
     {
@@ -272,22 +272,22 @@ static xfade_pair_runtime_t s_xfade_pairs[] = {
      .fade_down_idx     = 4,
      .aux_fade_down_idx = 3,
      .aux2_fade_down_idx = MAG_SW_NUM,
-     .prev_idx          = XFADE_PAIR_B,
-     .current_position  = &s_ui.xf.position_b,
+     .prev_idx          = CH_FADER_PAIR_B,
+     .current_position  = &s_ui.ch_fader.position_b,
      .set_dc            = set_dc_inputB,
      },
 };
 
-static void append_xfade_aux_sensor(uint8_t pair_idx, uint8_t sensor_idx)
+static void append_ch_fader_aux_sensor(uint8_t pair_idx, uint8_t sensor_idx)
 {
-    xfade_pair_runtime_t* pair;
+    ch_fader_pair_runtime_t* pair;
 
-    if ((pair_idx >= XFADE_PAIR_COUNT) || (sensor_idx >= MAG_SW_NUM))
+    if ((pair_idx >= CH_FADER_PAIR_COUNT) || (sensor_idx >= MAG_SW_NUM))
     {
         return;
     }
 
-    pair = &s_xfade_pairs[pair_idx];
+    pair = &s_ch_fader_pairs[pair_idx];
     if (pair->aux_fade_down_idx >= MAG_SW_NUM)
     {
         pair->aux_fade_down_idx = sensor_idx;
@@ -298,33 +298,33 @@ static void append_xfade_aux_sensor(uint8_t pair_idx, uint8_t sensor_idx)
     }
 }
 
-static void reset_xfade_aux_assignment_runtime(void)
+static void reset_ch_fader_aux_assignment_runtime(void)
 {
-    for (uint8_t pair_idx = 0U; pair_idx < XFADE_PAIR_COUNT; pair_idx++)
+    for (uint8_t pair_idx = 0U; pair_idx < CH_FADER_PAIR_COUNT; pair_idx++)
     {
-        s_ui.xf.fade_down_prev[pair_idx] = -1.0f;
-        s_ui.xf.fade_down_combined_raw[pair_idx] = 1.0f;
-        s_ui.xf.fade_down_active_source[pair_idx] = XFADE_FADE_DOWN_SOURCE_NONE;
-        s_ui.xf.fade_down_force_release_reads[pair_idx] = 0U;
-        s_ui.xf.pair_gesture_parent[pair_idx] = XFADE_GESTURE_PARENT_NONE;
-        s_ui.xf.pair_gesture_armed[pair_idx] = true;
-        s_ui.xf.pair_gesture_child_active[pair_idx] = false;
-        s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
-        s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
-        s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
-        s_ui.xf.pair_reverse_fade_down_takeover[pair_idx] = false;
+        s_ui.ch_fader.fade_down_prev[pair_idx] = -1.0f;
+        s_ui.ch_fader.fade_down_combined_raw[pair_idx] = 1.0f;
+        s_ui.ch_fader.fade_down_active_source[pair_idx] = CH_FADER_FADE_DOWN_SOURCE_NONE;
+        s_ui.ch_fader.fade_down_force_release_reads[pair_idx] = 0U;
+        s_ui.ch_fader.pair_gesture_parent[pair_idx] = CH_FADER_GESTURE_PARENT_NONE;
+        s_ui.ch_fader.pair_gesture_armed[pair_idx] = true;
+        s_ui.ch_fader.pair_gesture_child_active[pair_idx] = false;
+        s_ui.ch_fader.pair_fade_down_cut_active[pair_idx] = false;
+        s_ui.ch_fader.pair_bottom_hold_active[pair_idx] = false;
+        s_ui.ch_fader.pair_fade_down_bottomed[pair_idx] = false;
+        s_ui.ch_fader.pair_reverse_fade_down_takeover[pair_idx] = false;
 
-        for (uint8_t source = 0U; source < XFADE_FADE_DOWN_SOURCE_COUNT; source++)
+        for (uint8_t source = 0U; source < CH_FADER_FADE_DOWN_SOURCE_COUNT; source++)
         {
-            s_ui.xf.fade_down_source_prev[pair_idx][source] = 1.0f;
+            s_ui.ch_fader.fade_down_source_prev[pair_idx][source] = 1.0f;
         }
     }
 }
 
-static bool apply_xfade_aux_assignments(uint8_t sensor2_assign, uint8_t sensor3_assign)
+static bool apply_ch_fader_aux_assignments(uint8_t sensor2_assign, uint8_t sensor3_assign)
 {
-    if ((sensor2_assign > UI_XFADE_AUX_ASSIGN_B) ||
-        (sensor3_assign > UI_XFADE_AUX_ASSIGN_B))
+    if ((sensor2_assign > UI_CH_FADER_AUX_ASSIGN_B) ||
+        (sensor3_assign > UI_CH_FADER_AUX_ASSIGN_B))
     {
         return false;
     }
@@ -332,15 +332,15 @@ static bool apply_xfade_aux_assignments(uint8_t sensor2_assign, uint8_t sensor3_
     s_ui.sensor2_aux_fade_down_assign = sensor2_assign;
     s_ui.sensor3_aux_fade_down_assign = sensor3_assign;
 
-    for (uint8_t pair_idx = 0U; pair_idx < XFADE_PAIR_COUNT; pair_idx++)
+    for (uint8_t pair_idx = 0U; pair_idx < CH_FADER_PAIR_COUNT; pair_idx++)
     {
-        s_xfade_pairs[pair_idx].aux_fade_down_idx  = MAG_SW_NUM;
-        s_xfade_pairs[pair_idx].aux2_fade_down_idx = MAG_SW_NUM;
+        s_ch_fader_pairs[pair_idx].aux_fade_down_idx  = MAG_SW_NUM;
+        s_ch_fader_pairs[pair_idx].aux2_fade_down_idx = MAG_SW_NUM;
     }
 
-    append_xfade_aux_sensor(sensor2_assign, 2U);
-    append_xfade_aux_sensor(sensor3_assign, 3U);
-    reset_xfade_aux_assignment_runtime();
+    append_ch_fader_aux_sensor(sensor2_assign, 2U);
+    append_ch_fader_aux_sensor(sensor3_assign, 3U);
+    reset_ch_fader_aux_assignment_runtime();
     return true;
 }
 
@@ -443,53 +443,53 @@ static void emit_mag_output(uint8_t cc_number, uint8_t note_number, uint8_t valu
     }
 }
 
-static void clear_xfade_note_state(uint8_t i)
+static void clear_ch_fader_note_state(uint8_t i)
 {
-    s_ui.xf.note_peak_vel[i]      = 0U;
-    s_ui.xf.note_scan_start_ms[i] = 0U;
-    s_ui.xf.note_is_on[i]         = false;
-    s_ui.xf.note_scan_active[i]   = false;
+    s_ui.ch_fader.note_peak_vel[i]      = 0U;
+    s_ui.ch_fader.note_scan_start_ms[i] = 0U;
+    s_ui.ch_fader.note_is_on[i]         = false;
+    s_ui.ch_fader.note_scan_active[i]   = false;
 }
 
-static void emit_xfade_note_if_needed(uint8_t i, uint8_t note, uint8_t value)
+static void emit_ch_fader_note_if_needed(uint8_t i, uint8_t note, uint8_t value)
 {
     const uint32_t now_ms = HAL_GetTick();
 
-    if (s_ui.xf.note_is_on[i])
+    if (s_ui.ch_fader.note_is_on[i])
     {
         if (value <= MIDI_NOTE_OFF_THRESHOLD)
         {
             send_note(note, 0U, 0U);
-            clear_xfade_note_state(i);
+            clear_ch_fader_note_state(i);
         }
         return;
     }
 
-    if (!s_ui.xf.note_scan_active[i])
+    if (!s_ui.ch_fader.note_scan_active[i])
     {
         if (value >= MIDI_NOTE_ON_THRESHOLD)
         {
-            s_ui.xf.note_scan_active[i]   = true;
-            s_ui.xf.note_scan_start_ms[i] = now_ms;
-            s_ui.xf.note_peak_vel[i]      = value;
+            s_ui.ch_fader.note_scan_active[i]   = true;
+            s_ui.ch_fader.note_scan_start_ms[i] = now_ms;
+            s_ui.ch_fader.note_peak_vel[i]      = value;
         }
         return;
     }
 
-    if (value > s_ui.xf.note_peak_vel[i])
+    if (value > s_ui.ch_fader.note_peak_vel[i])
     {
-        s_ui.xf.note_peak_vel[i] = value;
+        s_ui.ch_fader.note_peak_vel[i] = value;
     }
 
     if (value <= MIDI_NOTE_OFF_THRESHOLD)
     {
-        clear_xfade_note_state(i);
+        clear_ch_fader_note_state(i);
         return;
     }
 
-    if ((now_ms - s_ui.xf.note_scan_start_ms[i]) >= MIDI_NOTE_VEL_WINDOW_MS)
+    if ((now_ms - s_ui.ch_fader.note_scan_start_ms[i]) >= MIDI_NOTE_VEL_WINDOW_MS)
     {
-        uint8_t velocity = s_ui.xf.note_peak_vel[i];
+        uint8_t velocity = s_ui.ch_fader.note_peak_vel[i];
         if (velocity == 0U)
         {
             velocity = 1U;
@@ -500,8 +500,8 @@ static void emit_xfade_note_if_needed(uint8_t i, uint8_t note, uint8_t value)
         velocity = (uint8_t) (1.0f + n * 126.0f);
 
         send_note(note, velocity, 0U);
-        s_ui.xf.note_is_on[i]       = true;
-        s_ui.xf.note_scan_active[i] = false;
+        s_ui.ch_fader.note_is_on[i]       = true;
+        s_ui.ch_fader.note_scan_active[i] = false;
     }
 }
 static void send_program_change(uint8_t program, uint8_t channel)
@@ -510,50 +510,50 @@ static void send_program_change(uint8_t program, uint8_t channel)
     tud_midi_stream_write(0, program_change, 2);
 }
 
-static uint8_t xfade_to_cc(float xfade)
+static uint8_t ch_fader_to_cc(float ch_fader)
 {
-    if (xfade < 0.0f)
+    if (ch_fader < 0.0f)
     {
-        xfade = 0.0f;
+        ch_fader = 0.0f;
     }
-    else if (xfade > 1.0f)
+    else if (ch_fader > 1.0f)
     {
-        xfade = 1.0f;
+        ch_fader = 1.0f;
     }
 
-    return (uint8_t) (127.0f - xfade * 127.0f);
+    return (uint8_t) (127.0f - ch_fader * 127.0f);
 }
 
-static void mark_xfade_curve_dirty(void)
+static void mark_ch_fader_curve_dirty(void)
 {
-    for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
+    for (uint8_t i = 0; i < CH_FADER_PAIR_COUNT; i++)
     {
-        s_ui.xf.fade_up_prev[i]   = -1.0f;
-        s_ui.xf.fade_down_prev[i] = -1.0f;
+        s_ui.ch_fader.fade_up_prev[i]   = -1.0f;
+        s_ui.ch_fader.fade_down_prev[i] = -1.0f;
     }
 }
 
-static float midi_cc_to_xfade_curve_width(uint8_t value)
+static float midi_cc_to_ch_fader_curve_width(uint8_t value)
 {
     const float t = (float) value / 127.0f;
 
-    return XFADE_PAIR_CURVE_WIDTH_MAX + ((XFADE_PAIR_CURVE_WIDTH_MIN - XFADE_PAIR_CURVE_WIDTH_MAX) * t);
+    return CH_FADER_PAIR_CURVE_WIDTH_MAX + ((CH_FADER_PAIR_CURVE_WIDTH_MIN - CH_FADER_PAIR_CURVE_WIDTH_MAX) * t);
 }
 
-static uint8_t xfade_curve_width_to_midi_cc(float width)
+static uint8_t ch_fader_curve_width_to_midi_cc(float width)
 {
     float t;
 
-    if (width < XFADE_PAIR_CURVE_WIDTH_MIN)
+    if (width < CH_FADER_PAIR_CURVE_WIDTH_MIN)
     {
-        width = XFADE_PAIR_CURVE_WIDTH_MIN;
+        width = CH_FADER_PAIR_CURVE_WIDTH_MIN;
     }
-    else if (width > XFADE_PAIR_CURVE_WIDTH_MAX)
+    else if (width > CH_FADER_PAIR_CURVE_WIDTH_MAX)
     {
-        width = XFADE_PAIR_CURVE_WIDTH_MAX;
+        width = CH_FADER_PAIR_CURVE_WIDTH_MAX;
     }
 
-    t = (XFADE_PAIR_CURVE_WIDTH_MAX - width) / (XFADE_PAIR_CURVE_WIDTH_MAX - XFADE_PAIR_CURVE_WIDTH_MIN);
+    t = (CH_FADER_PAIR_CURVE_WIDTH_MAX - width) / (CH_FADER_PAIR_CURVE_WIDTH_MAX - CH_FADER_PAIR_CURVE_WIDTH_MIN);
     if (t < 0.0f)
     {
         t = 0.0f;
@@ -566,27 +566,27 @@ static uint8_t xfade_curve_width_to_midi_cc(float width)
     return (uint8_t) ((t * 127.0f) + 0.5f);
 }
 
-static float clamp_xfade_curve_width(float value)
+static float clamp_ch_fader_curve_width(float value)
 {
-    if (value < XFADE_PAIR_CURVE_WIDTH_MIN)
+    if (value < CH_FADER_PAIR_CURVE_WIDTH_MIN)
     {
-        return XFADE_PAIR_CURVE_WIDTH_MIN;
+        return CH_FADER_PAIR_CURVE_WIDTH_MIN;
     }
-    if (value > XFADE_PAIR_CURVE_WIDTH_MAX)
+    if (value > CH_FADER_PAIR_CURVE_WIDTH_MAX)
     {
-        return XFADE_PAIR_CURVE_WIDTH_MAX;
+        return CH_FADER_PAIR_CURVE_WIDTH_MAX;
     }
     return value;
 }
 
-uint8_t get_current_xfA_position(void)
+uint8_t get_current_ch_fader_a_position(void)
 {
-    return s_ui.xf.position_a;
+    return s_ui.ch_fader.position_a;
 }
 
-uint8_t get_current_xfB_position(void)
+uint8_t get_current_ch_fader_b_position(void)
 {
-    return s_ui.xf.position_b;
+    return s_ui.ch_fader.position_b;
 }
 
 int16_t get_current_ch1_in_db(void)
@@ -644,19 +644,19 @@ int16_t get_current_dry_wet(void)
     return pct;
 }
 
-uint8_t get_current_xfade2_cc_value(void)
+uint8_t get_current_ch_fader_sensor2_cc_value(void)
 {
-    return xfade_to_cc(s_ui.xf.raw[2]);
+    return ch_fader_to_cc(s_ui.ch_fader.raw[2]);
 }
 
-uint8_t get_current_xfade3_cc_value(void)
+uint8_t get_current_ch_fader_sensor3_cc_value(void)
 {
-    return xfade_to_cc(s_ui.xf.raw[3]);
+    return ch_fader_to_cc(s_ui.ch_fader.raw[3]);
 }
 
 char* get_current_input_typeA_str(void)
 {
-    switch (s_ui.current_xfA_assign)
+    switch (s_ui.current_ch_fader_a_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH2_LN:
@@ -675,7 +675,7 @@ char* get_current_input_typeA_str(void)
 
 char* get_current_input_typeB_str(void)
 {
-    switch (s_ui.current_xfB_assign)
+    switch (s_ui.current_ch_fader_b_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH2_LN:
@@ -694,7 +694,7 @@ char* get_current_input_typeB_str(void)
 
 char* get_current_input_srcA_str(void)
 {
-    switch (s_ui.current_xfA_assign)
+    switch (s_ui.current_ch_fader_a_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
@@ -712,7 +712,7 @@ char* get_current_input_srcA_str(void)
 
 char* get_current_input_srcB_str(void)
 {
-    switch (s_ui.current_xfB_assign)
+    switch (s_ui.current_ch_fader_b_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
@@ -730,7 +730,7 @@ char* get_current_input_srcB_str(void)
 
 char* get_current_input_srcP_str(void)
 {
-    switch (s_ui.current_xfpost_assign)
+    switch (s_ui.current_ch_fader_post_assign)
     {
     case INPUT_SRC_CH1_LN:
         return "THRU:Ch1[line]";
@@ -766,9 +766,9 @@ char* get_current_hp_out_src_str(void)
 {
     switch (s_ui.current_hp_out_source)
     {
-    case CUE_SEL_XF_A:
+    case CUE_SEL_CH_FADER_A:
         return "A";
-    case CUE_SEL_XF_B:
+    case CUE_SEL_CH_FADER_B:
         return "B";
     case CUE_SEL_THRU:
         return "T";
@@ -781,7 +781,7 @@ char* get_current_hp_out_src_str(void)
 
 uint8_t get_current_input_srcA_channel(void)
 {
-    switch (s_ui.current_xfA_assign)
+    switch (s_ui.current_ch_fader_a_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
@@ -798,7 +798,7 @@ uint8_t get_current_input_srcA_channel(void)
 
 uint8_t get_current_input_srcB_channel(void)
 {
-    switch (s_ui.current_xfB_assign)
+    switch (s_ui.current_ch_fader_b_assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
@@ -828,14 +828,14 @@ bool ui_control_is_curve_edit_mode_enabled(void)
     return s_ui.curve_edit_mode;
 }
 
-uint8_t ui_control_get_xfade_curve_a_cc(void)
+uint8_t ui_control_get_ch_fader_curve_a_cc(void)
 {
-    return xfade_curve_width_to_midi_cc(s_ui.xfade_curve_width_a);
+    return ch_fader_curve_width_to_midi_cc(s_ui.ch_fader_curve_width_a);
 }
 
-uint8_t ui_control_get_xfade_curve_b_cc(void)
+uint8_t ui_control_get_ch_fader_curve_b_cc(void)
 {
-    return xfade_curve_width_to_midi_cc(s_ui.xfade_curve_width_b);
+    return ch_fader_curve_width_to_midi_cc(s_ui.ch_fader_curve_width_b);
 }
 
 void ui_control_dma_adc_cplt(DMA_HandleTypeDef* hdma)
@@ -980,9 +980,9 @@ static void apply_input_type_change(uint8_t input_ch, uint8_t input_type)
         s_ui.current_ch2_input_type = input_type;
     }
 
-    replace_assign_for_input_channel(&s_ui.current_xfA_assign, input_ch, new_src);
-    replace_assign_for_input_channel(&s_ui.current_xfB_assign, input_ch, new_src);
-    replace_assign_for_input_channel(&s_ui.current_xfpost_assign, input_ch, new_src);
+    replace_assign_for_input_channel(&s_ui.current_ch_fader_a_assign, input_ch, new_src);
+    replace_assign_for_input_channel(&s_ui.current_ch_fader_b_assign, input_ch, new_src);
+    replace_assign_for_input_channel(&s_ui.current_ch_fader_post_assign, input_ch, new_src);
 }
 
 static bool is_usb_assign(uint8_t assign)
@@ -1007,46 +1007,46 @@ static bool is_dvs_enabled_for_assign(uint8_t assign)
     }
 }
 
-static void apply_crossfader_dvs_delay(void)
+static void apply_ch_fader_dvs_delay(void)
 {
-    set_dvs_crossfader_delay(is_dvs_enabled_for_assign(s_ui.current_xfA_assign),
-                              is_dvs_enabled_for_assign(s_ui.current_xfB_assign));
+    set_dvs_ch_fader_delay(is_dvs_enabled_for_assign(s_ui.current_ch_fader_a_assign),
+                              is_dvs_enabled_for_assign(s_ui.current_ch_fader_b_assign));
 }
 
 static void apply_send_source_selection(uint8_t input_ch)
 {
     if (input_ch == INPUT_CH1)
     {
-        const bool select_dvs = (s_ui.current_ch1_dvs_enable != 0U) || is_usb_assign(s_ui.current_xfA_assign);
+        const bool select_dvs = (s_ui.current_ch1_dvs_enable != 0U) || is_usb_assign(s_ui.current_ch_fader_a_assign);
         select_send_source(INPUT_CH1, select_dvs);
     }
     else if (input_ch == INPUT_CH2)
     {
-        const bool select_dvs = (s_ui.current_ch2_dvs_enable != 0U) || is_usb_assign(s_ui.current_xfB_assign);
+        const bool select_dvs = (s_ui.current_ch2_dvs_enable != 0U) || is_usb_assign(s_ui.current_ch_fader_b_assign);
         select_send_source(INPUT_CH2, select_dvs);
     }
 }
 
-static void apply_xf_assign_a(uint8_t input_ch)
+static void apply_ch_fader_assign_a(uint8_t input_ch)
 {
-    select_xf_assignA_source(input_ch);
-    s_ui.current_xfA_assign = current_input_src_from_channel(input_ch);
-    apply_crossfader_dvs_delay();
+    select_ch_fader_assign_a_source(input_ch);
+    s_ui.current_ch_fader_a_assign = current_input_src_from_channel(input_ch);
+    apply_ch_fader_dvs_delay();
     apply_send_source_selection(INPUT_CH1);
 }
 
-static void apply_xf_assign_b(uint8_t input_ch)
+static void apply_ch_fader_assign_b(uint8_t input_ch)
 {
-    select_xf_assignB_source(input_ch);
-    s_ui.current_xfB_assign = current_input_src_from_channel(input_ch);
-    apply_crossfader_dvs_delay();
+    select_ch_fader_assign_b_source(input_ch);
+    s_ui.current_ch_fader_b_assign = current_input_src_from_channel(input_ch);
+    apply_ch_fader_dvs_delay();
     apply_send_source_selection(INPUT_CH2);
 }
 
-static void apply_xf_assign_post(uint8_t input_ch)
+static void apply_ch_fader_assign_post(uint8_t input_ch)
 {
-    select_xf_assignPost_source(input_ch);
-    s_ui.current_xfpost_assign = current_input_src_from_channel(input_ch);
+    select_ch_fader_assign_post_source(input_ch);
+    s_ui.current_ch_fader_post_assign = current_input_src_from_channel(input_ch);
 }
 
 static void apply_return_source(uint8_t input_ch)
@@ -1077,7 +1077,7 @@ static void apply_dvs_state(uint8_t input_ch, bool enable)
     {
         s_ui.current_ch2_dvs_enable = enable ? 1U : 0U;
     }
-    apply_crossfader_dvs_delay();
+    apply_ch_fader_dvs_delay();
     apply_send_source_selection(input_ch);
 }
 
@@ -1144,60 +1144,60 @@ static uint8_t midi_program_for_input_type(uint8_t input_ch, uint8_t input_type)
     return CH1_LINE;
 }
 
-static uint8_t midi_program_for_xf_assign_a(uint8_t assign)
+static uint8_t midi_program_for_ch_fader_assign_a(uint8_t assign)
 {
     switch (assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
-        return XF_ASSIGN_A_CH1;
+        return CH_FADER_ASSIGN_A_CH1;
     case INPUT_SRC_CH2_LN:
     case INPUT_SRC_CH2_PN:
-        return XF_ASSIGN_A_CH2;
+        return CH_FADER_ASSIGN_A_CH2;
     case INPUT_SRC_USB12:
-        return XF_ASSIGN_A_USB12;
+        return CH_FADER_ASSIGN_A_USB12;
     case INPUT_SRC_USB34:
-        return XF_ASSIGN_A_USB34;
+        return CH_FADER_ASSIGN_A_USB34;
     default:
-        return XF_ASSIGN_A_CH1;
+        return CH_FADER_ASSIGN_A_CH1;
     }
 }
 
-static uint8_t midi_program_for_xf_assign_b(uint8_t assign)
+static uint8_t midi_program_for_ch_fader_assign_b(uint8_t assign)
 {
     switch (assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
-        return XF_ASSIGN_B_CH1;
+        return CH_FADER_ASSIGN_B_CH1;
     case INPUT_SRC_CH2_LN:
     case INPUT_SRC_CH2_PN:
-        return XF_ASSIGN_B_CH2;
+        return CH_FADER_ASSIGN_B_CH2;
     case INPUT_SRC_USB12:
-        return XF_ASSIGN_B_USB12;
+        return CH_FADER_ASSIGN_B_USB12;
     case INPUT_SRC_USB34:
-        return XF_ASSIGN_B_USB34;
+        return CH_FADER_ASSIGN_B_USB34;
     default:
-        return XF_ASSIGN_B_CH1;
+        return CH_FADER_ASSIGN_B_CH1;
     }
 }
 
-static uint8_t midi_program_for_xf_assign_post(uint8_t assign)
+static uint8_t midi_program_for_ch_fader_assign_post(uint8_t assign)
 {
     switch (assign)
     {
     case INPUT_SRC_CH1_LN:
     case INPUT_SRC_CH1_PN:
-        return XF_ASSIGN_POST_CH1;
+        return CH_FADER_ASSIGN_POST_CH1;
     case INPUT_SRC_CH2_LN:
     case INPUT_SRC_CH2_PN:
-        return XF_ASSIGN_POST_CH2;
+        return CH_FADER_ASSIGN_POST_CH2;
     case INPUT_SRC_USB12:
-        return XF_ASSIGN_POST_USB12;
+        return CH_FADER_ASSIGN_POST_USB12;
     case INPUT_SRC_USB34:
-        return XF_ASSIGN_POST_USB34;
+        return CH_FADER_ASSIGN_POST_USB34;
     default:
-        return XF_ASSIGN_POST_CH1;
+        return CH_FADER_ASSIGN_POST_CH1;
     }
 }
 
@@ -1233,10 +1233,10 @@ static uint8_t midi_program_for_hp_out_source(uint8_t source)
 {
     switch (source)
     {
-    case CUE_SEL_XF_A:
-        return HP_OUT_XF_A;
-    case CUE_SEL_XF_B:
-        return HP_OUT_XF_B;
+    case CUE_SEL_CH_FADER_A:
+        return HP_OUT_CH_FADER_A;
+    case CUE_SEL_CH_FADER_B:
+        return HP_OUT_CH_FADER_B;
     case CUE_SEL_THRU:
         return HP_OUT_THRU;
     case CUE_SEL_MST:
@@ -1246,14 +1246,14 @@ static uint8_t midi_program_for_hp_out_source(uint8_t source)
     }
 }
 
-static uint8_t midi_program_for_xfade_aux_assignment(uint8_t sensor_idx, uint8_t assign)
+static uint8_t midi_program_for_ch_fader_aux_assignment(uint8_t sensor_idx, uint8_t assign)
 {
     if (sensor_idx == 2U)
     {
-        return (assign == UI_XFADE_AUX_ASSIGN_A) ? XF_AUX_SENSOR2_TO_A : XF_AUX_SENSOR2_TO_B;
+        return (assign == UI_CH_FADER_AUX_ASSIGN_A) ? CH_FADER_AUX_SENSOR2_TO_A : CH_FADER_AUX_SENSOR2_TO_B;
     }
 
-    return (assign == UI_XFADE_AUX_ASSIGN_A) ? XF_AUX_SENSOR3_TO_A : XF_AUX_SENSOR3_TO_B;
+    return (assign == UI_CH_FADER_AUX_ASSIGN_A) ? CH_FADER_AUX_SENSOR3_TO_A : CH_FADER_AUX_SENSOR3_TO_B;
 }
 
 static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
@@ -1265,17 +1265,17 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
 
     send_program_change(midi_program_for_input_type(INPUT_CH1, cfg->current_ch1_input_type), MIDI_CH_15);
     send_program_change(midi_program_for_input_type(INPUT_CH2, cfg->current_ch2_input_type), MIDI_CH_15);
-    send_program_change(midi_program_for_xf_assign_a(cfg->current_xfA_assign), MIDI_CH_15);
-    send_program_change(midi_program_for_xf_assign_b(cfg->current_xfB_assign), MIDI_CH_15);
-    send_program_change(midi_program_for_xf_assign_post(cfg->current_xfpost_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_ch_fader_assign_a(cfg->current_ch_fader_a_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_ch_fader_assign_b(cfg->current_ch_fader_b_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_ch_fader_assign_post(cfg->current_ch_fader_post_assign), MIDI_CH_15);
     send_program_change(midi_program_for_return_assign(cfg->current_return_assign), MIDI_CH_15);
     send_program_change(midi_program_for_hp_out_source(cfg->current_hp_out_source), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH1, cfg->current_ch1_dvs_enable), MIDI_CH_15);
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
-    send_program_change(midi_program_for_xfade_aux_assignment(2U, cfg->sensor2_aux_fade_down_assign), MIDI_CH_15);
-    send_program_change(midi_program_for_xfade_aux_assignment(3U, cfg->sensor3_aux_fade_down_assign), MIDI_CH_15);
-    send_control_change(MIDI_CC_XFADE_CURVE_A, xfade_curve_width_to_midi_cc(cfg->current_xfade_curve_width_a), MIDI_CH_15);
-    send_control_change(MIDI_CC_XFADE_CURVE_B, xfade_curve_width_to_midi_cc(cfg->current_xfade_curve_width_b), MIDI_CH_15);
+    send_program_change(midi_program_for_ch_fader_aux_assignment(2U, cfg->sensor2_aux_fade_down_assign), MIDI_CH_15);
+    send_program_change(midi_program_for_ch_fader_aux_assignment(3U, cfg->sensor3_aux_fade_down_assign), MIDI_CH_15);
+    send_control_change(MIDI_CC_CH_FADER_CURVE_A, ch_fader_curve_width_to_midi_cc(cfg->current_ch_fader_curve_width_a), MIDI_CH_15);
+    send_control_change(MIDI_CC_CH_FADER_CURVE_B, ch_fader_curve_width_to_midi_cc(cfg->current_ch_fader_curve_width_b), MIDI_CH_15);
     if ((cfg->mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U)
     {
         send_program_change(MIDI_PC_MUX_OUTPUT_NOTE, MIDI_CH_15);
@@ -1603,14 +1603,14 @@ static void process_pot(void)
                 const uint16_t offset = s_ui.pot_mag_offset[idx];
                 uint8_t candidate     = 0U;
 
-                if (sample < (uint16_t) (offset + MAG_XFADE_CUTOFF))
+                if (sample < (uint16_t) (offset + MAG_CH_FADER_CUTOFF))
                 {
                     candidate = 0U;
                 }
-                else if (sample <= (uint16_t) (offset + MAG_XFADE_RANGE))
+                else if (sample <= (uint16_t) (offset + MAG_CH_FADER_RANGE))
                 {
-                    const uint16_t normalized = (uint16_t) (sample - offset - MAG_XFADE_CUTOFF);
-                    candidate                 = (uint8_t) ((uint32_t) normalized * 127U / MAG_XFADE_RANGE);
+                    const uint16_t normalized = (uint16_t) (sample - offset - MAG_CH_FADER_CUTOFF);
+                    candidate                 = (uint8_t) ((uint32_t) normalized * 127U / MAG_CH_FADER_RANGE);
                 }
                 else
                 {
@@ -1659,7 +1659,7 @@ static void update_mag_samples(void)
     }
 }
 
-// Lookup for paired xfade endpoints (fade-up side -> fade-down side).
+// Lookup for paired ch_fader endpoints (fade-up side -> fade-down side).
 static int8_t get_pair_fade_down_index_from_up(uint8_t fade_up_idx)
 {
     if (fade_up_idx >= MAG_SW_NUM)
@@ -1667,18 +1667,18 @@ static int8_t get_pair_fade_down_index_from_up(uint8_t fade_up_idx)
         return -1;
     }
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        if (s_xfade_pairs[i].fade_up_idx == fade_up_idx)
+        if (s_ch_fader_pairs[i].fade_up_idx == fade_up_idx)
         {
-            return (int8_t) s_xfade_pairs[i].fade_down_idx;
+            return (int8_t) s_ch_fader_pairs[i].fade_down_idx;
         }
     }
 
     return -1;
 }
 
-// Reverse lookup for paired xfade endpoints (fade-down side -> fade-up side).
+// Reverse lookup for paired ch_fader endpoints (fade-down side -> fade-up side).
 static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
 {
     if (fade_down_idx >= MAG_SW_NUM)
@@ -1686,11 +1686,11 @@ static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
         return -1;
     }
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        if (s_xfade_pairs[i].fade_down_idx == fade_down_idx)
+        if (s_ch_fader_pairs[i].fade_down_idx == fade_down_idx)
         {
-            return (int8_t) s_xfade_pairs[i].fade_up_idx;
+            return (int8_t) s_ch_fader_pairs[i].fade_up_idx;
         }
     }
 
@@ -1698,8 +1698,8 @@ static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
 }
 
 // Add a small touch-onset deadband for pair tracking so untouched sensors do not
-// perturb the held crossfader state when the curve width is narrow.
-static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
+// perturb the held channel fader state when the curve width is narrow.
+static float apply_ch_fader_pair_onset_deadband(uint8_t i, float raw)
 {
     if (raw < 0.0f)
     {
@@ -1712,17 +1712,17 @@ static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
 
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
-        if (raw <= XFADE_PAIR_ONSET_DEADBAND)
+        if (raw <= CH_FADER_PAIR_ONSET_DEADBAND)
         {
             return 0.0f;
         }
 
-        return (raw - XFADE_PAIR_ONSET_DEADBAND) / (1.0f - XFADE_PAIR_ONSET_DEADBAND);
+        return (raw - CH_FADER_PAIR_ONSET_DEADBAND) / (1.0f - CH_FADER_PAIR_ONSET_DEADBAND);
     }
 
     if (get_pair_fade_up_index_from_down(i) >= 0)
     {
-        const float high_deadband = 1.0f - XFADE_PAIR_ONSET_DEADBAND;
+        const float high_deadband = 1.0f - CH_FADER_PAIR_ONSET_DEADBAND;
 
         if (raw >= high_deadband)
         {
@@ -1735,85 +1735,85 @@ static float apply_xfade_pair_onset_deadband(uint8_t i, float raw)
     return raw;
 }
 
-// Convert one magnetic sensor sample into normalized xfade raw [0..1].
-static void update_raw_xfade_from_mag(uint8_t i)
+// Convert one magnetic sensor sample into normalized ch_fader raw [0..1].
+static void update_raw_ch_fader_from_mag(uint8_t i)
 {
     // Fade-up sensors rise from 0->1; fade-down and aux sensors invert 1->0.
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
-        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
+        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_CH_FADER_CUTOFF)
         {
-            s_ui.xf.raw[i] = 0.0f;
+            s_ui.ch_fader.raw[i] = 0.0f;
         }
-        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_CH_FADER_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_CH_FADER_RANGE)
         {
-            s_ui.xf.raw[i] = (float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE;
+            s_ui.ch_fader.raw[i] = (float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_CH_FADER_CUTOFF) / (float) MAG_CH_FADER_RANGE;
         }
-        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_CH_FADER_RANGE)
         {
-            s_ui.xf.raw[i] = 1.0f;
+            s_ui.ch_fader.raw[i] = 1.0f;
         }
     }
     else
     {
-        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_XFADE_CUTOFF)
+        if (s_ui.mag_val[i] < s_ui.mag_offset[i] + MAG_CH_FADER_CUTOFF)
         {
-            s_ui.xf.raw[i] = 1.0f;
+            s_ui.ch_fader.raw[i] = 1.0f;
         }
-        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_XFADE_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        else if (s_ui.mag_val[i] >= s_ui.mag_offset[i] + MAG_CH_FADER_CUTOFF && s_ui.mag_val[i] <= s_ui.mag_offset[i] + MAG_CH_FADER_RANGE)
         {
-            s_ui.xf.raw[i] = 1.0f - ((float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_XFADE_CUTOFF) / (float) MAG_XFADE_RANGE);
+            s_ui.ch_fader.raw[i] = 1.0f - ((float) (s_ui.mag_val[i] - s_ui.mag_offset[i] - MAG_CH_FADER_CUTOFF) / (float) MAG_CH_FADER_RANGE);
         }
-        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_XFADE_RANGE)
+        else if (s_ui.mag_val[i] > s_ui.mag_offset[i] + MAG_CH_FADER_RANGE)
         {
-            s_ui.xf.raw[i] = 0.0f;
+            s_ui.ch_fader.raw[i] = 0.0f;
         }
     }
 }
 
 // Update peak/valley trackers used to build stable pair outputs.
-static void update_xfade_extrema(uint8_t i)
+static void update_ch_fader_extrema(uint8_t i)
 {
-    const float pair_raw = apply_xfade_pair_onset_deadband(i, s_ui.xf.raw[i]);
+    const float pair_raw = apply_ch_fader_pair_onset_deadband(i, s_ui.ch_fader.raw[i]);
 
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
         // Track fade-up peak; paired fade-down floor is synchronized from this edge.
-        if (pair_raw > (s_ui.xf.up_peak[i] + XFADE_EXTREMA_HYSTERESIS))
+        if (pair_raw > (s_ui.ch_fader.up_peak[i] + CH_FADER_EXTREMA_HYSTERESIS))
         {
-            s_ui.xf.up_peak[i] = pair_raw;
+            s_ui.ch_fader.up_peak[i] = pair_raw;
 
             const int8_t fade_down_idx = get_pair_fade_down_index_from_up(i);
             if (fade_down_idx >= 0)
             {
-                s_ui.xf.down_floor[(uint8_t) fade_down_idx] = s_ui.xf.up_peak[i];
+                s_ui.ch_fader.down_floor[(uint8_t) fade_down_idx] = s_ui.ch_fader.up_peak[i];
             }
         }
 
         // Keep paired minimum re-synchronized while the source side stays near full scale.
-        // This avoids "stuck min" when xfade[0]/xfade[5] remains high and only the paired side moves.
-        if (pair_raw >= XFADE_PAIR_RESET_THRESHOLD)
+        // This avoids "stuck min" when ch_fader[0]/ch_fader[5] remains high and only the paired side moves.
+        if (pair_raw >= CH_FADER_PAIR_RESET_THRESHOLD)
         {
             const int8_t fade_down_idx = get_pair_fade_down_index_from_up(i);
             if (fade_down_idx >= 0)
             {
-                s_ui.xf.down_floor[(uint8_t) fade_down_idx] = pair_raw;
+                s_ui.ch_fader.down_floor[(uint8_t) fade_down_idx] = pair_raw;
             }
         }
     }
     else if (get_pair_fade_up_index_from_down(i) >= 0)
     {
         // Track fade-down floor; when near zero, clear paired fade-up peak.
-        if (pair_raw < (s_ui.xf.down_floor[i] - XFADE_EXTREMA_HYSTERESIS))
+        if (pair_raw < (s_ui.ch_fader.down_floor[i] - CH_FADER_EXTREMA_HYSTERESIS))
         {
-            s_ui.xf.down_floor[i] = pair_raw;
+            s_ui.ch_fader.down_floor[i] = pair_raw;
 
-            if (s_ui.xf.down_floor[i] < XFADE_MIN_RESET_CUTOFF)
+            if (s_ui.ch_fader.down_floor[i] < CH_FADER_MIN_RESET_CUTOFF)
             {
                 const int8_t fade_up_idx = get_pair_fade_up_index_from_down(i);
                 if (fade_up_idx >= 0)
                 {
-                    s_ui.xf.up_peak[(uint8_t) fade_up_idx] = 0.0f;
+                    s_ui.ch_fader.up_peak[(uint8_t) fade_up_idx] = 0.0f;
                 }
             }
         }
@@ -1824,50 +1824,50 @@ static void update_xfade_extrema(uint8_t i)
     }
 }
 
-static void update_one_xfade_index(uint8_t i, bool processed[MAG_SW_NUM])
+static void update_one_ch_fader_index(uint8_t i, bool processed[MAG_SW_NUM])
 {
     if ((i >= MAG_SW_NUM) || processed[i])
     {
         return;
     }
 
-    update_raw_xfade_from_mag(i);
-    update_xfade_extrema(i);
+    update_raw_ch_fader_from_mag(i);
+    update_ch_fader_extrema(i);
     processed[i] = true;
 }
 
-// Full per-scan xfade update pipeline: raw normalization then extrema tracking.
-static void update_xfade_from_mag(void)
+// Full per-scan ch_fader update pipeline: raw normalization then extrema tracking.
+static void update_ch_fader_from_mag(void)
 {
     bool processed[MAG_SW_NUM] = {false};
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        update_one_xfade_index(s_xfade_pairs[i].fade_up_idx, processed);
+        update_one_ch_fader_index(s_ch_fader_pairs[i].fade_up_idx, processed);
     }
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        update_one_xfade_index(s_xfade_pairs[i].fade_down_idx, processed);
+        update_one_ch_fader_index(s_ch_fader_pairs[i].fade_down_idx, processed);
     }
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        update_one_xfade_index(s_xfade_pairs[i].aux_fade_down_idx, processed);
-        update_one_xfade_index(s_xfade_pairs[i].aux2_fade_down_idx, processed);
+        update_one_ch_fader_index(s_ch_fader_pairs[i].aux_fade_down_idx, processed);
+        update_one_ch_fader_index(s_ch_fader_pairs[i].aux2_fade_down_idx, processed);
     }
 
     for (uint8_t i = 0; i < MAG_SW_NUM; i++)
     {
-        update_one_xfade_index(i, processed);
+        update_one_ch_fader_index(i, processed);
     }
 }
 
-// Emit MIDI CC only when raw xfade changes enough to justify traffic.
-static void emit_xfade_cc_if_needed(uint8_t i)
+// Emit MIDI CC only when raw ch_fader changes enough to justify traffic.
+static void emit_ch_fader_cc_if_needed(uint8_t i)
 {
     const uint8_t note = (uint8_t) (60U + i);
-    uint8_t value      = xfade_to_cc(s_ui.xf.raw[i]);
+    uint8_t value      = ch_fader_to_cc(s_ui.ch_fader.raw[i]);
 
     if (get_pair_fade_down_index_from_up(i) >= 0)
     {
@@ -1876,25 +1876,25 @@ static void emit_xfade_cc_if_needed(uint8_t i)
 
     if (s_ui.mag_out_as_note)
     {
-        emit_xfade_note_if_needed(i, note, value);
-        s_ui.xf.prev[i] = s_ui.xf.raw[i];
+        emit_ch_fader_note_if_needed(i, note, value);
+        s_ui.ch_fader.prev[i] = s_ui.ch_fader.raw[i];
         return;
     }
 
-    if (s_ui.xf.note_is_on[i] || s_ui.xf.note_scan_active[i])
+    if (s_ui.ch_fader.note_is_on[i] || s_ui.ch_fader.note_scan_active[i])
     {
-        if (s_ui.xf.note_is_on[i])
+        if (s_ui.ch_fader.note_is_on[i])
         {
             send_note(note, 0U, 0U);
         }
-        clear_xfade_note_state(i);
+        clear_ch_fader_note_state(i);
     }
 
     // MIDI CC updates use a larger threshold to limit traffic and jitter.
-    if (fabs(s_ui.xf.raw[i] - s_ui.xf.prev[i]) > XFADE_CC_UPDATE_THRESHOLD)
+    if (fabs(s_ui.ch_fader.raw[i] - s_ui.ch_fader.prev[i]) > CH_FADER_CC_UPDATE_THRESHOLD)
     {
         emit_mag_output((uint8_t) (20U + i), note, value);
-        s_ui.xf.prev[i] = s_ui.xf.raw[i];
+        s_ui.ch_fader.prev[i] = s_ui.ch_fader.raw[i];
     }
 }
 
@@ -1912,7 +1912,7 @@ static float clamp01(float value)
     return value;
 }
 
-static float compute_xfade_pair_threshold_ramp(float value, float threshold, float width)
+static float compute_ch_fader_pair_threshold_ramp(float value, float threshold, float width)
 {
     if (width <= 0.0f)
     {
@@ -1921,22 +1921,22 @@ static float compute_xfade_pair_threshold_ramp(float value, float threshold, flo
 
     const float t = clamp01((value - threshold) / width);
     const float smootherstep = t * t * t * (t * ((t * 6.0f) - 15.0f) + 10.0f);
-    return (XFADE_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - XFADE_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
+    return (CH_FADER_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - CH_FADER_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
 }
 
-float ui_control_evaluate_xfade_curve_preview(uint8_t cc_value, float normalized_preview_position)
+float ui_control_evaluate_ch_fader_curve_preview(uint8_t cc_value, float normalized_preview_position)
 {
-    const float width = midi_cc_to_xfade_curve_width(cc_value);
-    const float position = clamp01(normalized_preview_position) * XFADE_PAIR_CURVE_WIDTH_MAX;
+    const float width = midi_cc_to_ch_fader_curve_width(cc_value);
+    const float position = clamp01(normalized_preview_position) * CH_FADER_PAIR_CURVE_WIDTH_MAX;
 
-    return compute_xfade_pair_threshold_ramp(position, 0.0f, width);
+    return compute_ch_fader_pair_threshold_ramp(position, 0.0f, width);
 }
 
 // Fade-down sensors idle near 1.0 and move toward 0.0 when pressed.
 // Keep a small high-end deadband so light touch/noise does not start a cut.
-static float apply_xfade_fade_down_onset_deadband(float raw)
+static float apply_ch_fader_fade_down_onset_deadband(float raw)
 {
-    const float high_deadband = 1.0f - XFADE_PAIR_ONSET_DEADBAND;
+    const float high_deadband = 1.0f - CH_FADER_PAIR_ONSET_DEADBAND;
 
     raw = clamp01(raw);
     if (raw >= high_deadband)
@@ -1947,7 +1947,7 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
     return raw / high_deadband;
 }
 
-// Arbitrate the fade-down sensors assigned to one xfade pair.
+// Arbitrate the fade-down sensors assigned to one ch_fader pair.
 //
 // source0 is the main fade-down sensor, and later sources are auxiliary sensors.
 // The active source follows the most recently started cut gesture. When
@@ -1955,23 +1955,23 @@ static float apply_xfade_fade_down_onset_deadband(float raw)
 // so repeated flick cuts remain audible even if the previous sensor is still
 // held near the bottom.
 static void update_multi_fade_down_source(uint8_t pair_idx,
-                                          const float source[XFADE_FADE_DOWN_SOURCE_COUNT],
+                                          const float source[CH_FADER_FADE_DOWN_SOURCE_COUNT],
                                           bool fade_up_active)
 {
-    uint8_t active  = s_ui.xf.fade_down_active_source[pair_idx];
-    uint8_t started = XFADE_FADE_DOWN_SOURCE_NONE;
+    uint8_t active  = s_ui.ch_fader.fade_down_active_source[pair_idx];
+    uint8_t started = CH_FADER_FADE_DOWN_SOURCE_NONE;
     bool force_release = false;
 
-    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    for (uint8_t i = 0; i < CH_FADER_FADE_DOWN_SOURCE_COUNT; i++)
     {
-        const float prev = s_ui.xf.fade_down_source_prev[pair_idx][i];
+        const float prev = s_ui.ch_fader.fade_down_source_prev[pair_idx][i];
         // Detect a new cut either from the idle zone or from a clear deeper
         // push on the non-active sensor.
-        const bool newly_pressed = (prev >= XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD) &&
-                                   (source[i] < XFADE_PAIR_FADE_DOWN_PRESS_THRESHOLD);
+        const bool newly_pressed = (prev >= CH_FADER_PAIR_FADE_DOWN_PRESS_THRESHOLD) &&
+                                   (source[i] < CH_FADER_PAIR_FADE_DOWN_PRESS_THRESHOLD);
         const bool other_pressed_deeper = (i != active) &&
-                                          (source[i] < XFADE_PAIR_RESET_THRESHOLD) &&
-                                          ((prev - source[i]) >= XFADE_PAIR_FADE_DOWN_DEEPER_DELTA);
+                                          (source[i] < CH_FADER_PAIR_RESET_THRESHOLD) &&
+                                          ((prev - source[i]) >= CH_FADER_PAIR_FADE_DOWN_DEEPER_DELTA);
 
         if (newly_pressed || other_pressed_deeper)
         {
@@ -1979,21 +1979,21 @@ static void update_multi_fade_down_source(uint8_t pair_idx,
         }
     }
 
-    if (started != XFADE_FADE_DOWN_SOURCE_NONE)
+    if (started != CH_FADER_FADE_DOWN_SOURCE_NONE)
     {
-        if ((active != XFADE_FADE_DOWN_SOURCE_NONE) && (started != active))
+        if ((active != CH_FADER_FADE_DOWN_SOURCE_NONE) && (started != active))
         {
             // Switching sources while the previous one is bottomed would
             // otherwise keep the audio muted and hide the second cut.
-            s_ui.xf.pair_fade_down_cut_active[pair_idx] = false;
-            s_ui.xf.pair_bottom_hold_active[pair_idx] = false;
-            s_ui.xf.pair_fade_down_bottomed[pair_idx] = false;
-            s_ui.xf.pair_top_restore_value[pair_idx] = 0.0f;
-            s_ui.xf.pair_top_hold_active[pair_idx] = false;
-            s_ui.xf.pair_fade_up_topped[pair_idx] = false;
-            s_ui.xf.fade_down_force_release_reads[pair_idx] =
-                fade_up_active ? XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP
-                               : XFADE_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY;
+            s_ui.ch_fader.pair_fade_down_cut_active[pair_idx] = false;
+            s_ui.ch_fader.pair_bottom_hold_active[pair_idx] = false;
+            s_ui.ch_fader.pair_fade_down_bottomed[pair_idx] = false;
+            s_ui.ch_fader.pair_top_restore_value[pair_idx] = 0.0f;
+            s_ui.ch_fader.pair_top_hold_active[pair_idx] = false;
+            s_ui.ch_fader.pair_fade_up_topped[pair_idx] = false;
+            s_ui.ch_fader.fade_down_force_release_reads[pair_idx] =
+                fade_up_active ? CH_FADER_FADE_DOWN_RETRIGGER_RELEASE_READS_WITH_FADE_UP
+                               : CH_FADER_FADE_DOWN_RETRIGGER_RELEASE_READS_MOMENTARY;
         }
         active = started;
     }
@@ -2001,9 +2001,9 @@ static void update_multi_fade_down_source(uint8_t pair_idx,
     // Once all fade-down sensors are released, the next press can claim
     // ownership without being treated as a source switch.
     bool all_released = true;
-    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    for (uint8_t i = 0; i < CH_FADER_FADE_DOWN_SOURCE_COUNT; i++)
     {
-        if (source[i] < XFADE_PAIR_RESET_THRESHOLD)
+        if (source[i] < CH_FADER_PAIR_RESET_THRESHOLD)
         {
             all_released = false;
             break;
@@ -2011,97 +2011,97 @@ static void update_multi_fade_down_source(uint8_t pair_idx,
     }
     if (all_released)
     {
-        active = XFADE_FADE_DOWN_SOURCE_NONE;
+        active = CH_FADER_FADE_DOWN_SOURCE_NONE;
     }
 
-    s_ui.xf.fade_down_active_source[pair_idx] = active;
-    for (uint8_t i = 0; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    s_ui.ch_fader.fade_down_active_source[pair_idx] = active;
+    for (uint8_t i = 0; i < CH_FADER_FADE_DOWN_SOURCE_COUNT; i++)
     {
-        s_ui.xf.fade_down_source_prev[pair_idx][i] = source[i];
+        s_ui.ch_fader.fade_down_source_prev[pair_idx][i] = source[i];
     }
 
-    force_release = (s_ui.xf.fade_down_force_release_reads[pair_idx] > 0U);
+    force_release = (s_ui.ch_fader.fade_down_force_release_reads[pair_idx] > 0U);
     if (force_release)
     {
         // Emit a short "released" window before applying the newly active
         // source. This creates the audible return between rapid cuts.
-        s_ui.xf.fade_down_force_release_reads[pair_idx]--;
-        s_ui.xf.fade_down_combined_raw[pair_idx] = 1.0f;
+        s_ui.ch_fader.fade_down_force_release_reads[pair_idx]--;
+        s_ui.ch_fader.fade_down_combined_raw[pair_idx] = 1.0f;
         return;
     }
 
-    if (active != XFADE_FADE_DOWN_SOURCE_NONE)
+    if (active != CH_FADER_FADE_DOWN_SOURCE_NONE)
     {
         // During a gesture, only the active source drives fade-down. This lets
         // the other sensor retrigger even if the first one remains deeper.
-        s_ui.xf.fade_down_combined_raw[pair_idx] = source[active];
+        s_ui.ch_fader.fade_down_combined_raw[pair_idx] = source[active];
         return;
     }
 
     // Idle/fallback behavior: use the deepest pressed fade-down source.
     float combined = source[0];
-    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    for (uint8_t i = 1U; i < CH_FADER_FADE_DOWN_SOURCE_COUNT; i++)
     {
         if (source[i] < combined)
         {
             combined = source[i];
         }
     }
-    s_ui.xf.fade_down_combined_raw[pair_idx] = combined;
+    s_ui.ch_fader.fade_down_combined_raw[pair_idx] = combined;
 }
 
 // Convert each pair's physical fade-down sensor(s) into one cached value.
-// This is done once per xfade scan so retrigger state is not consumed by
-// multiple later reads of get_xfade_pair_fade_down_raw().
-static void update_xfade_pair_fade_down_source(const xfade_pair_runtime_t* pair)
+// This is done once per ch_fader scan so retrigger state is not consumed by
+// multiple later reads of get_ch_fader_pair_fade_down_raw().
+static void update_ch_fader_pair_fade_down_source(const ch_fader_pair_runtime_t* pair)
 {
-    const uint8_t source_idx[XFADE_FADE_DOWN_SOURCE_COUNT] = {
+    const uint8_t source_idx[CH_FADER_FADE_DOWN_SOURCE_COUNT] = {
         pair->fade_down_idx,
         pair->aux_fade_down_idx,
         pair->aux2_fade_down_idx,
     };
-    float source[XFADE_FADE_DOWN_SOURCE_COUNT] = {1.0f, 1.0f, 1.0f};
+    float source[CH_FADER_FADE_DOWN_SOURCE_COUNT] = {1.0f, 1.0f, 1.0f};
 
-    source[0] = apply_xfade_pair_onset_deadband(source_idx[0], s_ui.xf.raw[source_idx[0]]);
-    for (uint8_t i = 1U; i < XFADE_FADE_DOWN_SOURCE_COUNT; i++)
+    source[0] = apply_ch_fader_pair_onset_deadband(source_idx[0], s_ui.ch_fader.raw[source_idx[0]]);
+    for (uint8_t i = 1U; i < CH_FADER_FADE_DOWN_SOURCE_COUNT; i++)
     {
         if (source_idx[i] < MAG_SW_NUM)
         {
-            source[i] = apply_xfade_fade_down_onset_deadband(s_ui.xf.raw[source_idx[i]]);
+            source[i] = apply_ch_fader_fade_down_onset_deadband(s_ui.ch_fader.raw[source_idx[i]]);
         }
     }
 
     const bool fade_up_active =
-        apply_xfade_pair_onset_deadband(pair->fade_up_idx, s_ui.xf.raw[pair->fade_up_idx]) > 0.0f;
+        apply_ch_fader_pair_onset_deadband(pair->fade_up_idx, s_ui.ch_fader.raw[pair->fade_up_idx]) > 0.0f;
     update_multi_fade_down_source(pair->prev_idx, source, fade_up_active);
 }
 
-static void update_xfade_fade_down_sources(void)
+static void update_ch_fader_fade_down_sources(void)
 {
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        update_xfade_pair_fade_down_source(&s_xfade_pairs[i]);
+        update_ch_fader_pair_fade_down_source(&s_ch_fader_pairs[i]);
     }
 }
 
-static float get_xfade_pair_fade_down_raw(const xfade_pair_runtime_t* pair)
+static float get_ch_fader_pair_fade_down_raw(const ch_fader_pair_runtime_t* pair)
 {
-    return s_ui.xf.fade_down_combined_raw[pair->prev_idx];
+    return s_ui.ch_fader.fade_down_combined_raw[pair->prev_idx];
 }
 
 // Fade-up sensors idle near 0.0 and rise toward 1.0 when pressed.
-static float get_xfade_pair_fade_up_raw(const xfade_pair_runtime_t* pair)
+static float get_ch_fader_pair_fade_up_raw(const ch_fader_pair_runtime_t* pair)
 {
-    return apply_xfade_pair_onset_deadband(pair->fade_up_idx, s_ui.xf.raw[pair->fade_up_idx]);
+    return apply_ch_fader_pair_onset_deadband(pair->fade_up_idx, s_ui.ch_fader.raw[pair->fade_up_idx]);
 }
 
-// Update the held output value for one xfade pair.
+// Update the held output value for one ch_fader pair.
 //
 // The output is not a direct mix of sensors. Fade-up can raise the held value,
 // fade-down can lower it, and releasing either side leaves the output where it
 // was. A full fade-down press enters a bottom-hold state so the cut stays muted
 // until the sensor leaves the bottom zone.
-static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
+static float compute_ch_fader_pair_value(const ch_fader_pair_runtime_t* pair)
 {
     // Current hold-value model:
     // - fade-up raises the held output toward its current ramped value
@@ -2110,58 +2110,58 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
     // - pushing fade-down into the bottom zone forces the held output to 0
     // - when fade-down owns a two-finger gesture, fade-up stays open at the
     //   top and cuts when it backs away from the top
-    const float curve_width = (pair->prev_idx == XFADE_PAIR_A) ? s_ui.xfade_curve_width_a : s_ui.xfade_curve_width_b;
-    const float width       = clamp_xfade_curve_width(curve_width);
-    const float fade_up          = get_xfade_pair_fade_up_raw(pair);
-    const float fade_down        = get_xfade_pair_fade_down_raw(pair);
+    const float curve_width = (pair->prev_idx == CH_FADER_PAIR_A) ? s_ui.ch_fader_curve_width_a : s_ui.ch_fader_curve_width_b;
+    const float width       = clamp_ch_fader_curve_width(curve_width);
+    const float fade_up          = get_ch_fader_pair_fade_up_raw(pair);
+    const float fade_down        = get_ch_fader_pair_fade_down_raw(pair);
     // fade-up opens across the first curve-width slice of travel after onset deadband.
     const float up_open_threshold             = 0.0f;
     // fade-down starts cutting once the sensor moves this far from its unpressed (1.0) position.
     const float down_press_threshold           = 1.0f - width;
     // "Bottomed" means the fade-down side reached near-bottom during the current gesture.
     const float down_bottom_threshold       = width * 0.5f;
-    const float down_bottom_hold_release_threshold = width * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
-    const float down_bottom_rehold_threshold       = width * XFADE_PAIR_BOTTOM_REHOLD_RATIO;
+    const float down_bottom_hold_release_threshold = width * CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
+    const float down_bottom_rehold_threshold       = width * CH_FADER_PAIR_BOTTOM_REHOLD_RATIO;
     const float up_top_threshold            = 1.0f - (width * 0.5f);
-    const float up_top_hold_release_threshold = 1.0f - (width * XFADE_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
-    const float up_top_rehold_threshold       = 1.0f - (width * XFADE_PAIR_BOTTOM_REHOLD_RATIO);
+    const float up_top_hold_release_threshold = 1.0f - (width * CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
+    const float up_top_rehold_threshold       = 1.0f - (width * CH_FADER_PAIR_BOTTOM_REHOLD_RATIO);
     // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
     const float down_bottom_release_threshold = 1.0f;
-    bool cut_active         = s_ui.xf.pair_fade_down_cut_active[pair->prev_idx];
-    bool bottom_hold_active = s_ui.xf.pair_bottom_hold_active[pair->prev_idx];
-    bool bottomed           = s_ui.xf.pair_fade_down_bottomed[pair->prev_idx];
-    bool top_hold_active    = s_ui.xf.pair_top_hold_active[pair->prev_idx];
-    bool topped             = s_ui.xf.pair_fade_up_topped[pair->prev_idx];
-    bool reverse_fade_down_takeover = s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx];
+    bool cut_active         = s_ui.ch_fader.pair_fade_down_cut_active[pair->prev_idx];
+    bool bottom_hold_active = s_ui.ch_fader.pair_bottom_hold_active[pair->prev_idx];
+    bool bottomed           = s_ui.ch_fader.pair_fade_down_bottomed[pair->prev_idx];
+    bool top_hold_active    = s_ui.ch_fader.pair_top_hold_active[pair->prev_idx];
+    bool topped             = s_ui.ch_fader.pair_fade_up_topped[pair->prev_idx];
+    bool reverse_fade_down_takeover = s_ui.ch_fader.pair_reverse_fade_down_takeover[pair->prev_idx];
     bool bottom_entered     = false;
     bool top_entered        = false;
-    float hold_value        = s_ui.xf.pair_hold_value[pair->prev_idx];
-    float restore_value     = s_ui.xf.pair_bottom_restore_value[pair->prev_idx];
-    float top_restore_value = s_ui.xf.pair_top_restore_value[pair->prev_idx];
-    const float up_gain     = compute_xfade_pair_threshold_ramp(fade_up, up_open_threshold, width);
-    const float down_gain   = compute_xfade_pair_threshold_ramp(fade_down, down_press_threshold, width);
+    float hold_value        = s_ui.ch_fader.pair_hold_value[pair->prev_idx];
+    float restore_value     = s_ui.ch_fader.pair_bottom_restore_value[pair->prev_idx];
+    float top_restore_value = s_ui.ch_fader.pair_top_restore_value[pair->prev_idx];
+    const float up_gain     = compute_ch_fader_pair_threshold_ramp(fade_up, up_open_threshold, width);
+    const float down_gain   = compute_ch_fader_pair_threshold_ramp(fade_down, down_press_threshold, width);
     const bool fade_up_active = (up_gain > 0.0f);
-    const bool fade_down_released = (fade_down >= XFADE_PAIR_RESET_THRESHOLD);
+    const bool fade_down_released = (fade_down >= CH_FADER_PAIR_RESET_THRESHOLD);
     const bool fade_down_pressed = !fade_down_released;
     const bool both_released = !fade_up_active && !fade_down_pressed;
-    uint8_t gesture_parent = s_ui.xf.pair_gesture_parent[pair->prev_idx];
-    bool gesture_armed = s_ui.xf.pair_gesture_armed[pair->prev_idx];
-    bool gesture_child_active = s_ui.xf.pair_gesture_child_active[pair->prev_idx];
+    uint8_t gesture_parent = s_ui.ch_fader.pair_gesture_parent[pair->prev_idx];
+    bool gesture_armed = s_ui.ch_fader.pair_gesture_armed[pair->prev_idx];
+    bool gesture_child_active = s_ui.ch_fader.pair_gesture_child_active[pair->prev_idx];
 
-    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_UP) && !fade_up_active)
+    if ((gesture_parent == CH_FADER_GESTURE_PARENT_FADE_UP) && !fade_up_active)
     {
-        gesture_parent = fade_down_pressed ? XFADE_GESTURE_PARENT_FADE_DOWN : XFADE_GESTURE_PARENT_NONE;
-        gesture_armed  = (gesture_parent == XFADE_GESTURE_PARENT_NONE) && both_released;
+        gesture_parent = fade_down_pressed ? CH_FADER_GESTURE_PARENT_FADE_DOWN : CH_FADER_GESTURE_PARENT_NONE;
+        gesture_armed  = (gesture_parent == CH_FADER_GESTURE_PARENT_NONE) && both_released;
         gesture_child_active = false;
     }
-    else if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && !fade_down_pressed)
+    else if ((gesture_parent == CH_FADER_GESTURE_PARENT_FADE_DOWN) && !fade_down_pressed)
     {
-        gesture_parent = fade_up_active ? XFADE_GESTURE_PARENT_FADE_UP : XFADE_GESTURE_PARENT_NONE;
-        gesture_armed  = (gesture_parent == XFADE_GESTURE_PARENT_NONE) && both_released;
+        gesture_parent = fade_up_active ? CH_FADER_GESTURE_PARENT_FADE_UP : CH_FADER_GESTURE_PARENT_NONE;
+        gesture_armed  = (gesture_parent == CH_FADER_GESTURE_PARENT_NONE) && both_released;
         gesture_child_active = false;
     }
 
-    if (gesture_parent == XFADE_GESTURE_PARENT_NONE)
+    if (gesture_parent == CH_FADER_GESTURE_PARENT_NONE)
     {
         if (both_released)
         {
@@ -2171,13 +2171,13 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         {
             if (fade_up_active && !fade_down_pressed)
             {
-                gesture_parent = XFADE_GESTURE_PARENT_FADE_UP;
+                gesture_parent = CH_FADER_GESTURE_PARENT_FADE_UP;
                 gesture_armed  = false;
                 gesture_child_active = false;
             }
             else if (fade_down_pressed && !fade_up_active)
             {
-                gesture_parent = XFADE_GESTURE_PARENT_FADE_DOWN;
+                gesture_parent = CH_FADER_GESTURE_PARENT_FADE_DOWN;
                 gesture_armed  = false;
                 gesture_child_active = false;
             }
@@ -2198,7 +2198,7 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
 
         if (!reverse_fade_down_takeover &&
             fade_down_pressed &&
-            ((reverse_down_gain + XFADE_SEND_THRESHOLD) >= hold_value))
+            ((reverse_down_gain + CH_FADER_SEND_THRESHOLD) >= hold_value))
         {
             reverse_fade_down_takeover = true;
         }
@@ -2226,18 +2226,18 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         top_restore_value   = 0.0f;
         gesture_child_active = false;
 
-        s_ui.xf.pair_hold_value[pair->prev_idx] = hold_value;
-        s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
-        s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
-        s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
-        s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
-        s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
-        s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
-        s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
-        s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
-        s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
-        s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
-        s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
+        s_ui.ch_fader.pair_hold_value[pair->prev_idx] = hold_value;
+        s_ui.ch_fader.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+        s_ui.ch_fader.pair_top_restore_value[pair->prev_idx] = top_restore_value;
+        s_ui.ch_fader.pair_gesture_parent[pair->prev_idx] = gesture_parent;
+        s_ui.ch_fader.pair_gesture_armed[pair->prev_idx] = gesture_armed;
+        s_ui.ch_fader.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
+        s_ui.ch_fader.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
+        s_ui.ch_fader.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
+        s_ui.ch_fader.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+        s_ui.ch_fader.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+        s_ui.ch_fader.pair_fade_up_topped[pair->prev_idx] = topped;
+        s_ui.ch_fader.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
         return hold_value;
     }
 
@@ -2312,17 +2312,17 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         }
     }
 
-    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && fade_up_active)
+    if ((gesture_parent == CH_FADER_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && fade_up_active)
     {
         gesture_child_active = true;
     }
 
-    if ((gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && gesture_child_active)
+    if ((gesture_parent == CH_FADER_GESTURE_PARENT_FADE_DOWN) && fade_down_pressed && gesture_child_active)
     {
         hold_value = (up_gain > down_gain) ? up_gain : down_gain;
     }
 
-    const bool fade_up_top_hold_enabled = (gesture_parent == XFADE_GESTURE_PARENT_FADE_DOWN) &&
+    const bool fade_up_top_hold_enabled = (gesture_parent == CH_FADER_GESTURE_PARENT_FADE_DOWN) &&
                                           fade_down_pressed &&
                                           gesture_child_active &&
                                           fade_up_active;
@@ -2365,89 +2365,89 @@ static float compute_xfade_pair_value(const xfade_pair_runtime_t* pair)
         }
     }
 
-    s_ui.xf.pair_hold_value[pair->prev_idx]         = hold_value;
-    s_ui.xf.pair_bottom_restore_value[pair->prev_idx] = restore_value;
-    s_ui.xf.pair_top_restore_value[pair->prev_idx] = top_restore_value;
-    s_ui.xf.pair_gesture_parent[pair->prev_idx] = gesture_parent;
-    s_ui.xf.pair_gesture_armed[pair->prev_idx] = gesture_armed;
-    s_ui.xf.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
-    s_ui.xf.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
-    s_ui.xf.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
-    s_ui.xf.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
-    s_ui.xf.pair_top_hold_active[pair->prev_idx] = top_hold_active;
-    s_ui.xf.pair_fade_up_topped[pair->prev_idx] = topped;
-    s_ui.xf.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
+    s_ui.ch_fader.pair_hold_value[pair->prev_idx]         = hold_value;
+    s_ui.ch_fader.pair_bottom_restore_value[pair->prev_idx] = restore_value;
+    s_ui.ch_fader.pair_top_restore_value[pair->prev_idx] = top_restore_value;
+    s_ui.ch_fader.pair_gesture_parent[pair->prev_idx] = gesture_parent;
+    s_ui.ch_fader.pair_gesture_armed[pair->prev_idx] = gesture_armed;
+    s_ui.ch_fader.pair_gesture_child_active[pair->prev_idx] = gesture_child_active;
+    s_ui.ch_fader.pair_fade_down_cut_active[pair->prev_idx] = cut_active;
+    s_ui.ch_fader.pair_bottom_hold_active[pair->prev_idx] = bottom_hold_active;
+    s_ui.ch_fader.pair_fade_down_bottomed[pair->prev_idx] = bottomed;
+    s_ui.ch_fader.pair_top_hold_active[pair->prev_idx] = top_hold_active;
+    s_ui.ch_fader.pair_fade_up_topped[pair->prev_idx] = topped;
+    s_ui.ch_fader.pair_reverse_fade_down_takeover[pair->prev_idx] = reverse_fade_down_takeover;
     return hold_value;
 }
 
 // Compute and commit one pair output (A or B) from the current fade-up/fade-down drive values.
-static void update_xfade_pair_output(const xfade_pair_runtime_t* pair)
+static void update_ch_fader_pair_output(const ch_fader_pair_runtime_t* pair)
 {
-    const float up_now          = get_xfade_pair_fade_up_raw(pair);
-    const float down_now        = get_xfade_pair_fade_down_raw(pair);
-    const bool fade_changed     = (fabs(up_now - s_ui.xf.fade_up_prev[pair->prev_idx]) > XFADE_SEND_THRESHOLD) || (fabs(down_now - s_ui.xf.fade_down_prev[pair->prev_idx]) > XFADE_SEND_THRESHOLD);
+    const float up_now          = get_ch_fader_pair_fade_up_raw(pair);
+    const float down_now        = get_ch_fader_pair_fade_down_raw(pair);
+    const bool fade_changed     = (fabs(up_now - s_ui.ch_fader.fade_up_prev[pair->prev_idx]) > CH_FADER_SEND_THRESHOLD) || (fabs(down_now - s_ui.ch_fader.fade_down_prev[pair->prev_idx]) > CH_FADER_SEND_THRESHOLD);
 
     if (fade_changed)
     {
-        const float xf      = compute_xfade_pair_value(pair);
-        const uint8_t xf_cc = (uint8_t) (xf * 128.0f);
+        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
         // Quantized position gate avoids redundant SPI writes.
-        if (xf_cc != *pair->current_position)
+        if (ch_fader_cc != *pair->current_position)
         {
-            pair->set_dc(xf);
-            *pair->current_position = xf_cc;
+            pair->set_dc(ch_fader_value);
+            *pair->current_position = ch_fader_cc;
         }
     }
 
-    s_ui.xf.fade_up_prev[pair->prev_idx]   = up_now;
-    s_ui.xf.fade_down_prev[pair->prev_idx] = down_now;
+    s_ui.ch_fader.fade_up_prev[pair->prev_idx]   = up_now;
+    s_ui.ch_fader.fade_down_prev[pair->prev_idx] = down_now;
 }
 
-// Apply outgoing updates for xfade: MIDI CC stream and DSP DC controls.
-static void apply_xfade_updates(void)
+// Apply outgoing updates for ch_fader: MIDI CC stream and DSP DC controls.
+static void apply_ch_fader_updates(void)
 {
-    update_xfade_fade_down_sources();
+    update_ch_fader_fade_down_sources();
 
     for (uint32_t i = 0; i < MAG_SW_NUM; i++)
     {
-        emit_xfade_cc_if_needed((uint8_t) i);
+        emit_ch_fader_cc_if_needed((uint8_t) i);
     }
 
-    if (!s_ui.xf.fade_prev_valid)
+    if (!s_ui.ch_fader.fade_prev_valid)
     {
-        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
         {
-            s_ui.xf.fade_up_prev[s_xfade_pairs[i].prev_idx]   = get_xfade_pair_fade_up_raw(&s_xfade_pairs[i]);
-            s_ui.xf.fade_down_prev[s_xfade_pairs[i].prev_idx] = get_xfade_pair_fade_down_raw(&s_xfade_pairs[i]);
+            s_ui.ch_fader.fade_up_prev[s_ch_fader_pairs[i].prev_idx]   = get_ch_fader_pair_fade_up_raw(&s_ch_fader_pairs[i]);
+            s_ui.ch_fader.fade_down_prev[s_ch_fader_pairs[i].prev_idx] = get_ch_fader_pair_fade_down_raw(&s_ch_fader_pairs[i]);
         }
-        s_ui.xf.fade_prev_valid = true;
+        s_ui.ch_fader.fade_prev_valid = true;
     }
     else
     {
-        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+        for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
         {
-            update_xfade_pair_output(&s_xfade_pairs[i]);
+            update_ch_fader_pair_output(&s_ch_fader_pairs[i]);
         }
     }
 }
 
-void ui_control_reapply_xfade_outputs(void)
+void ui_control_reapply_ch_fader_outputs(void)
 {
-    update_xfade_fade_down_sources();
+    update_ch_fader_fade_down_sources();
 
-    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_xfade_pairs); i++)
+    for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
-        const xfade_pair_runtime_t* pair = &s_xfade_pairs[i];
-        const float xf                   = compute_xfade_pair_value(pair);
-        const uint8_t xf_cc              = (uint8_t) (xf * 128.0f);
+        const ch_fader_pair_runtime_t* pair = &s_ch_fader_pairs[i];
+        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
 
-        pair->set_dc(xf);
-        *pair->current_position = xf_cc;
-        s_ui.xf.fade_up_prev[pair->prev_idx]   = get_xfade_pair_fade_up_raw(pair);
-        s_ui.xf.fade_down_prev[pair->prev_idx] = get_xfade_pair_fade_down_raw(pair);
+        pair->set_dc(ch_fader_value);
+        *pair->current_position = ch_fader_cc;
+        s_ui.ch_fader.fade_up_prev[pair->prev_idx]   = get_ch_fader_pair_fade_up_raw(pair);
+        s_ui.ch_fader.fade_down_prev[pair->prev_idx] = get_ch_fader_pair_fade_down_raw(pair);
     }
 
-    s_ui.xf.fade_prev_valid = true;
+    s_ui.ch_fader.fade_prev_valid = true;
 }
 
 static void process_mag(void)
@@ -2456,8 +2456,8 @@ static void process_mag(void)
 
     if (s_ui.mag_calibration_count > MAG_CALIBRATION_COUNT_MAX)
     {
-        update_xfade_from_mag();
-        apply_xfade_updates();
+        update_ch_fader_from_mag();
+        apply_ch_fader_updates();
     }
 }
 
@@ -2477,19 +2477,19 @@ static void midi_program_set_input_type(uint8_t arg)
     apply_input_type_change(input_ch, input_type);
 }
 
-static void midi_program_apply_xf_a(uint8_t input_ch)
+static void midi_program_apply_ch_fader_a(uint8_t input_ch)
 {
-    apply_xf_assign_a(input_ch);
+    apply_ch_fader_assign_a(input_ch);
 }
 
-static void midi_program_apply_xf_b(uint8_t input_ch)
+static void midi_program_apply_ch_fader_b(uint8_t input_ch)
 {
-    apply_xf_assign_b(input_ch);
+    apply_ch_fader_assign_b(input_ch);
 }
 
-static void midi_program_apply_xf_post(uint8_t input_ch)
+static void midi_program_apply_ch_fader_post(uint8_t input_ch)
 {
-    apply_xf_assign_post(input_ch);
+    apply_ch_fader_assign_post(input_ch);
 }
 
 static void midi_program_apply_return(uint8_t input_ch)
@@ -2509,24 +2509,24 @@ static void midi_program_enable_dvs(uint8_t arg)
     apply_dvs_state(input_ch, enable);
 }
 
-static void midi_program_apply_xfade_aux_assignment(uint8_t arg)
+static void midi_program_apply_ch_fader_aux_assignment(uint8_t arg)
 {
     const uint8_t sensor_idx = (arg >> 4) & 0x0FU;
     const uint8_t assign     = arg & 0x0FU;
 
     if (sensor_idx == 2U)
     {
-        (void) apply_xfade_aux_assignments(assign, s_ui.sensor3_aux_fade_down_assign);
+        (void) apply_ch_fader_aux_assignments(assign, s_ui.sensor3_aux_fade_down_assign);
     }
     else if (sensor_idx == 3U)
     {
-        (void) apply_xfade_aux_assignments(s_ui.sensor2_aux_fade_down_assign, assign);
+        (void) apply_ch_fader_aux_assignments(s_ui.sensor2_aux_fade_down_assign, assign);
     }
 
     SEGGER_RTT_printf(0,
-                      "Xfade aux assignment: sensor2=%c sensor3=%c\r\n",
-                      (s_ui.sensor2_aux_fade_down_assign == UI_XFADE_AUX_ASSIGN_A) ? 'A' : 'B',
-                      (s_ui.sensor3_aux_fade_down_assign == UI_XFADE_AUX_ASSIGN_A) ? 'A' : 'B');
+                      "Channel fader aux assignment: sensor2=%c sensor3=%c\r\n",
+                      (s_ui.sensor2_aux_fade_down_assign == UI_CH_FADER_AUX_ASSIGN_A) ? 'A' : 'B',
+                      (s_ui.sensor3_aux_fade_down_assign == UI_CH_FADER_AUX_ASSIGN_A) ? 'A' : 'B');
 }
 
 static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
@@ -2570,7 +2570,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_curve_width_a, (double) cfg.current_xfade_curve_width_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
 
         return true;
     }
@@ -2583,7 +2583,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_xfA_assign, (unsigned) cfg.current_xfB_assign, (unsigned) cfg.current_xfpost_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_xfade_curve_width_a, (double) cfg.current_xfade_curve_width_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
         }
         else
         {
@@ -2597,32 +2597,32 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         {CH1_PHONO,            midi_program_set_input_type, (uint8_t) ((INPUT_CH1 << 4) | INPUT_TYPE_PHONO)},
         {CH2_LINE,             midi_program_set_input_type, (uint8_t) ((INPUT_CH2 << 4) | INPUT_TYPE_LINE) },
         {CH2_PHONO,            midi_program_set_input_type, (uint8_t) ((INPUT_CH2 << 4) | INPUT_TYPE_PHONO)},
-        {XF_ASSIGN_A_CH1,      midi_program_apply_xf_a,     INPUT_CH1                                      },
-        {XF_ASSIGN_A_CH2,      midi_program_apply_xf_a,     INPUT_CH2                                      },
-        {XF_ASSIGN_A_USB12,    midi_program_apply_xf_a,     INPUT_USB12                                    },
-        {XF_ASSIGN_A_USB34,    midi_program_apply_xf_a,     INPUT_USB34                                    },
-        {XF_ASSIGN_B_CH1,      midi_program_apply_xf_b,     INPUT_CH1                                      },
-        {XF_ASSIGN_B_CH2,      midi_program_apply_xf_b,     INPUT_CH2                                      },
-        {XF_ASSIGN_B_USB12,    midi_program_apply_xf_b,     INPUT_USB12                                    },
-        {XF_ASSIGN_B_USB34,    midi_program_apply_xf_b,     INPUT_USB34                                    },
-        {XF_ASSIGN_POST_CH1,   midi_program_apply_xf_post,  INPUT_CH1                                      },
-        {XF_ASSIGN_POST_CH2,   midi_program_apply_xf_post,  INPUT_CH2                                      },
-        {XF_ASSIGN_POST_USB12, midi_program_apply_xf_post,  INPUT_USB12                                    },
-        {XF_ASSIGN_POST_USB34, midi_program_apply_xf_post,  INPUT_USB34                                    },
+        {CH_FADER_ASSIGN_A_CH1,      midi_program_apply_ch_fader_a,     INPUT_CH1                                      },
+        {CH_FADER_ASSIGN_A_CH2,      midi_program_apply_ch_fader_a,     INPUT_CH2                                      },
+        {CH_FADER_ASSIGN_A_USB12,    midi_program_apply_ch_fader_a,     INPUT_USB12                                    },
+        {CH_FADER_ASSIGN_A_USB34,    midi_program_apply_ch_fader_a,     INPUT_USB34                                    },
+        {CH_FADER_ASSIGN_B_CH1,      midi_program_apply_ch_fader_b,     INPUT_CH1                                      },
+        {CH_FADER_ASSIGN_B_CH2,      midi_program_apply_ch_fader_b,     INPUT_CH2                                      },
+        {CH_FADER_ASSIGN_B_USB12,    midi_program_apply_ch_fader_b,     INPUT_USB12                                    },
+        {CH_FADER_ASSIGN_B_USB34,    midi_program_apply_ch_fader_b,     INPUT_USB34                                    },
+        {CH_FADER_ASSIGN_POST_CH1,   midi_program_apply_ch_fader_post,  INPUT_CH1                                      },
+        {CH_FADER_ASSIGN_POST_CH2,   midi_program_apply_ch_fader_post,  INPUT_CH2                                      },
+        {CH_FADER_ASSIGN_POST_USB12, midi_program_apply_ch_fader_post,  INPUT_USB12                                    },
+        {CH_FADER_ASSIGN_POST_USB34, midi_program_apply_ch_fader_post,  INPUT_USB34                                    },
         {CH1_DVS_DISABLE,      midi_program_enable_dvs,     (uint8_t) ((INPUT_CH1 << 4) | 0U)              },
         {CH1_DVS_ENABLE,       midi_program_enable_dvs,     (uint8_t) ((INPUT_CH1 << 4) | 1U)              },
         {CH2_DVS_DISABLE,      midi_program_enable_dvs,     (uint8_t) ((INPUT_CH2 << 4) | 0U)              },
         {CH2_DVS_ENABLE,       midi_program_enable_dvs,     (uint8_t) ((INPUT_CH2 << 4) | 1U)              },
         {RETURN_CH_USB12,      midi_program_apply_return,   INPUT_USB12                                    },
         {RETURN_CH_USB34,      midi_program_apply_return,   INPUT_USB34                                    },
-        {HP_OUT_XF_A,          midi_program_apply_hp_out,   CUE_SEL_XF_A                                   },
-        {HP_OUT_XF_B,          midi_program_apply_hp_out,   CUE_SEL_XF_B                                   },
+        {HP_OUT_CH_FADER_A,          midi_program_apply_hp_out,   CUE_SEL_CH_FADER_A                                   },
+        {HP_OUT_CH_FADER_B,          midi_program_apply_hp_out,   CUE_SEL_CH_FADER_B                                   },
         {HP_OUT_THRU,          midi_program_apply_hp_out,   CUE_SEL_THRU                                   },
         {HP_OUT_MASTER,        midi_program_apply_hp_out,   CUE_SEL_MST                                    },
-        {XF_AUX_SENSOR2_TO_A,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((2U << 4) | UI_XFADE_AUX_ASSIGN_A)},
-        {XF_AUX_SENSOR2_TO_B,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((2U << 4) | UI_XFADE_AUX_ASSIGN_B)},
-        {XF_AUX_SENSOR3_TO_A,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((3U << 4) | UI_XFADE_AUX_ASSIGN_A)},
-        {XF_AUX_SENSOR3_TO_B,  midi_program_apply_xfade_aux_assignment, (uint8_t) ((3U << 4) | UI_XFADE_AUX_ASSIGN_B)},
+        {CH_FADER_AUX_SENSOR2_TO_A,  midi_program_apply_ch_fader_aux_assignment, (uint8_t) ((2U << 4) | UI_CH_FADER_AUX_ASSIGN_A)},
+        {CH_FADER_AUX_SENSOR2_TO_B,  midi_program_apply_ch_fader_aux_assignment, (uint8_t) ((2U << 4) | UI_CH_FADER_AUX_ASSIGN_B)},
+        {CH_FADER_AUX_SENSOR3_TO_A,  midi_program_apply_ch_fader_aux_assignment, (uint8_t) ((3U << 4) | UI_CH_FADER_AUX_ASSIGN_A)},
+        {CH_FADER_AUX_SENSOR3_TO_B,  midi_program_apply_ch_fader_aux_assignment, (uint8_t) ((3U << 4) | UI_CH_FADER_AUX_ASSIGN_B)},
     };
 
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(commands); i++)
@@ -2638,7 +2638,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
 
 static bool dispatch_midi_control_change(uint8_t channel, uint8_t number, uint8_t value)
 {
-    float new_xfade_curve_width;
+    float new_ch_fader_curve_width;
 
     if (!s_ui.curve_edit_mode)
     {
@@ -2650,26 +2650,26 @@ static bool dispatch_midi_control_change(uint8_t channel, uint8_t number, uint8_
         return false;
     }
 
-    if (number == MIDI_CC_XFADE_CURVE_A)
+    if (number == MIDI_CC_CH_FADER_CURVE_A)
     {
-        new_xfade_curve_width = clamp_xfade_curve_width(midi_cc_to_xfade_curve_width(value));
-        if (fabsf(new_xfade_curve_width - s_ui.xfade_curve_width_a) > 0.0001f)
+        new_ch_fader_curve_width = clamp_ch_fader_curve_width(midi_cc_to_ch_fader_curve_width(value));
+        if (fabsf(new_ch_fader_curve_width - s_ui.ch_fader_curve_width_a) > 0.0001f)
         {
-            s_ui.xfade_curve_width_a = new_xfade_curve_width;
-            mark_xfade_curve_dirty();
-            SEGGER_RTT_printf(0, "Curve A updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.xfade_curve_width_a);
+            s_ui.ch_fader_curve_width_a = new_ch_fader_curve_width;
+            mark_ch_fader_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve A updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.ch_fader_curve_width_a);
         }
         return true;
     }
 
-    if (number == MIDI_CC_XFADE_CURVE_B)
+    if (number == MIDI_CC_CH_FADER_CURVE_B)
     {
-        new_xfade_curve_width = clamp_xfade_curve_width(midi_cc_to_xfade_curve_width(value));
-        if (fabsf(new_xfade_curve_width - s_ui.xfade_curve_width_b) > 0.0001f)
+        new_ch_fader_curve_width = clamp_ch_fader_curve_width(midi_cc_to_ch_fader_curve_width(value));
+        if (fabsf(new_ch_fader_curve_width - s_ui.ch_fader_curve_width_b) > 0.0001f)
         {
-            s_ui.xfade_curve_width_b = new_xfade_curve_width;
-            mark_xfade_curve_dirty();
-            SEGGER_RTT_printf(0, "Curve B updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.xfade_curve_width_b);
+            s_ui.ch_fader_curve_width_b = new_ch_fader_curve_width;
+            mark_ch_fader_curve_dirty();
+            SEGGER_RTT_printf(0, "Curve B updated by CC%u Ch15 -> width %.4f\r\n", (unsigned) number, (double) s_ui.ch_fader_curve_width_b);
         }
         return true;
     }
@@ -2737,17 +2737,17 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
 
     state->current_ch1_input_type = s_ui.current_ch1_input_type;
     state->current_ch2_input_type = s_ui.current_ch2_input_type;
-    state->current_xfA_assign     = s_ui.current_xfA_assign;
-    state->current_xfB_assign     = s_ui.current_xfB_assign;
-    state->current_xfpost_assign  = s_ui.current_xfpost_assign;
+    state->current_ch_fader_a_assign     = s_ui.current_ch_fader_a_assign;
+    state->current_ch_fader_b_assign     = s_ui.current_ch_fader_b_assign;
+    state->current_ch_fader_post_assign  = s_ui.current_ch_fader_post_assign;
     state->current_return_assign  = s_ui.current_return_assign;
     state->current_hp_out_source  = s_ui.current_hp_out_source;
     state->current_ch1_dvs_enable    = s_ui.current_ch1_dvs_enable;
     state->current_ch2_dvs_enable    = s_ui.current_ch2_dvs_enable;
     state->sensor2_aux_fade_down_assign = s_ui.sensor2_aux_fade_down_assign;
     state->sensor3_aux_fade_down_assign = s_ui.sensor3_aux_fade_down_assign;
-    state->current_xfade_curve_width_a = s_ui.xfade_curve_width_a;
-    state->current_xfade_curve_width_b = s_ui.xfade_curve_width_b;
+    state->current_ch_fader_curve_width_a = s_ui.ch_fader_curve_width_a;
+    state->current_ch_fader_curve_width_b = s_ui.ch_fader_curve_width_b;
     state->mag_out_as_note           = s_ui.mag_out_as_note;
 }
 
@@ -2768,15 +2768,15 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
         (state->current_hp_out_source > CUE_SEL_MST) ||
         (state->current_ch1_dvs_enable > 1U) ||
         (state->current_ch2_dvs_enable > 1U) ||
-        (state->sensor2_aux_fade_down_assign > UI_XFADE_AUX_ASSIGN_B) ||
-        (state->sensor3_aux_fade_down_assign > UI_XFADE_AUX_ASSIGN_B))
+        (state->sensor2_aux_fade_down_assign > UI_CH_FADER_AUX_ASSIGN_B) ||
+        (state->sensor3_aux_fade_down_assign > UI_CH_FADER_AUX_ASSIGN_B))
     {
         return false;
     }
 
-    if (!assign_to_input_ch(state->current_xfA_assign, &input_ch_a) ||
-        !assign_to_input_ch(state->current_xfB_assign, &input_ch_b) ||
-        !assign_to_input_ch(state->current_xfpost_assign, &input_ch_post) ||
+    if (!assign_to_input_ch(state->current_ch_fader_a_assign, &input_ch_a) ||
+        !assign_to_input_ch(state->current_ch_fader_b_assign, &input_ch_b) ||
+        !assign_to_input_ch(state->current_ch_fader_post_assign, &input_ch_post) ||
         !assign_to_return_input_ch(state->current_return_assign, &input_ch_return))
     {
         return false;
@@ -2784,19 +2784,19 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
 
     apply_input_type_change(INPUT_CH1, state->current_ch1_input_type);
     apply_input_type_change(INPUT_CH2, state->current_ch2_input_type);
-    apply_xf_assign_a(input_ch_a);
-    apply_xf_assign_b(input_ch_b);
-    apply_xf_assign_post(input_ch_post);
+    apply_ch_fader_assign_a(input_ch_a);
+    apply_ch_fader_assign_b(input_ch_b);
+    apply_ch_fader_assign_post(input_ch_post);
     apply_return_source(input_ch_return);
     apply_hp_out_source(state->current_hp_out_source);
     apply_dvs_state(INPUT_CH1, state->current_ch1_dvs_enable != 0U);
     apply_dvs_state(INPUT_CH2, state->current_ch2_dvs_enable != 0U);
-    (void) apply_xfade_aux_assignments(state->sensor2_aux_fade_down_assign,
+    (void) apply_ch_fader_aux_assignments(state->sensor2_aux_fade_down_assign,
                                        state->sensor3_aux_fade_down_assign);
-    s_ui.xfade_curve_width_a = clamp_xfade_curve_width(state->current_xfade_curve_width_a);
-    s_ui.xfade_curve_width_b = clamp_xfade_curve_width(state->current_xfade_curve_width_b);
+    s_ui.ch_fader_curve_width_a = clamp_ch_fader_curve_width(state->current_ch_fader_curve_width_a);
+    s_ui.ch_fader_curve_width_b = clamp_ch_fader_curve_width(state->current_ch_fader_curve_width_b);
     s_ui.mag_out_as_note    = state->mag_out_as_note;
-    mark_xfade_curve_dirty();
+    mark_ch_fader_curve_dirty();
 
     return true;
 }
@@ -2849,60 +2849,60 @@ void ui_control_reset_state(void)
 
     s_ui.current_ch1_input_type = INPUT_TYPE_LINE;
     s_ui.current_ch2_input_type = INPUT_TYPE_LINE;
-    s_ui.current_xfA_assign     = INPUT_SRC_CH1_LN;
-    s_ui.current_xfB_assign     = INPUT_SRC_CH2_LN;
-    s_ui.current_xfpost_assign  = INPUT_SRC_USB12;
+    s_ui.current_ch_fader_a_assign     = INPUT_SRC_CH1_LN;
+    s_ui.current_ch_fader_b_assign     = INPUT_SRC_CH2_LN;
+    s_ui.current_ch_fader_post_assign  = INPUT_SRC_USB12;
     s_ui.current_return_assign  = INPUT_SRC_USB34;
     s_ui.current_hp_out_source  = CUE_SEL_MST;
     s_ui.current_ch1_dvs_enable = 0U;
     s_ui.current_ch2_dvs_enable = 0U;
-    s_ui.sensor2_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_A;
-    s_ui.sensor3_aux_fade_down_assign = UI_XFADE_AUX_ASSIGN_B;
-    s_ui.xfade_curve_width_a    = UI_XFADE_CURVE_WIDTH_A_DEFAULT;
-    s_ui.xfade_curve_width_b    = UI_XFADE_CURVE_WIDTH_B_DEFAULT;
+    s_ui.sensor2_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_A;
+    s_ui.sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B;
+    s_ui.ch_fader_curve_width_a    = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT;
+    s_ui.ch_fader_curve_width_b    = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT;
     s_ui.curve_edit_mode        = false;
-    s_ui.xf.position_a          = 0;
-    s_ui.xf.position_b          = 0;
-    (void) apply_xfade_aux_assignments(s_ui.sensor2_aux_fade_down_assign,
+    s_ui.ch_fader.position_a          = 0;
+    s_ui.ch_fader.position_b          = 0;
+    (void) apply_ch_fader_aux_assignments(s_ui.sensor2_aux_fade_down_assign,
                                        s_ui.sensor3_aux_fade_down_assign);
 
     for (uint16_t i = 0; i < MAG_SW_NUM; i++)
     {
-        s_ui.xf.raw[i]                = 1.0f;
-        s_ui.xf.prev[i]               = 1.0f;
-        s_ui.xf.down_floor[i]         = 1.0f;
-        s_ui.xf.up_peak[i]            = 0.0f;
-        s_ui.xf.note_peak_vel[i]      = 0U;
-        s_ui.xf.note_scan_start_ms[i] = 0U;
-        s_ui.xf.note_is_on[i]         = false;
-        s_ui.xf.note_scan_active[i]   = false;
+        s_ui.ch_fader.raw[i]                = 1.0f;
+        s_ui.ch_fader.prev[i]               = 1.0f;
+        s_ui.ch_fader.down_floor[i]         = 1.0f;
+        s_ui.ch_fader.up_peak[i]            = 0.0f;
+        s_ui.ch_fader.note_peak_vel[i]      = 0U;
+        s_ui.ch_fader.note_scan_start_ms[i] = 0U;
+        s_ui.ch_fader.note_is_on[i]         = false;
+        s_ui.ch_fader.note_scan_active[i]   = false;
     }
-    for (uint8_t i = 0; i < XFADE_PAIR_COUNT; i++)
+    for (uint8_t i = 0; i < CH_FADER_PAIR_COUNT; i++)
     {
-        s_ui.xf.fade_up_prev[i]           = 0.0f;
-        s_ui.xf.fade_down_prev[i]         = 1.0f;
-        s_ui.xf.fade_down_combined_raw[i] = 1.0f;
-        for (uint8_t source = 0; source < XFADE_FADE_DOWN_SOURCE_COUNT; source++)
+        s_ui.ch_fader.fade_up_prev[i]           = 0.0f;
+        s_ui.ch_fader.fade_down_prev[i]         = 1.0f;
+        s_ui.ch_fader.fade_down_combined_raw[i] = 1.0f;
+        for (uint8_t source = 0; source < CH_FADER_FADE_DOWN_SOURCE_COUNT; source++)
         {
-            s_ui.xf.fade_down_source_prev[i][source] = 1.0f;
+            s_ui.ch_fader.fade_down_source_prev[i][source] = 1.0f;
         }
-        s_ui.xf.fade_down_active_source[i] = XFADE_FADE_DOWN_SOURCE_NONE;
-        s_ui.xf.fade_down_force_release_reads[i] = 0U;
-        s_ui.xf.pair_gesture_parent[i] = XFADE_GESTURE_PARENT_NONE;
-        s_ui.xf.pair_gesture_armed[i] = true;
-        s_ui.xf.pair_gesture_child_active[i] = false;
-        s_ui.xf.pair_hold_value[i]         = 0.0f;
-        s_ui.xf.pair_bottom_restore_value[i] = 0.0f;
-        s_ui.xf.pair_top_restore_value[i] = 0.0f;
-        s_ui.xf.pair_fade_down_cut_active[i] = false;
-        s_ui.xf.pair_bottom_hold_active[i] = false;
-        s_ui.xf.pair_fade_down_bottomed[i] = false;
-        s_ui.xf.pair_top_hold_active[i] = false;
-        s_ui.xf.pair_fade_up_topped[i] = false;
-        s_ui.xf.pair_reverse_fade_down_takeover[i] = false;
+        s_ui.ch_fader.fade_down_active_source[i] = CH_FADER_FADE_DOWN_SOURCE_NONE;
+        s_ui.ch_fader.fade_down_force_release_reads[i] = 0U;
+        s_ui.ch_fader.pair_gesture_parent[i] = CH_FADER_GESTURE_PARENT_NONE;
+        s_ui.ch_fader.pair_gesture_armed[i] = true;
+        s_ui.ch_fader.pair_gesture_child_active[i] = false;
+        s_ui.ch_fader.pair_hold_value[i]         = 0.0f;
+        s_ui.ch_fader.pair_bottom_restore_value[i] = 0.0f;
+        s_ui.ch_fader.pair_top_restore_value[i] = 0.0f;
+        s_ui.ch_fader.pair_fade_down_cut_active[i] = false;
+        s_ui.ch_fader.pair_bottom_hold_active[i] = false;
+        s_ui.ch_fader.pair_fade_down_bottomed[i] = false;
+        s_ui.ch_fader.pair_top_hold_active[i] = false;
+        s_ui.ch_fader.pair_fade_up_topped[i] = false;
+        s_ui.ch_fader.pair_reverse_fade_down_takeover[i] = false;
     }
-    mark_xfade_curve_dirty();
-    s_ui.xf.fade_prev_valid = false;
+    mark_ch_fader_curve_dirty();
+    s_ui.ch_fader.fade_prev_valid = false;
 
     for (uint16_t i = 0; i < 128U; i++)
     {
