@@ -6,16 +6,16 @@
 
 “JUMBLEQ” is short for “jumbled equipment.”
 
-JUMBLEQ is a faderless stereo digital audio mixer that replaces the traditional input faders and crossfader found on DJ mixers with magnetic switches. The switches behave like faders while enabling a compact and unconventional control layout.
+JUMBLEQ is a faderless stereo digital audio mixer that replaces the traditional channel faders found on DJ mixers with magnetic switches. The switches behave like faders while enabling a compact and unconventional control layout.
 
-Each of the two analog stereo inputs and two USB stereo inputs can be routed to crossfader A, crossfader B, or THRU. The USB audio I/O can also be used as a send/return path, allowing a USB host device to operate as an external effects processor.
+Each of the two analog stereo inputs and two USB stereo inputs can be routed to Channel Fader A, Channel Fader B, or THRU. The USB audio I/O can also be used as a send/return path, allowing a USB host device to operate as an external effects processor.
 
 As a USB Audio Class 2.0 interface, JUMBLEQ provides 4-in/4-out audio at 24-bit, 48 kHz or 96 kHz. It is USB class-compliant and can be used with Windows, macOS, iPhone, iPad, and Android devices without a device-specific driver.
 
 ## Key Features
 
 - Faderless mixing with 10 magnetic switches and 12 potentiometers
-- Flexible stereo input routing: assign each of the two analog and two USB inputs to crossfader A, crossfader B, or THRU
+- Flexible stereo input routing: assign each of the two analog and two USB inputs to Channel Fader A, Channel Fader B, or THRU
 - 4-in/4-out USB Audio Class 2.0 at 24-bit, 48 kHz or 96 kHz
 - USB audio send/return routing for external effects processing
 - USB MIDI control and the browser-based JUMBLEQ Configurator
