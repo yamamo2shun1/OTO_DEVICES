@@ -12,7 +12,8 @@ This guide describes the J-Link RTT Viewer settings used to monitor the LED stat
 
 Open J-Link RTT Viewer and use the following configuration.
 
-![J-Link RTT Viewer configuration for LED_BLINK_APP_JLINK](images/jlink-rtt-viewer-led-blink-app-jlink.png)
+<img width="360" alt="J-Link RTT Viewer configuration for LED_BLINK_APP_JLINK" src="https://github.com/user-attachments/assets/f49be479-0906-4995-a2e1-f010ded93999" />
+
 
 | Setting | Value |
 | --- | --- |
