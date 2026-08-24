@@ -14,7 +14,7 @@ The browser-based [JUMBLEQ Configurator](https://configurator.jumbleq.io/) is th
 2. Open the Web app and allow MIDI access when prompted by the browser.
 3. Confirm that the connection status shows **JUMBLEQ connected** and that the device settings are synchronized.
 
-The Web app provides controls for input and crossfader routing, XFader response curves, DVS, monitor and Return routing, magnetic-switch behavior, and device settings. It also supports reading the current settings from JUMBLEQ and importing or exporting presets.
+The Web app provides controls for input and channel-fader routing, channel-fader response curves, DVS, monitor and Return routing, magnetic-switch behavior, and device settings. It also supports reading the current settings from JUMBLEQ and importing or exporting presets.
 
 ### Using the Web App on iPad
 
@@ -27,7 +27,7 @@ Safari does not provide Web MIDI. To connect JUMBLEQ from an iPad:
 
 Connection and MIDI communication have been verified with MIDIWeb Browser on iPadOS 26.5.
 
-<img width="480" alt="JUMBLEQ Configurator Web app showing routing and crossfader settings" src="https://github.com/user-attachments/assets/77791d7c-2981-479a-be9e-e17c0968e9c8" />
+<img width="480" alt="JUMBLEQ Configurator Web app showing routing and channel-fader settings" src="https://github.com/user-attachments/assets/77791d7c-2981-479a-be9e-e17c0968e9c8" />
 <img width="480"" alt="UMBLEQ Configurator Web app showing controls and device settings" src="https://github.com/user-attachments/assets/36ef499a-27e5-489c-96c2-58ebba73b6ec" />
 
 ## Alternative Max Versions

@@ -10,7 +10,6 @@ import {
   CircleHelp,
   Download,
   ExternalLink,
-  Gauge,
   GitBranch,
   Headphones,
   Menu,
@@ -19,7 +18,6 @@ import {
   RotateCcw,
   Save,
   Settings2,
-  SlidersHorizontal,
   TriangleAlert,
   Upload,
   Usb,
@@ -145,7 +143,7 @@ function CurveGraph({ curveA, curveB }: { curveA: number; curveB: number }) {
   const pathB = useMemo(() => createCurvePath(curveB, true), [curveB]);
 
   return (
-    <svg className="curve-graph" viewBox="0 0 320 164" role="img" aria-label="Crossfader response curves">
+    <svg className="curve-graph" viewBox="0 0 320 164" role="img" aria-label="Channel fader response curves">
       <defs>
         <linearGradient id="gridFade" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor="#fff" stopOpacity=".13" />
@@ -566,9 +564,8 @@ export default function Home() {
             <button className="icon-button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}><X size={20} /></button>
           </div>
           <nav aria-label="Configurator sections">
-            <a className="nav-link is-active" href="#routing" onClick={() => setMenuOpen(false)}><GitBranch size={19} />Routing</a>
-            <a className="nav-link" href="#crossfader" onClick={() => setMenuOpen(false)}><SlidersHorizontal size={19} />Crossfader</a>
-            <a className="nav-link" href="#controls" onClick={() => setMenuOpen(false)}><Gauge size={19} />Controls</a>
+            <a className="nav-link is-active" href="#audio" onClick={() => setMenuOpen(false)}><GitBranch size={19} />Audio</a>
+            <a className="nav-link" href="#midi" onClick={() => setMenuOpen(false)}><Radio size={19} />MIDI</a>
             <a className="nav-link" href="#device" onClick={() => setMenuOpen(false)}><Usb size={19} />Device</a>
           </nav>
           <div className="sidebar-device">
@@ -578,19 +575,21 @@ export default function Home() {
               <span>{connected ? "USB MIDI · Synced" : reconnecting ? "Waiting for USB" : midiStatus === "syncing" ? `Reading ${syncReceived}/${SYNC_FIELD_COUNT}` : "Connect via USB"}</span>
             </div>
           </div>
-          <span className="version">Configurator preview · v0.1</span>
+          <span className="version">Configurator preview · v0.9.0</span>
         </aside>
 
         {menuOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
 
         <section className="workspace">
           <div className="page-heading">
-            <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Configure channel inputs and the sources that feed each side of the crossfader.</p></div>
+            <div className="page-heading-title"><p className="eyebrow">AUDIO</p><h1>Audio settings</h1></div>
+            <p className="page-heading-description">Configure analog inputs, signal routing, monitoring, and channel-fader response.</p>
             <div className={`device-pill ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><span />{connected ? "Online" : reconnecting ? "Reconnecting…" : midiStatus === "syncing" ? "Syncing…" : "Offline"}</div>
           </div>
 
           <fieldset className="settings-fieldset" disabled={settingsLocked} aria-busy={settingsLocked}>
-          <section className="routing-grid" id="routing">
+          <section className="audio-settings" id="audio" aria-label="Audio settings">
+          <section className="routing-grid">
             <article className="channel-card channel-a" aria-label="Channel 1 input">
               <div className="card-kicker"><span>1</span>ANALOG INPUT</div>
               <div className="channel-input-setting">
@@ -606,7 +605,7 @@ export default function Home() {
             </article>
 
             <article className="signal-card">
-              <div className="signal-card-header"><div><p className="card-label">CROSSFADER ROUTING</p><h2>Assign sources</h2></div><Settings2 size={20} /></div>
+              <div className="signal-card-header"><div><p className="card-label">CHANNEL FADER ROUTING</p><h2>Assign sources</h2></div><Settings2 size={20} /></div>
               <div className="source-list">
                 <SourceSelect label="Fader A" value={assignA} onChange={(value) => updateProgram(setAssignA, "assignA", value)} accent="a" disabledSources={disabledFaderSources} />
                 <SourceSelect label="Fader B" value={assignB} onChange={(value) => updateProgram(setAssignB, "assignB", value)} accent="b" disabledSources={disabledFaderSources} />
@@ -630,8 +629,8 @@ export default function Home() {
             </article>
           </section>
 
-          <section className="curve-card" id="crossfader">
-            <div className="curve-copy"><p className="card-label">CROSSFADER</p><h2>Response curve</h2><p>0% gives the widest response. 100% gives the sharpest cut.</p>{hasOpenPorts && <div className={`curve-edit-status ${curveEditActive ? "active" : ""}`}><span />{curveEditActive ? "Curve edit active" : "Ready to edit"}</div>}<div className="legend"><span><i className="legend-a" />Fader A</span><span><i className="legend-b" />Fader B</span></div></div>
+          <section className="curve-card" id="channel-faders">
+            <div className="curve-copy"><p className="card-label">CHANNEL FADERS</p><h2>Response curves</h2><p>0% gives the widest response. 100% gives the sharpest cut.</p>{hasOpenPorts && <div className={`curve-edit-status ${curveEditActive ? "active" : ""}`}><span />{curveEditActive ? "Curve edit active" : "Ready to edit"}</div>}<div className="legend"><span><i className="legend-a" />Fader A</span><span><i className="legend-b" />Fader B</span></div></div>
             <CurveGraph curveA={curveA} curveB={curveB} />
             <div className="curve-controls">
               <label htmlFor="curve-a"><span><b>Fader A</b><output htmlFor="curve-a" title={`MIDI CC ${curvePercentToMidiCC(curveA)} · width ${curvePercentToWidth(curveA).toFixed(3)}`}>{curveA}%</output></span><input id="curve-a" aria-label="Fader A curve sharpness" className="range-a" type="range" min="0" max="100" value={curveA} onFocus={() => hasOpenPorts && beginCurveEdit()} onPointerDown={() => hasOpenPorts && beginCurveEdit()} onChange={(event) => updateCurve(setCurveA, "curveA", Number(event.target.value))} onBlur={() => hasOpenPorts && endCurveEdit()} onPointerUp={() => hasOpenPorts && endCurveEdit()} onPointerCancel={() => hasOpenPorts && endCurveEdit()} /></label>
@@ -639,20 +638,21 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="section-block" id="controls">
-            <div className="section-heading"><div><p className="card-label">PERFORMANCE</p><h2>Controls</h2></div><p>Configure monitor and return routing, and magnetic switches.</p></div>
-            <div className="control-grid">
-              <article className="control-card routing-control-card">
-                <div className="control-card-title"><span className="control-icon cyan"><Headphones size={18} /></span><div><h3>Monitor routing</h3><p>Select the headphone monitor source.</p></div></div>
-                <div className="select-shell select-b routing-select"><select aria-label="Headphone monitor source" value={headphoneSource} onChange={(event) => updateProgram(setHeadphoneSource, "headphoneSource", event.target.value as typeof headphoneSource)}>{["Fader A", "Fader B", "Thru", "Master"].map((source) => <option key={source}>{source}</option>)}</select><ChevronDown size={16} /></div>
-              </article>
+          <section className="routing-settings-grid" aria-label="Monitor and return routing">
+            <article className="control-card routing-control-card">
+              <div className="control-card-title"><span className="control-icon cyan"><Headphones size={18} /></span><div><h3>Monitor routing</h3><p>Select the headphone monitor source.</p></div></div>
+              <div className="select-shell select-b routing-select"><select aria-label="Headphone monitor source" value={headphoneSource} onChange={(event) => updateProgram(setHeadphoneSource, "headphoneSource", event.target.value as typeof headphoneSource)}>{["Fader A", "Fader B", "Thru", "Master"].map((source) => <option key={source}>{source}</option>)}</select><ChevronDown size={16} /></div>
+            </article>
 
-              <article className="control-card routing-control-card">
-                <div className="control-card-title"><span className="control-icon"><Cable size={18} /></span><div><h3>Return routing</h3><p>Select the USB return input.</p></div></div>
-                <div className="select-shell select-a routing-select"><select aria-label="USB return input" value={returnSource} onChange={(event) => updateProgram(setReturnSource, "returnSource", event.target.value as "USB 1/2" | "USB 3/4")}><option>USB 1/2</option><option>USB 3/4</option></select><ChevronDown size={16} /></div>
-              </article>
-            </div>
+            <article className="control-card routing-control-card">
+              <div className="control-card-title"><span className="control-icon"><Cable size={18} /></span><div><h3>Return routing</h3><p>Select the USB return input.</p></div></div>
+              <div className="select-shell select-a routing-select"><select aria-label="USB return input" value={returnSource} onChange={(event) => updateProgram(setReturnSource, "returnSource", event.target.value as "USB 1/2" | "USB 3/4")}><option>USB 1/2</option><option>USB 3/4</option></select><ChevronDown size={16} /></div>
+            </article>
+          </section>
+          </section>
 
+          <section className="section-block midi-section" id="midi">
+            <div className="section-heading"><div><p className="card-label">MIDI</p><h2>MIDI settings</h2></div><p>Configure magnetic-switch behavior and MIDI output.</p></div>
             <article className="mag-card">
               <div className="mag-copy"><div className="control-card-title"><span className="control-icon"><Radio size={18} /></span><div><h3>Magnetic switches</h3><p>Choose the outgoing MIDI type and fade-down side for the auxiliary sensors.</p></div></div>
                 <div className="mag-setting"><span>MIDI output</span><div className="choice-pills">{(["CC", "NOTE"] as const).map((mode) => <button key={mode} className={magMode === mode ? "active" : ""} onClick={() => updateProgram(setMagMode, "magMode", mode)}>{mode === "CC" ? "Control change" : "MIDI note"}</button>)}</div></div>

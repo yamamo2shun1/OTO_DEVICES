@@ -42,6 +42,27 @@ test("shows the verified iPad MIDIWeb Browser guidance", async ({ page }) => {
   await expect(page.getByText("Connection and MIDI communication are verified on iPadOS 26.5.")).toBeVisible();
 });
 
+test("groups audio routing and MIDI controls by function", async ({ page }) => {
+  const navigation = page.getByRole("navigation", { name: "Configurator sections" });
+  await expect(navigation.getByRole("link")).toHaveText(["Audio", "MIDI", "Device"]);
+  await expect(page.getByText("Configurator preview · v0.9.0")).toBeVisible();
+
+  const audioSettings = page.locator("#audio");
+  await expect(page.getByRole("heading", { name: "Audio settings" })).toBeVisible();
+  await expect(page.locator(".page-heading > .page-heading-description")).toHaveText("Configure analog inputs, signal routing, monitoring, and channel-fader response.");
+  await expect(audioSettings.getByRole("heading", { name: "Monitor routing" })).toBeVisible();
+  await expect(audioSettings.getByRole("heading", { name: "Return routing" })).toBeVisible();
+  await expect(audioSettings.getByRole("heading", { name: "Response curves" })).toBeVisible();
+  await expect(audioSettings.getByText("CHANNEL FADER ROUTING")).toBeVisible();
+  await expect(audioSettings.getByText("CHANNEL FADERS", { exact: true })).toBeVisible();
+  await expect(audioSettings.locator(".curve-card + .routing-settings-grid")).toHaveCount(1);
+
+  const midiSettings = page.locator("#midi");
+  await expect(midiSettings.getByRole("heading", { name: "MIDI settings" })).toBeVisible();
+  await expect(midiSettings.getByRole("heading", { name: "Magnetic switches" })).toBeVisible();
+  await expect(midiSettings.getByRole("heading", { name: "Monitor routing" })).toHaveCount(0);
+});
+
 test("labels physical routing sources as analog inputs", async ({ page }) => {
   const faderA = page.getByRole("combobox", { name: "Fader A", exact: true });
 
