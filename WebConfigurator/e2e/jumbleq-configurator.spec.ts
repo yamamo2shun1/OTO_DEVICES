@@ -49,10 +49,10 @@ test("connects to JUMBLEQ and reflects the complete initial sync", async ({ page
   await expect(page.getByText("Current settings loaded from JUMBLEQ")).toBeVisible();
   await expect(page.getByText("14/14 synced")).toBeVisible();
   await expect(page.getByRole("group", { name: "Channel 2 input type" }).getByRole("button", { name: "PHONO" })).toHaveClass(/active/);
+  await expect(page.getByRole("article", { name: "Channel 1 input" }).getByRole("switch", { name: "Channel 1 DVS" })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("combobox", { name: "Fader A", exact: true })).toHaveValue("USB 3/4");
   await expect(page.getByLabel("Headphone monitor source")).toHaveValue("Fader B");
   await expect(page.getByLabel("USB return input")).toHaveValue("USB 1/2");
-  await expect(page.getByRole("switch").first()).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("button", { name: "MIDI note" })).toHaveClass(/active/);
   await expect(page.getByLabel("Fader A curve sharpness")).toHaveValue("25");
   await expect(page.getByLabel("Fader B curve sharpness")).toHaveValue("75");
@@ -66,7 +66,7 @@ test("sends setting, curve edit, and EEPROM save messages", async ({ page }) => 
 
   await page.getByRole("group", { name: "Channel 1 input type" }).getByRole("button", { name: "PHONO" }).click();
   await page.getByRole("combobox", { name: "Fader A", exact: true }).selectOption("USB 3/4");
-  await page.getByRole("switch").first().click();
+  await page.getByRole("switch", { name: "Channel 1 DVS" }).click();
   const curveA = page.getByLabel("Fader A curve sharpness");
   await curveA.fill("80");
   await curveA.blur();

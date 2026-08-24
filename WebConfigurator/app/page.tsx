@@ -561,18 +561,24 @@ export default function Home() {
 
         <section className="workspace">
           <div className="page-heading">
-            <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Choose the sources that feed each side of the crossfader.</p></div>
+            <div><p className="eyebrow">SIGNAL FLOW</p><h1>Routing</h1><p>Configure channel inputs and the sources that feed each side of the crossfader.</p></div>
             <div className={`device-pill ${connected ? "online" : reconnecting ? "reconnecting" : ""}`}><span />{connected ? "Online" : reconnecting ? "Reconnecting…" : midiStatus === "syncing" ? "Syncing…" : "Offline"}</div>
           </div>
 
           <fieldset className="settings-fieldset" disabled={settingsLocked} aria-busy={settingsLocked}>
           <section className="routing-grid" id="routing">
-            <article className="channel-card channel-a">
-              <div className="card-kicker"><span>1</span>INPUT SELECT SWITCH</div>
-              <div className="segmented" role="group" aria-label="Channel 1 input type">
-                {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch1Type === item ? "active" : ""} onClick={() => updateProgram(setCh1Type, "ch1Type", item)}>{item}</button>)}
+            <article className="channel-card channel-a" aria-label="Channel 1 input">
+              <div className="card-kicker"><span>1</span>CHANNEL INPUT</div>
+              <div className="channel-input-setting">
+                <p>INPUT SELECT SWITCH</p>
+                <div className="segmented" role="group" aria-label="Channel 1 input type">
+                  {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch1Type === item ? "active" : ""} onClick={() => updateProgram(setCh1Type, "ch1Type", item)}>{item}</button>)}
+                </div>
               </div>
-              <div className="mini-meter"><span style={{ height: "36%" }} /><span style={{ height: "62%" }} /><span style={{ height: "78%" }} /><span style={{ height: "48%" }} /><span style={{ height: "28%" }} /></div>
+              <div className="channel-dvs-setting">
+                <span><b>DIGITAL VINYL SYSTEM</b><small>{dvs1 ? "DVS enabled" : "DVS disabled"}</small></span>
+                <button className={`switch ${dvs1 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 1 DVS" aria-checked={dvs1} onClick={() => updateProgram(setDvs1, "dvs1", !dvs1)}><i /></button>
+              </div>
             </article>
 
             <article className="signal-card">
@@ -585,12 +591,18 @@ export default function Home() {
               <div className="route-line" aria-hidden="true"><span className="route-a" /><i /><span className="route-b" /></div>
             </article>
 
-            <article className="channel-card channel-b">
-              <div className="card-kicker"><span>2</span>INPUT SELECT SWITCH</div>
-              <div className="segmented" role="group" aria-label="Channel 2 input type">
-                {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch2Type === item ? "active" : ""} onClick={() => updateProgram(setCh2Type, "ch2Type", item)}>{item}</button>)}
+            <article className="channel-card channel-b" aria-label="Channel 2 input">
+              <div className="card-kicker"><span>2</span>CHANNEL INPUT</div>
+              <div className="channel-input-setting">
+                <p>INPUT SELECT SWITCH</p>
+                <div className="segmented" role="group" aria-label="Channel 2 input type">
+                  {(["LINE", "PHONO"] as const).map((item) => <button key={item} className={ch2Type === item ? "active" : ""} onClick={() => updateProgram(setCh2Type, "ch2Type", item)}>{item}</button>)}
+                </div>
               </div>
-              <div className="mini-meter"><span style={{ height: "48%" }} /><span style={{ height: "74%" }} /><span style={{ height: "88%" }} /><span style={{ height: "66%" }} /><span style={{ height: "40%" }} /></div>
+              <div className="channel-dvs-setting">
+                <span><b>DIGITAL VINYL SYSTEM</b><small>{dvs2 ? "DVS enabled" : "DVS disabled"}</small></span>
+                <button className={`switch ${dvs2 ? "on" : ""}`} type="button" role="switch" aria-label="Channel 2 DVS" aria-checked={dvs2} onClick={() => updateProgram(setDvs2, "dvs2", !dvs2)}><i /></button>
+              </div>
             </article>
           </section>
 
@@ -604,16 +616,8 @@ export default function Home() {
           </section>
 
           <section className="section-block" id="controls">
-            <div className="section-heading"><div><p className="card-label">PERFORMANCE</p><h2>Controls</h2></div><p>Configure DVS, monitor and return routing, and magnetic switches.</p></div>
+            <div className="section-heading"><div><p className="card-label">PERFORMANCE</p><h2>Controls</h2></div><p>Configure monitor and return routing, and magnetic switches.</p></div>
             <div className="control-grid">
-              <article className="control-card control-card-wide">
-                <div className="control-card-title"><span className="control-icon"><SlidersHorizontal size={18} /></span><div><h3>Digital Vinyl System</h3><p>Enable or disable DVS operation for each input channel.</p></div></div>
-                <div className="toggle-list">
-                  <div><span><b>Channel 1</b><small>{dvs1 ? "DVS enabled" : "DVS disabled"}</small></span><button className={`switch ${dvs1 ? "on" : ""}`} role="switch" aria-checked={dvs1} onClick={() => updateProgram(setDvs1, "dvs1", !dvs1)}><i /></button></div>
-                  <div><span><b>Channel 2</b><small>{dvs2 ? "DVS enabled" : "DVS disabled"}</small></span><button className={`switch ${dvs2 ? "on" : ""}`} role="switch" aria-checked={dvs2} onClick={() => updateProgram(setDvs2, "dvs2", !dvs2)}><i /></button></div>
-                </div>
-              </article>
-
               <article className="control-card routing-control-card">
                 <div className="control-card-title"><span className="control-icon cyan"><Headphones size={18} /></span><div><h3>Monitor routing</h3><p>Select the headphone monitor source.</p></div></div>
                 <div className="select-shell select-b routing-select"><select aria-label="Headphone monitor source" value={headphoneSource} onChange={(event) => updateProgram(setHeadphoneSource, "headphoneSource", event.target.value as typeof headphoneSource)}>{["Fader A", "Fader B", "Thru", "Master"].map((source) => <option key={source}>{source}</option>)}</select><ChevronDown size={16} /></div>
