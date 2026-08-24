@@ -3,11 +3,10 @@
 The following screenshots show the STM32CubeIDE J-Link debug settings used by the firmware projects in this workspace.
 
 ### Main
-<img height="480" alt="debug_config_main" src="https://github.com/user-attachments/assets/6b860428-72e7-4de8-8a5b-43a66f00b9bb" />
+<img width="640" alt="jlink-1" src="https://github.com/user-attachments/assets/fa0eea51-42b9-4350-a570-1cb907be78b3" />
 
 ### Debugger
-<img height="545" alt="debug_config_jlink-1" src="https://github.com/user-attachments/assets/e1b577b5-8b7c-410e-ae7d-986bfb629ddf" />
-<img height="545" alt="debug_config-jlink-2" src="https://github.com/user-attachments/assets/fb4f9657-39ed-4ed5-87f8-dbe7b36a3a49" />
+<img width="640" alt="jlink-2" src="https://github.com/user-attachments/assets/101002cb-2496-46c0-baa0-367a82bc0926" />
 
 ### Startup
-<img height="580" alt="debug_config_startup" src="https://github.com/user-attachments/assets/b7a51ef7-a01e-44e0-90e7-9ca571e6e9c1" />
+<img width="640" alt="jlink-3" src="https://github.com/user-attachments/assets/b97cac54-6fa0-4ea9-b214-7265fee542c5" />
