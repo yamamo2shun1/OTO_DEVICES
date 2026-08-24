@@ -21,6 +21,7 @@ Debug
 *.elf
 *.swp
 *.launch
+!STM32CubeIDE/JUMBLEQ/Appli/LED_BLINK_APP_JLINK_Appli Debug.launch
 *.o
 *.su
 *.d
