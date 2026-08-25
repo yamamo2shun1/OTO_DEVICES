@@ -1834,7 +1834,7 @@
                 ]
               },
               {
-                "AlgoName": "xf_assign_sw_B",
+                "AlgoName": "ch_fader_assign_sw_B",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0",
@@ -1902,7 +1902,7 @@
                 ]
               },
               {
-                "AlgoName": "xf_assign_sw_A",
+                "AlgoName": "ch_fader_assign_sw_A",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0",
@@ -1970,7 +1970,7 @@
                 ]
               },
               {
-                "AlgoName": "xf_assign_sw_post",
+                "AlgoName": "ch_fader_assign_sw_post",
                 "SampleRate": 48000,
                 "ParameterComputeName": "",
                 "DetailedName": "AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0",
@@ -5476,7 +5476,7 @@
                     "SimpleName": null,
                     "Name": "MaxDelayMaximumValue",
                     "Tunable": false,
-                    "Value": "326.666666666667",
+                    "Value": "0",
                     "Type": "Numeric"
                   }
                 ]
@@ -5551,7 +5551,7 @@
                     "SimpleName": null,
                     "Name": "MaxDelayMaximumValue",
                     "Tunable": false,
-                    "Value": "326.666666666667",
+                    "Value": "0",
                     "Type": "Numeric"
                   }
                 ]

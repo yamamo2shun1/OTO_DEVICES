@@ -75,9 +75,9 @@
       <Algorithm name="SignalMerger_B" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="DSPReadBack_B" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design" />
       <Algorithm name="RunningAverage_B" friendlyname="Signal Measurement Envelope Generator" />
-      <Algorithm name="xf_assign_sw_B" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
-      <Algorithm name="xf_assign_sw_A" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
-      <Algorithm name="xf_assign_sw_post" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="ch_fader_assign_sw_B" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="ch_fader_assign_sw_A" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
+      <Algorithm name="ch_fader_assign_sw_post" friendlyname="Allows selecting a stereo input value and route it into variable number of signal paths" />
       <Algorithm name="SignalMerger_A" friendlyname="Automatically Lowers Levels Proportional to the number of Inputs" />
       <Algorithm name="DSPReadBack_A" friendlyname="Reads Values Back from the DSP at any Point in the Schematic design" />
       <Algorithm name="RunningAverage_A" friendlyname="Signal Measurement Envelope Generator" />

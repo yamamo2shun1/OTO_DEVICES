@@ -1225,7 +1225,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>xf_assign_sw_B</AlgoName>
+          <AlgoName>ch_fader_assign_sw_B</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0</DetailedName>
           <Description>Allows selecting a stereo input value and route it into variable number of signal paths</Description>
           <AbstractParameter>
@@ -1261,7 +1261,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>xf_assign_sw_A</AlgoName>
+          <AlgoName>ch_fader_assign_sw_A</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0</DetailedName>
           <Description>Allows selecting a stereo input value and route it into variable number of signal paths</Description>
           <AbstractParameter>
@@ -1297,7 +1297,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
       </Module>
       <Module>
         <Algorithm>
-          <AlgoName>xf_assign_sw_post</AlgoName>
+          <AlgoName>ch_fader_assign_sw_post</AlgoName>
           <DetailedName>AnalogDevices.Plugins.Algorithms.MuxesAndDemuxes.Sigma300.Sample.StereoSwitchNx2_v1.0.0.0</DetailedName>
           <Description>Allows selecting a stereo input value and route it into variable number of signal paths</Description>
           <AbstractParameter>
@@ -3032,7 +3032,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
           <AbstractParameter>
             <Name>MaxDelayMaximumValue</Name>
             <Type>Numeric</Type>
-            <Value>326.666666666667</Value>
+            <Value>0</Value>
           </AbstractParameter>
           <ModuleParameter>
             <Name>Delay</Name>
@@ -3074,7 +3074,7 @@ Optimum for simultaneous control of various channels within a single DSP</Descri
           <AbstractParameter>
             <Name>MaxDelayMaximumValue</Name>
             <Type>Numeric</Type>
-            <Value>326.666666666667</Value>
+            <Value>0</Value>
           </AbstractParameter>
           <ModuleParameter>
             <Name>Delay</Name>
