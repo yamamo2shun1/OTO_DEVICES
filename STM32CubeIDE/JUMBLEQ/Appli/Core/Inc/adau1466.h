@@ -102,7 +102,6 @@ void control_hp_out_gain(const uint16_t adc_val);
 
 void select_input_type(uint8_t ch, uint8_t type);
 void enable_dvs(uint8_t ch, bool enable);
-void set_dvs_ch_fader_delay(bool enable_a, bool enable_b);
 void select_send_source(uint8_t ch, bool select_dvs);
 
 void select_ch_fader_assign_a_source(uint8_t ch);
