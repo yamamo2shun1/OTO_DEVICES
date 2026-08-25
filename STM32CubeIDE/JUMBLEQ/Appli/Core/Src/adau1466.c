@@ -693,7 +693,7 @@ void select_ch_fader_assign_a_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
 }
 
 void select_ch_fader_assign_b_source(uint8_t ch)
@@ -716,7 +716,7 @@ void select_ch_fader_assign_b_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
 }
 
 void select_ch_fader_assign_post_source(uint8_t ch)
@@ -739,7 +739,7 @@ void select_ch_fader_assign_post_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
 }
 
 void select_return_ch_source(uint8_t ch)

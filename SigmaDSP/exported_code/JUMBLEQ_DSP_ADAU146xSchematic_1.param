@@ -313,7 +313,7 @@ Parameter Data :
 
 
 
-Module Name			= xf_assign_sw_B
+Module Name			= ch_fader_assign_sw_B
 Parameter Name		= Index
 Parameter Address	= 143
 Parameter Value		= 0
@@ -324,7 +324,7 @@ Parameter Data :
 
 
 
-Module Name			= xf_assign_sw_A
+Module Name			= ch_fader_assign_sw_A
 Parameter Name		= Index
 Parameter Address	= 131
 Parameter Value		= 1
@@ -335,7 +335,7 @@ Parameter Data :
 
 
 
-Module Name			= xf_assign_sw_post
+Module Name			= ch_fader_assign_sw_post
 Parameter Name		= Index
 Parameter Address	= 130
 Parameter Value		= 2
