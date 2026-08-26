@@ -286,7 +286,14 @@ void OLED_UpdateTask(void)
         snprintf(line1_ch2, sizeof(line1_ch2), "1:%3d 2:%3d", get_current_ch1_out_db(), get_current_ch2_out_db());
         // MAIN OLED shows both Out and In as CH1 and CH2.
         snprintf(line2_ch1, sizeof(line2_ch1), "    IN 1:%3d 2:%3d", get_current_ch1_in_db(), get_current_ch2_in_db());
-        snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:%3d ", return_src, get_current_return_db());
+        if (get_current_return_enabled())
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:%3d ", return_src, get_current_return_db());
+        }
+        else
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:--- ", return_src);
+        }
         snprintf(line3_hp, sizeof(line3_hp), ":%3d", get_current_hp_out_db());
 
         if ((strcmp(prev_line1_sr, line1_sr) != 0) ||
