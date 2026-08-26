@@ -64,11 +64,11 @@ The following diagram shows the current knob assignments.
 
 ## Magnetic-switch Assignments
 
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/0e5bbf12-1b3f-4bd9-9b69-4d325e650d13" />
+
 The switches labeled `fade` provide behavior similar to the channel faders on a conventional DJ mixer. Instead of moving a physical fader, key travel changes a virtual fader position according to the current [fader curve setting](#fader-curve-settings). The A fade switches control Channel Fader A, and the B fade switches control Channel Fader B.
 
 The following diagram shows the current magnetic-switch assignments.
-
-<img width="640" alt="JUMBLEQ magnetic-switch assignments" src="https://github.com/user-attachments/assets/7f4aec2a-a40a-4f53-9961-a0d403b15443" />
 
 ### Magnetic-switch Functions
 
@@ -81,11 +81,15 @@ The following diagram shows the current magnetic-switch assignments.
 
 ### Auxiliary Fade-down Switches
 
+<img width="480" alt="image" src="https://github.com/user-attachments/assets/d2f6f36c-b0cb-4ead-a585-a3e3bf55507e" />
+
 The two auxiliary fade-down switches can each be assigned to Channel Fader A or B using JUMBLEQ Configurator. By assigning both auxiliary switches to the same Channel Fader, that fader can be operated with up to three fade-down switches: its main fade-down switch plus the two auxiliary switches.
 
 This arrangement makes rapid multi-click patterns easier to perform, including scratch techniques such as 3-click flares and crab scratches. By default, the A/B auxiliary switch is assigned to Channel Fader A, and the B/A auxiliary switch is assigned to Channel Fader B.
 
 ### Fader Curve Settings
+
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/15989d82-41b1-49b2-b1c8-d45238cbbf39" />
 
 The fader curve determines how the key travel of a fade switch is converted to the virtual fader position. Channel Faders A and B can be configured independently using JUMBLEQ Configurator.
 
