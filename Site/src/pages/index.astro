@@ -3,11 +3,24 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
+import { faAndroid, faApple, faLinux, faWindows } from "@fortawesome/free-brands-svg-icons";
 
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const title = "JUMBLEQ — Faderless 2CH Digital Mixer";
 const description = "磁気スイッチで音を操る、フェーダーレス2チャンネル・デジタルミキサー JUMBLEQ。";
 const heroImage = `${base}assets/jumbleq-beta.jpg`;
+const platforms = [
+  { label: "Windows", icon: faWindows },
+  { label: "macOS", icon: faApple },
+  { label: "iOS / iPadOS", icon: faApple },
+  { label: "Android", icon: faAndroid },
+  { label: "Linux", icon: faLinux },
+].map(({ label, icon }) => ({
+  label,
+  width: icon.icon[0],
+  height: icon.icon[1],
+  path: icon.icon[4] as string,
+}));
 ---
 
 <BaseLayout {title} {description}>
@@ -19,8 +32,8 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
       <div class="hero-shade"></div>
       <div class="hero-content">
         <p class="eyebrow">FADERLESS 2CH DIGITAL MIXER</p>
-        <h1 id="hero-title">触れるたび、<br /><em>音が跳ねる。</em></h1>
-        <p class="hero-copy">磁気スイッチでフェーダー操作を再構築。<br />コンパクトな一台から、直感的で予想外のミックスを。</p>
+        <h1 id="hero-title"><span class="hero-title-line">触れるたび、</span><br /><em class="hero-title-line">音が跳ねる。</em></h1>
+        <p class="hero-copy">磁気スイッチでチャンネルフェーダーを再構築。<br />押す深さと組み合わせから、直感的で予想外のプレイを。</p>
         <div class="hero-actions">
           <a class="button button-primary" href="#concept">JUMBLEQを知る <span>↓</span></a>
           <a class="button button-ghost" href="https://github.com/yamamo2shun1/JUMBLEQ">GitHubで見る ↗</a>
@@ -31,9 +44,9 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
 
     <section class="manifesto" id="concept">
       <p class="section-label">01 / CONCEPT</p>
-      <h2>フェーダーをなくしたら、<br />ミックスはもっと自由になった。</h2>
+      <h2><span class="concept-title-chunk">フェーダーを</span><br class="mobile-break" /><span class="concept-title-chunk">なくしたら、</span><br /><span class="concept-title-chunk">音はもっと</span><br class="mobile-break" /><span class="concept-title-chunk">自由になった。</span></h2>
       <div class="concept-grid">
-        <p>JUMBLEQは、DJミキサーの入力フェーダーとクロスフェーダーを10個の磁気スイッチに置き換えた、ステレオ・デジタルミキサーです。スイッチを押す強さや組み合わせで、音量とミックスをすばやく、リズミカルに操れます。</p>
+        <p>JUMBLEQは、2本のチャンネルフェーダー（A/B）を6個の磁気スイッチで操る、ステレオ・デジタルミキサーです。スイッチを押す深さや組み合わせで、音の立ち上がりと切れをすばやく、リズミカルに操れます。</p>
         <MagneticSwitchDemo />
       </div>
     </section>
@@ -46,29 +59,84 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
       <div class="feature-grid">
         <article class="feature-card feature-card-lead">
           <p class="feature-number">01</p>
-          <div class="feature-icon fader-icon" aria-hidden="true"><i></i><i></i><i></i></div>
-          <h3>磁気スイッチ・ミキシング</h3>
-          <p>10個の磁気スイッチと12個のノブで、フェーダーレスならではの素早いカットと滑らかな音量変化を両立します。</p>
+          <div class="feature-icon switch-icon" aria-hidden="true">
+            <span class="switch-icon-row switch-icon-row-top"><i></i><i class="yellow"></i><i class="yellow"></i><i></i></span>
+            <span class="switch-icon-row switch-icon-row-bottom"><i></i><i class="yellow"></i><i></i><i></i><i class="yellow"></i><i></i></span>
+          </div>
+          <h3>フェーダーレス・プレイ</h3>
+          <p>10個の磁気スイッチが生み出すフェーダーレスならではの独創的なプレイと、12個のノブによる緻密なコントロールを両立します。</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">02</p>
-          <div class="route-map" aria-hidden="true"><span>IN 1</span><b>A</b><b>B</b><b>THRU</b><span>OUT</span></div>
-          <h3>4系統を自由にアサイン</h3>
-          <p>2つのアナログ入力と2つのUSBステレオ入力を、A・B・THRUへ柔軟にルーティングできます。</p>
+          <div class="patch-visual" aria-hidden="true"><img src={`${base}assets/patch-routing.png`} alt="" loading="lazy" /></div>
+          <h3>4系統の入力を自由にルーティング</h3>
+          <p>2系統のアナログ入力と2系統のUSBステレオ入力を、チャンネルフェーダーA/B、またはフェーダーを通さないTHRUへ割り当てられます。</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">03</p>
-          <div class="bit-display" aria-hidden="true"><strong>24</strong><span>BIT</span><strong>96</strong><span>kHz</span></div>
+          <div class="bit-display" aria-hidden="true"><p><strong>24</strong><span>bit</span></p><p><strong>48/96</strong><span>kHz</span></p></div>
           <h3>4-in / 4-out USB Audio</h3>
           <p>USB Audio Class 2.0に対応。24-bit、48 kHzまたは96 kHzで録音・再生できます。</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">04</p>
-          <div class="device-list" aria-hidden="true"><span>WIN</span><span>MAC</span><span>iOS</span><span>ANDROID</span></div>
-          <h3>クラスコンプライアント</h3>
-          <p>専用ドライバーなしで、Windows、macOS、iPhone、iPad、Androidデバイスと接続できます。</p>
+          <div class="device-list" aria-hidden="true">
+            {platforms.map((platform) => (
+              <span>
+                <svg viewBox={`0 0 ${platform.width} ${platform.height}`} focusable="false"><path d={platform.path}></path></svg>
+                <small>{platform.label}</small>
+              </span>
+            ))}
+          </div>
+          <h3>USB Class Compliant</h3>
+          <p>専用ドライバーなしで、Windows、macOS、Linux、iPhone、iPad、Androidデバイスと接続できます。</p>
         </article>
       </div>
+    </section>
+
+    <section class="operation-section" id="controls" aria-labelledby="controls-title">
+      <div class="operation-intro">
+        <p class="section-label">03 / PLAYING JUMBLEQ</p>
+        <h2 id="controls-title">押す。離す。<br />音を切る。</h2>
+        <p>JUMBLEQでは、一般的なDJミキサーの縦長のフェーダーを、押し込める磁気スイッチに置き換えています。左右のチャンネルに「フェードアップ」と「フェードダウン」があり、スイッチを押す深さで音量を操ります。</p>
+      </div>
+
+      <div class="operation-grid">
+        <article class="operation-card">
+          <p class="operation-tag">TWO WAYS TO PLAY</p>
+          <h3>1つのキーで、<br />音を出す。音を切る。</h3>
+          <p>通常は、フェードダウンを押すと音が出て、深く押すほど大きくなります。手を離すとミュート。フェードアップで音を出しているときだけ動きが逆になり、フェードダウンを押している間、音量を下げたり瞬間的に切ったりできます。</p>
+          <div class="press-meter" aria-hidden="true"><span></span><span></span><span></span><span></span><b>RELEASE / MUTE</b><b>PRESS / FULL</b></div>
+        </article>
+
+        <article class="operation-card operation-card-yellow">
+          <p class="operation-tag">EXTRA FADE-DOWN SWITCHES</p>
+          <h3>3つのキーで、<br />高速カット。</h3>
+          <p>中央の2つは、左右どちらのチャンネルにも割り当てられる追加のフェードダウンです。1つのチャンネルを最大3つのキーで操作でき、3クリックフレアやクラブスクラッチなどの細かなカットにも対応します。</p>
+          <div class="aux-keys" aria-hidden="true"><i>A</i><i>A/B</i><i>B/A</i><i>B</i></div>
+        </article>
+
+        <article class="operation-card">
+          <p class="operation-tag">SWITCH RESPONSE</p>
+          <h3>浅く押して、<br />鋭く切る。</h3>
+          <p>スイッチをどこまで押すと音量が変わるかは、左右のチャンネルごとに調整できます。0%はストローク全体で滑らかに変化。100%は浅く押しただけで音が立ち上がり、スクラッチ向けの鋭いカットになります。</p>
+          <div class="curve-scale" aria-hidden="true"><span>0% SMOOTH</span><i></i><span>100% SHARP</span></div>
+        </article>
+
+        <article class="operation-card operation-card-wide">
+          <div>
+            <p class="operation-tag">PC AUDIO / DVS</p>
+            <h3>PCの音を戻す。<br />DVSへつなぐ。</h3>
+          </div>
+          <div class="signal-pairs" aria-label="標準のUSB信号経路">
+            <p><span>CHANNEL FADER A</span><b>→</b><strong>USB 1 / 2</strong></p>
+            <p><span>CHANNEL FADER B</span><b>→</b><strong>USB 3 / 4</strong></p>
+          </div>
+          <p class="operation-detail">通常は、チャンネルフェーダーAの演奏をUSB 1/2へ、BをUSB 3/4へ送ります。PCから戻る音（Return）は、Dry/Wetノブで元の音との割合を、Returnノブで音量を調整できます。DVS（Digital Vinyl System）では、ターンテーブルの操作信号をフェーダーの手前からPCへ直接送ります。</p>
+        </article>
+      </div>
+
+      <a class="operation-guide-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md">詳しい操作ガイドを見る <span>↗</span></a>
     </section>
 
     <section class="photo-break" aria-label="JUMBLEQベータプロトタイプ">
@@ -78,9 +146,9 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
 
     <section class="configurator-section" id="configurator" aria-labelledby="configurator-title">
       <div class="configurator-copy">
-        <p class="section-label">03 / CONFIGURATOR</p>
+        <p class="section-label">04 / CONFIGURATOR</p>
         <h2 id="configurator-title">音の流れも、<br />指先の感触も。</h2>
-        <p>ブラウザベースのJUMBLEQ Configuratorから、入力ルーティング、クロスフェーダーカーブ、DVS、モニター、磁気スイッチの動作を設定。プリセットの保存・読み込みにも対応します。</p>
+        <p>ブラウザベースのJUMBLEQ Configuratorから、入力ルーティング、チャンネルフェーダーA/Bそれぞれのカーブ、DVS、モニター、磁気スイッチの動作を設定。プリセットの保存・読み込みにも対応します。</p>
         <a class="text-link" href="https://configurator.jumbleq.io/">Configuratorを開く <span>↗</span></a>
         <small>Chrome / EdgeなどWeb MIDI対応ブラウザを推奨</small>
       </div>
@@ -91,7 +159,7 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
     </section>
 
     <section class="spec-section" id="specs" aria-labelledby="specs-title">
-      <div class="section-head spec-head"><p class="section-label">04 / SPECIFICATIONS</p><h2 id="specs-title">必要な接続を、<br />一台に。</h2></div>
+      <div class="section-head spec-head"><p class="section-label">05 / SPECIFICATIONS</p><h2 id="specs-title">必要な接続を、<br />一台に。</h2></div>
       <dl class="spec-list">
         <div><dt>ANALOG I/O</dt><dd><strong>4 IN / 4 OUT</strong><span>ステレオ2系統・ライン出力2系統</span></dd></div>
         <div><dt>HEADPHONE</dt><dd><strong>2 OUT</strong><span>独立ヘッドホン出力</span></dd></div>
@@ -104,7 +172,7 @@ const heroImage = `${base}assets/jumbleq-beta.jpg`;
     </section>
 
     <section class="start-section" aria-labelledby="start-title">
-      <div><p class="section-label">05 / GET STARTED</p><h2 id="start-title">JUMBLEQを、<br />もっと深く。</h2></div>
+      <div><p class="section-label">06 / GET STARTED</p><h2 id="start-title">JUMBLEQを、<br />もっと深く。</h2></div>
       <div class="start-links">
         <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md"><span>01</span><strong>操作方法を見る</strong><small>CONTROLS</small><b>↗</b></a>
         <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md"><span>02</span><strong>ファームウェアを更新</strong><small>FIRMWARE</small><b>↗</b></a>

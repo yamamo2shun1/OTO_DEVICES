@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@fortawesome/free-brands-svg-icons": "7.3.1",
     "astro": "^7.2.4",
     "typescript": "^5.9.3"
   }
