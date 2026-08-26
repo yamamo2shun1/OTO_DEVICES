@@ -2647,10 +2647,8 @@
                             "Link_478",
                             "Link_479",
                             "Link_480",
-                            "Link_481",
-                            "Link_482",
-                            "Link_483",
-                            "Link_484"
+                            "Link_485",
+                            "Link_486"
                           ]
                         }
                       },
@@ -3039,7 +3037,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN0\r\n(Ch.0-15)\r\nfrom STM32",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3077,7 +3075,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_IN1\r\n(Ch.16-31)\r\nfrom AK4619",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3115,7 +3113,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT0\r\n(Ch.0-15)\r\nto STM32",
-                          "ResetSize": true,
+                          "ResetSize": false,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3153,7 +3151,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -3270,8 +3268,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1840.0,
-                          "Y": -208.0
+                          "X": 1979.3029418429687,
+                          "Y": -136.94142865585934
                         },
                         "Size": {
                           "Height": 143.0,
@@ -3434,8 +3432,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1609.0,
-                          "Y": -954.0
+                          "X": 1845.0,
+                          "Y": -914.5
                         },
                         "Size": {
                           "Height": 143.0,
@@ -3624,7 +3622,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT1\r\n(Ch.16-31)\r\nto AK4619",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -5197,7 +5195,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2861.9053812499997,
+                          "X": 2862.0,
                           "Y": -1095.0
                         },
                         "Size": {
@@ -5280,7 +5278,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2862.3363937500003,
+                          "X": 2862.0,
                           "Y": -1038.0
                         },
                         "Size": {
@@ -5402,8 +5400,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2861.297628125,
-                          "Y": -726.17674062500009
+                          "X": 2861.0,
+                          "Y": -726.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5485,8 +5483,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2862.728640625,
-                          "Y": -668.97832187500012
+                          "X": 2863.0,
+                          "Y": -669.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -5608,7 +5606,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3074.2588625,
+                          "X": 3074.0,
                           "Y": 1142.0
                         },
                         "Size": {
@@ -5649,7 +5647,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 3073.4356031250004,
+                          "X": 3073.0,
                           "Y": 1194.0
                         },
                         "Size": {
@@ -6099,8 +6097,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1861.0262687499999,
-                          "Y": -708.43101250000007
+                          "X": 1861.0,
+                          "Y": -708.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6140,8 +6138,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2255.9658249999998,
-                          "Y": 705.53022187499994
+                          "X": 2256.0,
+                          "Y": 706.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6224,8 +6222,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1862.45728125,
-                          "Y": -654.176740625
+                          "X": 1862.0,
+                          "Y": -654.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6265,8 +6263,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2257.789084375,
-                          "Y": 755.21550625
+                          "X": 2258.0,
+                          "Y": 755.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6349,8 +6347,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1967.4526906249998,
-                          "Y": 52.961234375000004
+                          "X": 1967.0,
+                          "Y": 53.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6390,8 +6388,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2255.358071875,
-                          "Y": 1003.6077531249999
+                          "X": 2255.0,
+                          "Y": 1004.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6474,8 +6472,8 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 1965.0216781249999,
-                          "Y": 109.39224687500007
+                          "X": 1965.0,
+                          "Y": 109.0
                         },
                         "Size": {
                           "Height": 24.0,
@@ -6515,7 +6513,7 @@
                         },
                         "Angle": 0.0,
                         "Position": {
-                          "X": 2254.358071875,
+                          "X": 2254.0,
                           "Y": 1055.0
                         },
                         "Size": {
@@ -8266,7 +8264,7 @@
                           "FS": 48000,
                           "Link": false,
                           "UserText": "SDATA_OUT2\r\n(Ch.32-39)\r\nto TAD5142",
-                          "ResetSize": false,
+                          "ResetSize": true,
                           "RestrictResize": true
                         },
                         "Angle": 0.0,
@@ -9236,88 +9234,6 @@
                           "Width": 48.0
                         },
                         "Label": "SignalAdd_3",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.BasicAlgorithms.Sigma300.Sample.Delay_v1.0.0.0",
-                        "Name": "Delay",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "Delay_0",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 1,
-                          "SelectedMemory": "DM1",
-                          "MaxDelay": 100.0,
-                          "IsSample": false,
-                          "Delay": 0.0,
-                          "Set_Resolution": 1,
-                          "MaxDelayMaximumValue": 326.66666666666663
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 1734.0,
-                          "Y": -985.0
-                        },
-                        "Size": {
-                          "Height": 205.0,
-                          "Width": 106.0
-                        },
-                        "Label": "Delay_A",
-                        "WritableChannels": [],
-                        "WritableShapes": [],
-                        "WriteableLinks": [],
-                        "AltShapes": [],
-                        "PropertyPresets": {}
-                      },
-                      {
-                        "PluginName": "AnalogDevices.Plugins.Algorithms.BasicAlgorithms.Sigma300.Sample.Delay_v1.0.0.0",
-                        "Name": "Delay",
-                        "InterfaceType": "AnalogDevices.TypeDefinitions.Plugins.IAlgorithm",
-                        "Uid": "Delay_1",
-                        "WritableProperties": {
-                          "IsRemovable": true,
-                          "RestrictShape": false,
-                          "BoardKey": "",
-                          "IsLocked": false,
-                          "EncryptedString": "",
-                          "RepCount": 1,
-                          "FS": 96000,
-                          "FSOut": 96000,
-                          "BlockSize": 64,
-                          "BlockSizeOut": 64,
-                          "ExcludeExport": false,
-                          "NumChannels": 1,
-                          "SelectedMemory": "DM1",
-                          "MaxDelay": 100.0,
-                          "IsSample": false,
-                          "Delay": 0.0,
-                          "Set_Resolution": 1,
-                          "MaxDelayMaximumValue": 326.66666666666663
-                        },
-                        "Angle": 0.0,
-                        "Position": {
-                          "X": 1968.0,
-                          "Y": -239.0
-                        },
-                        "Size": {
-                          "Height": 205.0,
-                          "Width": 106.0
-                        },
-                        "Label": "Delay_B",
                         "WritableChannels": [],
                         "WritableShapes": [],
                         "WriteableLinks": [],
@@ -12755,61 +12671,18 @@
                         "Points": []
                       },
                       {
-                        "Uid": "Link_481",
+                        "Uid": "Link_485",
                         "SourceUid": "DCInput_1",
                         "SourcePinName": "Output",
-                        "TargetUid": "Delay_0",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": []
-                      },
-                      {
-                        "Uid": "Link_482",
-                        "SourceUid": "Delay_0",
-                        "SourcePinName": "Output0",
                         "TargetUid": "SingleSlewExtVol_1",
                         "TargetPinName": "ControlInput",
                         "LinkType": "SampleAnalog",
                         "Points": []
                       },
                       {
-                        "Uid": "Link_483",
+                        "Uid": "Link_486",
                         "SourceUid": "DCInput_0",
                         "SourcePinName": "Output",
-                        "TargetUid": "Delay_1",
-                        "TargetPinName": "Input0",
-                        "LinkType": "SampleAnalog",
-                        "Points": [
-                          {
-                            "X": 1938.6428425101376,
-                            "Y": -136.62167946005366
-                          },
-                          {
-                            "X": 1943.6428425101376,
-                            "Y": -136.62167946005366
-                          },
-                          {
-                            "X": 1951.7151639767876,
-                            "Y": -136.62167946005366
-                          },
-                          {
-                            "X": 1951.7151639767876,
-                            "Y": -136.62167946005366
-                          },
-                          {
-                            "X": 1959.7874854434374,
-                            "Y": -136.62167946005366
-                          },
-                          {
-                            "X": 1964.7874854434374,
-                            "Y": -136.62167946005366
-                          }
-                        ]
-                      },
-                      {
-                        "Uid": "Link_484",
-                        "SourceUid": "Delay_1",
-                        "SourcePinName": "Output0",
                         "TargetUid": "SingleSlewExtVol_0",
                         "TargetPinName": "ControlInput",
                         "LinkType": "SampleAnalog",

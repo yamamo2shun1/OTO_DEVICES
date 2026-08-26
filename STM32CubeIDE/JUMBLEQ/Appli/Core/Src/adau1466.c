@@ -29,9 +29,6 @@ _Static_assert((DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
 #define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
 #define ADAU1466_CLOCK_SETTLE_MS     2U
 #define ADAU1466_CORE_SAMPLE_RATE_HZ 96000U
-#define ADAU1466_DVS_CH_FADER_DELAY_MS     50U
-#define ADAU1466_DVS_CH_FADER_DELAY_SAMPLES \
-    ((ADAU1466_CORE_SAMPLE_RATE_HZ * ADAU1466_DVS_CH_FADER_DELAY_MS) / 1000U)
 
 #define ADAU1466_USB_MUX_DIRECT 0U
 #define ADAU1466_USB_MUX_ASRC   4U
@@ -40,8 +37,6 @@ _Static_assert((DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
 #define ADAU1466_SOUT0_FROM_ASRC2 0x13U
 #define ADAU1466_SOUT1_FROM_ASRC3 0x1BU
 
-_Static_assert((ADAU1466_CORE_SAMPLE_RATE_HZ % 1000U) == 0U,
-               "DVS channel fader delay must convert exactly from milliseconds to samples");
 typedef struct
 {
     uint8_t clk_gen2_m;
@@ -656,21 +651,6 @@ void enable_dvs(uint8_t ch, bool enable)
             disable_ch2_dvs();
         }
     }
-}
-
-void set_dvs_ch_fader_delay(bool enable_a, bool enable_b)
-{
-    uint8_t safeload_data[4] = {0x00};
-    const uint32_t requested_a = enable_a ? ADAU1466_DVS_CH_FADER_DELAY_SAMPLES : 0U;
-    const uint32_t requested_b = enable_b ? ADAU1466_DVS_CH_FADER_DELAY_SAMPLES : 0U;
-
-    adau1466_store_be32(requested_a, &safeload_data[0]);
-    (void) adau1466_safeload_write_words(
-        MOD_DELAY_A_DELAY_ADDR, MOD_DELAY_A_DELAY_MEM_PAGE, safeload_data, 1U);
-
-    adau1466_store_be32(requested_b, &safeload_data[0]);
-    (void) adau1466_safeload_write_words(
-        MOD_DELAY_B_DELAY_ADDR, MOD_DELAY_B_DELAY_MEM_PAGE, safeload_data, 1U);
 }
 
 void select_ch_fader_assign_a_source(uint8_t ch)
