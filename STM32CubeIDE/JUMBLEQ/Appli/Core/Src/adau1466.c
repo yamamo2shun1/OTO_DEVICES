@@ -424,6 +424,11 @@ void control_input_from_return_gain(const uint16_t adc_val)
     write_q8_24(MOD_INPUT_FROM_RETURN_GAIN_ADDR, gain);
 }
 
+void mute_input_from_return(void)
+{
+    write_q8_24(MOD_INPUT_FROM_RETURN_GAIN_ADDR, 0.0);
+}
+
 void control_send1_out_gain(const uint16_t adc_val)
 {
     const double db   = (double) convert_pot2dB_int(adc_val);

@@ -757,6 +757,8 @@ char* get_current_return_src_str(void)
         return "U12";
     case INPUT_SRC_USB34:
         return "U34";
+    case INPUT_SRC_NONE:
+        return "OFF";
     default:
         return "U--";
     }
@@ -1026,8 +1028,16 @@ static void apply_ch_fader_assign_post(uint8_t input_ch)
 
 static void apply_return_source(uint8_t input_ch)
 {
+    if ((input_ch != INPUT_USB12) && (input_ch != INPUT_USB34))
+    {
+        s_ui.current_return_assign = INPUT_SRC_NONE;
+        mute_input_from_return();
+        return;
+    }
+
     select_return_ch_source(input_ch);
     s_ui.current_return_assign = current_input_src_from_channel(input_ch);
+    control_input_from_return_gain(s_ui.pot_val[POT_CH_RETURN_IN]);
 }
 
 static void apply_hp_out_source(uint8_t source)
@@ -1097,6 +1107,9 @@ static bool assign_to_return_input_ch(uint8_t assign, uint8_t* input_ch)
         return true;
     case INPUT_SRC_USB34:
         *input_ch = INPUT_USB34;
+        return true;
+    case INPUT_SRC_NONE:
+        *input_ch = INPUT_SRC_NONE;
         return true;
     default:
         return false;
@@ -1198,6 +1211,8 @@ static uint8_t midi_program_for_return_assign(uint8_t assign)
         return RETURN_CH_USB12;
     case INPUT_SRC_USB34:
         return RETURN_CH_USB34;
+    case INPUT_SRC_NONE:
+        return RETURN_CH_NONE;
     default:
         return RETURN_CH_USB34;
     }
@@ -1335,7 +1350,14 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         control_wet_out_gain(value);
         break;
     case POT_CH_RETURN_IN:
-        control_input_from_return_gain(value);
+        if (s_ui.current_return_assign == INPUT_SRC_NONE)
+        {
+            mute_input_from_return();
+        }
+        else
+        {
+            control_input_from_return_gain(value);
+        }
         break;
     case POT_CH_HP_OUT:
         control_hp_out_gain(value);
@@ -2589,6 +2611,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         {CH2_DVS_ENABLE,       midi_program_enable_dvs,     (uint8_t) ((INPUT_CH2 << 4) | 1U)              },
         {RETURN_CH_USB12,      midi_program_apply_return,   INPUT_USB12                                    },
         {RETURN_CH_USB34,      midi_program_apply_return,   INPUT_USB34                                    },
+        {RETURN_CH_NONE,       midi_program_apply_return,   INPUT_SRC_NONE                                 },
         {HP_OUT_CH_FADER_A,          midi_program_apply_hp_out,   CUE_SEL_CH_FADER_A                                   },
         {HP_OUT_CH_FADER_B,          midi_program_apply_hp_out,   CUE_SEL_CH_FADER_B                                   },
         {HP_OUT_THRU,          midi_program_apply_hp_out,   CUE_SEL_THRU                                   },
