@@ -4,7 +4,7 @@ This directory contains user guides, technical reference material, and developme
 
 ## User Guide
 
-- [Controls](./user-guide/controls.md) — knob and magnetic-switch assignments
+- [Operation Guide](./user-guide/operation-guide.md) — controls, signal routing, and device operation
 - [Firmware update](./user-guide/firmware-update.md) — update JUMBLEQ using the built-in UF2 bootloader
 - [JUMBLEQ Configurator](./user-guide/configurator.md) — change device settings from the Web app or alternative Max versions
 - [Notes for Windows users](./user-guide/windows.md) — low-latency audio driver options
