@@ -43,7 +43,7 @@ The Dry/Wet and Return knobs do not control the DVS path. If the other USB pair 
 
 The following diagram shows the current knob assignments.
 
-<img width="640" alt="JUMBLEQ knob assignments" src="https://github.com/user-attachments/assets/23123ed1-6aa1-4a9c-919b-3d1c9a353c36" />
+<img width="640" alt="image" src="https://github.com/user-attachments/assets/e3424fb8-cb9b-4c27-b2f8-0ff7365313c5" />
 
 ### Knob Functions
 
