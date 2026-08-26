@@ -615,6 +615,11 @@ int16_t get_current_return_db(void)
     return convert_pot2dB_int(s_ui.pot_val[POT_CH_RETURN_IN]);
 }
 
+bool get_current_return_enabled(void)
+{
+    return s_ui.current_return_assign != INPUT_SRC_NONE;
+}
+
 int16_t get_current_hp_out_db(void)
 {
     return convert_pot2dB_int(s_ui.pot_val[POT_CH_HP_OUT]);
@@ -1026,18 +1031,43 @@ static void apply_ch_fader_assign_post(uint8_t input_ch)
     s_ui.current_ch_fader_post_assign = current_input_src_from_channel(input_ch);
 }
 
+static void apply_dry_wet_value(uint16_t value)
+{
+    switch (s_ui.current_return_assign)
+    {
+    case INPUT_SRC_USB12:
+        control_dryA_out_gain(value);
+        control_dryB_out_gain(0U);
+        break;
+    case INPUT_SRC_USB34:
+        control_dryA_out_gain(0U);
+        control_dryB_out_gain(value);
+        break;
+    case INPUT_SRC_NONE:
+    default:
+        // A zero Dry/Wet value maps to unity dry and zero wet.
+        control_dryA_out_gain(0U);
+        control_dryB_out_gain(0U);
+        control_wet_out_gain(0U);
+        return;
+    }
+    control_wet_out_gain(value);
+}
+
 static void apply_return_source(uint8_t input_ch)
 {
     if ((input_ch != INPUT_USB12) && (input_ch != INPUT_USB34))
     {
         s_ui.current_return_assign = INPUT_SRC_NONE;
         mute_input_from_return();
+        apply_dry_wet_value(s_ui.pot_val[POT_CH_DRY_WET]);
         return;
     }
 
     select_return_ch_source(input_ch);
     s_ui.current_return_assign = current_input_src_from_channel(input_ch);
     control_input_from_return_gain(s_ui.pot_val[POT_CH_RETURN_IN]);
+    apply_dry_wet_value(s_ui.pot_val[POT_CH_DRY_WET]);
 }
 
 static void apply_hp_out_source(uint8_t source)
@@ -1339,15 +1369,7 @@ static void apply_pot_value(uint8_t channel, uint16_t value)
         control_ch2_out_gain(value);
         break;
     case POT_CH_DRY_WET:
-        if (s_ui.current_return_assign == INPUT_SRC_USB12)
-        {
-            control_dryA_out_gain(value);
-        }
-        else
-        {
-            control_dryB_out_gain(value);
-        }
-        control_wet_out_gain(value);
+        apply_dry_wet_value(value);
         break;
     case POT_CH_RETURN_IN:
         if (s_ui.current_return_assign == INPUT_SRC_NONE)
