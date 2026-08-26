@@ -50,14 +50,15 @@ enum
     CH2_DVS_ENABLE       = 19,
     RETURN_CH_USB12      = 20,
     RETURN_CH_USB34      = 21,
-    HP_OUT_CH_FADER_A          = 22,
-    HP_OUT_CH_FADER_B          = 23,
-    HP_OUT_THRU          = 24,
-    HP_OUT_MASTER        = 25,
-    CH_FADER_AUX_SENSOR2_TO_A  = 26,
-    CH_FADER_AUX_SENSOR2_TO_B  = 27,
-    CH_FADER_AUX_SENSOR3_TO_A  = 28,
-    CH_FADER_AUX_SENSOR3_TO_B  = 29,
+    RETURN_CH_NONE             = 22,
+    HP_OUT_CH_FADER_A          = 23,
+    HP_OUT_CH_FADER_B          = 24,
+    HP_OUT_THRU                = 25,
+    HP_OUT_MASTER              = 26,
+    CH_FADER_AUX_SENSOR2_TO_A  = 27,
+    CH_FADER_AUX_SENSOR2_TO_B  = 28,
+    CH_FADER_AUX_SENSOR3_TO_A  = 29,
+    CH_FADER_AUX_SENSOR3_TO_B  = 30,
 };
 
 enum
@@ -88,6 +89,7 @@ void control_input_from_usb_gain(uint8_t ch, int16_t db);
 void control_input_from_ch1_gain(const uint16_t adc_val);
 void control_input_from_ch2_gain(const uint16_t adc_val);
 void control_input_from_return_gain(const uint16_t adc_val);
+void mute_input_from_return(void);
 
 void control_send1_out_gain(const uint16_t adc_val);
 void control_send2_out_gain(const uint16_t adc_val);
