@@ -27,7 +27,7 @@ See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation
 
 ### User Guide
 
-- [Controls](./Docs/user-guide/controls.md)
+- [Operation Guide](./Docs/user-guide/operation-guide.md)
 - [Firmware update](./Docs/user-guide/firmware-update.md)
 - [JUMBLEQ Configurator](./Docs/user-guide/configurator.md)
 - [Notes for Windows users](./Docs/user-guide/windows.md)
