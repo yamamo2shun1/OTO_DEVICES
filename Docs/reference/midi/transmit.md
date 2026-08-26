@@ -48,10 +48,10 @@ When the device receives `PC126` on Ch. 15 from the host, it sends the current v
 | 12/13/14/15 | Post Fader source (Ch. 1 / Ch. 2 / USB[1/2] / USB[3/4]) |
 | 16/17 | Ch. 1 DVS (Off / On) |
 | 18/19 | Ch. 2 DVS (Off / On) |
-| 20/21 | Return source (USB[1/2] / USB[3/4]) |
-| 22/23/24/25 | Headphone output source (FADER_A / FADER_B / THRU / MASTER) |
-| 26/27 | Auxiliary fade-down assignment for magnetic switch 2 (Channel Fader A/B) |
-| 28/29 | Auxiliary fade-down assignment for magnetic switch 3 (Channel Fader A/B) |
+| 20/21/22 | Return source (USB[1/2] / USB[3/4] / None) |
+| 23/24/25/26 | Headphone output source (FADER_A / FADER_B / THRU / MASTER) |
+| 27/28 | Auxiliary fade-down assignment for magnetic switch 2 (Channel Fader A/B) |
+| 29/30 | Auxiliary fade-down assignment for magnetic switch 3 (Channel Fader A/B) |
 | 122/123 | Output mode for magnetic controls and channel fader sensors (CC / Note) |
 
 ### 4.2 Control Change (Device -> Host, Ch. 15)

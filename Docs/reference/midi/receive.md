@@ -25,10 +25,10 @@ This document describes the MIDI receive specification based on the `JUMBLEQ/App
 | 12/13/14/15 | Assign an input source (Ch. 1 / Ch. 2 / USB[1/2] / USB[3/4]) to Post Fader. |
 | 16/17 | Disable or enable DVS mode for Ch. 1. |
 | 18/19 | Disable or enable DVS mode for Ch. 2. |
-| 20/21 | Select the Return source (USB[1/2] / USB[3/4]). |
-| 22/23/24/25 | Select the headphone output source (FADER_A / FADER_B / THRU / MASTER). |
-| 26/27 | Assign magnetic switch 2 to the auxiliary fade-down function for Channel Fader A or B. |
-| 28/29 | Assign magnetic switch 3 to the auxiliary fade-down function for Channel Fader A or B. |
+| 20/21/22 | Select the Return source (USB[1/2] / USB[3/4] / None). |
+| 23/24/25/26 | Select the headphone output source (FADER_A / FADER_B / THRU / MASTER). |
+| 27/28 | Assign magnetic switch 2 to the auxiliary fade-down function for Channel Fader A or B. |
+| 29/30 | Assign magnetic switch 3 to the auxiliary fade-down function for Channel Fader A or B. |
 | 120/121 | Disable or enable Channel Fader curve edit mode. |
 | 122/123 | Select the output mode (CC / Note) for magnetic controls and channel fader sensors. |
 | 126 | Transmit a dump of the parameters currently configured on the device. |
@@ -36,6 +36,7 @@ This document describes the MIDI receive specification based on the `JUMBLEQ/App
 
 Notes:
 
+- `PC22` selects `None`, which disables the Return signal path.
 - Auxiliary fade-down assignments for magnetic switches 2 and 3 take effect immediately when the Program Change message is received.
 - The default assignments are Channel Fader A for magnetic switch 2 and Channel Fader B for magnetic switch 3.
 - `PC127` saves the complete device configuration listed in Section 5 to EEPROM, including the DVS enable states, Return and headphone source assignments, magnetic output mode, auxiliary fade-down assignments, and curves for Channel Faders A and B.
