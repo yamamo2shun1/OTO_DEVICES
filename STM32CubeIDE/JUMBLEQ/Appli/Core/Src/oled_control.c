@@ -19,9 +19,9 @@
 
 static void draw_sub_headphones_icon(uint8_t x, uint8_t y);
 static void draw_main_headphones_icon(uint8_t x, uint8_t y);
-static void draw_main_xfade_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value);
+static void draw_main_ch_fader_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value);
 
-static void draw_main_xfade_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value)
+static void draw_main_ch_fader_curve_preview(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t cc_value)
 {
     if ((width < 2U) || (height < 2U))
     {
@@ -34,7 +34,7 @@ static void draw_main_xfade_curve_preview(uint8_t x, uint8_t y, uint8_t width, u
     for (uint8_t i = 0U; i < width; i++)
     {
         const float position = (float) i / (float) (width - 1U);
-        const float gain     = ui_control_evaluate_xfade_curve_preview(cc_value, position);
+        const float gain     = ui_control_evaluate_ch_fader_curve_preview(cc_value, position);
         const uint8_t current_x = (uint8_t) (x + i);
         const uint8_t current_y = (uint8_t) (y + height - 1U - (uint8_t) (gain * (float) (height - 1U)));
 
@@ -286,7 +286,14 @@ void OLED_UpdateTask(void)
         snprintf(line1_ch2, sizeof(line1_ch2), "1:%3d 2:%3d", get_current_ch1_out_db(), get_current_ch2_out_db());
         // MAIN OLED shows both Out and In as CH1 and CH2.
         snprintf(line2_ch1, sizeof(line2_ch1), "    IN 1:%3d 2:%3d", get_current_ch1_in_db(), get_current_ch2_in_db());
-        snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:%3d ", return_src, get_current_return_db());
+        if (get_current_return_enabled())
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:%3d ", return_src, get_current_return_db());
+        }
+        else
+        {
+            snprintf(line3_sr, sizeof(line3_sr), "RTN|%-3s:--- ", return_src);
+        }
         snprintf(line3_hp, sizeof(line3_hp), ":%3d", get_current_hp_out_db());
 
         if ((strcmp(prev_line1_sr, line1_sr) != 0) ||
@@ -342,8 +349,8 @@ void OLED_UpdateTask(void)
     else
     {
         bool main_redraw = dirty;
-        const uint8_t curve_a_cc = ui_control_get_xfade_curve_a_cc();
-        const uint8_t curve_b_cc = ui_control_get_xfade_curve_b_cc();
+        const uint8_t curve_a_cc = ui_control_get_ch_fader_curve_a_cc();
+        const uint8_t curve_b_cc = ui_control_get_ch_fader_curve_b_cc();
         snprintf(line_edit_mode, sizeof(line_edit_mode), "CURVE EDIT [ON]");
         snprintf(line_edit_a, sizeof(line_edit_a), "A:%3u", (unsigned) curve_a_cc);
         snprintf(line_edit_b, sizeof(line_edit_b), "B:%3u", (unsigned) curve_b_cc);
@@ -364,8 +371,8 @@ void OLED_UpdateTask(void)
             main_oled_WriteString(line_edit_a, Font_7x10, White);
             main_oled_SetCursor(18, 22);
             main_oled_WriteString(line_edit_b, Font_7x10, White);
-            draw_main_xfade_curve_preview(60U, 11U, 51U, 10U, curve_a_cc);
-            draw_main_xfade_curve_preview(60U, 22U, 51U, 10U, curve_b_cc);
+            draw_main_ch_fader_curve_preview(60U, 11U, 51U, 10U, curve_a_cc);
+            draw_main_ch_fader_curve_preview(60U, 22U, 51U, 10U, curve_b_cc);
 
             snprintf(prev_line_edit_mode, sizeof(prev_line_edit_mode), "%s", line_edit_mode);
             snprintf(prev_line_edit_a, sizeof(prev_line_edit_a), "%s", line_edit_a);
@@ -397,7 +404,7 @@ void OLED_UpdateTask(void)
     {
         sub_oled_Fill(Black);
 
-        // xfader (static drawing)
+        // channel fader (static drawing)
         sub_oled_FillRectangle(5, 22, 55, 20, White);
         sub_oled_FillRectangle(73, 22, 123, 20, White);
         sub_oled_FillRectangle(60, 27, 68, 15, White);

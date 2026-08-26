@@ -6,16 +6,16 @@
 
 “JUMBLEQ” is short for “jumbled equipment.”
 
-JUMBLEQ is a faderless stereo digital audio mixer that replaces the traditional input faders and crossfader found on DJ mixers with magnetic switches. The switches behave like faders while enabling a compact and unconventional control layout.
+JUMBLEQ is a faderless stereo digital audio mixer that replaces the traditional channel faders found on DJ mixers with magnetic switches. The switches behave like faders while enabling a compact and unconventional control layout.
 
-Each of the two analog stereo inputs and two USB stereo inputs can be routed to crossfader A, crossfader B, or THRU. The USB audio I/O can also be used as a send/return path, allowing a USB host device to operate as an external effects processor.
+Each of the two analog stereo inputs and two USB stereo inputs can be routed to Channel Fader A, Channel Fader B, or THRU. The USB audio I/O can also be used as a send/return path, allowing a USB host device to operate as an external effects processor.
 
 As a USB Audio Class 2.0 interface, JUMBLEQ provides 4-in/4-out audio at 24-bit, 48 kHz or 96 kHz. It is USB class-compliant and can be used with Windows, macOS, iPhone, iPad, and Android devices without a device-specific driver.
 
 ## Key Features
 
 - Faderless mixing with 10 magnetic switches and 12 potentiometers
-- Flexible stereo input routing: assign each of the two analog and two USB inputs to crossfader A, crossfader B, or THRU
+- Flexible stereo input routing: assign each of the two analog and two USB inputs to Channel Fader A, Channel Fader B, or THRU
 - 4-in/4-out USB Audio Class 2.0 at 24-bit, 48 kHz or 96 kHz
 - USB audio send/return routing for external effects processing
 - USB MIDI control and the browser-based JUMBLEQ Configurator
@@ -31,7 +31,7 @@ The Astro-based general-user website is maintained in [`Site`](./Site/) and depl
 
 ### User Guide
 
-- [Controls](./Docs/user-guide/controls.md)
+- [Operation Guide](./Docs/user-guide/operation-guide.md)
 - [Firmware update](./Docs/user-guide/firmware-update.md)
 - [JUMBLEQ Configurator](./Docs/user-guide/configurator.md)
 - [Notes for Windows users](./Docs/user-guide/windows.md)
@@ -57,10 +57,13 @@ The Astro-based general-user website is maintained in [`Site`](./Site/) and depl
 - [`Docs`](./Docs/) — user guides, technical reference, and development notes
 - [`STM32CubeIDE`](./STM32CubeIDE/) — MCU application, bootloader, and external memory loader projects
 - [`SigmaDSP`](./SigmaDSP/) — ADAU1466 DSP project and exported code
-- [`WebConfigurator`](./WebConfigurator/) — primary browser-based JUMBLEQ Configurator
 - [`Max`](./Max/) — alternative Max Standalone and Max for Live versions of JUMBLEQ Configurator
 - [`Plasticity`](./Plasticity/) — enclosure CAD data and printable parts
 - [`UI_Design`](./UI_Design/) — panel and control-layout artwork
+
+## Related Repositories
+
+- [JUMBLEQ Configurator](https://github.com/yamamo2shun1/JUMBLEQ-Configurator) — browser-based JUMBLEQ Configurator
 
 ## Gallery
 

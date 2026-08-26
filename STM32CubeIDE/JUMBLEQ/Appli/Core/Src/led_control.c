@@ -49,8 +49,8 @@ typedef struct
 enum
 {
     VU_LEVEL_COUNT   = 5,
-    XF_SLOT_COUNT    = 5,
-    XF_THRESHOLD_NUM = 4,
+    CH_FADER_SLOT_COUNT    = 5,
+    CH_FADER_THRESHOLD_NUM = 4,
 };
 
 static const float s_vu_db_thresholds[VU_LEVEL_COUNT] = {-45.0f, -36.0f, -27.0f, -18.0f, -9.0f};
@@ -66,11 +66,11 @@ static const led_rgb_t s_vu_colors_low_to_high[VU_LEVEL_COUNT] = {
 static const uint8_t s_vu_led_index_a[VU_LEVEL_COUNT] = {0, 1, 2, 3, 4};
 static const uint8_t s_vu_led_index_b[VU_LEVEL_COUNT] = {9, 8, 7, 6, 5};
 
-static const uint8_t s_xf_thresholds[XF_THRESHOLD_NUM] = {32, 64, 96, 120};
-static const uint8_t s_xf_led_index_a[XF_SLOT_COUNT]   = {0, 1, 2, 3, 4};
-static const uint8_t s_xf_led_index_b[XF_SLOT_COUNT]   = {9, 8, 7, 6, 5};
+static const uint8_t s_ch_fader_thresholds[CH_FADER_THRESHOLD_NUM] = {32, 64, 96, 120};
+static const uint8_t s_ch_fader_led_index_a[CH_FADER_SLOT_COUNT]   = {0, 1, 2, 3, 4};
+static const uint8_t s_ch_fader_led_index_b[CH_FADER_SLOT_COUNT]   = {9, 8, 7, 6, 5};
 
-static const float s_xf_blink_peak_level = 80.0f;
+static const float s_ch_fader_blink_peak_level = 80.0f;
 
 void update_color_state(void)
 {
@@ -221,24 +221,24 @@ static uint8_t calc_white_level(uint8_t blink_count)
 {
     if (blink_count < BLINK_COUNT_MAX / 2)
     {
-        return (uint8_t) (s_xf_blink_peak_level * ((float) blink_count / (float) (BLINK_COUNT_MAX / 2)));
+        return (uint8_t) (s_ch_fader_blink_peak_level * ((float) blink_count / (float) (BLINK_COUNT_MAX / 2)));
     }
-    return (uint8_t) (s_xf_blink_peak_level * ((float) ((BLINK_COUNT_MAX - 1) - blink_count) / (float) (BLINK_COUNT_MAX / 2)));
+    return (uint8_t) (s_ch_fader_blink_peak_level * ((float) ((BLINK_COUNT_MAX - 1) - blink_count) / (float) (BLINK_COUNT_MAX / 2)));
 }
 
-static uint8_t calc_xf_slot(uint8_t xf_pos)
+static uint8_t calc_ch_fader_slot(uint8_t ch_fader_position)
 {
-    for (uint8_t i = 0; i < XF_THRESHOLD_NUM; i++)
+    for (uint8_t i = 0; i < CH_FADER_THRESHOLD_NUM; i++)
     {
-        if (xf_pos < s_xf_thresholds[i])
+        if (ch_fader_position < s_ch_fader_thresholds[i])
         {
             return i;
         }
     }
-    return XF_SLOT_COUNT - 1;
+    return CH_FADER_SLOT_COUNT - 1;
 }
 
-static void layer_xf_position(uint8_t led_index, uint8_t white_level)
+static void layer_ch_fader_position(uint8_t led_index, uint8_t white_level)
 {
     for (uint8_t i = 0; i < LED_NUMS; i++)
     {
@@ -247,26 +247,26 @@ static void layer_xf_position(uint8_t led_index, uint8_t white_level)
     layer_led_color(led_index, white_level, white_level, white_level);
 }
 
-void layer_xfA_position(void)
+void layer_ch_fader_a_position(void)
 {
     static uint8_t blink_count_a  = 0;
-    const uint8_t xf_pos          = get_current_xfA_position();
+    const uint8_t ch_fader_position          = get_current_ch_fader_a_position();
     const uint8_t white_level     = calc_white_level(blink_count_a);
-    const uint8_t slot            = calc_xf_slot(xf_pos);
-    const uint8_t led_index_for_a = s_xf_led_index_a[slot];
-    layer_xf_position(led_index_for_a, white_level);
+    const uint8_t slot            = calc_ch_fader_slot(ch_fader_position);
+    const uint8_t led_index_for_a = s_ch_fader_led_index_a[slot];
+    layer_ch_fader_position(led_index_for_a, white_level);
 
     blink_count_a = (blink_count_a + 1) % BLINK_COUNT_MAX;
 }
 
-void layer_xfB_position(void)
+void layer_ch_fader_b_position(void)
 {
     static uint8_t blink_count_b  = 0;
-    const uint8_t xf_pos          = get_current_xfB_position();
+    const uint8_t ch_fader_position          = get_current_ch_fader_b_position();
     const uint8_t white_level     = calc_white_level(blink_count_b);
-    const uint8_t slot            = calc_xf_slot(xf_pos);
-    const uint8_t led_index_for_b = s_xf_led_index_b[slot];
-    layer_xf_position(led_index_for_b, white_level);
+    const uint8_t slot            = calc_ch_fader_slot(ch_fader_position);
+    const uint8_t led_index_for_b = s_ch_fader_led_index_b[slot];
+    layer_ch_fader_position(led_index_for_b, white_level);
 
     blink_count_b = (blink_count_b + 1) % BLINK_COUNT_MAX;
 }
@@ -275,8 +275,8 @@ void rgb_led_task(void)
 {
     set_vu_meter_a();
     set_vu_meter_b();
-    layer_xfA_position();
-    layer_xfB_position();
+    layer_ch_fader_a_position();
+    layer_ch_fader_b_position();
     renew();
 
     if (s_save_blink_remaining > 0U)

@@ -29,9 +29,6 @@ _Static_assert((DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
 #define ADAU1466_PLL_LOCK_TIMEOUT_MS 200U
 #define ADAU1466_CLOCK_SETTLE_MS     2U
 #define ADAU1466_CORE_SAMPLE_RATE_HZ 96000U
-#define ADAU1466_DVS_XF_DELAY_MS     50U
-#define ADAU1466_DVS_XF_DELAY_SAMPLES \
-    ((ADAU1466_CORE_SAMPLE_RATE_HZ * ADAU1466_DVS_XF_DELAY_MS) / 1000U)
 
 #define ADAU1466_USB_MUX_DIRECT 0U
 #define ADAU1466_USB_MUX_ASRC   4U
@@ -40,8 +37,6 @@ _Static_assert((DM1_DATA_SIZE_ADAU146XSCHEMATIC_1 % 4U) == 0U,
 #define ADAU1466_SOUT0_FROM_ASRC2 0x13U
 #define ADAU1466_SOUT1_FROM_ASRC3 0x1BU
 
-_Static_assert((ADAU1466_CORE_SAMPLE_RATE_HZ % 1000U) == 0U,
-               "DVS crossfader delay must convert exactly from milliseconds to samples");
 typedef struct
 {
     uint8_t clk_gen2_m;
@@ -373,14 +368,14 @@ bool AUDIO_Update_ADAU1466_SampleRate(uint32_t hz)
     return true;
 }
 
-void set_dc_inputA(float xf_pos)
+void set_dc_inputA(float ch_fader_position)
 {
-    write_q8_24(MOD_DCINPUT_A_DCVALUE_ADDR, xf_pos);
+    write_q8_24(MOD_DCINPUT_A_DCVALUE_ADDR, ch_fader_position);
 }
 
-void set_dc_inputB(float xf_pos)
+void set_dc_inputB(float ch_fader_position)
 {
-    write_q8_24(MOD_DCINPUT_B_DCVALUE_ADDR, xf_pos);
+    write_q8_24(MOD_DCINPUT_B_DCVALUE_ADDR, ch_fader_position);
 }
 
 void control_input_from_usb_gain(uint8_t ch, int16_t db)
@@ -427,6 +422,11 @@ void control_input_from_return_gain(const uint16_t adc_val)
     const double db   = (double) convert_pot2dB_int(adc_val);
     const double gain = convert_dB2gain(db);
     write_q8_24(MOD_INPUT_FROM_RETURN_GAIN_ADDR, gain);
+}
+
+void mute_input_from_return(void)
+{
+    write_q8_24(MOD_INPUT_FROM_RETURN_GAIN_ADDR, 0.0);
 }
 
 void control_send1_out_gain(const uint16_t adc_val)
@@ -658,22 +658,7 @@ void enable_dvs(uint8_t ch, bool enable)
     }
 }
 
-void set_dvs_crossfader_delay(bool enable_a, bool enable_b)
-{
-    uint8_t safeload_data[4] = {0x00};
-    const uint32_t requested_a = enable_a ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U;
-    const uint32_t requested_b = enable_b ? ADAU1466_DVS_XF_DELAY_SAMPLES : 0U;
-
-    adau1466_store_be32(requested_a, &safeload_data[0]);
-    (void) adau1466_safeload_write_words(
-        MOD_DELAY_A_DELAY_ADDR, MOD_DELAY_A_DELAY_MEM_PAGE, safeload_data, 1U);
-
-    adau1466_store_be32(requested_b, &safeload_data[0]);
-    (void) adau1466_safeload_write_words(
-        MOD_DELAY_B_DELAY_ADDR, MOD_DELAY_B_DELAY_MEM_PAGE, safeload_data, 1U);
-}
-
-void select_xf_assignA_source(uint8_t ch)
+void select_ch_fader_assign_a_source(uint8_t ch)
 {
     ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -693,10 +678,10 @@ void select_xf_assignA_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_A_INDEX_ADDR, 4, Mode0);
 }
 
-void select_xf_assignB_source(uint8_t ch)
+void select_ch_fader_assign_b_source(uint8_t ch)
 {
     ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -716,10 +701,10 @@ void select_xf_assignB_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_B_INDEX_ADDR, 4, Mode0);
 }
 
-void select_xf_assignPost_source(uint8_t ch)
+void select_ch_fader_assign_post_source(uint8_t ch)
 {
     ADI_REG_TYPE Mode0[4] = {0x00, 0x00, 0x00, 0x00};
 
@@ -739,7 +724,7 @@ void select_xf_assignPost_source(uint8_t ch)
         break;
     }
 
-    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_XF_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
+    SIGMA_WRITE_REGISTER_BLOCK(DEVICE_ADDR_ADAU146XSCHEMATIC_1, MOD_CH_FADER_ASSIGN_SW_POST_INDEX_ADDR, 4, Mode0);
 }
 
 void select_return_ch_source(uint8_t ch)
@@ -767,10 +752,10 @@ void select_hp_out_source(uint8_t ch)
 
     switch (ch)
     {
-    case CUE_SEL_XF_A:
+    case CUE_SEL_CH_FADER_A:
         Mode0[3] = 0x00;
         break;
-    case CUE_SEL_XF_B:
+    case CUE_SEL_CH_FADER_B:
         Mode0[3] = 0x01;
         break;
     case CUE_SEL_THRU:

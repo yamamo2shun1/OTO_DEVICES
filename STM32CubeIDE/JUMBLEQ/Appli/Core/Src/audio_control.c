@@ -233,9 +233,9 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
     {
         ui_state.current_ch1_input_type = cfg.current_ch1_input_type;
         ui_state.current_ch2_input_type = cfg.current_ch2_input_type;
-        ui_state.current_xfA_assign     = cfg.current_xfA_assign;
-        ui_state.current_xfB_assign     = cfg.current_xfB_assign;
-        ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
+        ui_state.current_ch_fader_a_assign     = cfg.current_ch_fader_a_assign;
+        ui_state.current_ch_fader_b_assign     = cfg.current_ch_fader_b_assign;
+        ui_state.current_ch_fader_post_assign  = cfg.current_ch_fader_post_assign;
         ui_state.current_return_assign  = cfg.current_return_assign;
         ui_state.current_hp_out_source  = cfg.current_hp_out_source;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
@@ -243,26 +243,26 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xfade_curve_width_a = cfg.current_xfade_curve_width_a;
-        ui_state.current_xfade_curve_width_b = cfg.current_xfade_curve_width_b;
+        ui_state.current_ch_fader_curve_width_a = cfg.current_ch_fader_curve_width_a;
+        ui_state.current_ch_fader_curve_width_b = cfg.current_ch_fader_curve_width_b;
 
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u XFA=%u XFB=%u XFP=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
-                              (unsigned)cfg.current_xfA_assign,
-                              (unsigned)cfg.current_xfB_assign,
-                              (unsigned)cfg.current_xfpost_assign,
+                              (unsigned)cfg.current_ch_fader_a_assign,
+                              (unsigned)cfg.current_ch_fader_b_assign,
+                              (unsigned)cfg.current_ch_fader_post_assign,
                               (unsigned)cfg.current_return_assign,
                               (unsigned)cfg.current_hp_out_source,
                               (unsigned)cfg.current_ch1_dvs_enable,
                               (unsigned)cfg.current_ch2_dvs_enable,
                               (unsigned)cfg.sensor2_aux_fade_down_assign,
                               (unsigned)cfg.sensor3_aux_fade_down_assign,
-                              (double)cfg.current_xfade_curve_width_a,
-                              (double)cfg.current_xfade_curve_width_b);
+                              (double)cfg.current_ch_fader_curve_width_a,
+                              (double)cfg.current_ch_fader_curve_width_b);
         }
         else
         {
@@ -274,9 +274,9 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         EEPROM_ConfigSetDefaults(&cfg);
         ui_state.current_ch1_input_type = cfg.current_ch1_input_type;
         ui_state.current_ch2_input_type = cfg.current_ch2_input_type;
-        ui_state.current_xfA_assign     = cfg.current_xfA_assign;
-        ui_state.current_xfB_assign     = cfg.current_xfB_assign;
-        ui_state.current_xfpost_assign  = cfg.current_xfpost_assign;
+        ui_state.current_ch_fader_a_assign     = cfg.current_ch_fader_a_assign;
+        ui_state.current_ch_fader_b_assign     = cfg.current_ch_fader_b_assign;
+        ui_state.current_ch_fader_post_assign  = cfg.current_ch_fader_post_assign;
         ui_state.current_return_assign  = cfg.current_return_assign;
         ui_state.current_hp_out_source  = cfg.current_hp_out_source;
         ui_state.current_ch1_dvs_enable = cfg.current_ch1_dvs_enable;
@@ -284,8 +284,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
-        ui_state.current_xfade_curve_width_a = cfg.current_xfade_curve_width_a;
-        ui_state.current_xfade_curve_width_b = cfg.current_xfade_curve_width_b;
+        ui_state.current_ch_fader_curve_width_a = cfg.current_ch_fader_curve_width_a;
+        ui_state.current_ch_fader_curve_width_b = cfg.current_ch_fader_curve_width_b;
         (void)ui_control_apply_persist_state(&ui_state);
 
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
