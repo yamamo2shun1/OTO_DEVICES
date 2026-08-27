@@ -4,6 +4,7 @@ import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
 import FaderCurveDemo from "../components/FaderCurveDemo.astro";
+import RoutingDiagram from "../components/RoutingDiagram.astro";
 import { faAndroid, faApple, faLinux, faWindows } from "@fortawesome/free-brands-svg-icons";
 
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
@@ -69,7 +70,7 @@ const platforms = [
         </article>
         <article class="feature-card">
           <p class="feature-number">02</p>
-          <div class="patch-visual" aria-hidden="true"><img src={`${base}assets/patch-routing.png`} alt="" loading="lazy" /></div>
+          <div class="patch-visual"><RoutingDiagram /></div>
           <h3>Flexible Routing</h3>
           <p>アナログ入力2系統とUSB入力2系統（ともにステレオ）を、2本のチャンネル・フェーダーに自由にアサイン可能</p>
         </article>

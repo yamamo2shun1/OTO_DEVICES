@@ -1,0 +1,131 @@
+<div class="routing-diagram" data-routing-diagram aria-label="4系統の入力をチャンネルフェーダーA、B、THRUへ割り当てるイメージ">
+  <canvas aria-hidden="true"></canvas>
+</div>
+
+<script>
+  const diagrams = document.querySelectorAll<HTMLElement>("[data-routing-diagram]");
+
+  diagrams.forEach((diagram) => {
+    const canvas = diagram.querySelector("canvas");
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const roundedPath = (points: Array<[number, number]>, radius: number) => {
+      context.beginPath();
+      context.moveTo(points[0][0], points[0][1]);
+      for (let index = 1; index < points.length - 1; index += 1) {
+        const previous = points[index - 1];
+        const current = points[index];
+        const next = points[index + 1];
+        const inDistance = Math.hypot(current[0] - previous[0], current[1] - previous[1]);
+        const outDistance = Math.hypot(next[0] - current[0], next[1] - current[1]);
+        const curveRadius = Math.min(radius, inDistance / 2, outDistance / 2);
+        const inX = current[0] + ((previous[0] - current[0]) / inDistance) * curveRadius;
+        const inY = current[1] + ((previous[1] - current[1]) / inDistance) * curveRadius;
+        const outX = current[0] + ((next[0] - current[0]) / outDistance) * curveRadius;
+        const outY = current[1] + ((next[1] - current[1]) / outDistance) * curveRadius;
+        context.lineTo(inX, inY);
+        context.quadraticCurveTo(current[0], current[1], outX, outY);
+      }
+      context.lineTo(points.at(-1)![0], points.at(-1)![1]);
+      context.stroke();
+    };
+
+    const roundRect = (x: number, y: number, width: number, height: number, radius: number) => {
+      context.beginPath();
+      context.roundRect(x, y, width, height, radius);
+      context.stroke();
+    };
+
+    const drawLabel = (lines: string[], x: number, y: number, fontSize: number, lineHeight: number) => {
+      context.fillStyle = "#c8c9c7";
+      context.font = `800 ${fontSize}px Arial, sans-serif`;
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      const offset = ((lines.length - 1) * lineHeight) / 2;
+      lines.forEach((line, index) => context.fillText(line, x, y - offset + index * lineHeight));
+    };
+
+    const draw = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const bounds = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.round(bounds.width));
+      const height = Math.max(1, Math.round(bounds.height));
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      const scale = height / 190;
+      const leftX = 32 * scale;
+      const circleRadius = 16.5 * scale;
+      const firstY = 27 * scale;
+      const circleStep = 42 * scale;
+      const inputY = [0, 1, 2, 3].map((index) => firstY + circleStep * index);
+      const boxWidth = 48 * scale;
+      const faderHeight = 50 * scale;
+      const thruHeight = 28 * scale;
+      const boxX = width - boxWidth - 13 * scale;
+      const outputY = [35 * scale, 104 * scale, 158 * scale];
+      const lineWidth = 3.2 * scale;
+      const borderWidth = 2.15 * scale;
+      const bendRadius = 8 * scale;
+      const routeStart = leftX + circleRadius + borderWidth / 2;
+      const routeEnd = boxX - borderWidth / 2;
+
+      context.lineCap = "butt";
+      context.lineJoin = "round";
+      context.lineWidth = lineWidth;
+
+      context.strokeStyle = "#dedfdd";
+      roundedPath([
+        [routeStart, inputY[0]],
+        [width * 0.43, inputY[0]],
+        [width * 0.43, outputY[2]],
+        [routeEnd, outputY[2]],
+      ], bendRadius);
+
+      context.strokeStyle = "#ffeb00";
+      roundedPath([
+        [routeStart, inputY[1]],
+        [width * 0.66, inputY[1]],
+        [width * 0.66, outputY[0]],
+        [routeEnd, outputY[0]],
+      ], bendRadius);
+
+      context.strokeStyle = "#aeb0ae";
+      roundedPath([
+        [routeStart, inputY[2]],
+        [width * 0.47, inputY[2]],
+        [width * 0.47 + 7 * scale, outputY[1]],
+        [routeEnd, outputY[1]],
+      ], bendRadius * 0.7);
+
+      context.lineWidth = borderWidth;
+      context.strokeStyle = "#bfc1bf";
+      inputY.forEach((y) => {
+        context.beginPath();
+        context.arc(leftX, y, circleRadius, 0, Math.PI * 2);
+        context.stroke();
+      });
+
+      roundRect(boxX, outputY[0] - faderHeight / 2, boxWidth, faderHeight, 4 * scale);
+      roundRect(boxX, outputY[1] - faderHeight / 2, boxWidth, faderHeight, 4 * scale);
+      roundRect(boxX, outputY[2] - thruHeight / 2, boxWidth, thruHeight, 4 * scale);
+
+      const smallFont = Math.max(7, 8.2 * scale);
+      const rightFont = Math.max(7, 8.5 * scale);
+      drawLabel(["AIN", "Ch.1"], leftX, inputY[0], smallFont, 9 * scale);
+      drawLabel(["AIN", "Ch.2"], leftX, inputY[1], smallFont, 9 * scale);
+      drawLabel(["USB", "1/2"], leftX, inputY[2], smallFont, 9 * scale);
+      drawLabel(["USB", "3/4"], leftX, inputY[3], smallFont, 9 * scale);
+      drawLabel(["Fader", "A"], boxX + boxWidth / 2, outputY[0], rightFont, 9.5 * scale);
+      drawLabel(["Fader", "B"], boxX + boxWidth / 2, outputY[1], rightFont, 9.5 * scale);
+      drawLabel(["THRU"], boxX + boxWidth / 2, outputY[2], rightFont, 9.5 * scale);
+    };
+
+    new ResizeObserver(draw).observe(canvas);
+    draw();
+  });
+</script>
