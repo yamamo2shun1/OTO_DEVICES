@@ -1,7 +1,7 @@
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: "https://yamamo2shun1.github.io",
-  base: "/JUMBLEQ",
+  site: "https://jumbleq.io",
+  base: "/",
   output: "static",
 });
