@@ -100,11 +100,14 @@ h1 em { color: var(--yellow); font-style: normal; }
 .press-meter b:last-child { text-align: right; }
 .aux-keys { margin-top: auto; padding-top: 42px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
 .aux-keys i { aspect-ratio: 1; display: grid; place-items: center; border-radius: 7px; color: var(--paper); background: var(--ink); box-shadow: 0 4px 0 rgba(17,17,15,.35); font: normal 800 9px/1 monospace; }
-.curve-scale { margin-top: auto; padding-top: 48px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; color: #747269; font: 800 8px/1 monospace; }
-.curve-scale i { position: relative; height: 3px; background: linear-gradient(90deg, #bbb8ae, var(--yellow)); }
-.curve-scale i::before, .curve-scale i::after { content: ""; position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; background: var(--ink); transform: translateY(-50%); }
-.curve-scale i::before { left: 0; }
-.curve-scale i::after { right: 0; }
+.fader-curve-demo { margin: auto 0 0; padding-top: 30px; }
+.fader-curve-panels { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+.fader-curve-panels > i { color: #8b897f; font: normal 800 14px/1 monospace; }
+.fader-curve-panel canvas { width: 100%; height: 72px; display: block; }
+.fader-curve-panel span { margin-top: 8px; display: block; color: #747269; font: 800 8px/1 monospace; text-align: center; }
+.fader-curve-demo figcaption { margin-top: 13px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 9px; color: #747269; font: 800 7px/1 monospace; letter-spacing: .06em; white-space: nowrap; }
+.fader-curve-demo figcaption i { height: 1px; background: linear-gradient(90deg, transparent, #aaa79d); }
+.fader-curve-demo figcaption i:last-child { background: linear-gradient(90deg, #aaa79d, transparent); }
 .operation-card-wide { min-height: 320px; grid-column: 1 / -1; display: grid; grid-template-columns: .8fr 1fr 1.1fr; align-items: center; gap: clamp(30px, 5vw, 80px); color: var(--paper); background: var(--ink); }
 .operation-card-wide h3 { margin: 28px 0 0; }
 .signal-modes { display: grid; gap: 10px; }

@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
+import FaderCurveDemo from "../components/FaderCurveDemo.astro";
 import { faAndroid, faApple, faLinux, faWindows } from "@fortawesome/free-brands-svg-icons";
 
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
@@ -106,7 +107,7 @@ const platforms = [
           <p class="operation-tag">FADER CURVE</p>
           <h3>オンオフではない、<br />連続的な変化。</h3>
           <p>単純なオンオフではなく、磁気スイッチのストロークに応じて音量が連続的に変化。滑らかなフェードから、スクラッチに適した鋭いカットまで、2本のフェーダーそれぞれで調整可能</p>
-          <div class="curve-scale" aria-hidden="true"><span>0% SMOOTH</span><i></i><span>100% SHARP</span></div>
+          <FaderCurveDemo />
         </article>
 
         <article class="operation-card operation-card-yellow">

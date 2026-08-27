@@ -1,0 +1,84 @@
+<figure class="fader-curve-demo" data-fader-curve aria-label="0%の滑らかなフェーダーカーブから100%の鋭いフェーダーカーブまで連続的に調整できるイメージ">
+  <div class="fader-curve-panels" aria-hidden="true">
+    <div class="fader-curve-panel">
+      <canvas data-curve="smooth"></canvas>
+      <span>0% SMOOTH</span>
+    </div>
+    <i>↔</i>
+    <div class="fader-curve-panel">
+      <canvas data-curve="sharp"></canvas>
+      <span>100% SHARP</span>
+    </div>
+  </div>
+  <figcaption><i></i><span>CONTINUOUS ADJUSTMENT</span><i></i></figcaption>
+</figure>
+
+<script>
+  const canvases = document.querySelectorAll<HTMLCanvasElement>("[data-fader-curve] canvas");
+
+  canvases.forEach((canvas) => {
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const smoothstep = (start: number, end: number, input: number) => {
+      const amount = Math.max(0, Math.min(1, (input - start) / (end - start)));
+      return amount * amount * (3 - 2 * amount);
+    };
+
+    const draw = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const bounds = canvas.getBoundingClientRect();
+      const width = Math.max(1, Math.round(bounds.width));
+      const height = Math.max(1, Math.round(bounds.height));
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      context.strokeStyle = "rgba(17, 17, 15, .1)";
+      context.lineWidth = 1;
+      for (let index = 1; index < 3; index += 1) {
+        const x = (width / 3) * index;
+        const y = (height / 3) * index;
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, height);
+        context.stroke();
+        context.beginPath();
+        context.moveTo(0, y);
+        context.lineTo(width, y);
+        context.stroke();
+      }
+
+      const inset = 7;
+      const graphWidth = width - inset * 2;
+      const graphHeight = height - inset * 2;
+      const transition = canvas.dataset.curve === "sharp" ? 0.07 : 1;
+
+      context.beginPath();
+      for (let pixel = 0; pixel <= graphWidth; pixel += 2) {
+        const x = pixel / graphWidth;
+        const level = smoothstep(0, transition, x);
+        const drawX = inset + pixel;
+        const drawY = inset + graphHeight * (1 - level);
+        if (pixel === 0) context.moveTo(drawX, drawY);
+        else context.lineTo(drawX, drawY);
+      }
+      context.strokeStyle = "#ffeb00";
+      context.lineWidth = 3;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.stroke();
+
+      [[0, 0], [1, 1]].forEach(([x, y]) => {
+        context.beginPath();
+        context.arc(inset + graphWidth * x, inset + graphHeight * (1 - y), 3.5, 0, Math.PI * 2);
+        context.fillStyle = "#ffeb00";
+        context.fill();
+      });
+    };
+
+    new ResizeObserver(draw).observe(canvas);
+    draw();
+  });
+</script>
