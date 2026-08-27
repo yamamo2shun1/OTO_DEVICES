@@ -15,8 +15,8 @@ a { color: inherit; }
 .skip-link:focus { transform: translateY(0); }
 
 .site-header { position: absolute; z-index: 10; inset: 0 0 auto; height: 84px; padding: 0 clamp(20px, 4vw, 64px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
-.brand { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 900; letter-spacing: .08em; text-decoration: none; }
-.brand img { width: 38px; height: 38px; object-fit: contain; filter: invert(1); }
+.brand { display: flex; align-items: center; text-decoration: none; }
+.brand img { width: clamp(190px, 16vw, 240px); height: auto; object-fit: contain; }
 nav { display: flex; align-items: center; gap: clamp(20px, 3vw, 48px); }
 nav a { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-decoration: none; text-transform: uppercase; }
 .nav-cta { padding: 12px 17px; color: var(--ink); background: var(--yellow); }
@@ -58,7 +58,7 @@ h1 em { color: var(--yellow); font-style: normal; }
 .feature-card { min-height: 430px; padding: 28px; display: flex; flex-direction: column; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #151513; }
 .feature-card-lead { background: #1a1a17; }
 .feature-number { margin: 0; color: #6e6d67; font: 700 10px/1 "Courier New", monospace; }
-.feature-card h3 { margin: auto 0 16px; font-size: 19px; letter-spacing: -.025em; }
+.feature-card h3 { margin: 0 0 16px; font-size: 19px; letter-spacing: -.025em; }
 .feature-card > p:last-child { min-height: 74px; margin: 0; color: #8f8d84; font-size: 12px; line-height: 1.8; }
 .switch-icon { height: 130px; margin: 42px 0 30px; display: grid; align-content: center; gap: 10px; }
 .switch-icon-row { display: grid; gap: 7px; }
@@ -77,7 +77,7 @@ h1 em { color: var(--yellow); font-style: normal; }
 .device-list span:nth-child(4) { grid-column: 2 / span 2; }
 .device-list svg { width: 24px; height: 24px; fill: currentColor; }
 .device-list small { font: 800 7px/1 monospace; white-space: nowrap; }
-.device-list + h3 { margin-top: 32px; }
+.feature-card > :is(.feature-icon, .patch-visual, .bit-display, .device-list) { height: 220px; margin: 14px 0 22px; display: grid; align-content: center; }
 
 .operation-section { padding: 140px max(24px, calc((100vw - var(--max)) / 2)); color: var(--ink); background: var(--paper); }
 .operation-intro { display: grid; grid-template-columns: .35fr 1.35fr .6fr; align-items: start; gap: clamp(30px, 6vw, 90px); }
@@ -140,16 +140,21 @@ h1 em { color: var(--yellow); font-style: normal; }
 .configurator-visual > span { position: absolute; right: 0; bottom: 0; padding: 14px 16px; color: var(--ink); background: var(--yellow); font: 900 9px/1 monospace; letter-spacing: .12em; }
 .configurator-visual:hover img { transform: scale(1.018); }
 
-.spec-section { color: var(--ink); background: var(--yellow); }
-.spec-head .section-label { color: rgba(17,17,15,.6); }
-.spec-list { margin: 90px 0 0; border-top: 2px solid var(--ink); }
+.spec-section { padding: 0 0 140px; color: var(--ink); background: var(--yellow); }
+.spec-photo { position: relative; margin: 0; aspect-ratio: 16 / 5; overflow: hidden; border: 1px solid rgba(17,17,15,.32); }
+.spec-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.15), rgba(0,0,0,.58)); }
+.spec-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.spec-photo figcaption { position: absolute; z-index: 1; inset: 0; padding: clamp(24px, 4vw, 58px); display: grid; grid-template-columns: 1fr 1fr; align-items: center; color: var(--paper); text-shadow: 0 1px 14px rgba(0,0,0,.8); }
+.spec-photo figcaption .section-label { align-self: start; color: var(--paper); }
+.spec-photo h2 { margin: 0; font-size: clamp(44px, 4.6vw, 68px); line-height: 1.04; letter-spacing: -.06em; }
+.spec-list { margin: 0 max(24px, calc((100vw - var(--max)) / 2)); border-top: 2px solid var(--ink); }
 .spec-list > div { padding: 26px 0; display: grid; grid-template-columns: .65fr 1.35fr; align-items: center; border-bottom: 1px solid rgba(17,17,15,.35); }
 .spec-list dt { font: 800 12px/1 monospace; letter-spacing: .12em; }
 .spec-list dd { margin: 0; display: grid; grid-template-columns: 1fr; align-items: center; gap: 6px; }
 .spec-list strong { font-size: clamp(19px, 2vw, 29px); letter-spacing: -.035em; }
 .spec-list span { color: rgba(17,17,15,.66); font-size: 12px; }
 .spec-detail-link { width: fit-content; margin-top: 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(17,17,15,.6); font: 800 9px/1.2 monospace; letter-spacing: .08em; text-decoration: none; }
-.spec-note { margin: 20px 0 0; color: rgba(17,17,15,.62); font-size: 9px; text-align: right; }
+.spec-note { margin: 20px max(24px, calc((100vw - var(--max)) / 2)) 0; color: rgba(17,17,15,.62); font-size: 9px; text-align: right; }
 
 .start-section { padding: 140px max(24px, calc((100vw - var(--max)) / 2)); display: grid; grid-template-columns: .8fr 1.2fr; gap: 80px; }
 .start-links { border-top: 1px solid var(--line); }
@@ -159,9 +164,7 @@ h1 em { color: var(--yellow); font-style: normal; }
 .start-links b { color: var(--yellow); font-size: 20px; text-align: right; }
 
 footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: var(--ink); background: var(--paper); }
-.footer-brand { display: grid; grid-template-columns: 64px auto 1fr; align-items: center; gap: 16px; }
-.footer-brand p { margin: 0; font-size: clamp(46px, 8vw, 108px); font-weight: 950; line-height: .8; letter-spacing: -.07em; }
-.footer-brand span { align-self: end; padding-bottom: 4px; font: 800 10px/1 monospace; letter-spacing: .15em; }
+.footer-brand img { width: min(60%, 560px); height: auto; display: block; }
 .footer-status { margin: 70px 0; display: flex; align-items: center; gap: 10px; font: 800 9px/1 monospace; letter-spacing: .1em; }
 .footer-status i { width: 8px; height: 8px; border-radius: 50%; background: #22a35a; box-shadow: 0 0 0 4px rgba(34,163,90,.16); }
 .footer-bottom { padding-top: 22px; display: flex; justify-content: space-between; border-top: 1px solid rgba(17,17,15,.25); font: 700 9px/1 monospace; }
@@ -176,8 +179,7 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
 
 @media (max-width: 760px) {
   .site-header { height: 70px; padding-inline: 18px; }
-  .brand img { width: 32px; height: 32px; }
-  .brand span { font-size: 14px; }
+  .brand img { width: 165px; height: auto; }
   nav a:not(.nav-cta) { display: none; }
   .nav-cta { padding: 10px 12px; font-size: 9px; }
   .hero { min-height: 720px; }
@@ -196,6 +198,7 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   .section-head h2 { margin-top: 24px; }
   .feature-grid { margin-top: 56px; grid-template-columns: 1fr; }
   .feature-card { min-height: 360px; }
+  .feature-card > :is(.feature-icon, .patch-visual, .bit-display, .device-list) { height: 200px; }
   .feature-card > p:last-child { min-height: 0; }
   .operation-section { padding-block: 90px; }
   .operation-intro { grid-template-columns: 1fr; gap: 24px; }
@@ -212,16 +215,18 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   .configurator-section { padding-block: 90px; grid-template-columns: 1fr; }
   .configurator-copy h2 { font-size: clamp(30px, 9.6vw, 44px); }
   .configurator-visual { order: -1; }
-  .spec-list { margin-top: 56px; }
+  .spec-section { padding-top: 0; }
+  .spec-photo { aspect-ratio: 4 / 3; }
+  .spec-photo::after { background: linear-gradient(0deg, rgba(0,0,0,.68), rgba(0,0,0,.12)); }
+  .spec-photo figcaption { padding: 22px; grid-template-columns: 1fr; align-content: space-between; }
+  .spec-photo h2 { align-self: end; font-size: clamp(34px, 10vw, 48px); }
+  .spec-list { margin-top: 0; }
   .spec-list > div { grid-template-columns: 1fr; gap: 18px; }
   .spec-note { line-height: 1.6; text-align: left; }
   .start-section { padding-block: 90px; grid-template-columns: 1fr; gap: 54px; }
   .start-links a { grid-template-columns: 34px 1fr 24px; }
   .start-links small { display: none; }
   footer { padding-top: 70px; }
-  .footer-brand { grid-template-columns: 44px 1fr; }
-  .footer-brand img { width: 44px; height: 44px; }
-  .footer-brand span { grid-column: 2; }
   .footer-status { margin: 50px 0; }
 }
 
