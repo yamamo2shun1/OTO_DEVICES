@@ -96,43 +96,55 @@ const platforms = [
 
     <section class="operation-section" id="controls" aria-labelledby="controls-title">
       <div class="operation-intro">
-        <p class="section-label">03 / PLAYING JUMBLEQ</p>
-        <h2 id="controls-title">押す。離す。<br />音を切る。</h2>
-        <p>JUMBLEQでは、一般的なDJミキサーの縦長のフェーダーを、押し込める磁気スイッチに置き換えています。左右のチャンネルに「フェードアップ」と「フェードダウン」があり、スイッチを押す深さで音量を操ります。</p>
+        <p class="section-label">03 / CONTROLS</p>
+        <h2 id="controls-title"><span>フェーダーから、</span><br /><span>磁気スイッチへ。</span></h2>
+        <p>ゲーミングキーボードにも使われる磁気スイッチを採用。「フェーダーを上げる」「フェーダーを下げる」、異なる役割を持つスイッチの組み合わせで、音を操る新しいプレイ体験を指先に。</p>
       </div>
 
       <div class="operation-grid">
         <article class="operation-card">
-          <p class="operation-tag">TWO WAYS TO PLAY</p>
-          <h3>1つのキーで、<br />音を出す。音を切る。</h3>
-          <p>通常は、フェードダウンを押すと音が出て、深く押すほど大きくなります。手を離すとミュート。フェードアップで音を出しているときだけ動きが逆になり、フェードダウンを押している間、音量を下げたり瞬間的に切ったりできます。</p>
-          <div class="press-meter" aria-hidden="true"><span></span><span></span><span></span><span></span><b>RELEASE / MUTE</b><b>PRESS / FULL</b></div>
+          <p class="operation-tag">FADER CURVE</p>
+          <h3>オンオフではない、<br />連続的な変化。</h3>
+          <p>単純なオンオフではなく、磁気スイッチのストロークに応じて音量が連続的に変化。滑らかなフェードから、スクラッチに適した鋭いカットまで、2本のフェーダーそれぞれで調整可能</p>
+          <div class="curve-scale" aria-hidden="true"><span>0% SMOOTH</span><i></i><span>100% SHARP</span></div>
         </article>
 
         <article class="operation-card operation-card-yellow">
-          <p class="operation-tag">EXTRA FADE-DOWN SWITCHES</p>
-          <h3>3つのキーで、<br />高速カット。</h3>
-          <p>中央の2つは、左右どちらのチャンネルにも割り当てられる追加のフェードダウンです。1つのチャンネルを最大3つのキーで操作でき、3クリックフレアやクラブスクラッチなどの細かなカットにも対応します。</p>
+          <p class="operation-tag">MULTIPLE SWITCHES</p>
+          <h3>最大3つのキーで、<br />高速カット。</h3>
+          <p>最大3つのキーを複数の指で操作し、1つのキーの連打では難しい2クリックフレアやクラブスクラッチなど、高速で緻密なカットを実現</p>
           <div class="aux-keys" aria-hidden="true"><i>A</i><i>A/B</i><i>B/A</i><i>B</i></div>
         </article>
 
         <article class="operation-card">
-          <p class="operation-tag">SWITCH RESPONSE</p>
-          <h3>浅く押して、<br />鋭く切る。</h3>
-          <p>スイッチをどこまで押すと音量が変わるかは、左右のチャンネルごとに調整できます。0%はストローク全体で滑らかに変化。100%は浅く押しただけで音が立ち上がり、スクラッチ向けの鋭いカットになります。</p>
-          <div class="curve-scale" aria-hidden="true"><span>0% SMOOTH</span><i></i><span>100% SHARP</span></div>
+          <p class="operation-tag">MIDI</p>
+          <h3>パラメータ操作も、<br />思いのままに</h3>
+          <p>10個ある磁気スイッチのうち、4つはMIDIコントロール・チェンジ／ノートを出力。チャンネル・フェーダー操作と同時にDAWやDJソフトのエフェクトや各種機能をコントロールするアグレッシブなプレイを実現</p>
+          <div class="press-meter" aria-hidden="true"><span></span><span></span><span></span><span></span><b>RELEASE</b><b>PRESS</b></div>
         </article>
 
         <article class="operation-card operation-card-wide">
           <div>
-            <p class="operation-tag">PC AUDIO / DVS</p>
-            <h3>PCの音を戻す。<br />DVSへつなぐ。</h3>
+            <p class="operation-tag">AUDIO SEND / RETURN &amp; DVS</p>
+            <h3>アナログと<br />デジタルの融合</h3>
           </div>
-          <div class="signal-pairs" aria-label="標準のUSB信号経路">
-            <p><span>CHANNEL FADER A</span><b>→</b><strong>USB 1 / 2</strong></p>
-            <p><span>CHANNEL FADER B</span><b>→</b><strong>USB 3 / 4</strong></p>
+          <div class="signal-modes" role="img" aria-label="USBセンド・リターンとDVSの信号経路">
+            <div class="signal-mode">
+              <small>SEND / RETURN</small>
+              <div class="signal-flow signal-flow-loop">
+                <span>JUMBLEQ</span>
+                <i><b>SEND →</b><b>← RETURN</b></i>
+                <strong>PC / FX</strong>
+              </div>
+            </div>
+            <div class="signal-mode">
+              <small>DVS</small>
+              <div class="signal-flow signal-flow-dvs">
+                <span>CONTROL<br />VINYL</span><b>→</b><em>JUMBLEQ</em><b>⇄</b><strong>DJ<br />SOFTWARE</strong>
+              </div>
+            </div>
           </div>
-          <p class="operation-detail">通常は、チャンネルフェーダーAの演奏をUSB 1/2へ、BをUSB 3/4へ送ります。PCから戻る音（Return）は、Dry/Wetノブで元の音との割合を、Returnノブで音量を調整できます。DVS（Digital Vinyl System）では、ターンテーブルの操作信号をフェーダーの手前からPCへ直接送ります。</p>
+          <p class="operation-detail">ターンテーブルやCDJ、サンプラーなどの音をPCへ送り、エフェクトをかけて戻せるUSBセンド・リターンを搭載。コントロール・ヴァイナルなどを使ったDVS（Digital Vinyl System）にも対応し、さまざまなプレイスタイルを柔軟にサポート</p>
         </article>
       </div>
 
