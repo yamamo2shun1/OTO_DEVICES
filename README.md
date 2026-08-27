@@ -25,6 +25,10 @@ As a USB Audio Class 2.0 interface, JUMBLEQ provides 4-in/4-out audio at 24-bit,
 
 See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation index.
 
+## Public Website
+
+The Astro-based general-user website is maintained in [`Site`](./Site/) and deployed to GitHub Pages by [the Pages workflow](./.github/workflows/pages.yml).
+
 ### User Guide
 
 - [Operation Guide](./Docs/user-guide/operation-guide.md)

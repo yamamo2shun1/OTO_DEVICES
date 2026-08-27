@@ -1,0 +1,21 @@
+---
+interface Props {
+  base: string;
+}
+
+const { base } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="brand" href="#top" aria-label="JUMBLEQ トップへ">
+    <img src={`${base}assets/jumbleq-logo.png`} alt="JUMBLEQ — Faderless 2CH Digital Mixer" width="1076" height="261" />
+  </a>
+  <nav aria-label="メインナビゲーション">
+    <a href="#concept">Concept</a>
+    <a href="#features">Features</a>
+    <a href="#controls">Controls</a>
+    <a href="#specs">Specs</a>
+    <a href="#get-started">Get Started</a>
+    <a class="nav-cta" href="https://configurator.jumbleq.io/">Configurator ↗</a>
+  </nav>
+</header>

@@ -1,0 +1,22 @@
+{
+  "name": "jumbleq-public-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@fortawesome/free-brands-svg-icons": "7.3.1",
+    "astro": "^7.2.4",
+    "typescript": "^5.9.3"
+  }
+}

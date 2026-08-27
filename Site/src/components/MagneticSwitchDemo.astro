@@ -1,0 +1,32 @@
+<div class="switch-demo" aria-label="磁気スイッチの操作イメージ">
+  <div class="switch-row switch-row-top">
+    <button class="mag-key dark" type="button" aria-label="A フェードダウン" aria-pressed="false"><span>A</span><small>FADE DOWN</small></button>
+    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 1" aria-pressed="false"><span>MIDI</span><small>CC 12</small></button>
+    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 2" aria-pressed="false"><span>MIDI</span><small>CC 13</small></button>
+    <button class="mag-key dark" type="button" aria-label="B フェードダウン" aria-pressed="false"><span>B</span><small>FADE DOWN</small></button>
+  </div>
+  <div class="switch-row switch-row-bottom">
+    <button class="mag-key dark" type="button" aria-label="A フェードアップ" aria-pressed="false"><span>A</span><small>FADE UP</small></button>
+    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 3" aria-pressed="false"><span>MIDI</span><small>CC 14</small></button>
+    <button class="mag-key dark" type="button" aria-label="補助 A/B フェードダウン" aria-pressed="false"><span>AUX</span><small>A / B</small></button>
+    <button class="mag-key dark" type="button" aria-label="補助 B/A フェードダウン" aria-pressed="false"><span>AUX</span><small>B / A</small></button>
+    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 4" aria-pressed="false"><span>MIDI</span><small>CC 15</small></button>
+    <button class="mag-key dark" type="button" aria-label="B フェードアップ" aria-pressed="false"><span>B</span><small>FADE UP</small></button>
+  </div>
+</div>
+
+<script>
+  const keys = document.querySelectorAll<HTMLButtonElement>(".mag-key");
+
+  keys.forEach((key) => {
+    const release = () => key.setAttribute("aria-pressed", "false");
+    key.addEventListener("pointerdown", () => key.setAttribute("aria-pressed", "true"));
+    key.addEventListener("pointerup", release);
+    key.addEventListener("pointercancel", release);
+    key.addEventListener("pointerleave", release);
+    key.addEventListener("keydown", (event) => {
+      if (event.key === " " || event.key === "Enter") key.setAttribute("aria-pressed", "true");
+    });
+    key.addEventListener("keyup", release);
+  });
+</script>
