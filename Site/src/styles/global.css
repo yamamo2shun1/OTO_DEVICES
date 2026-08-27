@@ -34,9 +34,6 @@ h1 em { color: var(--yellow); font-style: normal; }
 .button { min-height: 52px; padding: 0 22px; display: inline-flex; align-items: center; gap: 24px; border: 1px solid rgba(241,239,230,.5); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-decoration: none; }
 .button-primary { color: var(--ink); border-color: var(--yellow); background: var(--yellow); }
 .button-ghost { backdrop-filter: blur(8px); }
-.hero-rail { position: absolute; z-index: 2; right: 0; bottom: 0; display: flex; }
-.hero-rail span { padding: 18px 24px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); font: 700 10px/1 "Courier New", monospace; letter-spacing: .12em; }
-
 .manifesto { min-height: 60vh; padding: 120px max(24px, calc((100vw - var(--max)) / 2)); display: grid; align-content: center; background: var(--paper); color: var(--ink); }
 .manifesto .section-label { color: #6c6a62; }
 .manifesto h2 { max-width: 1100px; margin: 0; font-size: clamp(42px, 6.2vw, 90px); line-height: 1.12; letter-spacing: -.055em; }
@@ -131,7 +128,6 @@ h1 em { color: var(--yellow); font-style: normal; }
 .photo-break-image { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(9,9,8,.8), transparent 48%), var(--section-image) 50% 52% / cover no-repeat; }
 .photo-break-copy { position: absolute; inset: auto max(24px, calc((100vw - var(--max)) / 2)) 70px; display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
 .photo-break-copy p { margin: 0; font-size: clamp(39px, 6vw, 90px); font-weight: 900; line-height: .9; letter-spacing: -.06em; }
-.photo-break-copy span { padding: 14px; border: 1px solid var(--paper); font: 700 10px/1 monospace; letter-spacing: .12em; white-space: nowrap; }
 
 .configurator-section { padding: 150px max(24px, calc((100vw - var(--max)) / 2)); display: grid; grid-template-columns: .78fr 1.22fr; align-items: center; gap: clamp(50px, 8vw, 130px); background: #0b0b0a; }
 .configurator-copy > p:not(.section-label) { max-width: 520px; margin: 32px 0 0; color: #918f87; font-size: 14px; line-height: 1.95; }
@@ -188,7 +184,6 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   h1 { font-size: clamp(48px, 15.3vw, 64px); }
   .hero-copy { font-size: 13px; }
   .button { min-height: 48px; padding-inline: 17px; }
-  .hero-rail { display: none; }
   .manifesto { min-height: 70vh; padding-block: 88px; }
   .mobile-break { display: block; }
   .concept-grid { margin-top: 54px; grid-template-columns: 1fr; gap: 54px; }
@@ -211,7 +206,6 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   .photo-break { min-height: 620px; }
   .photo-break-image { background-position: 55% 50%; }
   .photo-break-copy { bottom: 30px; display: block; }
-  .photo-break-copy span { width: fit-content; margin-top: 24px; display: block; }
   .configurator-section { padding-block: 90px; grid-template-columns: 1fr; }
   .configurator-visual { order: -1; }
   .spec-list { margin-top: 56px; }
