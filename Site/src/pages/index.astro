@@ -9,6 +9,7 @@ const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL :
 const title = "JUMBLEQ — Faderless 2CH Digital Mixer";
 const description = "磁気スイッチで音を操る、フェーダーレス2チャンネル・デジタルミキサー JUMBLEQ。";
 const heroImage = `${base}assets/jumbleq-beta.jpg`;
+const photoBreakImage = `${base}assets/jumbleq-beta-dscf8275.jpg`;
 const platforms = [
   { label: "Windows", icon: faWindows },
   { label: "macOS", icon: faApple },
@@ -46,7 +47,7 @@ const platforms = [
       <p class="section-label">01 / CONCEPT</p>
       <h2><span class="concept-title-chunk">フェーダーを</span><br class="mobile-break" /><span class="concept-title-chunk">なくしたら、</span><br /><span class="concept-title-chunk">音はもっと</span><br class="mobile-break" /><span class="concept-title-chunk">自由になった。</span></h2>
       <div class="concept-grid">
-        <p>JUMBLEQは、2本のチャンネルフェーダー（A/B）を6個の磁気スイッチで操る、ステレオ・デジタルミキサーです。スイッチを押す深さや組み合わせで、音の立ち上がりと切れをすばやく、リズミカルに操れます。</p>
+        <p>JUMBLEQは、2本のチャンネル・フェーダーを6つの磁気スイッチで再構成した、2チャンネル・デジタルミキサー。磁気スイッチのストロークに応じた連続的な音量変化と、複数のスイッチを組み合わせた高速カットで、これまでにないプレイ体験を指先に。</p>
         <MagneticSwitchDemo />
       </div>
     </section>
@@ -151,9 +152,9 @@ const platforms = [
       <a class="operation-guide-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md">詳しい操作ガイドを見る <span>↗</span></a>
     </section>
 
-    <section class="photo-break" aria-label="JUMBLEQベータプロトタイプ">
-      <div class="photo-break-image" style={`--section-image: url(${heroImage})`}></div>
-      <div class="photo-break-copy"><p>FROM TURNTABLES<br />TO THE DIGITAL WORLD.</p><span>ANALOG × USB × MIDI</span></div>
+    <section class="photo-break" aria-label="PC、ターンテーブル、ヘッドホンと接続されたJUMBLEQベータプロトタイプ">
+      <div class="photo-break-image" style={`--section-image: url(${photoBreakImage})`}></div>
+      <div class="photo-break-copy"><p>MAGNETIC SWITCHES.<br />NEW WAYS TO PLAY.</p><span>ANALOG × USB × MIDI</span></div>
     </section>
 
     <section class="configurator-section" id="configurator" aria-labelledby="configurator-title">
