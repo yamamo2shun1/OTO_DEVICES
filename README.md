@@ -2,6 +2,8 @@
 
 <img width="517" height="126" alt="JUMBLEQ logo" src="https://github.com/user-attachments/assets/0fec933e-3c29-45de-b90b-8d6eba264ed7" />
 
+[Official Website](https://jumbleq.io/) · [日本語](https://jumbleq.io/ja/)
+
 <img width="900" alt="JUMBLEQ beta prototype" src="https://github.com/user-attachments/assets/296e7e9c-62b2-4ea7-a199-6dd3ea355abf" />
 
 “JUMBLEQ” is short for “jumbled equipment.”
@@ -27,7 +29,9 @@ See the [JUMBLEQ Documentation](./Docs/README.md) for the complete documentation
 
 ## Public Website
 
-The Astro-based general-user website is maintained in [`Site`](./Site/) and deployed to GitHub Pages by [the Pages workflow](./.github/workflows/pages.yml).
+Visit the [official JUMBLEQ website](https://jumbleq.io/) for an overview of the product, its features, controls, and specifications.
+
+The Astro source is maintained in [`Site`](./Site/) and deployed to GitHub Pages by [the Pages workflow](./.github/workflows/pages.yml).
 
 ### User Guide
 
