@@ -5,11 +5,14 @@ import Header from "../components/Header.astro";
 import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
 import FaderCurveDemo from "../components/FaderCurveDemo.astro";
 import RoutingDiagram from "../components/RoutingDiagram.astro";
+import { homeCopy, type Locale } from "../i18n/home";
 import { faAndroid, faApple, faLinux, faWindows } from "@fortawesome/free-brands-svg-icons";
 
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const lang: Locale = Astro.url.pathname.startsWith(`${base}en/`) ? "en" : "ja";
+const copy = homeCopy[lang];
 const title = "JUMBLEQ — Faderless 2CH Digital Mixer";
-const description = "磁気スイッチで音を操る、フェーダーレス2チャンネル・デジタルミキサー JUMBLEQ。";
+const description = copy.description;
 const heroImage = `${base}assets/jumbleq-beta.jpg`;
 const photoBreakImage = `${base}assets/jumbleq-beta-dscf8275.jpg`;
 const platforms = [
@@ -26,37 +29,37 @@ const platforms = [
 }));
 ---
 
-<BaseLayout {title} {description}>
-  <Header {base} />
+<BaseLayout {title} {description} {lang}>
+  <Header {base} {lang} />
 
   <main id="main">
     <section class="hero" id="top" aria-labelledby="hero-title">
-      <div class="hero-photo" style={`--section-image: url(${heroImage})`} role="img" aria-label="ターンテーブルやヘッドホンと接続されたJUMBLEQ"></div>
+      <div class="hero-photo" style={`--section-image: url(${heroImage})`} role="img" aria-label={copy.heroImageAlt}></div>
       <div class="hero-shade"></div>
       <div class="hero-content">
-        <p class="eyebrow">FADERLESS 2CH DIGITAL MIXER</p>
-        <h1 id="hero-title"><span class="hero-title-line">指先で、</span><br /><em class="hero-title-line">切り拓く。</em></h1>
-        <p class="hero-copy">磁気スイッチでチャンネルフェーダーを再構築。<br />直感的で予想外のプレイを。</p>
+        <p class="eyebrow">{copy.eyebrow}</p>
+        <h1 id="hero-title"><span class="hero-title-line">{copy.heroTitle[0]}</span><br /><em class="hero-title-line">{copy.heroTitle[1]}</em></h1>
+        <p class="hero-copy">{copy.heroCopy[0]}<br />{copy.heroCopy[1]}</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#concept">JUMBLEQを知る <span>↓</span></a>
-          <a class="button button-ghost" href="https://github.com/yamamo2shun1/JUMBLEQ">GitHubで見る ↗</a>
+          <a class="button button-primary" href="#concept">{copy.discover} <span>↓</span></a>
+          <a class="button button-ghost" href="https://github.com/yamamo2shun1/JUMBLEQ">{copy.viewGithub} ↗</a>
         </div>
       </div>
     </section>
 
     <section class="manifesto" id="concept">
       <p class="section-label">01 / CONCEPT</p>
-      <h2><span class="concept-title-chunk">フェーダーの常識を、</span><br /><span class="concept-title-chunk">指先から変える。</span></h2>
+      <h2><span class="concept-title-chunk">{copy.conceptTitle[0]}</span><br /><span class="concept-title-chunk">{copy.conceptTitle[1]}</span></h2>
       <div class="concept-grid">
-        <p>JUMBLEQは、2本のチャンネル・フェーダーを6つの磁気スイッチで再構成した、2チャンネル・デジタルミキサー。磁気スイッチのストロークに応じた連続的な音量変化と、複数のスイッチを組み合わせた高速カットで、これまでにないプレイ体験を指先に。</p>
-        <MagneticSwitchDemo />
+        <p>{copy.conceptBody}</p>
+        <MagneticSwitchDemo {lang} />
       </div>
     </section>
 
     <section class="feature-section" id="features" aria-labelledby="features-title">
       <div class="section-head">
         <p class="section-label">02 / FEATURES</p>
-        <h2 id="features-title">セッティングも、<br />思いのままに。</h2>
+        <h2 id="features-title">{copy.featuresTitle[0]}<br />{copy.featuresTitle[1]}</h2>
       </div>
       <div class="feature-grid">
         <article class="feature-card feature-card-lead">
@@ -65,20 +68,20 @@ const platforms = [
             <span class="switch-icon-row switch-icon-row-top"><i></i><i class="yellow"></i><i class="yellow"></i><i></i></span>
             <span class="switch-icon-row switch-icon-row-bottom"><i></i><i class="yellow"></i><i></i><i></i><i class="yellow"></i><i></i></span>
           </div>
-          <h3>Faderless Play</h3>
-          <p>10個の磁気スイッチが生み出すフェーダーレスならではの独創的なプレイと、12個のノブによる緻密なコントロールを両立</p>
+          <h3>{copy.featureTitles[0]}</h3>
+          <p>{copy.featureBodies[0]}</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">02</p>
-          <div class="patch-visual"><RoutingDiagram /></div>
-          <h3>Flexible Routing</h3>
-          <p>アナログ入力2系統とUSB入力2系統（ともにステレオ）を、2本のチャンネル・フェーダーに自由にアサイン可能</p>
+          <div class="patch-visual"><RoutingDiagram {lang} /></div>
+          <h3>{copy.featureTitles[1]}</h3>
+          <p>{copy.featureBodies[1]}</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">03</p>
           <div class="bit-display" aria-hidden="true"><p><strong>24</strong><span>bit</span></p><p><strong>48/96</strong><span>kHz</span></p></div>
-          <h3>4-in / 4-out USB Audio</h3>
-          <p>USB Audio Class 2.0に対応し、24-bit、48 kHzまたは96 kHzでの録音・再生を実現</p>
+          <h3>{copy.featureTitles[2]}</h3>
+          <p>{copy.featureBodies[2]}</p>
         </article>
         <article class="feature-card">
           <p class="feature-number">04</p>
@@ -90,8 +93,8 @@ const platforms = [
               </span>
             ))}
           </div>
-          <h3>USB Class Compliant</h3>
-          <p>専用ドライバーなしで、Windows、macOS、Linux、iPhone、iPad、Androidデバイスと接続可能</p>
+          <h3>{copy.featureTitles[3]}</h3>
+          <p>{copy.featureBodies[3]}</p>
         </article>
       </div>
     </section>
@@ -99,36 +102,36 @@ const platforms = [
     <section class="operation-section" id="controls" aria-labelledby="controls-title">
       <div class="operation-intro">
         <p class="section-label">03 / CONTROLS</p>
-        <h2 id="controls-title"><span>フェーダーから、</span><br /><span>磁気スイッチへ。</span></h2>
-        <p>ゲーミングキーボードにも使われる磁気スイッチを採用。「フェーダーを上げる」「フェーダーを下げる」、異なる役割を持つスイッチの組み合わせで、音を操る新しいプレイ体験を指先に。</p>
+        <h2 id="controls-title"><span>{copy.controlsTitle[0]}</span><br /><span>{copy.controlsTitle[1]}</span></h2>
+        <p>{copy.controlsIntro}</p>
       </div>
 
       <div class="operation-grid">
         <article class="operation-card">
           <p class="operation-tag">FADER CURVE</p>
-          <h3>オンオフではない、<br />連続的な変化。</h3>
-          <p>単純なオンオフではなく、磁気スイッチのストロークに応じて音量が連続的に変化。滑らかなフェードから、スクラッチに適した鋭いカットまで、2本のフェーダーそれぞれで調整可能</p>
-          <FaderCurveDemo />
+          <h3>{copy.curveTitle[0]}<br />{copy.curveTitle[1]}</h3>
+          <p>{copy.curveBody}</p>
+          <FaderCurveDemo {lang} />
         </article>
 
         <article class="operation-card operation-card-yellow">
           <p class="operation-tag">MULTIPLE SWITCHES</p>
-          <h3>最大3つのキーで、<br />高速カット。</h3>
-          <p>最大3つのキーを複数の指で操作し、1つのキーの連打では難しい2クリックフレアやクラブスクラッチなど、高速で緻密なカットを実現</p>
+          <h3>{copy.switchesTitle[0]}<br />{copy.switchesTitle[1]}</h3>
+          <p>{copy.switchesBody}</p>
           <div class="aux-keys" aria-hidden="true"><i>A</i><i>A/B</i><i>B/A</i><i>B</i></div>
         </article>
 
         <article class="operation-card">
           <p class="operation-tag">MIDI</p>
-          <h3>パラメータ操作も、<br />思いのままに</h3>
-          <p>10個ある磁気スイッチのうち、4つはMIDIコントロール・チェンジ／ノートを出力。チャンネル・フェーダー操作と同時にDAWやDJソフトのエフェクトや各種機能をコントロールするアグレッシブなプレイを実現</p>
+          <h3>{copy.midiTitle[0]}<br />{copy.midiTitle[1]}</h3>
+          <p>{copy.midiBody}</p>
           <div class="press-meter" aria-hidden="true"><span></span><span></span><span></span><span></span><b>RELEASE</b><b>PRESS</b></div>
         </article>
 
         <article class="operation-card operation-card-wide">
           <div>
             <p class="operation-tag">AUDIO SEND / RETURN &amp; DVS</p>
-            <h3>アナログと<br />デジタルの融合</h3>
+            <h3>{copy.digitalTitle[0]}<br />{copy.digitalTitle[1]}</h3>
           </div>
           <div class="signal-modes" role="img" aria-label="USBセンド・リターンとDVSの信号経路">
             <div class="signal-mode">
@@ -146,14 +149,14 @@ const platforms = [
               </div>
             </div>
           </div>
-          <p class="operation-detail">ターンテーブルやCDJ、サンプラーなどの音をPCへ送り、エフェクトをかけて戻せるUSBセンド・リターンを搭載。コントロール・ヴァイナルなどを使ったDVS（Digital Vinyl System）にも対応し、さまざまなプレイスタイルを柔軟にサポート</p>
+          <p class="operation-detail">{copy.digitalBody}</p>
         </article>
       </div>
 
-      <a class="operation-guide-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md">詳しい操作ガイドを見る <span>↗</span></a>
+      <a class="operation-guide-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md">{copy.operationGuide} <span>↗</span></a>
     </section>
 
-    <section class="photo-break" aria-label="PC、ターンテーブル、ヘッドホンと接続されたJUMBLEQベータプロトタイプ">
+    <section class="photo-break" aria-label={copy.photoAlt}>
       <div class="photo-break-image" style={`--section-image: url(${photoBreakImage})`}></div>
       <div class="photo-break-copy"><p>MAGNETIC SWITCHES.<br />NEW WAYS TO PLAY.</p></div>
     </section>
@@ -161,13 +164,13 @@ const platforms = [
     <section class="configurator-section" id="configurator" aria-labelledby="configurator-title">
         <div class="configurator-copy">
           <p class="section-label">04 / CONFIGURATOR</p>
-          <h2 id="configurator-title"><span>ブラウザひとつで、</span><span>思いのままに。</span></h2>
-        <p>ブラウザベースのJUMBLEQ Configuratorから、ライン／フォノ入力の切り替えやルーティング、DVSなどのオーディオ設定、フェーダーカーブやMIDI動作まで、デバイスの各種設定を簡単に変更可能。</p>
-        <a class="text-link" href="https://configurator.jumbleq.io/">Configuratorを開く <span>↗</span></a>
-        <small>Chrome / EdgeなどWeb MIDI対応ブラウザを推奨</small>
+          <h2 id="configurator-title"><span>{copy.configuratorTitle[0]}</span><span>{copy.configuratorTitle[1]}</span></h2>
+        <p>{copy.configuratorBody}</p>
+        <a class="text-link" href="https://configurator.jumbleq.io/">{copy.openConfigurator} <span>↗</span></a>
+        <small>{copy.browserNote}</small>
       </div>
-      <a class="configurator-visual" href="https://configurator.jumbleq.io/" aria-label="JUMBLEQ Configuratorを開く">
-        <img src={`${base}assets/configurator-concept.png`} alt="JUMBLEQ Configuratorのルーティング、磁気スイッチ、フェーダーカーブ設定画面" loading="lazy" />
+      <a class="configurator-visual" href="https://configurator.jumbleq.io/" aria-label={copy.openConfigurator}>
+        <img src={`${base}assets/configurator-concept.png`} alt={copy.configuratorAlt} loading="lazy" />
         <span>OPEN WEB APP ↗</span>
       </a>
     </section>
@@ -175,8 +178,8 @@ const platforms = [
     <section class="spec-section" id="specs" aria-labelledby="specs-title">
       <div class="spec-intro">
         <figure class="spec-photo">
-          <img src={`${base}assets/spec-photo-dscf8316.jpg`} alt="JUMBLEQのノブ、OLED、入出力端子のクローズアップ" loading="lazy" />
-          <figcaption><p class="section-label">05 / SPECIFICATIONS</p><h2 id="specs-title">自由なプレイを、<br />確かなスペックで。</h2></figcaption>
+          <img src={`${base}assets/spec-photo-dscf8316.jpg`} alt={copy.specPhotoAlt} loading="lazy" />
+          <figcaption><p class="section-label">05 / SPECIFICATIONS</p><h2 id="specs-title">{copy.specsTitle[0]}<br />{copy.specsTitle[1]}</h2></figcaption>
         </figure>
       </div>
       <dl class="spec-list">
@@ -184,17 +187,17 @@ const platforms = [
         <div><dt>USB-C AUDIO / MIDI INTERFACE</dt><dd><strong>2 STEREO IN / 2 STEREO OUT + MIDI I/O</strong><span>24-bit / 48・96 kHz / USB Class Compliant</span></dd></div>
         <div><dt>RGB LED METERS</dt><dd><strong>2 × 5-SEGMENT VU METERS</strong><span>Channel Fader A/B level &amp; position indicators</span></dd></div>
         <div><dt>OLED DISPLAYS</dt><dd><strong>128 × 64 + 128 × 32</strong><span>Routing, gain &amp; system status</span></dd></div>
-        <div><dt>UPDATE</dt><dd><strong>UF2 BOOTLOADER</strong><span>ドラッグ＆ドロップで更新</span><a class="spec-detail-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md">FIRMWARE UPDATE GUIDE ↗</a></dd></div>
+        <div><dt>UPDATE</dt><dd><strong>UF2 BOOTLOADER</strong><span>{copy.updateNote}</span><a class="spec-detail-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md">FIRMWARE UPDATE GUIDE ↗</a></dd></div>
       </dl>
-      <p class="spec-note">仕様は開発中のベータプロトタイプに基づき、予告なく変更される場合があります。</p>
+      <p class="spec-note">{copy.specNote}</p>
     </section>
 
     <section class="start-section" id="get-started" aria-labelledby="start-title">
-      <div><p class="section-label">06 / GET STARTED</p><h2 id="start-title">JUMBLEQを、<br />もっと深く。</h2></div>
+      <div><p class="section-label">06 / GET STARTED</p><h2 id="start-title">{copy.startTitle[0]}<br />{copy.startTitle[1]}</h2></div>
       <div class="start-links">
-        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md"><span>01</span><strong>操作方法を見る</strong><small>OPERATION GUIDE</small><b>↗</b></a>
-        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md"><span>02</span><strong>ファームウェアを更新</strong><small>FIRMWARE</small><b>↗</b></a>
-        <a href="https://github.com/yamamo2shun1/JUMBLEQ"><span>03</span><strong>プロジェクトに参加</strong><small>OPEN SOURCE</small><b>↗</b></a>
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/operation-guide.md"><span>01</span><strong>{copy.startLinks[0]}</strong><small>OPERATION GUIDE</small><b>↗</b></a>
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md"><span>02</span><strong>{copy.startLinks[1]}</strong><small>FIRMWARE</small><b>↗</b></a>
+        <a href="https://github.com/yamamo2shun1/JUMBLEQ"><span>03</span><strong>{copy.startLinks[2]}</strong><small>OPEN SOURCE</small><b>↗</b></a>
       </div>
     </section>
   </main>

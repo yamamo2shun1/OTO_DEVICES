@@ -1,4 +1,12 @@
-<div class="routing-diagram" data-routing-diagram aria-label="4系統の入力をチャンネルフェーダーA、B、THRUへ割り当てるイメージ">
+---
+interface Props {
+  lang?: "ja" | "en";
+}
+
+const { lang = "ja" } = Astro.props;
+---
+
+<div class="routing-diagram" data-routing-diagram aria-label={lang === "en" ? "Four inputs assigned to channel faders A and B or THRU" : "4系統の入力をチャンネルフェーダーA、B、THRUへ割り当てるイメージ"}>
   <canvas aria-hidden="true"></canvas>
 </div>
 
