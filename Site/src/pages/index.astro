@@ -184,11 +184,11 @@ const platforms = [
         </figure>
       </div>
       <dl class="spec-list">
-        <div><dt>ANALOG I/O</dt><dd><strong>2 STEREO IN / 2 STEREO OUT + 1 HEADPHONE OUT</strong><span>3.5 mm stereo mini jacks (Stereo Thonkiconn)</span><a class="spec-detail-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/reference/audio-spec.md">DETAILED AUDIO SPECIFICATIONS ↗</a></dd></div>
-        <div><dt>USB-C AUDIO / MIDI INTERFACE</dt><dd><strong>2 STEREO IN / 2 STEREO OUT + MIDI I/O</strong><span>24-bit / 48・96 kHz / USB Class Compliant</span></dd></div>
+        <div><dt>ANALOG I/O</dt><dd><strong>2 STEREO IN / 2 STEREO OUT + 1 HEADPHONE OUT</strong><span>3.5 mm stereo jacks (Stereo Thonkiconn)</span><a class="spec-detail-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/reference/audio-spec.md">DETAILED AUDIO SPECIFICATIONS ↗</a></dd></div>
+        <div><dt>USB-C AUDIO / MIDI INTERFACE</dt><dd><strong>2 STEREO IN / 2 STEREO OUT + MIDI I/O</strong><span>24-bit / 48 or 96 kHz / class-compliant</span></dd></div>
         <div><dt>RGB LED METERS</dt><dd><strong>2 × 5-SEGMENT VU METERS</strong><span>Channel Fader A/B level &amp; position indicators</span></dd></div>
         <div><dt>OLED DISPLAYS</dt><dd><strong>128 × 64 + 128 × 32</strong><span>Routing, gain &amp; system status</span></dd></div>
-        <div><dt>DIMENSIONS</dt><dd><strong>{copy.dimensionsValue}</strong><span>{copy.dimensionsNote}</span></dd></div>
+        <div><dt>DIMENSIONS</dt><dd><strong>{copy.dimensionsValue}</strong>{copy.dimensionsNote && <span>{copy.dimensionsNote}</span>}</dd></div>
         <div><dt>UPDATE</dt><dd><strong>UF2 BOOTLOADER</strong><span>{copy.updateNote}</span><a class="spec-detail-link" href="https://github.com/yamamo2shun1/JUMBLEQ/blob/main/Docs/user-guide/firmware-update.md">FIRMWARE UPDATE GUIDE ↗</a></dd></div>
       </dl>
       <p class="spec-note">{copy.specNote}</p>
