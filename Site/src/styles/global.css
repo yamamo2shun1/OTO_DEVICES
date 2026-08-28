@@ -150,7 +150,7 @@ h1 em { color: var(--yellow); font-style: normal; }
 .spec-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.15), rgba(0,0,0,.58)); }
 .spec-photo img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .spec-photo figcaption { position: absolute; z-index: 1; inset: 0; padding: clamp(24px, 4vw, 58px); display: grid; grid-template-columns: 1fr 1fr; align-items: center; color: var(--paper); text-shadow: 0 1px 14px rgba(0,0,0,.8); }
-.spec-photo figcaption .section-label { align-self: start; color: var(--paper); }
+.spec-photo figcaption .section-label { align-self: start; justify-self: start; width: max-content; padding: 7px 9px; color: var(--yellow); background: rgba(0,0,0,.48); border-radius: 4px; }
 .spec-photo h2 { margin: 0; font-size: clamp(44px, 4.6vw, 68px); line-height: 1.04; letter-spacing: -.06em; }
 .spec-list { margin: 0 max(24px, calc((100vw - var(--max)) / 2)); border-top: 2px solid var(--ink); }
 .spec-list > div { padding: 26px 0; display: grid; grid-template-columns: .65fr 1.35fr; align-items: center; border-bottom: 1px solid rgba(17,17,15,.35); }
