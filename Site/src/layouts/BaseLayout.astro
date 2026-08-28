@@ -10,8 +10,8 @@ interface Props {
 const { title, description, lang = "ja" } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 const origin = Astro.site ?? Astro.url;
-const japaneseUrl = new URL(base, origin);
-const englishUrl = new URL(`${base}en/`, origin);
+const englishUrl = new URL(base, origin);
+const japaneseUrl = new URL(`${base}ja/`, origin);
 const canonical = (lang === "en" ? englishUrl : japaneseUrl).toString();
 const ogImage = new URL(`${base}assets/og.png`, origin).toString();
 const favicon = `${base}assets/jumbleq-icon.png`;
@@ -28,7 +28,7 @@ const favicon = `${base}assets/jumbleq-icon.png`;
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang="ja" href={japaneseUrl.toString()} />
     <link rel="alternate" hreflang="en" href={englishUrl.toString()} />
-    <link rel="alternate" hreflang="x-default" href={japaneseUrl.toString()} />
+    <link rel="alternate" hreflang="x-default" href={englishUrl.toString()} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="JUMBLEQ" />
     <meta property="og:title" content={title} />
