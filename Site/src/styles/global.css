@@ -37,11 +37,14 @@ h1 em { color: var(--yellow); font-style: normal; }
 .button-ghost { backdrop-filter: blur(8px); }
 .manifesto { min-height: 60vh; padding: 120px max(24px, calc((100vw - var(--max)) / 2)); display: grid; align-content: center; background: var(--paper); color: var(--ink); }
 .manifesto .section-label { color: #6c6a62; }
-.manifesto h2 { max-width: 1100px; margin: 0; font-size: clamp(42px, 6.2vw, 90px); line-height: 1.12; letter-spacing: -.055em; }
-.concept-title-chunk { white-space: nowrap; }
+.concept-layout { margin-top: clamp(36px, 4vw, 58px); display: grid; grid-template-columns: minmax(460px, .9fr) minmax(500px, 1.1fr); align-items: start; gap: clamp(32px, 4vw, 64px); }
+.concept-copy { min-width: 0; padding-left: clamp(24px, 2vw, 32px); }
+.manifesto h2 { margin: 0; font-size: clamp(56px, 5.3vw, 78px); line-height: 1.05; letter-spacing: -.055em; }
+html[lang="ja"] .manifesto h2 { font-size: clamp(42px, 6.2vw, 90px); line-height: 1.08; }
+.concept-title-chunk { display: block; white-space: nowrap; }
 .mobile-break { display: none; }
-.concept-grid { margin-top: 90px; display: grid; grid-template-columns: minmax(280px, .7fr) minmax(520px, 1.3fr); align-items: center; gap: clamp(50px, 10vw, 150px); }
-.concept-grid > p { max-width: 520px; margin: 0; color: #4b4943; font-size: 16px; font-weight: 520; line-height: 2.05; }
+.concept-copy > p { max-width: 520px; margin: clamp(54px, 5vw, 76px) 0 0; color: #4b4943; font-size: 16px; font-weight: 520; line-height: 2.05; }
+.concept-device { width: min(100%, 620px); height: auto; margin-right: clamp(24px, 3vw, 48px); display: block; justify-self: end; filter: drop-shadow(0 24px 28px rgba(17,17,15,.16)); }
 .switch-demo { min-width: 0; }
 .switch-row { display: grid; gap: clamp(5px, .7vw, 10px); }
 .switch-row-top { width: 70%; margin: 0 auto 10px; grid-template-columns: repeat(4, 1fr); }
@@ -187,6 +190,11 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   nav a:not(.nav-cta):not(.language-switch) { display: none; }
 }
 
+@media (max-width: 980px) {
+  .concept-layout { grid-template-columns: 1fr; gap: 54px; }
+  .concept-device { width: min(85%, 620px); margin-right: 0; justify-self: center; }
+}
+
 @media (max-width: 760px) {
   .site-header { height: 70px; padding-inline: 18px; }
   .brand img { width: 165px; height: auto; }
@@ -203,8 +211,13 @@ footer { padding: 90px max(24px, calc((100vw - var(--max)) / 2)) 30px; color: va
   .hero-copy { font-size: 13px; }
   .button { min-height: 48px; padding-inline: 17px; }
   .manifesto { min-height: 70vh; padding-block: 88px; }
+  .concept-layout { margin-top: 30px; grid-template-columns: 1fr; gap: 54px; }
+  .concept-copy { padding-left: 0; }
+  .manifesto h2 { font-size: clamp(42px, 13vw, 54px); line-height: 1.08; }
+  html[lang="ja"] .manifesto h2 { font-size: clamp(31px, 8.8vw, 36px); line-height: 1.12; }
+  .concept-copy > p { margin-top: 48px; }
   .mobile-break { display: block; }
-  .concept-grid { margin-top: 54px; grid-template-columns: 1fr; gap: 54px; }
+  .concept-device { width: min(92%, 520px); margin-right: 0; justify-self: center; }
   .switch-demo { width: 100%; }
   .feature-section, .spec-section { padding-block: 90px; }
   .section-head { display: block; }
