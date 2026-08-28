@@ -1,17 +1,28 @@
-<div class="switch-demo" aria-label="磁気スイッチの操作イメージ">
+---
+interface Props {
+  lang?: "ja" | "en";
+}
+
+const { lang = "ja" } = Astro.props;
+const labels = lang === "en"
+  ? ["A fade down", "MIDI switch 1", "MIDI switch 2", "B fade down", "A fade up", "Auxiliary A/B fade down", "Auxiliary B/A fade down", "MIDI switch 4", "B fade up"]
+  : ["A フェードダウン", "MIDIスイッチ 1", "MIDIスイッチ 2", "B フェードダウン", "A フェードアップ", "補助 A/B フェードダウン", "補助 B/A フェードダウン", "MIDIスイッチ 4", "B フェードアップ"];
+---
+
+<div class="switch-demo" aria-label={lang === "en" ? "Interactive magnetic-switch layout" : "磁気スイッチの操作イメージ"}>
   <div class="switch-row switch-row-top">
-    <button class="mag-key dark" type="button" aria-label="A フェードダウン" aria-pressed="false"><span>A</span><small>FADE DOWN</small></button>
-    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 1" aria-pressed="false"><span>MIDI</span><small>CC 12</small></button>
-    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 2" aria-pressed="false"><span>MIDI</span><small>CC 13</small></button>
-    <button class="mag-key dark" type="button" aria-label="B フェードダウン" aria-pressed="false"><span>B</span><small>FADE DOWN</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[0]} aria-pressed="false"><span>A</span><small>FADE DOWN</small></button>
+    <button class="mag-key yellow" type="button" aria-label={labels[1]} aria-pressed="false"><span>MIDI</span><small>CC 12</small></button>
+    <button class="mag-key yellow" type="button" aria-label={labels[2]} aria-pressed="false"><span>MIDI</span><small>CC 13</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[3]} aria-pressed="false"><span>B</span><small>FADE DOWN</small></button>
   </div>
   <div class="switch-row switch-row-bottom">
-    <button class="mag-key dark" type="button" aria-label="A フェードアップ" aria-pressed="false"><span>A</span><small>FADE UP</small></button>
-    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 3" aria-pressed="false"><span>MIDI</span><small>CC 14</small></button>
-    <button class="mag-key dark" type="button" aria-label="補助 A/B フェードダウン" aria-pressed="false"><span>AUX</span><small>A / B</small></button>
-    <button class="mag-key dark" type="button" aria-label="補助 B/A フェードダウン" aria-pressed="false"><span>AUX</span><small>B / A</small></button>
-    <button class="mag-key yellow" type="button" aria-label="MIDIスイッチ 4" aria-pressed="false"><span>MIDI</span><small>CC 15</small></button>
-    <button class="mag-key dark" type="button" aria-label="B フェードアップ" aria-pressed="false"><span>B</span><small>FADE UP</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[4]} aria-pressed="false"><span>A</span><small>FADE UP</small></button>
+    <button class="mag-key yellow" type="button" aria-label={lang === "en" ? "MIDI switch 3" : "MIDIスイッチ 3"} aria-pressed="false"><span>MIDI</span><small>CC 14</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[5]} aria-pressed="false"><span>AUX</span><small>A / B</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[6]} aria-pressed="false"><span>AUX</span><small>B / A</small></button>
+    <button class="mag-key yellow" type="button" aria-label={labels[7]} aria-pressed="false"><span>MIDI</span><small>CC 15</small></button>
+    <button class="mag-key dark" type="button" aria-label={labels[8]} aria-pressed="false"><span>B</span><small>FADE UP</small></button>
   </div>
 </div>
 

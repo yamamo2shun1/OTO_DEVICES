@@ -4,18 +4,21 @@ import "../styles/global.css";
 interface Props {
   title: string;
   description: string;
+  lang?: "ja" | "en";
 }
 
-const { title, description } = Astro.props;
+const { title, description, lang = "ja" } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-const siteRoot = new URL(base, Astro.site ?? Astro.url);
-const canonical = siteRoot.toString();
-const ogImage = new URL("assets/og.png", siteRoot).toString();
+const origin = Astro.site ?? Astro.url;
+const japaneseUrl = new URL(base, origin);
+const englishUrl = new URL(`${base}en/`, origin);
+const canonical = (lang === "en" ? englishUrl : japaneseUrl).toString();
+const ogImage = new URL(`${base}assets/og.png`, origin).toString();
 const favicon = `${base}assets/jumbleq-icon.png`;
 ---
 
 <!doctype html>
-<html lang="ja">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,6 +26,9 @@ const favicon = `${base}assets/jumbleq-icon.png`;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="ja" href={japaneseUrl.toString()} />
+    <link rel="alternate" hreflang="en" href={englishUrl.toString()} />
+    <link rel="alternate" hreflang="x-default" href={japaneseUrl.toString()} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="JUMBLEQ" />
     <meta property="og:title" content={title} />
@@ -39,7 +45,7 @@ const favicon = `${base}assets/jumbleq-icon.png`;
     <link rel="icon" href={favicon} />
   </head>
   <body>
-    <a class="skip-link" href="#main">本文へ移動</a>
+    <a class="skip-link" href="#main">{lang === "en" ? "Skip to main content" : "本文へ移動"}</a>
     <slot />
   </body>
 </html>

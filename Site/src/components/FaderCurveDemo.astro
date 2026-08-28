@@ -1,4 +1,12 @@
-<figure class="fader-curve-demo" data-fader-curve aria-label="0%の滑らかなフェーダーカーブから100%の鋭いフェーダーカーブまで連続的に調整できるイメージ">
+---
+interface Props {
+  lang?: "ja" | "en";
+}
+
+const { lang = "ja" } = Astro.props;
+---
+
+<figure class="fader-curve-demo" data-fader-curve aria-label={lang === "en" ? "Continuous adjustment from a smooth 0% fader curve to a sharp 100% curve" : "0%の滑らかなフェーダーカーブから100%の鋭いフェーダーカーブまで連続的に調整できるイメージ"}>
   <div class="fader-curve-panels" aria-hidden="true">
     <div class="fader-curve-panel">
       <canvas data-curve="smooth"></canvas>
