@@ -10,8 +10,9 @@ export const homeCopy = {
     heroCopy: ["磁気スイッチでチャンネルフェーダーを再構築。", "直感的で予想外のプレイを。"],
     discover: "JUMBLEQを知る",
     viewGithub: "GitHubで見る",
-    conceptTitle: ["フェーダーの常識を、", "指先から変える。"],
+    conceptTitle: ["フェーダーの", "常識を、", "指先から", "変える。"],
     conceptBody: "JUMBLEQは、2本のチャンネル・フェーダーを6つの磁気スイッチで再構成した、2チャンネル・デジタルミキサー。磁気スイッチのストロークに応じた連続的な音量変化と、複数のスイッチを組み合わせた高速カットで、これまでにないプレイ体験を指先に。",
+    conceptDeviceAlt: "正面から見たJUMBLEQベータプロトタイプ",
     featuresTitle: ["セッティングも、", "思いのままに。"],
     featureTitles: ["Faderless Play", "Flexible Routing", "4-in / 4-out USB Audio", "USB Class Compliant"],
     featureBodies: [
@@ -57,6 +58,7 @@ export const homeCopy = {
     viewGithub: "View on GitHub",
     conceptTitle: ["The fader,", "reimagined."],
     conceptBody: "JUMBLEQ is a 2-channel digital mixer that reimagines two channel faders as six magnetic switches. Each switch responds continuously to how deeply it is pressed, while multi-switch combinations enable fast, precise cuts and open up entirely new ways to play.",
+    conceptDeviceAlt: "Front view of the JUMBLEQ beta prototype",
     featuresTitle: ["Set it up,", "your way."],
     featureTitles: ["Faderless Performance", "Flexible Routing", "4-in / 4-out USB Audio", "Class-Compliant USB Audio"],
     featureBodies: [

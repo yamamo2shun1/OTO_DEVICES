@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import MagneticSwitchDemo from "../components/MagneticSwitchDemo.astro";
 import FaderCurveDemo from "../components/FaderCurveDemo.astro";
 import RoutingDiagram from "../components/RoutingDiagram.astro";
 import { homeCopy, type Locale } from "../i18n/home";
@@ -49,10 +48,12 @@ const platforms = [
 
     <section class="manifesto" id="concept">
       <p class="section-label">01 / CONCEPT</p>
-      <h2><span class="concept-title-chunk">{copy.conceptTitle[0]}</span><br /><span class="concept-title-chunk">{copy.conceptTitle[1]}</span></h2>
-      <div class="concept-grid">
-        <p>{copy.conceptBody}</p>
-        <MagneticSwitchDemo {lang} />
+      <div class="concept-layout">
+        <div class="concept-copy">
+          <h2>{copy.conceptTitle.map((line) => <span class="concept-title-chunk">{line}</span>)}</h2>
+          <p>{copy.conceptBody}</p>
+        </div>
+        <img class="concept-device" src={`${base}assets/jumbleq-device-cutout.png`} width="847" height="805" alt={copy.conceptDeviceAlt} loading="lazy" decoding="async" />
       </div>
     </section>
 
