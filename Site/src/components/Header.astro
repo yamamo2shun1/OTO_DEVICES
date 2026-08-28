@@ -6,7 +6,7 @@ interface Props {
 
 const { base, lang = "ja" } = Astro.props;
 const isEnglish = lang === "en";
-const languageHref = isEnglish ? base : `${base}en/`;
+const languageHref = isEnglish ? `${base}ja/` : base;
 ---
 
 <header class="site-header">

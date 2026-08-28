@@ -8,7 +8,7 @@ import { homeCopy, type Locale } from "../i18n/home";
 import { faAndroid, faApple, faLinux, faWindows } from "@fortawesome/free-brands-svg-icons";
 
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
-const lang: Locale = Astro.url.pathname.startsWith(`${base}en/`) ? "en" : "ja";
+const lang: Locale = Astro.url.pathname.startsWith(`${base}ja/`) ? "ja" : "en";
 const copy = homeCopy[lang];
 const title = "JUMBLEQ — Faderless 2CH Digital Mixer";
 const description = copy.description;
