@@ -59,6 +59,7 @@ The Astro source is maintained in [`Site`](./Site/) and deployed to GitHub Pages
 ## Repository Contents
 
 - [`Docs`](./Docs/) — user guides, technical reference, and development notes
+- [`Site`](./Site/) — Astro source for the public JUMBLEQ website
 - [`STM32CubeIDE`](./STM32CubeIDE/) — MCU application, bootloader, and external memory loader projects
 - [`SigmaDSP`](./SigmaDSP/) — ADAU1466 DSP project and exported code
 - [`Max`](./Max/) — alternative Max Standalone and Max for Live versions of JUMBLEQ Configurator
