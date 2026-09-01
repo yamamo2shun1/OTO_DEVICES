@@ -64,6 +64,7 @@ The Astro source is maintained in [`Site`](./Site/) and deployed to GitHub Pages
 - [`SigmaDSP`](./SigmaDSP/) — ADAU1466 DSP project and exported code
 - [`Max`](./Max/) — alternative Max Standalone and Max for Live versions of JUMBLEQ Configurator
 - [`Plasticity`](./Plasticity/) — enclosure CAD data and printable parts
+- [`Logo`](./Logo/) — JUMBLEQ logo and icon artwork
 - [`UI_Design`](./UI_Design/) — panel and control-layout artwork
 
 ## Related Repositories
