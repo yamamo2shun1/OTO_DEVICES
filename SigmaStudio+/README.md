@@ -25,7 +25,7 @@ To include the updated DSP project in JUMBLEQ, copy the following generated head
 
 <img width="480" height="789" alt="ss_input1" src="https://github.com/user-attachments/assets/ecda6ea1-8714-4d81-a17d-f688ab1e55fb" />
 
-### Analog Inputs, Line/Phono Selection, and Phono EQ
+### Analog Inputs, Line/Phono Selection, Phono EQ and DVS
 
 <img width="959" height="618" alt="ss_input2" src="https://github.com/user-attachments/assets/237f5551-20a5-4e13-bc06-bc7fecabb4a5" />
 
@@ -45,7 +45,7 @@ To include the updated DSP project in JUMBLEQ, copy the following generated head
 
 <img width="406" height="403" alt="ss_read" src="https://github.com/user-attachments/assets/dcccf577-2000-42cd-9e0f-b0cc66a42b91" />
 
-### Analog Outputs
+### Analog Outputs and Dry/Wet Control
 
 <img width="961" height="795" alt="ss_output1" src="https://github.com/user-attachments/assets/9a640d63-c274-4d97-8f79-9379eed70a35" />
 
@@ -53,6 +53,6 @@ To include the updated DSP project in JUMBLEQ, copy the following generated head
 
 <img width="604" height="333" alt="ss_output2" src="https://github.com/user-attachments/assets/6afdac35-965a-4c8f-8f71-380e987fe199" />
 
-### USB Outputs
+### USB Outputs and Send Selection
 
 <img width="440" height="567" alt="ss_output3" src="https://github.com/user-attachments/assets/df4c5fbd-f2ae-49bd-9240-1a73c689411a" />
