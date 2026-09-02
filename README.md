@@ -81,4 +81,7 @@ The Astro source is maintained in [`Site`](./Site/) and deployed to GitHub Pages
 
 ## License
 
-This project is licensed under the [MIT License](./LICENSE.md).
+Unless otherwise noted below, this project is licensed under the [MIT License](./LICENSE.md).
+
+- Hardware design sources in [`Plasticity`](./Plasticity/) are licensed under the [CERN Open Hardware Licence Version 2 – Permissive](./Plasticity/LICENSE) (`CERN-OHL-P-2.0`).
+- Panel and control-layout design sources in [`UI_Design`](./UI_Design/) are licensed under the [CERN Open Hardware Licence Version 2 – Permissive](./UI_Design/LICENSE) (`CERN-OHL-P-2.0`).
