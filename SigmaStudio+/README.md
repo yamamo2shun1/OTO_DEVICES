@@ -1,6 +1,6 @@
-# JUMBLEQ SigmaStudio+ Project
+# SigmaStudio+ Project
 
-This directory contains the SigmaStudio+ project and generated files for the JUMBLEQ ADAU1466 DSP.
+This directory contains the SigmaStudio+ project and generated files for the SigmaDSP ADAU1466.
 
 ## Updating the DSP Project
 
