@@ -19,6 +19,26 @@ To include the updated DSP project in JUMBLEQ, copy the following generated head
 - `JUMBLEQ_DSP_ADAU146xSchematic_1_Defines.h`
 - `JUMBLEQ_DSP_ADAU146xSchematic_1_PARAM.h`
 
+## Sample Rate and ASRC Routing
+
+The ADAU1466 DSP core and the AK4619 audio codec interface always operate at 96 kHz. The STM32-to-ADAU1466 serial audio interface follows the USB Audio sample rate and operates at either 48 kHz or 96 kHz.
+
+At 48 kHz, the ADAU1466 ASRCs convert both directions between the STM32-side 48 kHz domain and the DSP-core 96 kHz domain:
+
+```text
+STM32 48 kHz -> ASRC input  -> DSP core 96 kHz
+STM32 48 kHz <- ASRC output <- DSP core 96 kHz
+```
+
+At 96 kHz, the STM32 serial interface and DSP core run at the same sample rate, so the firmware selects the direct paths and bypasses the ASRCs:
+
+```text
+STM32 96 kHz -> DSP core 96 kHz
+STM32 96 kHz <- DSP core 96 kHz
+```
+
+The firmware changes only the STM32-side serial clock and the ASRC/direct routing when the USB sample rate changes. It does not reload the SigmaStudio+ program or change the DSP-core or AK4619 sample rate. Therefore, keep the SigmaStudio+ project configured for 96 kHz and preserve both the direct and ASRC signal paths when modifying the schematic.
+
 ## DSP Schematic
 
 ### USB Inputs
