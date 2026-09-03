@@ -2129,6 +2129,17 @@ static float get_ch_fader_pair_fade_up_raw(const ch_fader_pair_runtime_t* pair)
     return apply_ch_fader_pair_onset_deadband(pair->fade_up_idx, s_ui.ch_fader.raw[pair->fade_up_idx]);
 }
 
+static bool is_ch_fader_pair_reverse_enabled(const ch_fader_pair_runtime_t* pair)
+{
+    return (pair->prev_idx == CH_FADER_PAIR_A) ? s_ui.ch_fader_reverse_a : s_ui.ch_fader_reverse_b;
+}
+
+static float apply_ch_fader_pair_reverse(const ch_fader_pair_runtime_t* pair, float value)
+{
+    value = clamp01(value);
+    return is_ch_fader_pair_reverse_enabled(pair) ? (1.0f - value) : value;
+}
+
 // Update the held output value for one ch_fader pair.
 //
 // The output is not a direct mix of sensors. Fade-up can raise the held value,
@@ -2423,7 +2434,7 @@ static void update_ch_fader_pair_output(const ch_fader_pair_runtime_t* pair)
 
     if (fade_changed)
     {
-        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
         const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
         // Quantized position gate avoids redundant SPI writes.
         if (ch_fader_cc != *pair->current_position)
@@ -2472,7 +2483,7 @@ void ui_control_reapply_ch_fader_outputs(void)
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
         const ch_fader_pair_runtime_t* pair = &s_ch_fader_pairs[i];
-        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
         const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
 
         pair->set_dc(ch_fader_value);
@@ -2601,6 +2612,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
     if ((program == CH_FADER_REVERSE_A_OFF) || (program == CH_FADER_REVERSE_A_ON))
     {
         s_ui.ch_fader_reverse_a = (program == CH_FADER_REVERSE_A_ON);
+        ui_control_reapply_ch_fader_outputs();
         SEGGER_RTT_printf(0, "Channel fader A Reverse: %s (PC%u)\r\n", s_ui.ch_fader_reverse_a ? "ON" : "OFF", (unsigned) program);
         return true;
     }
@@ -2608,6 +2620,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
     if ((program == CH_FADER_REVERSE_B_OFF) || (program == CH_FADER_REVERSE_B_ON))
     {
         s_ui.ch_fader_reverse_b = (program == CH_FADER_REVERSE_B_ON);
+        ui_control_reapply_ch_fader_outputs();
         SEGGER_RTT_printf(0, "Channel fader B Reverse: %s (PC%u)\r\n", s_ui.ch_fader_reverse_b ? "ON" : "OFF", (unsigned) program);
         return true;
     }
@@ -2913,6 +2926,8 @@ void ui_control_reset_state(void)
     s_ui.sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B;
     s_ui.ch_fader_curve_width_a    = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT;
     s_ui.ch_fader_curve_width_b    = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT;
+    s_ui.ch_fader_reverse_a     = false;
+    s_ui.ch_fader_reverse_b     = false;
     s_ui.curve_edit_mode        = false;
     s_ui.ch_fader.position_a          = 0;
     s_ui.ch_fader.position_b          = 0;
