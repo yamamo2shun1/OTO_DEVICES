@@ -213,9 +213,11 @@ static const float CH_FADER_PAIR_FADE_DOWN_PRESS_THRESHOLD     = 0.95f;
 static const float CH_FADER_PAIR_FADE_DOWN_DEEPER_DELTA        = 0.03f;
 static const float CH_FADER_PAIR_CURVE_WIDTH_MIN   = 0.02f;
 static const float CH_FADER_PAIR_CURVE_WIDTH_MAX   = 0.60f;
-static const float CH_FADER_PAIR_RAMP_LINEAR_BLEND = 0.60f;
-static const float CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO = 0.125f;
-static const float CH_FADER_PAIR_BOTTOM_REHOLD_RATIO       = 0.04f;
+// At the maximum curve setting, 2% key travel reaches 90% output.
+static const float CH_FADER_PAIR_CURVE_EXPONENT_MAX = 115.12925465f;
+static const float CH_FADER_PAIR_CURVE_LINEAR_EPSILON = 0.0001f;
+static const float CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_THRESHOLD = 0.0025f;
+static const float CH_FADER_PAIR_BOTTOM_REHOLD_THRESHOLD       = 0.0008f;
 
 static const uint8_t MIDI_CH_15                  = 14U;  // zero-based MIDI channel index.
 static const uint8_t MIDI_CC_CH_FADER_CURVE_A        = 20U;
@@ -1732,7 +1734,7 @@ static int8_t get_pair_fade_up_index_from_down(uint8_t fade_down_idx)
 }
 
 // Add a small touch-onset deadband for pair tracking so untouched sensors do not
-// perturb the held channel fader state when the curve width is narrow.
+// perturb the held channel fader state at extreme curve settings.
 static float apply_ch_fader_pair_onset_deadband(uint8_t i, float raw)
 {
     if (raw < 0.0f)
@@ -1946,24 +1948,52 @@ static float clamp01(float value)
     return value;
 }
 
-static float compute_ch_fader_pair_threshold_ramp(float value, float threshold, float width)
+// Convert MIDI's unipolar 0..127 curve setting into a bipolar amount while
+// keeping CC64 exactly linear. Negative values rise near the end of travel;
+// positive values rise near the start.
+static float midi_cc_to_ch_fader_curve_amount(uint8_t value)
 {
-    if (width <= 0.0f)
+    if (value <= 64U)
     {
-        return (value >= threshold) ? 1.0f : 0.0f;
+        return ((float) value - 64.0f) / 64.0f;
     }
 
-    const float t = clamp01((value - threshold) / width);
-    const float smootherstep = t * t * t * (t * ((t * 6.0f) - 15.0f) + 10.0f);
-    return (CH_FADER_PAIR_RAMP_LINEAR_BLEND * t) + ((1.0f - CH_FADER_PAIR_RAMP_LINEAR_BLEND) * smootherstep);
+    return ((float) value - 64.0f) / 63.0f;
+}
+
+// Stable early-rise exponential curve: (1 - exp(-k*t)) / (1 - exp(-k)).
+// The late-rise side is produced by point reflection, avoiding exp(+k) and
+// preserving exact symmetry between the two curve extremes.
+static float compute_ch_fader_exponential_curve(float position, float curve_amount)
+{
+    const float t = clamp01(position);
+    const float magnitude = fabsf(curve_amount);
+
+    if (magnitude <= CH_FADER_PAIR_CURVE_LINEAR_EPSILON)
+    {
+        return t;
+    }
+
+    const float k = CH_FADER_PAIR_CURVE_EXPONENT_MAX * magnitude;
+    const float denominator = -expm1f(-k);
+    float result;
+
+    if (curve_amount > 0.0f)
+    {
+        result = -expm1f(-k * t) / denominator;
+    }
+    else
+    {
+        result = 1.0f - (-expm1f(-k * (1.0f - t)) / denominator);
+    }
+
+    return clamp01(result);
 }
 
 float ui_control_evaluate_ch_fader_curve_preview(uint8_t cc_value, float normalized_preview_position)
 {
-    const float width = midi_cc_to_ch_fader_curve_width(cc_value);
-    const float position = clamp01(normalized_preview_position) * CH_FADER_PAIR_CURVE_WIDTH_MAX;
-
-    return compute_ch_fader_pair_threshold_ramp(position, 0.0f, width);
+    const float curve_amount = midi_cc_to_ch_fader_curve_amount(cc_value);
+    return compute_ch_fader_exponential_curve(normalized_preview_position, curve_amount);
 }
 
 // Fade-down sensors idle near 1.0 and move toward 0.0 when pressed.
@@ -2156,20 +2186,18 @@ static float compute_ch_fader_pair_value(const ch_fader_pair_runtime_t* pair)
     // - when fade-down owns a two-finger gesture, fade-up stays open at the
     //   top and cuts when it backs away from the top
     const float curve_width = (pair->prev_idx == CH_FADER_PAIR_A) ? s_ui.ch_fader_curve_width_a : s_ui.ch_fader_curve_width_b;
-    const float width       = clamp_ch_fader_curve_width(curve_width);
+    const uint8_t curve_cc  = ch_fader_curve_width_to_midi_cc(curve_width);
+    const float curve_amount = midi_cc_to_ch_fader_curve_amount(curve_cc);
     const float fade_up          = get_ch_fader_pair_fade_up_raw(pair);
     const float fade_down        = get_ch_fader_pair_fade_down_raw(pair);
-    // fade-up opens across the first curve-width slice of travel after onset deadband.
-    const float up_open_threshold             = 0.0f;
-    // fade-down starts cutting once the sensor moves this far from its unpressed (1.0) position.
-    const float down_press_threshold           = 1.0f - width;
-    // "Bottomed" means the fade-down side reached near-bottom during the current gesture.
-    const float down_bottom_threshold       = width * 0.5f;
-    const float down_bottom_hold_release_threshold = width * CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO;
-    const float down_bottom_rehold_threshold       = width * CH_FADER_PAIR_BOTTOM_REHOLD_RATIO;
-    const float up_top_threshold            = 1.0f - (width * 0.5f);
-    const float up_top_hold_release_threshold = 1.0f - (width * CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_RATIO);
-    const float up_top_rehold_threshold       = 1.0f - (width * CH_FADER_PAIR_BOTTOM_REHOLD_RATIO);
+    // Bottom/top gesture states now follow the physical endpoints instead of
+    // the curve setting, so CC64 remains linear across the complete travel.
+    const float down_bottom_threshold       = 0.0f;
+    const float down_bottom_hold_release_threshold = CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_THRESHOLD;
+    const float down_bottom_rehold_threshold       = CH_FADER_PAIR_BOTTOM_REHOLD_THRESHOLD;
+    const float up_top_threshold            = 1.0f;
+    const float up_top_hold_release_threshold = 1.0f - CH_FADER_PAIR_BOTTOM_HOLD_RELEASE_THRESHOLD;
+    const float up_top_rehold_threshold       = 1.0f - CH_FADER_PAIR_BOTTOM_REHOLD_THRESHOLD;
     // After bottoming out, ignore further fade-down cuts until the sensor returns to unpressed.
     const float down_bottom_release_threshold = 1.0f;
     bool cut_active         = s_ui.ch_fader.pair_fade_down_cut_active[pair->prev_idx];
@@ -2183,8 +2211,8 @@ static float compute_ch_fader_pair_value(const ch_fader_pair_runtime_t* pair)
     float hold_value        = s_ui.ch_fader.pair_hold_value[pair->prev_idx];
     float restore_value     = s_ui.ch_fader.pair_bottom_restore_value[pair->prev_idx];
     float top_restore_value = s_ui.ch_fader.pair_top_restore_value[pair->prev_idx];
-    const float up_gain     = compute_ch_fader_pair_threshold_ramp(fade_up, up_open_threshold, width);
-    const float down_gain   = compute_ch_fader_pair_threshold_ramp(fade_down, down_press_threshold, width);
+    const float up_gain     = compute_ch_fader_exponential_curve(fade_up, curve_amount);
+    const float down_gain   = 1.0f - compute_ch_fader_exponential_curve(1.0f - fade_down, curve_amount);
     const bool fade_up_active = (up_gain > 0.0f);
     const bool fade_down_released = (fade_down >= CH_FADER_PAIR_RESET_THRESHOLD);
     const bool fade_down_pressed = !fade_down_released;
@@ -2290,7 +2318,7 @@ static float compute_ch_fader_pair_value(const ch_fader_pair_runtime_t* pair)
     reverse_fade_down_takeover = false;
 
     // Capture the value to restore if this fade-down gesture reaches bottom.
-    if (!cut_active && (fade_down <= down_press_threshold))
+    if (!cut_active && fade_down_pressed)
     {
         cut_active    = true;
         restore_value = fade_up_active ? hold_value : 0.0f;

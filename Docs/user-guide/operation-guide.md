@@ -95,10 +95,11 @@ The fader curve determines how the key travel of a fade switch is converted to t
 
 | Setting | Response | Style |
 |---|---|---|
-| 0% | Widest and most gradual response across the key travel. | Mixing |
-| 100% | Narrowest response and sharpest cut. | Scratching |
+| 0% | Late-rise response: most of the level change occurs near the end of the key travel. | Long-transition effects |
+| 50% | Linear response across the full key travel. | Mixing |
+| 100% | Early-rise response: the level rises sharply near the start of the key travel. | Scratching |
 
-Intermediate settings progressively change the response between these two extremes. The corresponding curve applies to the fade-up and fade-down switches, including any auxiliary fade-down switch assigned to that Channel Fader.
+Intermediate settings follow a continuous exponential curve. The 0% and 100% responses are exact point reflections of one another around the 50% linear response. The corresponding curve applies to the fade-up and fade-down switches, including any auxiliary fade-down switch assigned to that Channel Fader.
 
 ### Fade-down Direction
 
