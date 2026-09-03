@@ -65,9 +65,10 @@ Control Change messages are accepted only when all of the following conditions a
 
 Curve response:
 
-- `0` selects the widest, most gradual curve.
-- `127` selects the narrowest, sharpest curve.
-- Increasing the CC value makes the curve sharper.
+- `0` selects the strongest late-rise curve; the level changes mainly near the end of the key travel.
+- `64` selects an exactly linear response across the full key travel.
+- `127` selects the strongest early-rise curve; the level changes sharply near the start of the key travel.
+- The late- and early-rise families use point-reflected exponential curves.
 - The default value is `64` for both Channel Faders A and B.
 
 ## 4. `curve_edit_mode` (Channel Fader Curve Edit Mode) Behavior
@@ -96,4 +97,4 @@ Curve response:
 
 - Channel values in the implementation are zero-based (for example, `14` = MIDI Ch. 15).
 - The Ch. 15 restrictions for incoming Program Change and Control Change messages are checked in their respective dispatch functions.
-- Internally, each CC value is mapped inversely to a normalized curve width from `0.60` (gradual) to `0.02` (sharp). EEPROM stores this width together with the independently controlled Direction flags for Channel Faders A and B.
+- Internally, `CC64` maps to zero exponential curvature. Values below it produce negative (late-rise) curvature, and values above it produce positive (early-rise) curvature. The maximum curvature is calibrated so the `CC127` response reaches 90% output at 2% key travel. EEPROM retains the legacy normalized-width representation for backward compatibility; that stored value is converted back to its CC value before the exponential curve is evaluated.

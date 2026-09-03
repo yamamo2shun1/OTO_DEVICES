@@ -6,16 +6,16 @@ interface Props {
 const { lang = "ja" } = Astro.props;
 ---
 
-<figure class="fader-curve-demo" data-fader-curve aria-label={lang === "en" ? "Continuous adjustment from a smooth 0% fader curve to a sharp 100% curve" : "0%の滑らかなフェーダーカーブから100%の鋭いフェーダーカーブまで連続的に調整できるイメージ"}>
+<figure class="fader-curve-demo" data-fader-curve aria-label={lang === "en" ? "Continuous adjustment from a late-rise 0% fader curve through linear at 50% to an early-rise 100% curve" : "0%の後半立ち上がりカーブから50%のリニアを経て100%の前半立ち上がりカーブまで連続的に調整できるイメージ"}>
   <div class="fader-curve-panels" aria-hidden="true">
     <div class="fader-curve-panel">
-      <canvas data-curve="smooth"></canvas>
-      <span>0% SMOOTH</span>
+      <canvas data-curve="late"></canvas>
+      <span>0% LATE</span>
     </div>
     <i>↔</i>
     <div class="fader-curve-panel">
-      <canvas data-curve="sharp"></canvas>
-      <span>100% SHARP</span>
+      <canvas data-curve="early"></canvas>
+      <span>100% EARLY</span>
     </div>
   </div>
   <figcaption><i></i><span>CONTINUOUS ADJUSTMENT</span><i></i></figcaption>
@@ -28,9 +28,10 @@ const { lang = "ja" } = Astro.props;
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const smoothstep = (start: number, end: number, input: number) => {
-      const amount = Math.max(0, Math.min(1, (input - start) / (end - start)));
-      return amount * amount * (3 - 2 * amount);
+    const earlyCurve = (input: number) => {
+      const exponent = 115.12925465;
+      const amount = Math.max(0, Math.min(1, input));
+      return -Math.expm1(-exponent * amount) / -Math.expm1(-exponent);
     };
 
     const draw = () => {
@@ -61,12 +62,11 @@ const { lang = "ja" } = Astro.props;
       const inset = 7;
       const graphWidth = width - inset * 2;
       const graphHeight = height - inset * 2;
-      const transition = canvas.dataset.curve === "sharp" ? 0.07 : 1;
 
       context.beginPath();
       for (let pixel = 0; pixel <= graphWidth; pixel += 2) {
         const x = pixel / graphWidth;
-        const level = smoothstep(0, transition, x);
+        const level = canvas.dataset.curve === "early" ? earlyCurve(x) : 1 - earlyCurve(1 - x);
         const drawX = inset + pixel;
         const drawY = inset + graphHeight * (1 - level);
         if (pixel === 0) context.moveTo(drawX, drawY);

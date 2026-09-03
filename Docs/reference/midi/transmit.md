@@ -62,7 +62,7 @@ The dump contains exactly one value from each Direction pair: `PC31` (Normal) or
 
 | CC Number | Meaning |
 |---:|---|
-| 20 | `XFADE_CURVE_A` (`0` = most gradual, `127` = sharpest) |
-| 21 | `XFADE_CURVE_B` (`0` = most gradual, `127` = sharpest) |
+| 20 | `XFADE_CURVE_A` (`0` = strongest late rise, `64` = linear, `127` = strongest early rise) |
+| 21 | `XFADE_CURVE_B` (`0` = strongest late rise, `64` = linear, `127` = strongest early rise) |
 
 These values use the same scale as incoming curve-edit Control Change messages, allowing the host to restore the current settings directly.

@@ -34,7 +34,7 @@ typedef struct
     float current_ch_fader_curve_width_b;
 } UI_ControlPersistState_t;
 
-/* Configurator 50% -> MIDI CC64 -> internal curve width 0.30771654. */
+/* Legacy EEPROM representation: Configurator 50% -> MIDI CC64 -> width 0.30771654. */
 #define UI_CH_FADER_CURVE_WIDTH_A_DEFAULT (0.30771654f)
 #define UI_CH_FADER_CURVE_WIDTH_B_DEFAULT (0.30771654f)
 
