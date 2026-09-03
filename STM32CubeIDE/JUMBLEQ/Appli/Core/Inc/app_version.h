@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #define APP_VERSION_MAJOR 0
-#define APP_VERSION_MINOR 12
-#define APP_VERSION_PATCH 1
+#define APP_VERSION_MINOR 13
+#define APP_VERSION_PATCH 0
 
 #define APP_VERSION_STR_HELPER(x) #x
 #define APP_VERSION_STR_VALUE(x)  APP_VERSION_STR_HELPER(x)
