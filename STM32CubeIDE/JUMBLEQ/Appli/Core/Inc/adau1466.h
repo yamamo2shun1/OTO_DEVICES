@@ -59,6 +59,10 @@ enum
     CH_FADER_AUX_SENSOR2_TO_B  = 28,
     CH_FADER_AUX_SENSOR3_TO_A  = 29,
     CH_FADER_AUX_SENSOR3_TO_B  = 30,
+    CH_FADER_REVERSE_A_OFF     = 31,
+    CH_FADER_REVERSE_A_ON      = 32,
+    CH_FADER_REVERSE_B_OFF     = 33,
+    CH_FADER_REVERSE_B_ON      = 34,
 };
 
 enum

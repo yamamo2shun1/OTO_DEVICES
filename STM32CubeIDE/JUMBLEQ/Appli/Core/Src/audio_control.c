@@ -242,6 +242,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
+        ui_state.ch_fader_reverse_a = (cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_A) != 0U;
+        ui_state.ch_fader_reverse_b = (cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_B) != 0U;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
         ui_state.current_ch_fader_curve_width_a = cfg.current_ch_fader_curve_width_a;
         ui_state.current_ch_fader_curve_width_b = cfg.current_ch_fader_curve_width_b;
@@ -249,7 +251,7 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         if (ui_control_apply_persist_state(&ui_state))
         {
             SEGGER_RTT_printf(0,
-                              "EEPROM routing applied: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n",
+                              "EEPROM routing applied: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u REVERSE_A=%u REVERSE_B=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n",
                               (unsigned)cfg.current_ch1_input_type,
                               (unsigned)cfg.current_ch2_input_type,
                               (unsigned)cfg.current_ch_fader_a_assign,
@@ -261,6 +263,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
                               (unsigned)cfg.current_ch2_dvs_enable,
                               (unsigned)cfg.sensor2_aux_fade_down_assign,
                               (unsigned)cfg.sensor3_aux_fade_down_assign,
+                              (unsigned)ui_state.ch_fader_reverse_a,
+                              (unsigned)ui_state.ch_fader_reverse_b,
                               (double)cfg.current_ch_fader_curve_width_a,
                               (double)cfg.current_ch_fader_curve_width_b);
         }
@@ -283,6 +287,8 @@ void AUDIO_LoadAndApplyRoutingFromEEPROM(void)
         ui_state.current_ch2_dvs_enable = cfg.current_ch2_dvs_enable;
         ui_state.sensor2_aux_fade_down_assign = cfg.sensor2_aux_fade_down_assign;
         ui_state.sensor3_aux_fade_down_assign = cfg.sensor3_aux_fade_down_assign;
+        ui_state.ch_fader_reverse_a = (cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_A) != 0U;
+        ui_state.ch_fader_reverse_b = (cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_B) != 0U;
         ui_state.mag_out_as_note = (cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U;
         ui_state.current_ch_fader_curve_width_a = cfg.current_ch_fader_curve_width_a;
         ui_state.current_ch_fader_curve_width_b = cfg.current_ch_fader_curve_width_b;

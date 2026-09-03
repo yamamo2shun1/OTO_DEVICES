@@ -27,7 +27,9 @@ typedef struct
     uint8_t current_ch2_dvs_enable;
     uint8_t sensor2_aux_fade_down_assign;
     uint8_t sensor3_aux_fade_down_assign;
-    bool  mag_out_as_note;
+    bool ch_fader_reverse_a;
+    bool ch_fader_reverse_b;
+    bool mag_out_as_note;
     float current_ch_fader_curve_width_a;
     float current_ch_fader_curve_width_b;
 } UI_ControlPersistState_t;
@@ -59,6 +61,8 @@ uint8_t get_current_input_srcA_channel(void);  // 0:none, 1:CH1, 2:CH2
 uint8_t get_current_input_srcB_channel(void);  // 0:none, 1:CH1, 2:CH2
 bool get_current_ch1_dvs_enabled(void);
 bool get_current_ch2_dvs_enabled(void);
+bool ui_control_is_ch_fader_reverse_a_enabled(void);
+bool ui_control_is_ch_fader_reverse_b_enabled(void);
 bool ui_control_is_curve_edit_mode_enabled(void);
 uint8_t ui_control_get_ch_fader_curve_a_cc(void);
 uint8_t ui_control_get_ch_fader_curve_b_cc(void);
