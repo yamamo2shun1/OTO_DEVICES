@@ -1,6 +1,6 @@
 # MIDI Receive Specification
 
-This document describes the MIDI receive specification based on the `JUMBLEQ/Appli/Core` implementation as of August 2026.
+This document describes the MIDI receive specification based on the `JUMBLEQ/Appli/Core` implementation as of September 2026.
 
 ## 1. Overview
 
@@ -29,6 +29,8 @@ This document describes the MIDI receive specification based on the `JUMBLEQ/App
 | 23/24/25/26 | Select the headphone output source (FADER_A / FADER_B / THRU / MASTER). |
 | 27/28 | Assign magnetic switch 2 to the auxiliary fade-down function for Channel Fader A or B. |
 | 29/30 | Assign magnetic switch 3 to the auxiliary fade-down function for Channel Fader A or B. |
+| 31/32 | Set the Channel Fader A direction (Normal / Reverse). |
+| 33/34 | Set the Channel Fader B direction (Normal / Reverse). |
 | 120/121 | Disable or enable Channel Fader curve edit mode. |
 | 122/123 | Select the output mode (CC / Note) for magnetic controls and channel fader sensors. |
 | 126 | Transmit a dump of the parameters currently configured on the device. |
@@ -39,7 +41,9 @@ Notes:
 - `PC22` selects `None`, which disables the Return signal path.
 - Auxiliary fade-down assignments for magnetic switches 2 and 3 take effect immediately when the Program Change message is received.
 - The default assignments are Channel Fader A for magnetic switch 2 and Channel Fader B for magnetic switch 3.
-- `PC127` saves the complete device configuration listed in Section 5 to EEPROM, including the DVS enable states, Return and headphone source assignments, magnetic output mode, auxiliary fade-down assignments, and curves for Channel Faders A and B.
+- Direction can be configured independently for Channel Faders A and B and takes effect immediately. The default is Normal for both faders.
+- Reverse inverts the final fader response for Fade Up and all Fade Down controls assigned to that fader, including auxiliary Fade Down controls. It does not change the live MIDI values transmitted by the individual magnetic sensors.
+- `PC127` saves the complete device configuration listed in Section 5 to EEPROM, including the DVS enable states, Return and headphone source assignments, magnetic output mode, auxiliary fade-down assignments, Direction settings, and curves for Channel Faders A and B.
 - `PC126` transmits the **current operating state (parameters eligible for saving)** rather than reading and transmitting the EEPROM contents.
 
 ## 3. Control Change (Host -> Device)
@@ -84,11 +88,12 @@ Curve response:
   - Headphone output source
   - Magnetic output mode (CC / Note)
   - Auxiliary fade-down assignments for magnetic switches 2 and 3
+  - Direction settings (Normal / Reverse) for Channel Faders A/B
   - Curve settings for Channel Faders A/B
-- EEPROM record version: `0x0006`
+- EEPROM record version: `0x0007`
 
 ## 6. Implementation Notes
 
 - Channel values in the implementation are zero-based (for example, `14` = MIDI Ch. 15).
 - The Ch. 15 restrictions for incoming Program Change and Control Change messages are checked in their respective dispatch functions.
-- Internally, each CC value is mapped inversely to a normalized curve width from `0.60` (gradual) to `0.02` (sharp). EEPROM stores this width without changing the existing record layout or version.
+- Internally, each CC value is mapped inversely to a normalized curve width from `0.60` (gradual) to `0.02` (sharp). EEPROM stores this width together with the independently controlled Direction flags for Channel Faders A and B.

@@ -1,6 +1,6 @@
 # MIDI Transmit Specification
 
-This document describes the MIDI transmit specification based on the `JUMBLEQ/Appli/Core` implementation as of August 2026.
+This document describes the MIDI transmit specification based on the `JUMBLEQ/Appli/Core` implementation as of September 2026.
 
 ## 1. Overview
 
@@ -52,7 +52,11 @@ When the device receives `PC126` on Ch. 15 from the host, it sends the current v
 | 23/24/25/26 | Headphone output source (FADER_A / FADER_B / THRU / MASTER) |
 | 27/28 | Auxiliary fade-down assignment for magnetic switch 2 (Channel Fader A/B) |
 | 29/30 | Auxiliary fade-down assignment for magnetic switch 3 (Channel Fader A/B) |
+| 31/32 | Channel Fader A direction (Normal / Reverse) |
+| 33/34 | Channel Fader B direction (Normal / Reverse) |
 | 122/123 | Output mode for magnetic controls and channel fader sensors (CC / Note) |
+
+The dump contains exactly one value from each Direction pair: `PC31` (Normal) or `PC32` (Reverse) for Channel Fader A, followed by `PC33` (Normal) or `PC34` (Reverse) for Channel Fader B.
 
 ### 4.2 Control Change (Device -> Host, Ch. 15)
 
