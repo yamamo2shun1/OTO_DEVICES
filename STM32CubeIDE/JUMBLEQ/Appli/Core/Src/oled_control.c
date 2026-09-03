@@ -104,6 +104,45 @@ static void update_sub_dvs_badge(bool show, bool enabled, uint8_t x, uint8_t y, 
     merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, 0, 1);
 }
 
+static void update_sub_reverse_indicators(bool reverse_a, bool reverse_b, bool* prev_reverse_a, bool* prev_reverse_b, bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page)
+{
+    if (*prev_reverse_a != reverse_a)
+    {
+        sub_oled_FillRectangle(0, 15, 55, 26, Black);
+        if (reverse_a)
+        {
+            sub_oled_SetCursor(0, 17);
+            sub_oled_WriteString("R", Font_7x10, White);
+            sub_oled_FillRectangle(8, 22, 55, 20, White);
+        }
+        else
+        {
+            sub_oled_FillRectangle(5, 22, 55, 20, White);
+        }
+
+        *prev_reverse_a = reverse_a;
+        merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, 1, 3);
+    }
+
+    if (*prev_reverse_b != reverse_b)
+    {
+        sub_oled_FillRectangle(73, 15, 127, 26, Black);
+        if (reverse_b)
+        {
+            sub_oled_FillRectangle(73, 22, 119, 20, White);
+            sub_oled_SetCursor(121, 17);
+            sub_oled_WriteString("R", Font_7x10, White);
+        }
+        else
+        {
+            sub_oled_FillRectangle(73, 22, 123, 20, White);
+        }
+
+        *prev_reverse_b = reverse_b;
+        merge_dirty_pages(dirty, dirty_start_page, dirty_end_page, 1, 3);
+    }
+}
+
 static void update_sub_bottom_status(char* prev_srcP, size_t prev_srcP_size, char* prev_hp_src, size_t prev_hp_src_size, const char* srcP, const char* hp_src, bool* dirty, uint8_t* dirty_start_page, uint8_t* dirty_end_page)
 {
     const bool srcP_changed   = (strcmp(prev_srcP, srcP) != 0);
@@ -255,6 +294,8 @@ void OLED_UpdateTask(void)
     static bool prev_dvsA_enabled       = false;
     static bool prev_dvsB_show          = false;
     static bool prev_dvsB_enabled       = false;
+    static bool prev_reverse_a          = false;
+    static bool prev_reverse_b          = false;
     static bool sub_initialized         = false;
     bool dirty                          = false;
     uint8_t dirty_start_page            = 0xFF;
@@ -421,6 +462,13 @@ void OLED_UpdateTask(void)
     update_sub_text_block(prev_typeA, sizeof(prev_typeA), typeA, 0, 30, 55, 39, 1, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_text_block(prev_typeB, sizeof(prev_typeB), typeB, 73, 30, 127, 39, 77, 30, 3, 4, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
     update_sub_bottom_status(prev_srcP, sizeof(prev_srcP), prev_hp_src, sizeof(prev_hp_src), srcP, hpSrc, &sub_dirty, &sub_dirty_start_page, &sub_dirty_end_page);
+    update_sub_reverse_indicators(ui_control_is_ch_fader_reverse_a_enabled(),
+                                  ui_control_is_ch_fader_reverse_b_enabled(),
+                                  &prev_reverse_a,
+                                  &prev_reverse_b,
+                                  &sub_dirty,
+                                  &sub_dirty_start_page,
+                                  &sub_dirty_end_page);
 
     uint8_t srcA_channel = get_current_input_srcA_channel();
     bool srcA_show_dvs   = (srcA_channel != 0U);

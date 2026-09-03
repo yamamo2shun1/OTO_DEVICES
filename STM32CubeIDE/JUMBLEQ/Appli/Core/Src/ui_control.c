@@ -146,6 +146,8 @@ typedef struct
     ch_fader_state_t ch_fader;
     float ch_fader_curve_width_a;
     float ch_fader_curve_width_b;
+    bool ch_fader_reverse_a;
+    bool ch_fader_reverse_b;
     bool mag_out_as_note;
     bool curve_edit_mode;
     bool is_start_audio_control;
@@ -165,6 +167,8 @@ static ui_control_state_t s_ui = {
     .sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B,
     .ch_fader_curve_width_a    = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT,
     .ch_fader_curve_width_b    = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT,
+    .ch_fader_reverse_a     = false,
+    .ch_fader_reverse_b     = false,
     .mag_out_as_note        = false,
     .curve_edit_mode        = false,
     .ch_fader.position_a          = 0,
@@ -830,6 +834,16 @@ bool get_current_ch2_dvs_enabled(void)
     return (s_ui.current_ch2_dvs_enable != 0U);
 }
 
+bool ui_control_is_ch_fader_reverse_a_enabled(void)
+{
+    return s_ui.ch_fader_reverse_a;
+}
+
+bool ui_control_is_ch_fader_reverse_b_enabled(void)
+{
+    return s_ui.ch_fader_reverse_b;
+}
+
 bool ui_control_is_curve_edit_mode_enabled(void)
 {
     return s_ui.curve_edit_mode;
@@ -1293,6 +1307,8 @@ static void send_midi_config_dump(const EEPROM_DeviceConfig_t* cfg)
     send_program_change(midi_program_for_dvs(INPUT_CH2, cfg->current_ch2_dvs_enable), MIDI_CH_15);
     send_program_change(midi_program_for_ch_fader_aux_assignment(2U, cfg->sensor2_aux_fade_down_assign), MIDI_CH_15);
     send_program_change(midi_program_for_ch_fader_aux_assignment(3U, cfg->sensor3_aux_fade_down_assign), MIDI_CH_15);
+    send_program_change((cfg->ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_A) != 0U ? CH_FADER_REVERSE_A_ON : CH_FADER_REVERSE_A_OFF, MIDI_CH_15);
+    send_program_change((cfg->ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_B) != 0U ? CH_FADER_REVERSE_B_ON : CH_FADER_REVERSE_B_OFF, MIDI_CH_15);
     send_control_change(MIDI_CC_CH_FADER_CURVE_A, ch_fader_curve_width_to_midi_cc(cfg->current_ch_fader_curve_width_a), MIDI_CH_15);
     send_control_change(MIDI_CC_CH_FADER_CURVE_B, ch_fader_curve_width_to_midi_cc(cfg->current_ch_fader_curve_width_b), MIDI_CH_15);
     if ((cfg->mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U)
@@ -2113,6 +2129,17 @@ static float get_ch_fader_pair_fade_up_raw(const ch_fader_pair_runtime_t* pair)
     return apply_ch_fader_pair_onset_deadband(pair->fade_up_idx, s_ui.ch_fader.raw[pair->fade_up_idx]);
 }
 
+static bool is_ch_fader_pair_reverse_enabled(const ch_fader_pair_runtime_t* pair)
+{
+    return (pair->prev_idx == CH_FADER_PAIR_A) ? s_ui.ch_fader_reverse_a : s_ui.ch_fader_reverse_b;
+}
+
+static float apply_ch_fader_pair_reverse(const ch_fader_pair_runtime_t* pair, float value)
+{
+    value = clamp01(value);
+    return is_ch_fader_pair_reverse_enabled(pair) ? (1.0f - value) : value;
+}
+
 // Update the held output value for one ch_fader pair.
 //
 // The output is not a direct mix of sensors. Fade-up can raise the held value,
@@ -2407,7 +2434,7 @@ static void update_ch_fader_pair_output(const ch_fader_pair_runtime_t* pair)
 
     if (fade_changed)
     {
-        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
         const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
         // Quantized position gate avoids redundant SPI writes.
         if (ch_fader_cc != *pair->current_position)
@@ -2456,7 +2483,7 @@ void ui_control_reapply_ch_fader_outputs(void)
     for (uint32_t i = 0; i < TU_ARRAY_SIZE(s_ch_fader_pairs); i++)
     {
         const ch_fader_pair_runtime_t* pair = &s_ch_fader_pairs[i];
-        const float ch_fader_value = compute_ch_fader_pair_value(pair);
+        const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
         const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
 
         pair->set_dc(ch_fader_value);
@@ -2582,13 +2609,29 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         return true;
     }
 
+    if ((program == CH_FADER_REVERSE_A_OFF) || (program == CH_FADER_REVERSE_A_ON))
+    {
+        s_ui.ch_fader_reverse_a = (program == CH_FADER_REVERSE_A_ON);
+        ui_control_reapply_ch_fader_outputs();
+        SEGGER_RTT_printf(0, "Channel fader A Reverse: %s (PC%u)\r\n", s_ui.ch_fader_reverse_a ? "ON" : "OFF", (unsigned) program);
+        return true;
+    }
+
+    if ((program == CH_FADER_REVERSE_B_OFF) || (program == CH_FADER_REVERSE_B_ON))
+    {
+        s_ui.ch_fader_reverse_b = (program == CH_FADER_REVERSE_B_ON);
+        ui_control_reapply_ch_fader_outputs();
+        SEGGER_RTT_printf(0, "Channel fader B Reverse: %s (PC%u)\r\n", s_ui.ch_fader_reverse_b ? "ON" : "OFF", (unsigned) program);
+        return true;
+    }
+
     if (program == MIDI_PC_REQUEST_EEPROM_DUMP)
     {
         EEPROM_DeviceConfig_t cfg;
 
         EEPROM_ConfigCaptureCurrent(&cfg);
         send_midi_config_dump(&cfg);
-        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
+        SEGGER_RTT_printf(0, "Current config dumped by MIDI PC126: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u MAG_AS_NOTE=%u AUX2=%u AUX3=%u REVERSE_A=%u REVERSE_B=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) ((cfg.mag_output_mode_flags & EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE) != 0U), (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (unsigned) ((cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_A) != 0U), (unsigned) ((cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_B) != 0U), (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
 
         return true;
     }
@@ -2601,7 +2644,7 @@ static bool dispatch_midi_program_change(uint8_t channel, uint8_t program)
         if (EEPROM_SaveConfig(&hi2c2, &cfg) == HAL_OK)
         {
             led_notify_save_success();
-            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
+            SEGGER_RTT_printf(0, "EEPROM config saved by MIDI PC127: CH1=%u CH2=%u CH_FADER_A=%u CH_FADER_B=%u CH_FADER_POST=%u RTN=%u HP=%u DVS1=%u DVS2=%u AUX2=%u AUX3=%u REVERSE_A=%u REVERSE_B=%u CURVE_WIDTH_A=%.4f CURVE_WIDTH_B=%.4f\r\n", (unsigned) cfg.current_ch1_input_type, (unsigned) cfg.current_ch2_input_type, (unsigned) cfg.current_ch_fader_a_assign, (unsigned) cfg.current_ch_fader_b_assign, (unsigned) cfg.current_ch_fader_post_assign, (unsigned) cfg.current_return_assign, (unsigned) cfg.current_hp_out_source, (unsigned) cfg.current_ch1_dvs_enable, (unsigned) cfg.current_ch2_dvs_enable, (unsigned) cfg.sensor2_aux_fade_down_assign, (unsigned) cfg.sensor3_aux_fade_down_assign, (unsigned) ((cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_A) != 0U), (unsigned) ((cfg.ch_fader_reverse_flags & EEPROM_CFG_FLAG_CH_FADER_REVERSE_B) != 0U), (double) cfg.current_ch_fader_curve_width_a, (double) cfg.current_ch_fader_curve_width_b);
         }
         else
         {
@@ -2767,6 +2810,8 @@ void ui_control_get_persist_state(UI_ControlPersistState_t* state)
     state->sensor3_aux_fade_down_assign = s_ui.sensor3_aux_fade_down_assign;
     state->current_ch_fader_curve_width_a = s_ui.ch_fader_curve_width_a;
     state->current_ch_fader_curve_width_b = s_ui.ch_fader_curve_width_b;
+    state->ch_fader_reverse_a        = s_ui.ch_fader_reverse_a;
+    state->ch_fader_reverse_b        = s_ui.ch_fader_reverse_b;
     state->mag_out_as_note           = s_ui.mag_out_as_note;
 }
 
@@ -2814,6 +2859,8 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
                                        state->sensor3_aux_fade_down_assign);
     s_ui.ch_fader_curve_width_a = clamp_ch_fader_curve_width(state->current_ch_fader_curve_width_a);
     s_ui.ch_fader_curve_width_b = clamp_ch_fader_curve_width(state->current_ch_fader_curve_width_b);
+    s_ui.ch_fader_reverse_a = state->ch_fader_reverse_a;
+    s_ui.ch_fader_reverse_b = state->ch_fader_reverse_b;
     s_ui.mag_out_as_note    = state->mag_out_as_note;
     mark_ch_fader_curve_dirty();
 
@@ -2879,6 +2926,8 @@ void ui_control_reset_state(void)
     s_ui.sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B;
     s_ui.ch_fader_curve_width_a    = UI_CH_FADER_CURVE_WIDTH_A_DEFAULT;
     s_ui.ch_fader_curve_width_b    = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT;
+    s_ui.ch_fader_reverse_a     = false;
+    s_ui.ch_fader_reverse_b     = false;
     s_ui.curve_edit_mode        = false;
     s_ui.ch_fader.position_a          = 0;
     s_ui.ch_fader.position_b          = 0;

@@ -67,6 +67,7 @@ void EEPROM_ConfigSetDefaults(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch_fader_curve_width_b = UI_CH_FADER_CURVE_WIDTH_B_DEFAULT;
     cfg->sensor2_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_A;
     cfg->sensor3_aux_fade_down_assign = UI_CH_FADER_AUX_ASSIGN_B;
+    cfg->ch_fader_reverse_flags = 0U;
 }
 
 void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
@@ -93,6 +94,15 @@ void EEPROM_ConfigCaptureCurrent(EEPROM_DeviceConfig_t* cfg)
     cfg->current_ch_fader_curve_width_b = state.current_ch_fader_curve_width_b;
     cfg->sensor2_aux_fade_down_assign = state.sensor2_aux_fade_down_assign;
     cfg->sensor3_aux_fade_down_assign = state.sensor3_aux_fade_down_assign;
+    cfg->ch_fader_reverse_flags = 0U;
+    if (state.ch_fader_reverse_a)
+    {
+        cfg->ch_fader_reverse_flags |= EEPROM_CFG_FLAG_CH_FADER_REVERSE_A;
+    }
+    if (state.ch_fader_reverse_b)
+    {
+        cfg->ch_fader_reverse_flags |= EEPROM_CFG_FLAG_CH_FADER_REVERSE_B;
+    }
 }
 
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef* hi2c)

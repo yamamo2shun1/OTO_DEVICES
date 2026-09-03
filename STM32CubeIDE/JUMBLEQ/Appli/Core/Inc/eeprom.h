@@ -32,13 +32,16 @@ typedef struct
     float current_ch_fader_curve_width_b;
     uint8_t sensor2_aux_fade_down_assign;
     uint8_t sensor3_aux_fade_down_assign;
+    uint8_t ch_fader_reverse_flags;
 } EEPROM_DeviceConfig_t;
 
 #define EEPROM_CONFIG_ADDR               (0x0000U)
 #define EEPROM_CONFIG_MAGIC              (0x51424D4AU) /* "JMBQ" */
-#define EEPROM_CONFIG_VERSION            (0x0006U)
+#define EEPROM_CONFIG_VERSION            (0x0007U)
 
 #define EEPROM_CFG_FLAG_MAG_OUT_AS_NOTE   (0x01U)
+#define EEPROM_CFG_FLAG_CH_FADER_REVERSE_A (0x01U)
+#define EEPROM_CFG_FLAG_CH_FADER_REVERSE_B (0x02U)
 HAL_StatusTypeDef EEPROM_CheckConnection(I2C_HandleTypeDef *hi2c);
 HAL_StatusTypeDef EEPROM_WaitReady(I2C_HandleTypeDef *hi2c, uint32_t timeout_ms);
 HAL_StatusTypeDef EEPROM_Read(I2C_HandleTypeDef *hi2c, uint16_t mem_addr, uint8_t *buf, uint16_t len);
