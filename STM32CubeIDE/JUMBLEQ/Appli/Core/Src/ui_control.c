@@ -1974,7 +1974,10 @@ static float compute_ch_fader_exponential_curve(float position, float curve_amou
         return t;
     }
 
-    const float k = CH_FADER_PAIR_CURVE_EXPONENT_MAX * magnitude;
+    // Cubic shaping allocates more CC resolution around the linear midpoint
+    // while preserving the same maximum curvature at both endpoints.
+    const float shaped_magnitude = magnitude * magnitude * magnitude;
+    const float k = CH_FADER_PAIR_CURVE_EXPONENT_MAX * shaped_magnitude;
     const float denominator = -expm1f(-k);
     float result;
 
