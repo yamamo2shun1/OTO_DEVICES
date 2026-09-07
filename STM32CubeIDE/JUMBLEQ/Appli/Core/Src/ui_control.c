@@ -20,6 +20,7 @@
 #include "SigmaStudioFW.h"
 
 #include <math.h>
+#include <string.h>
 
 #define POT_CH_SEL_WAIT           1
 #define POT_MA_SIZE               4  // 移動平均のサンプル数
@@ -32,6 +33,10 @@
 #define MAG_CH_FADER_CUTOFF          16
 #define MAG_CH_FADER_RANGE           1400
 #define CH_FADER_FADE_DOWN_SOURCE_COUNT 3U
+// Delay only DSP fader control for DVS inputs; MIDI remains live.
+#define CH_FADER_DVS_DELAY_MS        50U
+// At most one update per pair per ADC task iteration (2 ms minimum).
+#define CH_FADER_DSP_QUEUE_CAPACITY  512U
 
 extern DMA_QListTypeDef List_HPDMA1_Channel0;
 
@@ -283,6 +288,147 @@ static ch_fader_pair_runtime_t s_ch_fader_pairs[] = {
      .set_dc            = set_dc_inputB,
      },
 };
+
+typedef struct
+{
+    uint32_t captured_ms;
+    float value;
+} ch_fader_dsp_update_t;
+
+typedef struct
+{
+    ch_fader_dsp_update_t queue[CH_FADER_DSP_QUEUE_CAPACITY];
+    uint16_t head;
+    uint16_t count;
+    uint8_t target_position;
+    float target_value;
+    uint8_t input_assign;
+    bool delay_enabled;
+    bool context_valid;
+    bool target_valid;
+} ch_fader_dsp_state_t;
+
+static ch_fader_dsp_state_t s_ch_fader_dsp[CH_FADER_PAIR_COUNT];
+
+static uint8_t get_ch_fader_dsp_assign(const ch_fader_pair_runtime_t* pair)
+{
+    return (pair->prev_idx == CH_FADER_PAIR_A) ? s_ui.current_ch_fader_a_assign
+                                             : s_ui.current_ch_fader_b_assign;
+}
+
+static bool ch_fader_assign_uses_dvs(uint8_t assign)
+{
+    switch (assign)
+    {
+    case INPUT_SRC_CH1_LN:
+    case INPUT_SRC_CH1_PN:
+    case INPUT_SRC_USB12:  // PC return for Ch. 1 DVS, including direct USB routing.
+        return s_ui.current_ch1_dvs_enable != 0U;
+    case INPUT_SRC_CH2_LN:
+    case INPUT_SRC_CH2_PN:
+    case INPUT_SRC_USB34:  // PC return for Ch. 2 DVS, including direct USB routing.
+        return s_ui.current_ch2_dvs_enable != 0U;
+    default:
+        return false;
+    }
+}
+
+static void write_ch_fader_dsp_output(const ch_fader_pair_runtime_t* pair, float value)
+{
+    pair->set_dc(value);
+    *pair->current_position = (uint8_t) (value * 128.0f);
+}
+
+// Configuration/reapply operations synchronize immediately and cancel old gestures.
+static void sync_ch_fader_dsp_output(const ch_fader_pair_runtime_t* pair, float value)
+{
+    ch_fader_dsp_state_t* state = &s_ch_fader_dsp[pair->prev_idx];
+    state->head = 0U;
+    state->count = 0U;
+    state->target_value = value;
+    state->target_position = (uint8_t) (value * 128.0f);
+    state->target_valid = true;
+    state->input_assign = get_ch_fader_dsp_assign(pair);
+    state->delay_enabled = ch_fader_assign_uses_dvs(state->input_assign);
+    state->context_valid = true;
+    write_ch_fader_dsp_output(pair, value);
+}
+
+static void refresh_ch_fader_dsp_context(const ch_fader_pair_runtime_t* pair)
+{
+    ch_fader_dsp_state_t* state = &s_ch_fader_dsp[pair->prev_idx];
+    const uint8_t assign = get_ch_fader_dsp_assign(pair);
+    const bool delay_enabled = ch_fader_assign_uses_dvs(assign);
+
+    if (state->context_valid &&
+        ((state->input_assign != assign) || (state->delay_enabled != delay_enabled)))
+    {
+        state->head = 0U;
+        state->count = 0U;
+        if (state->target_valid)
+        {
+            write_ch_fader_dsp_output(pair, state->target_value);
+        }
+    }
+    state->input_assign = assign;
+    state->delay_enabled = delay_enabled;
+    state->context_valid = true;
+}
+
+static void submit_ch_fader_dsp_output(const ch_fader_pair_runtime_t* pair, float value)
+{
+    ch_fader_dsp_state_t* state = &s_ch_fader_dsp[pair->prev_idx];
+    const uint8_t position = (uint8_t) (value * 128.0f);
+    refresh_ch_fader_dsp_context(pair);
+
+    // Compare with the last requested value, not the still-delayed DSP position.
+    // Otherwise a quick return to the DSP's current value would lose its edge.
+    if (state->target_valid && (position == state->target_position))
+    {
+        return;
+    }
+    state->target_value = value;
+    state->target_position = position;
+    state->target_valid = true;
+
+    if (!state->delay_enabled || (CH_FADER_DVS_DELAY_MS == 0U) ||
+        (state->count == CH_FADER_DSP_QUEUE_CAPACITY))
+    {
+        // Capacity exceeds the configured delay history. If overloaded, recover to
+        // the current value instead of leaving a stale cut waiting in the queue.
+        sync_ch_fader_dsp_output(pair, value);
+        return;
+    }
+
+    const uint16_t tail = (uint16_t) ((state->head + state->count) % CH_FADER_DSP_QUEUE_CAPACITY);
+    state->queue[tail].captured_ms = HAL_GetTick();
+    state->queue[tail].value = value;
+    state->count++;
+}
+
+static void service_ch_fader_dsp_outputs(void)
+{
+    for (uint8_t i = 0U; i < CH_FADER_PAIR_COUNT; i++)
+    {
+        const ch_fader_pair_runtime_t* pair = &s_ch_fader_pairs[i];
+        ch_fader_dsp_state_t* state = &s_ch_fader_dsp[i];
+        refresh_ch_fader_dsp_context(pair);
+        const uint32_t now = HAL_GetTick();
+
+        while (state->count != 0U)
+        {
+            const ch_fader_dsp_update_t* update = &state->queue[state->head];
+            // Unsigned elapsed time also handles HAL tick wraparound.
+            if ((uint32_t) (now - update->captured_ms) < CH_FADER_DVS_DELAY_MS)
+            {
+                break;
+            }
+            write_ch_fader_dsp_output(pair, update->value);
+            state->head = (uint16_t) ((state->head + 1U) % CH_FADER_DSP_QUEUE_CAPACITY);
+            state->count--;
+        }
+    }
+}
 
 static void append_ch_fader_aux_sensor(uint8_t pair_idx, uint8_t sensor_idx)
 {
@@ -2466,13 +2612,7 @@ static void update_ch_fader_pair_output(const ch_fader_pair_runtime_t* pair)
     if (fade_changed)
     {
         const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
-        const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
-        // Quantized position gate avoids redundant SPI writes.
-        if (ch_fader_cc != *pair->current_position)
-        {
-            pair->set_dc(ch_fader_value);
-            *pair->current_position = ch_fader_cc;
-        }
+        submit_ch_fader_dsp_output(pair, ch_fader_value);
     }
 
     s_ui.ch_fader.fade_up_prev[pair->prev_idx]   = up_now;
@@ -2515,10 +2655,8 @@ void ui_control_reapply_ch_fader_outputs(void)
     {
         const ch_fader_pair_runtime_t* pair = &s_ch_fader_pairs[i];
         const float ch_fader_value = apply_ch_fader_pair_reverse(pair, compute_ch_fader_pair_value(pair));
-        const uint8_t ch_fader_cc  = (uint8_t) (ch_fader_value * 128.0f);
 
-        pair->set_dc(ch_fader_value);
-        *pair->current_position = ch_fader_cc;
+        sync_ch_fader_dsp_output(pair, ch_fader_value);
         s_ui.ch_fader.fade_up_prev[pair->prev_idx]   = get_ch_fader_pair_fade_up_raw(pair);
         s_ui.ch_fader.fade_down_prev[pair->prev_idx] = get_ch_fader_pair_fade_down_raw(pair);
     }
@@ -2799,15 +2937,22 @@ void ui_control_task(void)
     return;
 #endif
 
-    if (!is_started_audio_control() || !is_adc_complete)
+    if (!is_started_audio_control())
     {
         return;
     }
 
-    process_pot();
-    process_mag();
-    process_midi_rx();
-    is_adc_complete = false;
+    if (is_adc_complete)
+    {
+        process_pot();
+        process_mag();
+        process_midi_rx();
+        is_adc_complete = false;
+    }
+
+    // Keep due writes running even when no new ADC sample has arrived. Handle
+    // MIDI routing changes first so queued values cannot replay on a new input.
+    service_ch_fader_dsp_outputs();
 }
 
 void start_audio_control(void)
@@ -2900,6 +3045,8 @@ bool ui_control_apply_persist_state(const UI_ControlPersistState_t* state)
 
 void ui_control_reset_state(void)
 {
+    memset(s_ch_fader_dsp, 0, sizeof(s_ch_fader_dsp));
+
     for (uint16_t i = 0; i < ADC_NUM; i++)
     {
         adc_val[i] = 0;
