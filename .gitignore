@@ -3,6 +3,9 @@ Datasheets/
 
 FlexASIO.toml
 
+### Codex
+.codex-remote-attachments/
+
 ### macOS
 .DS_Store
 
