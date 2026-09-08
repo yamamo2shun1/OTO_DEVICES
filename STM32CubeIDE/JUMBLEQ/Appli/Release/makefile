@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (14.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -23,6 +23,7 @@ RM := rm -rf
 -include tinyusb/src/portable/raspberrypi/rp2040/subdir.mk
 -include tinyusb/src/portable/raspberrypi/pio_usb/subdir.mk
 -include tinyusb/src/portable/ohci/subdir.mk
+-include tinyusb/src/portable/nxp/lpc_ip3516/subdir.mk
 -include tinyusb/src/portable/nxp/lpc_ip3511/subdir.mk
 -include tinyusb/src/portable/nxp/lpc17_40/subdir.mk
 -include tinyusb/src/portable/nxp/khci/subdir.mk
@@ -49,6 +50,7 @@ RM := rm -rf
 -include tinyusb/src/class/video/subdir.mk
 -include tinyusb/src/class/vendor/subdir.mk
 -include tinyusb/src/class/usbtmc/subdir.mk
+-include tinyusb/src/class/printer/subdir.mk
 -include tinyusb/src/class/net/subdir.mk
 -include tinyusb/src/class/mtp/subdir.mk
 -include tinyusb/src/class/msc/subdir.mk
@@ -106,14 +108,15 @@ JUMBLEQ_Appli.list \
 
 
 # All Target
-all: main-build
+all:
+	+@$(MAKE) --no-print-directory main-build && $(MAKE) --no-print-directory post-build
 
 # Main-build Target
 main-build: JUMBLEQ_Appli.elf secondary-outputs
 
 # Tool invocations
-JUMBLEQ_Appli.elf JUMBLEQ_Appli.map: $(OBJS) $(USER_OBJS) C:\Users\shuni\JUMBLEQ\STM32CubeIDE\JUMBLEQ\Appli\STM32H7S3Z8TX_ROMxspi1.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "JUMBLEQ_Appli.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\shuni\JUMBLEQ\STM32CubeIDE\JUMBLEQ\Appli\STM32H7S3Z8TX_ROMxspi1.ld" --specs=nosys.specs -Wl,-Map="JUMBLEQ_Appli.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+JUMBLEQ_Appli.elf JUMBLEQ_Appli.map: $(OBJS) $(USER_OBJS) C:\Users\shun\JUMBLEQ\STM32CubeIDE\JUMBLEQ\Appli\STM32H7S3Z8TX_ROMxspi1.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "JUMBLEQ_Appli.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\shun\JUMBLEQ\STM32CubeIDE\JUMBLEQ\Appli\STM32H7S3Z8TX_ROMxspi1.ld" --specs=nosys.specs -Wl,-Map="JUMBLEQ_Appli.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -132,6 +135,11 @@ clean:
 	-$(RM) JUMBLEQ_Appli.elf JUMBLEQ_Appli.list JUMBLEQ_Appli.map default.size.stdout
 	-@echo ' '
 
+post-build:
+	arm-none-eabi-objcopy -O binary "JUMBLEQ_Appli.elf" "JUMBLEQ_Appli.bin"
+	python "../../../MX25UW25645GXDI00_STM32H7S3Z8T/uf2conv.py" -c -b 0x90010000 -f STM32H7RS -o "JUMBLEQ_Appli.uf2" "JUMBLEQ_Appli.bin"
+	-@echo ' '
+
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
 
 fail-specified-linker-script-missing:
@@ -141,6 +149,6 @@ fail-specified-linker-script-missing:
 warn-no-linker-script-specified:
 	@echo 'Warning: No linker script specified. Check the linker settings in the build configuration.'
 
-.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified
+.PHONY: all clean dependents main-build fail-specified-linker-script-missing warn-no-linker-script-specified post-build
 
 -include ../makefile.targets
